@@ -15,6 +15,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - shadcn/ui (Base UI primitives) in `src/components/ui/` — add via `npx shadcn@latest add <name>`, don't hand-write primitives
 - Supabase: Postgres, Auth, Storage, RLS. Clients in `src/lib/supabase/{server,client}.ts`
 - Supabase MCP configured in `.mcp.json` — use it for schema inspection, migrations, logs, advisors
+- Architecture + roadmap: `PLAN.md` — read it before adding a module or table
 
 ## Backend lives in Next.js
 - **Reads**: Server Components call `createClient()` from `@/lib/supabase/server` directly. No API layer in between.
