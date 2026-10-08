@@ -43,6 +43,25 @@ The UI stays simple even when the system behind it isn't.
 - RLS checks `module_enabled(org_id, 'events')`, so a module that's off is really off.
 - Tables are prefixed by module (`evt_*`, `pay_*`, `crm_*`, `shift_*`), with core tables unprefixed.
 
+### Integrations & credentials (core)
+One generic setup that any provider plugs into (Stripe, Resend, Google Sheets, Mailchimp, DATEV, webhooks, …).
+
+- **Two kinds of credentials**
+  - *Platform* (roots' own: Stripe platform key, Resend, etc.) → env vars, never in DB.
+  - *Per org* (an org's connected accounts / API keys) → DB, encrypted.
+- **Secrets in Supabase Vault** (`vault.secrets`, encrypted at rest). Business tables only hold a `secret_id`, never the secret.
+  Secrets are readable only via a `security definer` function callable with the server secret key — never through RLS/PostgREST, never sent to the browser.
+- **`org_integrations`** (org_id, provider, status `connected|error|revoked`, `config` jsonb for non-secret settings like account id/scopes, `secret_id`, `expires_at`, last_error, + audit columns).
+  One row per org per provider (or per connected account if a provider allows several).
+- **Provider registry in code** — `src/integrations/<provider>/integration.ts` manifest:
+  key, name, auth type (`oauth2 | api_key | none`), fields to ask for, scopes, and handlers `connect / disconnect / refresh / test / handleWebhook`.
+  Adding a provider = adding one folder; the settings UI (`/[org]/settings/integrations?connect=stripe`) renders from the manifests.
+- **One OAuth flow** for all oauth2 providers: `/api/integrations/[provider]/callback`, signed `state` (org + user + nonce), token refresh handled centrally.
+- **One webhook entry**: `/api/webhooks/[provider]` → verify signature → insert into `integration_events` (provider, external_id **unique**, payload, processed_at, error) → process.
+  Gives idempotency, retries and replay for free.
+- **Modules declare what they need**: `requires: { modules: ["contacts"], integrations: ["stripe"] }` → enabling Ticketing prompts "connect Stripe".
+- Using a credential is audited (who connected/rotated/removed what); secret values never appear in `audit_log`.
+
 ### URLs
 - App: `app.roots.app/[org]/<module>/<id>/<tab>` — org slug in the path, so switching org = switching URL, links are shareable across members.
 - Public sites: `[org].roots.app/<page>` (rewritten by `proxy.ts`).
@@ -93,7 +112,7 @@ The UI stays simple even when the system behind it isn't.
 
 | Phase | Scope | Done when |
 |---|---|---|
-| **0 — Foundation** | Auth (email + magic link), orgs, members, roles/permissions, invites, audit triggers, `org_modules` + manifest registry, app shell (org switcher, nav from enabled modules + permissions, settings) | Two users in two orgs can't see each other's data; you can invite a user, give them a custom role, and see an audit trail |
+| **0 — Foundation** | Auth (email + magic link), orgs, members, roles/permissions, invites, audit triggers, `org_modules` + manifest registry, integrations core (Vault, `org_integrations`, registry, webhook inbox), app shell (org switcher, nav from enabled modules + permissions, settings) | Two users in two orgs can't see each other's data; you can invite a user, give them a custom role, and see an audit trail |
 | **1 — Contacts** | Core contacts + CRM module basics | Contacts can be created, imported and viewed with history |
 | **2 — Payments** | Stripe Connect onboarding, orders, webhook, refunds, fee handling | Test org connects Stripe and takes a test payment |
 | **3 — Events + Ticketing** | Events, ticket types/tiers, holds, checkout, tickets/QR/PDF/email, scanner | End-to-end test event: buy, receive ticket, scan |
