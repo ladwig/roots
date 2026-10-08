@@ -43,6 +43,11 @@ The UI stays simple even when the system behind it isn't.
 - RLS checks `module_enabled(org_id, 'events')`, so a module that's off is really off.
 - Tables are prefixed by module (`evt_*`, `pay_*`, `crm_*`, `shift_*`), with core tables unprefixed.
 
+### URLs
+- App: `app.roots.app/[org]/<module>/<id>/<tab>` — org slug in the path, so switching org = switching URL, links are shareable across members.
+- Public sites: `[org].roots.app/<page>` (rewritten by `proxy.ts`).
+- All UI state (tabs, filters, sort, page, open dialog, section anchor) lives in the URL — rules in `AGENTS.md`.
+
 ### Cross-module glue
 - **Contacts are core, and CRM is a module on top.** Ticket buyers, guests, members and customers are all `contacts`. CRM adds tags, notes, segments and timeline UI.
 - **Payments are generic.** `pay_orders` and `pay_order_items` reference what was bought with `(source_module, source_id)`. Ticketing creates orders, and later Memberships or Invoices create orders too.

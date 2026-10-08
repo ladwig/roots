@@ -39,6 +39,16 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Icons: `lucide-react` only.
 - Every UI must work in light + dark and at 400px width. Accessible basics: labels on inputs, focus rings intact, real `<button>`/`<a>`.
 
+## URLs = state (deep-linkable everything)
+Every view a user can reach must be shareable/bookmarkable and survive reload + back button.
+- **Pages / sub-pages** → path segments: `/[org]/events/[eventId]/tickets`
+- **Tabs** → path segment if the tab is a real sub-page, else `?tab=lineup`. Tabs are `<Link>`s, not local state.
+- **Filters, search, sort, pagination, view mode** → search params: `?q=max&status=paid&sort=-created_at&page=2`
+- **Dialogs / sheets / drawers on a record** → search param: `?edit=<id>`, `?new=ticket-type`. Closing removes it.
+- **Sections on long pages / settings** → `#anchor` ids on headings.
+- Read params in Server Components via the `searchParams` prop; update from client with `router.replace` (filters) or `<Link>` (navigation). No `useState` for anything that should be in the URL.
+- Keep params short, lowercase, stable — they are public API once shared.
+
 ## Conventions
 - Prefer the simplest working thing: no abstractions, wrappers, or libraries until there's a second real use.
 - Server Components by default; `"use client"` only for interactivity.
