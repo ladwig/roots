@@ -57,3 +57,4 @@ Every view a user can reach must be shareable/bookmarkable and survive reload + 
 - Prefer the simplest working thing: no abstractions, wrappers, or libraries until there's a second real use.
 - Server Components by default; `"use client"` only for interactivity.
 - `npm run lint` and `npm run build` must pass before committing.
+- No AI attribution in commits or PRs (no `Co-Authored-By: Claude`, no "Generated with Claude Code").
