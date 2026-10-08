@@ -55,16 +55,33 @@ One generic setup that any provider plugs into (Stripe, Resend, Google Sheets, M
   One row per org per provider (or per connected account if a provider allows several).
 - **Provider registry in code** — `src/integrations/<provider>/integration.ts` manifest:
   key, name, auth type (`oauth2 | api_key | none`), fields to ask for, scopes, and handlers `connect / disconnect / refresh / test / handleWebhook`.
-  Adding a provider = adding one folder; the settings UI (`/[org]/settings/integrations?connect=stripe`) renders from the manifests.
+  Adding a provider = adding one folder; the settings UI (`/settings/integrations?connect=stripe`) renders from the manifests.
 - **One OAuth flow** for all oauth2 providers: `/api/integrations/[provider]/callback`, signed `state` (org + user + nonce), token refresh handled centrally.
 - **One webhook entry**: `/api/webhooks/[provider]` → verify signature → insert into `integration_events` (provider, external_id **unique**, payload, processed_at, error) → process.
   Gives idempotency, retries and replay for free.
 - **Modules declare what they need**: `requires: { modules: ["contacts"], integrations: ["stripe"] }` → enabling Ticketing prompts "connect Stripe".
 - Using a credential is audited (who connected/rotated/removed what); secret values never appear in `audit_log`.
 
+### Two surfaces: App vs Public
+One Next.js codebase, split by host in `proxy.ts` and by route groups:
+
+| | **App** (back office) | **Public** (outward-facing) |
+|---|---|---|
+| Who | Org members (logged in) | Anyone: ticket buyers, guests, artists, visitors |
+| Host | `app.roots.app` | `<org>.roots.app`, later custom domains (`tickets.myclub.de`) |
+| Code | `src/app/(app)/…` | `src/app/(public)/[site]/…` (proxy rewrites host → `[site]`) |
+| Auth | Supabase session + permissions | None, or scoped link tokens (guestlist link, ticket access) |
+| Data | Through RLS as the member | Only `published` content via narrow public views / RPCs; writes (checkout, guest add) only via Server Actions that validate the token |
+| Look | roots design system | Org branding (logo, colors, font) on top of the same components |
+
+Public content is examples like: event pages, ticket shop, checkout, ticket download, guestlist self-service, artist forms, shift signup, a simple org website.
+Modules contribute to both: e.g. Events = event management in the App + event page / ticket shop on Public.
+
 ### URLs
-- App: `app.roots.app/[org]/<module>/<id>/<tab>` — org slug in the path, so switching org = switching URL, links are shareable across members.
-- Public sites: `[org].roots.app/<page>` (rewritten by `proxy.ts`).
+- **App**: `app.roots.app/<module>/<id>/<tab>` — e.g. `/events/8f2c…/tickets?tier=early`. **No org in the path.**
+  - Active org = cookie (`active_org`), falls back to the user's last used org; switching org is a menu action.
+  - Record ids are UUIDs, so a shared link to a record in another of your orgs resolves the record's org and switches automatically; no access → 404.
+- **Public**: `<org>.roots.app/<page>` — e.g. `/events/summer-rave`, `/g/<token>` (guestlist link). Slugs, not ids, for anything SEO/shareable.
 - All UI state (tabs, filters, sort, page, open dialog, section anchor) lives in the URL — rules in `AGENTS.md`.
 
 ### Cross-module glue
@@ -99,7 +116,7 @@ One generic setup that any provider plugs into (Stripe, Resend, Google Sheets, M
   - The link opens a page where a promoter or artist adds their friends by name and optional email. Each guest becomes a 0€ ticket.
   - A link is a random token stored hashed in the database, and the database is the source of truth for whether it's revoked and how much of its quota is used.
 - **Public pages**
-  - `clubname.roots.app` → `proxy.ts` rewrites the host to `/sites/[org]/…`. Uses a wildcard domain on Vercel. Custom domains come later.
+  - Served on the Public surface (`clubname.roots.app`, wildcard domain on Vercel). Custom domains later.
   - Basic builder: a page is an ordered list of typed **blocks** (hero, text, image, lineup, ticket shop, FAQ) edited as a form. No drag-and-drop canvas.
 
 ### Shift planning (generic)

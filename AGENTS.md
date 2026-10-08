@@ -39,9 +39,13 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Icons: `lucide-react` only.
 - Every UI must work in light + dark and at 400px width. Accessible basics: labels on inputs, focus rings intact, real `<button>`/`<a>`.
 
+## Two surfaces
+- **App** (`src/app/(app)/`, `app.roots.app`): logged-in back office. Everything through RLS + permissions.
+- **Public** (`src/app/(public)/[site]/`, `<org>.roots.app` + custom domains): outward-facing pages for anyone. Never expose unpublished data; public writes only via Server Actions that validate input + link tokens. Never import App-only code (admin queries, secret-key clients) into Public pages without a reason.
+
 ## URLs = state (deep-linkable everything)
 Every view a user can reach must be shareable/bookmarkable and survive reload + back button.
-- **Pages / sub-pages** → path segments: `/[org]/events/[eventId]/tickets`
+- **Pages / sub-pages** → path segments: `/events/[eventId]/tickets` (no org in App URLs — active org is a cookie)
 - **Tabs** → path segment if the tab is a real sub-page, else `?tab=lineup`. Tabs are `<Link>`s, not local state.
 - **Filters, search, sort, pagination, view mode** → search params: `?q=max&status=paid&sort=-created_at&page=2`
 - **Dialogs / sheets / drawers on a record** → search param: `?edit=<id>`, `?new=ticket-type`. Closing removes it.
