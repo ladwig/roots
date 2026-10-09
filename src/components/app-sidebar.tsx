@@ -135,7 +135,7 @@ function UserMenu({ me }: { me: { name: string; email: string; avatar: string | 
               ))}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem render={<button type="submit" form="sign-out" className="w-full" />}>
+            <DropdownMenuItem nativeButton render={<button type="submit" form="sign-out" className="w-full" />}>
               <LogOutIcon /> {t("auth.signOut")}
             </DropdownMenuItem>
           </DropdownMenuContent>
