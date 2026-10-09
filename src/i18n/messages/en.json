@@ -11,7 +11,9 @@
     "newer": "Newer",
     "older": "Older",
     "created": "Created",
-    "open": "Open"
+    "open": "Open",
+    "upload": "Upload",
+    "removeImage": "Remove image"
   },
   "auth": {
     "title": "Sign in to Roots",
@@ -88,7 +90,9 @@
     "name": "Name",
     "publicAddress": "Public address",
     "saved": "Saved.",
-    "nameRequired": "The name can't be empty."
+    "nameRequired": "The name can't be empty.",
+    "logo": "Logo",
+    "logoHint": "PNG, JPG, WebP or GIF, max. 2 MB. Shown in the app and on public pages."
   },
   "members": {
     "heading": "Members",
@@ -318,7 +322,10 @@
     },
     "cannot_delete_self": "You can't delete your own account here.",
     "slug_admin_only": "Only platform admins can change the address.",
-    "invalid_role": "This role doesn't exist here."
+    "invalid_role": "This role doesn't exist here.",
+    "image_missing": "Please choose an image.",
+    "image_type": "Only PNG, JPG, WebP or GIF.",
+    "image_too_large": "The image is larger than 2 MB."
   },
   "admin": {
     "title": "Platform",
@@ -419,7 +426,9 @@
     "passwordChanged": "Password changed.",
     "passwordsDontMatch": "The passwords don't match.",
     "saved": "Saved.",
-    "resetHint": "Set a new password now."
+    "resetHint": "Set a new password now.",
+    "picture": "Profile picture",
+    "pictureHint": "PNG, JPG, WebP or GIF, max. 2 MB."
   },
   "payments": {
     "nav": "Payments",

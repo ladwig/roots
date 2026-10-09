@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { DataTable } from "@/components/data-table"
 import { Notice } from "@/components/notice"
+import { Picture } from "@/components/picture"
 import { UrlSheet } from "@/components/url-sheet"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -28,7 +29,7 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
   ])
   const { data: profiles } = await db
     .from("profiles")
-    .select("id, email, full_name")
+    .select("id, email, full_name, avatar_path")
     .in("id", members?.map((m) => m.user_id) ?? [])
   const profile = new Map(profiles?.map((p) => [p.id, p]))
   const roleName = new Map(roles?.map((r) => [r.id, t.pick(r.name)]))
@@ -64,9 +65,12 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
               cell: (m) => {
                 const p = profile.get(m.user_id)
                 return (
-                  <span className="grid">
-                    <span className="font-medium">{p?.full_name || p?.email}</span>
-                    {p?.full_name && <span className="text-xs text-muted-foreground">{p.email}</span>}
+                  <span className="flex items-center gap-3">
+                    <Picture path={p?.avatar_path} name={p?.full_name || p?.email || "?"} />
+                    <span className="grid">
+                      <span className="font-medium">{p?.full_name || p?.email}</span>
+                      {p?.full_name && <span className="text-xs text-muted-foreground">{p.email}</span>}
+                    </span>
                   </span>
                 )
               },

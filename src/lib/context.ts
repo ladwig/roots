@@ -10,7 +10,7 @@ export const setActiveOrg = async (orgId: string) =>
   (await cookies()).set(ACTIVE_ORG_COOKIE, orgId, { path: "/", httpOnly: true, sameSite: "lax", maxAge: 60 * 60 * 24 * 365 })
 
 type Role = { name: string; is_owner: boolean; permissions: string[] }
-type Org = { id: string; name: string; slug: string }
+type Org = { id: string; name: string; slug: string; logo_path: string | null }
 
 // Mirrors public.has_perm() for hiding UI. The database is the real check.
 export const roleHas = (role: Role, perm: string) =>
@@ -34,11 +34,11 @@ export const getContext = cache(async () => {
 
   const { data: memberships } = await supabase
     .from("org_members")
-    .select("org_id, orgs(id, name, slug, deleted_at), roles(name, is_owner, permissions)")
+    .select("org_id, orgs(id, name, slug, logo_path, deleted_at), roles(name, is_owner, permissions)")
     .eq("user_id", userId)
     .order("created_at")
   const live = memberships?.filter((m) => m.orgs && !m.orgs.deleted_at) // deleted orgs: hidden, or in the trash for admins
-  const orgs: Org[] = live?.map((m) => ({ id: m.orgs!.id, name: m.orgs!.name, slug: m.orgs!.slug })) ?? []
+  const orgs: Org[] = live?.map((m) => ({ id: m.orgs!.id, name: m.orgs!.name, slug: m.orgs!.slug, logo_path: m.orgs!.logo_path })) ?? []
   const active = (await cookies()).get(ACTIVE_ORG_COOKIE)?.value
 
   const t = await getT()
@@ -52,7 +52,7 @@ export const getContext = cache(async () => {
 
   // Platform admins can open any org; they act with full rights there.
   if (!current && active && isPlatformAdmin) {
-    const { data } = await supabase.from("orgs").select("id, name, slug").eq("id", active).is("deleted_at", null).maybeSingle()
+    const { data } = await supabase.from("orgs").select("id, name, slug, logo_path").eq("id", active).is("deleted_at", null).maybeSingle()
     if (data) {
       org = data
       role = { name: t("admin.roleName"), is_owner: true, permissions: [] }

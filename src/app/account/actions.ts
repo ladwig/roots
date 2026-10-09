@@ -1,6 +1,8 @@
 "use server"
 
+import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { removeImage, replaceImage } from "@/lib/images"
 import { getT } from "@/i18n/server"
 import { authError, dbError } from "@/i18n/translate"
 import { getSession } from "@/lib/context"
@@ -44,4 +46,22 @@ export async function savePreferences(formData: FormData) {
   const { error } = await session.supabase.from("notification_preferences").upsert(rows, { onConflict: "user_id,event_type,channel" })
   if (error) back(backTo(formData), { error: dbError(t, error) })
   back(backTo(formData), { ok: t("prefs.saved") })
+}
+
+export async function updateAvatar(formData: FormData) {
+  const session = await getSession()
+  if (!session) redirect("/login?next=/account")
+  const t = await getT()
+  const { data: profile } = await session.supabase.from("profiles").select("avatar_path").eq("id", session.userId).maybeSingle()
+  let avatar_path: string | null = null
+  if (formData.get("remove") === "1") await removeImage(session.supabase, profile?.avatar_path)
+  else {
+    const res = await replaceImage(session.supabase, `users/${session.userId}`, formData.get("file"), profile?.avatar_path)
+    if ("error" in res) back(backTo(formData), { error: t.dynamic(`errors.${res.error}`) })
+    avatar_path = res.path!
+  }
+  const { error } = await session.supabase.from("profiles").update({ avatar_path }).eq("id", session.userId)
+  if (error) back(backTo(formData), { error: dbError(t, error) })
+  revalidatePath("/", "layout")
+  back(backTo(formData), { ok: t("account.saved") })
 }

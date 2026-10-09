@@ -11,7 +11,9 @@
     "newer": "Neuer",
     "older": "Älter",
     "created": "Angelegt",
-    "open": "Öffnen"
+    "open": "Öffnen",
+    "upload": "Hochladen",
+    "removeImage": "Bild entfernen"
   },
   "auth": {
     "title": "Bei Roots anmelden",
@@ -88,7 +90,9 @@
     "name": "Name",
     "publicAddress": "Öffentliche Adresse",
     "saved": "Gespeichert.",
-    "nameRequired": "Der Name darf nicht leer sein."
+    "nameRequired": "Der Name darf nicht leer sein.",
+    "logo": "Logo",
+    "logoHint": "PNG, JPG, WebP oder GIF, max. 2 MB. Erscheint in der App und auf öffentlichen Seiten."
   },
   "members": {
     "heading": "Mitglieder",
@@ -318,7 +322,10 @@
     },
     "cannot_delete_self": "Du kannst dein eigenes Konto hier nicht löschen.",
     "slug_admin_only": "Nur Plattform-Admins können die Adresse ändern.",
-    "invalid_role": "Diese Rolle gibt es hier nicht."
+    "invalid_role": "Diese Rolle gibt es hier nicht.",
+    "image_missing": "Bitte wähle ein Bild aus.",
+    "image_type": "Nur PNG, JPG, WebP oder GIF.",
+    "image_too_large": "Das Bild ist größer als 2 MB."
   },
   "admin": {
     "title": "Plattform",
@@ -419,7 +426,9 @@
     "passwordChanged": "Passwort geändert.",
     "passwordsDontMatch": "Die Passwörter stimmen nicht überein.",
     "saved": "Gespeichert.",
-    "resetHint": "Setze jetzt ein neues Passwort."
+    "resetHint": "Setze jetzt ein neues Passwort.",
+    "picture": "Profilbild",
+    "pictureHint": "PNG, JPG, WebP oder GIF, max. 2 MB."
   },
   "payments": {
     "nav": "Zahlungen",

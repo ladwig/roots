@@ -2,6 +2,7 @@ import Link from "next/link"
 import { signOut } from "@/app/login/actions"
 import { NavLink } from "@/components/nav-link"
 import { OrgSwitcher } from "@/components/org-switcher"
+import { Picture } from "@/components/picture"
 import { Button } from "@/components/ui/button"
 import { LocaleSwitcher } from "@/i18n/client"
 import { getT } from "@/i18n/server"
@@ -11,11 +12,10 @@ import { modules } from "@/modules/registry"
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getContext()
   const t = await getT()
-  const { count: unread } = await ctx.supabase
-    .from("notifications")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", ctx.userId)
-    .is("read_at", null)
+  const [{ count: unread }, { data: me }] = await Promise.all([
+    ctx.supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", ctx.userId).is("read_at", null),
+    ctx.supabase.from("profiles").select("full_name, avatar_path").eq("id", ctx.userId).maybeSingle(),
+  ])
   const nav = [
     { href: "/", label: t("shell.home") },
     { href: "/notifications", label: t("inbox.title"), count: unread ?? 0 },
@@ -46,8 +46,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <div className="hidden gap-2 md:mt-auto md:grid">
           <LocaleSwitcher />
           <form action={signOut} className="flex items-center justify-between gap-2">
-            <Link href="/settings/profile" className="truncate text-xs text-muted-foreground underline-offset-4 hover:underline" title={t("account.link")}>
-              {ctx.email}
+            <Link
+              href="/settings/profile"
+              className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground underline-offset-4 hover:underline"
+              title={t("account.link")}
+            >
+              <Picture path={me?.avatar_path} name={me?.full_name || ctx.email} size="sm" />
+              <span className="truncate">{me?.full_name || ctx.email}</span>
             </Link>
             <Button type="submit" variant="ghost" size="sm">
               {t("auth.signOut")}

@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
+  // Image uploads (2 MB limit in the bucket) go through Server Actions; default is 1 MB.
+  experimental: { serverActions: { bodySizeLimit: "3mb" } },
   async redirects() {
     return [
       { source: "/settings", destination: "/settings/general", permanent: false },

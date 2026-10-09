@@ -10,13 +10,14 @@ import { getSession } from "@/lib/context"
 import { param, type SearchParams } from "@/lib/url"
 import { emailConfigured } from "@/events/channels/email"
 import { eventTypes, personChannels } from "@/events/registry"
-import { savePreferences, updateName, updatePassword } from "./actions"
+import { ImageForm } from "@/components/image-form"
+import { savePreferences, updateAvatar, updateName, updatePassword } from "./actions"
 
 // Personal settings (name, language, password). Used by /settings/profile and /account (no org needed).
 export async function ProfileForms({ sp, path }: { sp: SearchParams; path: "/settings/profile" | "/account" }) {
   const session = (await getSession())!
   const t = await getT()
-  const { data: profile } = await session.supabase.from("profiles").select("full_name").eq("id", session.userId).maybeSingle()
+  const { data: profile } = await session.supabase.from("profiles").select("full_name, avatar_path").eq("id", session.userId).maybeSingle()
   const resetting = param(sp, "reset") === "1"
   const types = eventTypes.filter((e) => e.audience && (!e.audience.platform || session.isPlatformAdmin))
   const { data: prefs } = await session.supabase.from("notification_preferences").select("event_type, channel, enabled").eq("user_id", session.userId)
@@ -30,6 +31,15 @@ export async function ProfileForms({ sp, path }: { sp: SearchParams; path: "/set
       <section id="profile" className="grid gap-3">
         <h2 className="font-medium">{t("account.profile")}</h2>
         <p className="text-sm text-muted-foreground">{session.email}</p>
+        <ImageForm
+          action={updateAvatar}
+          id="avatar"
+          label={t("account.picture")}
+          hint={t("account.pictureHint")}
+          name={profile?.full_name || session.email}
+          path={profile?.avatar_path}
+          hidden={{ back: path }}
+        />
         <form action={updateName} className="grid gap-3">
           <input type="hidden" name="back" value={path} />
           <div className="grid gap-2">
