@@ -3,6 +3,7 @@
 // Secrets (API keys, OAuth tokens) are stored as one JSON object in Supabase Vault; `config` holds non-secret settings.
 import { resend } from "./resend"
 import { stripeIntegration } from "./stripe"
+import { sumupIntegration } from "./sumup"
 import { telegram } from "./telegram"
 
 export type Field = { key: string; secret?: boolean; placeholder?: string }
@@ -57,6 +58,6 @@ export type Integration = {
   }
 }
 
-export const integrations: Integration[] = [stripeIntegration, telegram, resend]
+export const integrations: Integration[] = [stripeIntegration, sumupIntegration, telegram, resend]
 
 export const getIntegration = (key: string) => integrations.find((i) => i.key === key)

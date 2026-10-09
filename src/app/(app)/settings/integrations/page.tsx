@@ -43,6 +43,15 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
                 )}
               </div>
               {row?.last_error && <p className="text-xs text-destructive">{row.last_error}</p>}
+              {i.key === "sumup" && row && (
+                <p className="text-xs text-muted-foreground">
+                  {t("integrations.sumup.merchant", {
+                    name: String((row.config as Record<string, unknown>)?.merchant_name ?? ""),
+                    code: String((row.config as Record<string, unknown>)?.merchant_code ?? ""),
+                  })}
+                  {!(row.config as Record<string, unknown>)?.can_take_payments && <span className="block">{t("integrations.sumup.noPayments")}</span>}
+                </p>
+              )}
               {i.key === "telegram" && row && (
                 <p className="text-xs text-muted-foreground">
                   {t("integrations.telegram.bot", { name: String((row.config as Record<string, unknown>)?.bot_username ?? "") })} ·{" "}

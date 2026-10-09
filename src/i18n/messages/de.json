@@ -267,6 +267,14 @@
         "one": "{count} Chat",
         "other": "{count} Chats"
       }
+    },
+    "sumup": {
+      "description": "Zahlungen über dein SumUp-Konto (Online-Checkout).",
+      "notConfigured": "SumUp ist noch nicht eingerichtet (SUMUP_CLIENT_ID / SUMUP_CLIENT_SECRET fehlen).",
+      "denied": "Die Verbindung mit SumUp wurde abgebrochen.",
+      "reconnect": "Die Verbindung zu SumUp ist abgelaufen. Bitte neu verbinden.",
+      "merchant": "Händler: {name} ({code})",
+      "noPayments": "Verbunden. Für Online-Zahlungen muss SumUp der roots-App die Berechtigung „payments“ freischalten."
     }
   },
   "activity": {

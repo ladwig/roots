@@ -6,8 +6,9 @@ import { applicationFee, feeConfig } from "./fees"
 import { fulfilment, type PaidOrder } from "./fulfilment"
 import type { PaymentProvider } from "./provider"
 import { stripeProvider } from "./providers/stripe"
+import { sumupProvider } from "./providers/sumup"
 
-const providers: PaymentProvider[] = [stripeProvider]
+const providers: PaymentProvider[] = [stripeProvider, sumupProvider] // first ready one wins
 const db = () => createAdminClient()
 const CHECKOUT_MINUTES = 30 // Stripe allows 30 min – 24 h
 
@@ -201,6 +202,8 @@ export async function refundOrder(orderId: string, amount?: number, reason?: str
     provider_ref: result.providerRef,
     status: result.status,
   })
+  // Providers without refund webhooks (SumUp) confirm synchronously; Stripe confirms again via charge.refunded.
+  if (result.status === "succeeded") await markRefunded(payment.provider, payment.provider_payment_ref, refunded + value)
   return result.status
 }
 
