@@ -251,7 +251,22 @@
         "new": "Set up new Stripe account"
       },
       "oauthNotConfigured": "Connecting existing Stripe accounts isn't set up yet (STRIPE_CLIENT_ID is missing).",
-      "oauthDenied": "The connection with Stripe was cancelled."
+      "oauthDenied": "The connection with Stripe was cancelled.",
+      "keyButton": "Connect with API key",
+      "fields": {
+        "secretKey": "Secret key or restricted key"
+      },
+      "help": {
+        "secretKey": "From your Stripe Dashboard (Developers → API keys). Best a restricted key (rk_…) with write access to Checkout Sessions, Refunds and Webhook Endpoints and read access to Account. We use it to create a webhook in your account automatically."
+      },
+      "invalidKey": "That's not a Stripe key (starts with rk_ or sk_).",
+      "keyNoAccess": "Stripe rejected the key or it lacks permissions (at least Account read).",
+      "via": {
+        "oauth": "Connected via Stripe login",
+        "onboarding": "Account set up through roots",
+        "key": "Connected with API key"
+      },
+      "testMode": "Test mode"
     },
     "resend": {
       "description": "Send emails from your own domain.",
@@ -351,7 +366,9 @@
     "invalid_url": "Not a valid link (https://…).",
     "field_required": "Required field missing.",
     "options_required": "Please add at least one choice.",
-    "field_exists": "A field with this label already exists."
+    "field_exists": "A field with this label already exists.",
+    "contact_needs_name_column": "Map at least one column to first name, last name, company or email.",
+    "required_columns": "These required fields are not mapped: {fields}"
   },
   "admin": {
     "title": "Platform",
@@ -777,6 +794,8 @@
     "another": "Import another file",
     "status": "Status",
     "ok": "OK",
-    "previewMore": "First {shown} of {total} rows. Errors in all rows are listed above."
+    "previewMore": "First {shown} of {total} rows. Errors in all rows are listed above.",
+    "mapManual": "No column was recognised automatically. Map your file's columns (left) to our fields (right).",
+    "mapFirst": "Map at least one column to see the preview here."
   }
 }

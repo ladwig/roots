@@ -12,7 +12,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useT } from "@/i18n/client"
 import { decodeCsv, guessMapping, parseCsv, type ImportField } from "@/lib/csv"
 
-export type ImportOutcome = { inserted: number; updated: number; skipped: number; errors: { line: number; message: string }[] } | { error: string }
+export type ImportOutcome =
+  { inserted: number; updated: number; skipped: number; errors: { line: number; message: string }[] } | { error: string }
 type Mapped = Record<string, string>
 const PREVIEW_ROWS = 10
 
@@ -25,12 +26,15 @@ export function CsvImport({
   matchLabel,
   maxRows,
   doneHref,
+  checkMapping,
 }: {
   fields: ImportField[]
   validate: (row: Mapped) => { error: string; field?: string } | { row: unknown }
   onImport: (input: { rows: Mapped[]; mode: "skip" | "update" }) => Promise<ImportOutcome>
   matchLabel: string // what identifies an existing record, e.g. "E-Mail"
   maxRows: number
+  /** Before importing: are the needed fields mapped? Returns an error text or null. */
+  checkMapping?: (keys: string[], mode: "skip" | "update") => string | null
   doneHref: string
 }) {
   const t = useT()
@@ -52,8 +56,7 @@ export function CsvImport({
   }
 
   const mapped: Mapped[] = useMemo(
-    () =>
-      file?.rows.map((r) => Object.fromEntries(mapping.flatMap((key, i) => (key ? [[key, r[i] ?? ""]] : [])))) ?? [],
+    () => file?.rows.map((r) => Object.fromEntries(mapping.flatMap((key, i) => (key ? [[key, r[i] ?? ""]] : [])))) ?? [],
     [file, mapping],
   )
   const checked = useMemo(() => mapped.map((row, i) => ({ line: i + 2, row, res: validate(row) })), [mapped, validate])
@@ -63,6 +66,8 @@ export function CsvImport({
   const errorText = (r: { error: string; field?: string }) => (r.field ? `${r.field}: ` : "") + t.dynamic(r.error)
 
   function submit() {
+    const missing = checkMapping?.(mapping.filter((k): k is string => !!k), mode)
+    if (missing) return void toast.error(missing)
     start(async () => {
       const res = await onImport({ rows: checked.filter((c) => !("error" in c.res)).map((c) => c.row), mode })
       if ("error" in res) return void toast.error(res.error)
@@ -100,7 +105,7 @@ export function CsvImport({
             <h2 id="csv-map" className="font-medium">
               {t("import.mapTitle")}
             </h2>
-            <p className="text-sm text-muted-foreground">{t("import.mapHint")}</p>
+            <p className="text-sm text-muted-foreground">{t(mapping.some(Boolean) ? "import.mapHint" : "import.mapManual")}</p>
             <ul className="grid gap-2">
               {file.headers.map((h, i) => {
                 const sample = file.rows.find((r) => r[i]?.trim())?.[i]
@@ -114,7 +119,9 @@ export function CsvImport({
                     <NativeSelect
                       aria-label={t("import.mapTo", { column: h })}
                       value={mapping[i] ?? ""}
-                      onChange={(e) => setMapping((m) => m.map((v, j) => (j === i ? e.target.value || null : v === e.target.value ? null : v)))}
+                      onChange={(e) =>
+                        setMapping((m) => m.map((v, j) => (j === i ? e.target.value || null : v === e.target.value ? null : v)))
+                      }
                       className="w-full"
                     >
                       <NativeSelectOption value="">{t("import.ignore")}</NativeSelectOption>
@@ -140,56 +147,66 @@ export function CsvImport({
             ))}
           </fieldset>
 
-          <section className="grid gap-3" aria-labelledby="csv-preview">
-            <h2 id="csv-preview" className="font-medium">
-              {t("import.preview")}
-            </h2>
-            <p className="text-sm">{t("import.summary", { good, bad: bad.length })}</p>
-            {bad.length > 0 && (
-              <ErrorList t={t} items={bad.slice(0, 50).map((b) => ({ line: b.line, message: errorText(b.res as { error: string; field?: string }) }))} more={bad.length - 50} />
-            )}
-            {cols.length > 0 && (
-              <div className="overflow-x-auto rounded-lg border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-0">{t("import.line")}</TableHead>
-                      <TableHead className="w-0">
-                        <span className="sr-only">{t("import.status")}</span>
-                      </TableHead>
-                      {cols.map((c) => (
-                        <TableHead key={c.key} className="whitespace-nowrap">
-                          {c.label}
+          {cols.length === 0 ? (
+            <p className="rounded-lg border bg-muted px-3 py-2 text-sm">{t("import.mapFirst")}</p>
+          ) : (
+            <section className="grid gap-3" aria-labelledby="csv-preview">
+              <h2 id="csv-preview" className="font-medium">
+                {t("import.preview")}
+              </h2>
+              <p className="text-sm">{t("import.summary", { good, bad: bad.length })}</p>
+              {bad.length > 0 && (
+                <ErrorList
+                  t={t}
+                  items={bad.slice(0, 50).map((b) => ({ line: b.line, message: errorText(b.res as { error: string; field?: string }) }))}
+                  more={bad.length - 50}
+                />
+              )}
+              {cols.length > 0 && (
+                <div className="overflow-x-auto rounded-lg border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-0">{t("import.line")}</TableHead>
+                        <TableHead className="w-0">
+                          <span className="sr-only">{t("import.status")}</span>
                         </TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {checked.slice(0, PREVIEW_ROWS).map((c) => (
-                      <TableRow key={c.line} className={"error" in c.res ? "bg-destructive/10" : undefined}>
-                        <TableCell className="text-muted-foreground tabular-nums">{c.line}</TableCell>
-                        <TableCell>
-                          {"error" in c.res ? (
-                            <span className="text-xs whitespace-nowrap text-destructive">{errorText(c.res)}</span>
-                          ) : (
-                            <CheckIcon className="size-4 text-primary" aria-label={t("import.ok")} />
-                          )}
-                        </TableCell>
-                        {cols.map((col) => (
-                          <TableCell key={col.key} className="max-w-48 truncate">
-                            {c.row[col.key]}
-                          </TableCell>
+                        {cols.map((c) => (
+                          <TableHead key={c.key} className="whitespace-nowrap">
+                            {c.label}
+                          </TableHead>
                         ))}
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-            {checked.length > PREVIEW_ROWS && <p className="text-xs text-muted-foreground">{t("import.previewMore", { shown: PREVIEW_ROWS, total: checked.length })}</p>}
-          </section>
+                    </TableHeader>
+                    <TableBody>
+                      {checked.slice(0, PREVIEW_ROWS).map((c) => (
+                        <TableRow key={c.line} className={"error" in c.res ? "bg-destructive/10" : undefined}>
+                          <TableCell className="text-muted-foreground tabular-nums">{c.line}</TableCell>
+                          <TableCell>
+                            {"error" in c.res ? (
+                              <span className="text-xs whitespace-nowrap text-destructive">{errorText(c.res)}</span>
+                            ) : (
+                              <CheckIcon className="size-4 text-primary" aria-label={t("import.ok")} />
+                            )}
+                          </TableCell>
+                          {cols.map((col) => (
+                            <TableCell key={col.key} className="max-w-48 truncate">
+                              {c.row[col.key]}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+              {checked.length > PREVIEW_ROWS && (
+                <p className="text-xs text-muted-foreground">{t("import.previewMore", { shown: PREVIEW_ROWS, total: checked.length })}</p>
+              )}
+            </section>
+          )}
 
-          <Button onClick={submit} disabled={pending || good === 0} className="justify-self-start">
+          <Button onClick={submit} disabled={pending || good === 0 || cols.length === 0} className="justify-self-start">
             {pending ? t("import.importing") : t("import.submit", { count: good })}
           </Button>
         </>

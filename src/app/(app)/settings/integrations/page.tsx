@@ -61,6 +61,17 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
                     )}
                   </p>
                 )}
+                {i.key === "stripe" && row && (
+                  <p className="text-xs text-muted-foreground">
+                    {t.dynamic(`integrations.stripe.via.${String((row.config as Record<string, unknown>)?.via ?? "oauth")}`)}
+                    {(row.config as Record<string, unknown>)?.accountId
+                      ? ` · ${String((row.config as Record<string, unknown>).accountId)}`
+                      : ""}
+                    {(row.config as Record<string, unknown>)?.via === "key" &&
+                      (row.config as Record<string, unknown>)?.livemode === false &&
+                      ` · ${t("integrations.stripe.testMode")}`}
+                  </p>
+                )}
                 {i.key === "telegram" && row && (
                   <p className="text-xs text-muted-foreground">
                     {t("integrations.telegram.bot", {
@@ -80,19 +91,31 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
                         {t("integrations.continueSetup")}
                       </Button>
                     ) : (
-                      (i.connect.modes ?? ["default"]).map((mode, n) => (
-                        <Button
-                          key={mode}
-                          render={<a href={`/api/integrations/${i.key}/connect?mode=${mode}`} />}
-                          nativeButton={false}
-                          size="sm"
-                          variant={n === 0 ? "default" : "outline"}
-                        >
-                          {t.has(`integrations.${i.key}.modes.${mode}`)
-                            ? t.dynamic(`integrations.${i.key}.modes.${mode}`)
-                            : t("integrations.connect")}
-                        </Button>
-                      ))
+                      <>
+                        {(i.connect.modes ?? ["default"]).map((mode, n) => (
+                          <Button
+                            key={mode}
+                            render={<a href={`/api/integrations/${i.key}/connect?mode=${mode}`} />}
+                            nativeButton={false}
+                            size="sm"
+                            variant={n === 0 ? "default" : "outline"}
+                          >
+                            {t.has(`integrations.${i.key}.modes.${mode}`)
+                              ? t.dynamic(`integrations.${i.key}.modes.${mode}`)
+                              : t("integrations.connect")}
+                          </Button>
+                        ))}
+                        {i.fields && (
+                          <Button
+                            render={<Link href={`?connect=${i.key}`} scroll={false} />}
+                            nativeButton={false}
+                            size="sm"
+                            variant="outline"
+                          >
+                            {t.dynamic(`integrations.${i.key}.keyButton`)}
+                          </Button>
+                        )}
+                      </>
                     )
                   ) : (
                     <Button render={<Link href={`?connect=${i.key}`} scroll={false} />} nativeButton={false} size="sm">

@@ -1,14 +1,18 @@
-import type Stripe from "stripe"
+import Stripe from "stripe"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { stripe } from "@/lib/stripe"
+import { stripe, STRIPE_API_VERSION } from "@/lib/stripe"
+import { APP_URL } from "@/lib/url"
 import { markExpired, markFailed, markPaid, markRefunded } from "@/payments/server"
 import type { Integration } from "./registry"
+import { getSecret } from "./server"
 
 // Stripe Connect. Two ways for an org to link Stripe:
 // - "existing": Connect OAuth. The org signs in to its own Stripe account and authorises roots (keeps its
 //   account, history and payouts). Needs STRIPE_CLIENT_ID and the callback URL registered under Connect → OAuth.
 // - "new": Accounts v2 with Stripe-hosted onboarding (full Stripe Dashboard, Stripe's recommended path).
 // Both end as a connected account we charge on directly (org = merchant of record, roots takes an application fee).
+// Third way, "key" (bring your own key): the org pastes a restricted/secret key of its own Stripe account. We call
+// Stripe with that key (no Connect, so no application fee) and register a webhook endpoint on their account.
 const NEW_ACCOUNT = {
   dashboard: "full",
   defaults: { responsibilities: { fees_collector: "stripe", losses_collector: "stripe" } },
@@ -27,9 +31,62 @@ export async function stripeAccountReady(accountId: string) {
   }
 }
 
+const WEBHOOK_EVENTS: Stripe.WebhookEndpointCreateParams.EnabledEvent[] = [
+  "checkout.session.completed",
+  "checkout.session.async_payment_succeeded",
+  "checkout.session.async_payment_failed",
+  "checkout.session.expired",
+  "charge.refunded",
+]
+const keyClient = (key: string) => new Stripe(key, { apiVersion: STRIPE_API_VERSION })
+
+/** How to talk to Stripe for an org: its own key ("key") or the platform key on its connected account. */
+export async function stripeFor(orgId: string) {
+  const { data } = await createAdminClient().from("org_integrations").select("config").eq("org_id", orgId).eq("provider", "stripe").maybeSingle()
+  const config = (data?.config ?? {}) as Record<string, string>
+  if (config.via === "key") {
+    const key = (await getSecret(orgId, "stripe"))?.secretKey
+    if (!key) throw new Error("payments.notConnected")
+    return { client: keyClient(key), options: {} as Stripe.RequestOptions, direct: true }
+  }
+  if (!config.accountId) throw new Error("payments.notConnected")
+  return { client: stripe(), options: { stripeAccount: config.accountId } as Stripe.RequestOptions, direct: false }
+}
+
 export const stripeIntegration: Integration = {
   key: "stripe",
   name: "Stripe",
+  // Bring your own key (shown next to the connect buttons).
+  fields: [{ key: "secretKey", secret: true, placeholder: "rk_live_…" }],
+  async test(secret) {
+    const key = secret.secretKey ?? ""
+    if (!/^(rk|sk)_(live|test)_[A-Za-z0-9]+$/.test(key)) throw new Error("integrations.stripe.invalidKey")
+    try {
+      const account = await keyClient(key).accounts.retrieveCurrent()
+      return { via: "key", accountId: account.id, livemode: key.includes("_live_"), name: account.settings?.dashboard?.display_name ?? null }
+    } catch {
+      throw new Error("integrations.stripe.keyNoAccess")
+    }
+  },
+  // Register (or replace) our webhook endpoint on the org's account and keep its signing secret with the key.
+  // Locally (no https) Stripe can't reach us: use `stripe listen --forward-to localhost:3000/api/webhooks/stripe?org=<id>`.
+  async onConnected({ orgId, config, secret }) {
+    if (!APP_URL.startsWith("https://")) return
+    const client = keyClient(secret.secretKey)
+    if (config.webhookEndpointId) await client.webhookEndpoints.del(String(config.webhookEndpointId)).catch(() => {})
+    const endpoint = await client.webhookEndpoints.create({
+      url: `${APP_URL}/api/webhooks/stripe?org=${orgId}`,
+      enabled_events: WEBHOOK_EVENTS,
+      description: "roots",
+    })
+    const { error } = await createAdminClient().rpc("save_integration", {
+      p_org: orgId,
+      p_provider: "stripe",
+      p_config: { ...config, webhookEndpointId: endpoint.id } as never,
+      p_secret: JSON.stringify({ secretKey: secret.secretKey, webhookSecret: endpoint.secret }),
+    })
+    if (error) throw error
+  },
   connect: {
     modes: ["existing", "new"],
     async start({ mode, state, orgName, email, callbackUrl, existing }) {
@@ -88,16 +145,36 @@ export const stripeIntegration: Integration = {
     },
   },
 
-  // Linked via OAuth: revoke roots' access at Stripe. Accounts created via onboarding stay with the org.
-  async disconnect({ config }) {
+  // Linked via OAuth: revoke roots' access at Stripe. Own key: remove our webhook endpoint.
+  // Accounts created via onboarding stay with the org.
+  async disconnect({ config, secret }) {
+    if (config.via === "key" && config.webhookEndpointId && secret?.secretKey)
+      await keyClient(secret.secretKey).webhookEndpoints.del(String(config.webhookEndpointId))
     if (config.via === "oauth" && config.accountId && process.env.STRIPE_CLIENT_ID)
       await stripe().oauth.deauthorize({ client_id: process.env.STRIPE_CLIENT_ID, stripe_user_id: String(config.accountId) })
   },
 
   webhook: {
-    // One Connect webhook endpoint (events on connected accounts), signed with STRIPE_WEBHOOK_SECRET.
+    // Connect: one endpoint for all connected accounts, signed with STRIPE_WEBHOOK_SECRET.
+    // Own key: one endpoint per org (?org=<id>), signed with that endpoint's secret (or the platform one when
+    // forwarded locally by `stripe listen`).
     async verify(req, body) {
-      const event = stripe().webhooks.constructEvent(body, req.headers.get("stripe-signature") ?? "", process.env.STRIPE_WEBHOOK_SECRET ?? "")
+      const sig = req.headers.get("stripe-signature") ?? ""
+      const org = new URL(req.url).searchParams.get("org")
+      if (org) {
+        if (!/^[0-9a-f-]{36}$/.test(org)) throw new Error("invalid org")
+        const own = (await getSecret(org, "stripe"))?.webhookSecret
+        let event: Stripe.Event | undefined
+        for (const secret of [own, process.env.STRIPE_WEBHOOK_SECRET].filter((s): s is string => !!s)) {
+          try {
+            event = stripe().webhooks.constructEvent(body, sig, secret)
+            break
+          } catch {}
+        }
+        if (!event) throw new Error("invalid signature")
+        return { externalId: `${org}:${event.id}`, type: event.type, orgId: org, payload: event }
+      }
+      const event = stripe().webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET ?? "")
       let orgId: string | undefined
       if (event.account) {
         const { data } = await createAdminClient()

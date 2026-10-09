@@ -106,8 +106,11 @@ export async function importContacts(input: { rows: Record<string, string>[]; mo
   const allowed = new Set(CONTACT_FIELDS.map((f) => f.key))
   const defs = await loadFields(ctx.supabase, ctx.org.id, "contacts")
   defs.forEach((d) => allowed.add(`custom.${d.key}`))
-  // Required custom fields only apply to columns that are in the file (an update import may leave them out).
+  // Required custom fields: a "skip" import only creates contacts, so they must be in the file; an update import
+  // may leave them out (then only rows that create a new contact need them, checked per row below).
   const mapped = new Set(Object.keys(input.rows[0] ?? {}))
+  const missing = defs.filter((d) => d.required && !mapped.has(`custom.${d.key}`)).map((d) => d.label)
+  if (input.mode === "skip" && missing.length) return { error: t("errors.required_columns", { fields: t.list(missing) }) }
   const checkDefs = defs.map((d) => ({ ...d, required: d.required && mapped.has(`custom.${d.key}`) }))
 
   const errors: { line: number; message: string }[] = []
@@ -137,7 +140,13 @@ export async function importContacts(input: { rows: Record<string, string>[]; mo
     data?.forEach((c) => existing.set(c.email!, { id: c.id, tags: c.tags, custom: c.custom as Record<string, unknown> }))
   }
 
-  const inserts = valid.filter((v) => !v.row.email || !existing.has(v.row.email))
+  let inserts = valid.filter((v) => !v.row.email || !existing.has(v.row.email))
+  if (missing.length) {
+    // Update import without the required columns: only existing contacts can be updated.
+    const msg = t("errors.required_columns", { fields: t.list(missing) })
+    inserts.forEach((v) => errors.push({ line: v.line, message: msg }))
+    inserts = []
+  }
   const updates = valid.filter((v) => v.row.email && existing.has(v.row.email))
   if (input.mode !== "update") skipped += updates.length
 

@@ -251,7 +251,22 @@
         "new": "Neues Stripe-Konto einrichten"
       },
       "oauthNotConfigured": "Das Verbinden bestehender Stripe-Konten ist noch nicht eingerichtet (STRIPE_CLIENT_ID fehlt).",
-      "oauthDenied": "Die Verbindung mit Stripe wurde abgebrochen."
+      "oauthDenied": "Die Verbindung mit Stripe wurde abgebrochen.",
+      "keyButton": "Mit API-Schlüssel verbinden",
+      "fields": {
+        "secretKey": "Secret Key oder Restricted Key"
+      },
+      "help": {
+        "secretKey": "Aus deinem Stripe-Dashboard (Entwickler → API-Schlüssel). Am besten ein Restricted Key (rk_…) mit Schreibrechten für Checkout Sessions, Refunds und Webhook Endpoints und Leserechten für Account. Wir legen damit automatisch einen Webhook in deinem Konto an."
+      },
+      "invalidKey": "Das ist kein Stripe-Schlüssel (beginnt mit rk_ oder sk_).",
+      "keyNoAccess": "Stripe hat den Schlüssel abgelehnt oder ihm fehlen Rechte (mindestens Account lesen).",
+      "via": {
+        "oauth": "Verbunden über Stripe-Login",
+        "onboarding": "Über roots eingerichtetes Konto",
+        "key": "Verbunden per API-Schlüssel"
+      },
+      "testMode": "Testmodus"
     },
     "resend": {
       "description": "E-Mails von deiner eigenen Domain senden.",
@@ -351,7 +366,9 @@
     "invalid_url": "Kein gültiger Link (https://…).",
     "field_required": "Pflichtfeld fehlt.",
     "options_required": "Bitte mindestens eine Auswahlmöglichkeit angeben.",
-    "field_exists": "Ein Feld mit dieser Bezeichnung gibt es schon."
+    "field_exists": "Ein Feld mit dieser Bezeichnung gibt es schon.",
+    "contact_needs_name_column": "Ordne mindestens eine Spalte für Vorname, Nachname, Firma oder E-Mail zu.",
+    "required_columns": "Diese Pflichtfelder fehlen in der Zuordnung: {fields}"
   },
   "admin": {
     "title": "Plattform",
@@ -777,6 +794,8 @@
     "another": "Weitere Datei importieren",
     "status": "Status",
     "ok": "In Ordnung",
-    "previewMore": "Die ersten {shown} von {total} Zeilen. Fehler in allen Zeilen stehen oben."
+    "previewMore": "Die ersten {shown} von {total} Zeilen. Fehler in allen Zeilen stehen oben.",
+    "mapManual": "Keine Spalte automatisch erkannt. Ordne die Spalten deiner Datei (links) unseren Feldern (rechts) zu.",
+    "mapFirst": "Ordne mindestens eine Spalte zu, dann siehst du hier die Vorschau."
   }
 }
