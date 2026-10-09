@@ -100,7 +100,8 @@ Modules contribute to both: e.g. Events = event management in the App + event pa
 
 ### Contacts / CRM ✅ (v1)
 - Done: `/contacts` with name/company/email/phone/address/birthday, tags (text array, chip filter), notes + timeline in the drawer, server-side search, unique email per org, trash/restore, `contact.created` event.
-- Next: CSV import/export (generic), timeline entries from other modules (tickets, guest lists, emails) via a definer function, custom fields if needed.
+- Done too: custom fields (generic, Settings → Felder) and CSV import with column mapping, preview, skip/update by email.
+- Next: CSV export, timeline entries from other modules (tickets, guest lists, emails) via a definer function, custom fields if needed.
 - Later: segments, newsletter (Resend).
 
 ### Events
@@ -141,7 +142,7 @@ Modules contribute to both: e.g. Events = event management in the App + event pa
 
 ### Ideas / next building blocks
 - **Public API** (next): org API keys, `/api/v1/...`, OpenAPI + docs page. Events first.
-- **CSV import (generic)**: upload → map file columns to our fields (auto-guess by header, user fixes the rest in the UI; nothing remembered) → preview with row errors → import. Each module only declares its importable fields + validation (contacts first, then events, guests…). Same declaration later drives CSV export.
+- **CSV import (generic)** ✅ contacts; next modules reuse `<CsvImport>` with their own fields + validator. Same declaration later drives CSV export.
 - **Event reach without APIs**: schema.org `Event` JSON-LD on public event pages (Google events), `.ics` per event + calendar feed per org, share links. Resident Advisor and Facebook have no public create-event API (manual submit / copy-paste text); Eventbrite has one (later integration if wanted).
 
 Later: billing roots' own plans per org, German invoices, memberships (Vereinsverwaltung), custom domains.

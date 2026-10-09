@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { MailIcon, PhoneIcon, Trash2Icon } from "lucide-react"
+import { MailIcon, PhoneIcon, Trash2Icon, UploadIcon } from "lucide-react"
+import { CustomFieldInputs } from "@/components/custom-field-inputs"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { UrlSheet } from "@/components/url-sheet"
@@ -14,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { getT } from "@/i18n/server"
 import type { T } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
+import { loadFields, type CustomValues, type FieldDef } from "@/lib/custom-fields"
 import type { Tables } from "@/lib/supabase/types"
 import { pageParam, param, withParams, type SearchParams } from "@/lib/url"
 import { addNote, createContact, deleteNote, restoreContact, trashContact, updateContact } from "./actions"
@@ -50,11 +52,12 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
     : query.is("deleted_at", null).order("last_name", { nullsFirst: false }).order("first_name").order("company")
   if (q) query = query.or(["first_name", "last_name", "company", "email", "phone", "city"].map((c) => `${c}.ilike.%${q}%`).join(","))
   if (tag) query = query.contains("tags", [tag])
-  const [{ data }, { data: tagRows }, { data: editing }] = await Promise.all([
+  const [{ data }, { data: tagRows }, { data: editing }, defs] = await Promise.all([
     query,
     // ponytail: tag chips from the first 2000 contacts; a distinct-tags RPC once orgs have more.
     ctx.supabase.from("contacts").select("tags").eq("org_id", ctx.org.id).is("deleted_at", null).limit(2000),
     editId ? ctx.supabase.from("contacts").select("*").eq("id", editId).eq("org_id", ctx.org.id).maybeSingle() : Promise.resolve({ data: null }),
+    loadFields(ctx.supabase, ctx.org.id, "contacts"),
   ])
   const rows = data?.slice(0, PAGE_SIZE) ?? []
   const tags = [...new Set(tagRows?.flatMap((r) => r.tags))].sort((a, b) => a.localeCompare(b, t.locale))
@@ -74,9 +77,14 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-heading text-2xl font-semibold">{t("contacts.title")}</h1>
         {canManage && (
-          <Button render={<Link href={withParams(sp, { new: "contact", edit: undefined })} scroll={false} />} nativeButton={false} size="sm">
-            {t("contacts.new")}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button render={<Link href="/contacts/import" />} nativeButton={false} size="sm" variant="outline">
+              <UploadIcon /> {t("contacts.import")}
+            </Button>
+            <Button render={<Link href={withParams(sp, { new: "contact", edit: undefined })} scroll={false} />} nativeButton={false} size="sm">
+              {t("contacts.new")}
+            </Button>
+          </div>
         )}
       </div>
       <Notice error={!editId && !creating ? param(sp, "error") : undefined} ok={!editId ? param(sp, "ok") : undefined} />
@@ -128,10 +136,10 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
       {creating && (
         <UrlSheet params={["new"]} title={t("contacts.new")}>
           <Notice error={param(sp, "error")} />
-          <ContactForm t={t} action={createContact} />
+          <ContactForm t={t} action={createContact} defs={defs} />
         </UrlSheet>
       )}
-      {editing && <EditContact t={t} ctx={ctx} c={editing} sp={sp} canManage={canManage} />}
+      {editing && <EditContact t={t} ctx={ctx} c={editing} sp={sp} canManage={canManage} defs={defs} />}
     </div>
   )
 }
@@ -145,7 +153,7 @@ function Field({ id, label, ...props }: { id: string; label: string } & React.Co
   )
 }
 
-function ContactForm({ t, action, c, disabled }: { t: T; action: (fd: FormData) => Promise<void>; c?: Contact; disabled?: boolean }) {
+function ContactForm({ t, action, c, disabled, defs }: { t: T; action: (fd: FormData) => Promise<void>; c?: Contact; disabled?: boolean; defs: FieldDef[] }) {
   const regions = new Intl.DisplayNames([t.locale], { type: "region" })
   return (
     <form action={action} className="grid gap-4">
@@ -186,6 +194,7 @@ function ContactForm({ t, action, c, disabled }: { t: T; action: (fd: FormData) 
             {t("contacts.tagsHelp")}
           </p>
         </div>
+        <CustomFieldInputs defs={defs} values={c?.custom as CustomValues | undefined} idPrefix="c-custom" />
         {!disabled && (
           <Button type="submit" className="justify-self-start">
             {c ? t("common.save") : t("contacts.new")}
@@ -196,7 +205,7 @@ function ContactForm({ t, action, c, disabled }: { t: T; action: (fd: FormData) 
   )
 }
 
-async function EditContact({ t, ctx, c, sp, canManage }: { t: T; ctx: Ctx; c: Contact; sp: SearchParams; canManage: boolean }) {
+async function EditContact({ t, ctx, c, sp, canManage, defs }: { t: T; ctx: Ctx; c: Contact; sp: SearchParams; canManage: boolean; defs: FieldDef[] }) {
   const { data: notes } = await ctx.supabase
     .from("contact_notes")
     .select("id, body, created_at, created_by")
@@ -255,7 +264,7 @@ async function EditContact({ t, ctx, c, sp, canManage }: { t: T; ctx: Ctx; c: Co
             </div>
           )}
           {!canManage && <p className="text-sm text-muted-foreground">{t("contacts.readOnly")}</p>}
-          <ContactForm t={t} action={updateContact} c={c} disabled={!canManage} />
+          <ContactForm t={t} action={updateContact} c={c} disabled={!canManage} defs={defs} />
           <Separator />
           <section className="grid gap-3" aria-labelledby="c-timeline">
             <h3 id="c-timeline" className="font-medium">

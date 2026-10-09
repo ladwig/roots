@@ -8,6 +8,7 @@ const tabs = [
   { key: "members" },
   { key: "roles" },
   { key: "modules" },
+  { key: "fields" },
   { key: "integrations", permission: "org.integrations.manage" },
 ]
 

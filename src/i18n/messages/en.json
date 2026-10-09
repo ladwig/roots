@@ -89,7 +89,8 @@
       "modules": "Modules",
       "integrations": "Integrations",
       "notifications": "Notifications",
-      "profile": "Profile"
+      "profile": "Profile",
+      "fields": "Fields"
     }
   },
   "general": {
@@ -308,7 +309,8 @@
       "pay_orders": "Orders",
       "events": "Events",
       "contacts": "Contacts",
-      "contact_notes": "Contact notes"
+      "contact_notes": "Contact notes",
+      "custom_fields": "Custom fields"
     }
   },
   "errors": {
@@ -341,7 +343,15 @@
     "invalid_input": "Please check your input.",
     "invalid_email": "Please enter a valid email address.",
     "email_taken": "There is already a contact with this email address.",
-    "contact_needs_name": "Please enter at least a name, company or email."
+    "contact_needs_name": "Please enter at least a name, company or email.",
+    "invalid_country": "Unknown country.",
+    "invalid_number": "Not a valid number.",
+    "invalid_date": "Not a valid date (DD.MM.YYYY).",
+    "invalid_option": "Not an allowed value.",
+    "invalid_url": "Not a valid link (https://…).",
+    "field_required": "Required field missing.",
+    "options_required": "Please add at least one choice.",
+    "field_exists": "A field with this label already exists."
   },
   "admin": {
     "title": "Platform",
@@ -571,7 +581,8 @@
       "event.published": "Event published",
       "event.updated": "Event changed (time/place)",
       "event.cancelled": "Event cancelled",
-      "contact.created": "Contact created"
+      "contact.created": "Contact created",
+      "contacts.imported": "Contacts imported"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -585,7 +596,8 @@
       "event.published": "📅 New event: {title}, {when}",
       "event.updated": "🕒 Changed: {title}, now {when}",
       "event.cancelled": "❌ Cancelled: {title} ({when})",
-      "contact.created": "👤 New contact: {name}"
+      "contact.created": "👤 New contact: {name}",
+      "contacts.imported": "📥 {count} contacts imported"
     }
   },
   "inbox": {
@@ -698,6 +710,71 @@
     "createdEntry": "Contact created",
     "updatedEntry": "Last changed",
     "someone": "someone",
-    "details": "Details"
+    "details": "Details",
+    "import": "Import",
+    "importTitle": "Import contacts",
+    "importHint": "Upload a CSV file, map the columns and check the preview before importing."
+  },
+  "fields": {
+    "intro": "Your own fields for your data, e.g. member number or shirt size on contacts. They show up in forms and in the CSV import.",
+    "noEntities": "Custom fields need a matching module (e.g. CRM).",
+    "new": "New field",
+    "empty": "No custom fields yet.",
+    "label": "Label",
+    "type": "Type",
+    "options": "Choices",
+    "optionsHint": "Only for type “Choice”: one per line.",
+    "required": "Required",
+    "requiredYes": "Required",
+    "requiredLabel": "Required field",
+    "typeFixed": "The type can't be changed later.",
+    "created": "Field created.",
+    "saved": "Saved.",
+    "deleted": "Field deleted.",
+    "delete": "Delete field",
+    "deleteHint": "The field disappears from forms. Stored values are kept and come back if you create a field with the same label.",
+    "entities": {
+      "contacts": "Contacts"
+    },
+    "types": {
+      "text": "Text",
+      "number": "Number",
+      "date": "Date",
+      "boolean": "Yes/No",
+      "select": "Choice",
+      "email": "Email",
+      "url": "Link"
+    }
+  },
+  "import": {
+    "file": "CSV file",
+    "fileHint": "Exported from Excel, Numbers, Google Sheets or any other tool. First row = column names, up to {max} rows.",
+    "empty": "The file contains no data.",
+    "tooMany": "Too many rows: at most {max} per import.",
+    "mapTitle": "Map columns",
+    "mapHint": "We matched the columns by their names. Check the mapping and change it if needed.",
+    "noHeader": "Column {n}",
+    "example": "e.g. {value}",
+    "mapTo": "Map column {column}",
+    "ignore": "— don't import —",
+    "existing": "If there is already a record with this {match}",
+    "mode": {
+      "skip": "Skip (existing records stay unchanged)",
+      "update": "Update (filled columns overwrite, tags are added)"
+    },
+    "preview": "Preview",
+    "summary": "{good} rows ready, {bad} with errors (won't be imported).",
+    "line": "Row",
+    "record": "Record",
+    "lineError": "Row {line}: {message}",
+    "moreErrors": "… and {count} more",
+    "submit": {
+      "one": "Import 1 row",
+      "other": "Import {count} rows"
+    },
+    "importing": "Importing…",
+    "done": "Done: {inserted} new, {updated} updated, {skipped} skipped.",
+    "toList": "Back to the list",
+    "another": "Import another file"
   }
 }

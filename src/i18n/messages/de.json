@@ -89,7 +89,8 @@
       "modules": "Module",
       "integrations": "Integrationen",
       "notifications": "Benachrichtigungen",
-      "profile": "Profil"
+      "profile": "Profil",
+      "fields": "Felder"
     }
   },
   "general": {
@@ -308,7 +309,8 @@
       "pay_orders": "Bestellungen",
       "events": "Events",
       "contacts": "Kontakte",
-      "contact_notes": "Kontakt-Notizen"
+      "contact_notes": "Kontakt-Notizen",
+      "custom_fields": "Eigene Felder"
     }
   },
   "errors": {
@@ -341,7 +343,15 @@
     "invalid_input": "Bitte prüfe deine Eingaben.",
     "invalid_email": "Bitte eine gültige E-Mail-Adresse angeben.",
     "email_taken": "Es gibt schon einen Kontakt mit dieser E-Mail-Adresse.",
-    "contact_needs_name": "Bitte mindestens Name, Firma oder E-Mail angeben."
+    "contact_needs_name": "Bitte mindestens Name, Firma oder E-Mail angeben.",
+    "invalid_country": "Unbekanntes Land.",
+    "invalid_number": "Keine gültige Zahl.",
+    "invalid_date": "Kein gültiges Datum (TT.MM.JJJJ).",
+    "invalid_option": "Kein erlaubter Wert.",
+    "invalid_url": "Kein gültiger Link (https://…).",
+    "field_required": "Pflichtfeld fehlt.",
+    "options_required": "Bitte mindestens eine Auswahlmöglichkeit angeben.",
+    "field_exists": "Ein Feld mit dieser Bezeichnung gibt es schon."
   },
   "admin": {
     "title": "Plattform",
@@ -571,7 +581,8 @@
       "event.published": "Event veröffentlicht",
       "event.updated": "Event geändert (Zeit/Ort)",
       "event.cancelled": "Event abgesagt",
-      "contact.created": "Kontakt angelegt"
+      "contact.created": "Kontakt angelegt",
+      "contacts.imported": "Kontakte importiert"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -585,7 +596,8 @@
       "event.published": "📅 Neues Event: {title}, {when}",
       "event.updated": "🕒 Geändert: {title}, jetzt {when}",
       "event.cancelled": "❌ Abgesagt: {title} ({when})",
-      "contact.created": "👤 Neuer Kontakt: {name}"
+      "contact.created": "👤 Neuer Kontakt: {name}",
+      "contacts.imported": "📥 {count} Kontakte importiert"
     }
   },
   "inbox": {
@@ -698,6 +710,71 @@
     "createdEntry": "Kontakt angelegt",
     "updatedEntry": "Zuletzt geändert",
     "someone": "jemandem",
-    "details": "Details"
+    "details": "Details",
+    "import": "Importieren",
+    "importTitle": "Kontakte importieren",
+    "importHint": "Lade eine CSV-Datei hoch, ordne die Spalten zu und prüfe die Vorschau, bevor du importierst."
+  },
+  "fields": {
+    "intro": "Eigene Felder für deine Daten, z. B. Mitgliedsnummer oder Kleidergröße bei Kontakten. Sie erscheinen in Formularen und im CSV-Import.",
+    "noEntities": "Für eigene Felder muss ein passendes Modul aktiv sein (z. B. CRM).",
+    "new": "Neues Feld",
+    "empty": "Noch keine eigenen Felder.",
+    "label": "Bezeichnung",
+    "type": "Typ",
+    "options": "Auswahlmöglichkeiten",
+    "optionsHint": "Nur für Typ „Auswahl“: eine Möglichkeit pro Zeile.",
+    "required": "Pflicht",
+    "requiredYes": "Pflichtfeld",
+    "requiredLabel": "Pflichtfeld",
+    "typeFixed": "Der Typ lässt sich später nicht mehr ändern.",
+    "created": "Feld angelegt.",
+    "saved": "Gespeichert.",
+    "deleted": "Feld gelöscht.",
+    "delete": "Feld löschen",
+    "deleteHint": "Das Feld verschwindet aus Formularen. Gespeicherte Werte bleiben erhalten und sind wieder da, wenn du ein Feld mit derselben Bezeichnung anlegst.",
+    "entities": {
+      "contacts": "Kontakte"
+    },
+    "types": {
+      "text": "Text",
+      "number": "Zahl",
+      "date": "Datum",
+      "boolean": "Ja/Nein",
+      "select": "Auswahl",
+      "email": "E-Mail",
+      "url": "Link"
+    }
+  },
+  "import": {
+    "file": "CSV-Datei",
+    "fileHint": "Aus Excel, Numbers, Google Sheets oder einem anderen Programm exportiert. Erste Zeile = Spaltennamen, bis zu {max} Zeilen.",
+    "empty": "Die Datei enthält keine Daten.",
+    "tooMany": "Zu viele Zeilen: höchstens {max} pro Import.",
+    "mapTitle": "Spalten zuordnen",
+    "mapHint": "Wir haben die Spalten anhand ihrer Namen zugeordnet. Prüfe die Zuordnung und ändere sie bei Bedarf.",
+    "noHeader": "Spalte {n}",
+    "example": "z. B. {value}",
+    "mapTo": "Spalte {column} zuordnen",
+    "ignore": "— nicht importieren —",
+    "existing": "Wenn es schon einen Eintrag mit dieser {match} gibt",
+    "mode": {
+      "skip": "Überspringen (bestehende Einträge bleiben unverändert)",
+      "update": "Aktualisieren (gefüllte Spalten überschreiben, Tags werden ergänzt)"
+    },
+    "preview": "Vorschau",
+    "summary": "{good} Zeilen bereit, {bad} mit Fehlern (werden nicht importiert).",
+    "line": "Zeile",
+    "record": "Eintrag",
+    "lineError": "Zeile {line}: {message}",
+    "moreErrors": "… und {count} weitere",
+    "submit": {
+      "one": "1 Zeile importieren",
+      "other": "{count} Zeilen importieren"
+    },
+    "importing": "Wird importiert…",
+    "done": "Fertig: {inserted} neu, {updated} aktualisiert, {skipped} übersprungen.",
+    "toList": "Zur Liste",
+    "another": "Weitere Datei importieren"
   }
 }
