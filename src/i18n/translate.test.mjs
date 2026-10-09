@@ -19,6 +19,8 @@ test("translate", () => {
   assert.equal(t.dynamic("missing.key"), "missing.key")
   assert.equal(t.list(["Events", "Zahlungen"]), "Events und Zahlungen")
   assert.equal(t.pick({ de: "Mitglied", en: "Member" }), "Mitglied")
+  assert.equal(t.money(1250).replace(/\s/g, " "), "12,50 €")
+  assert.equal(createT("en", dict).money(1250), "€12.50")
   assert.equal(createT("en", dict).pick({ de: "Kassenwart" }), "Kassenwart")
   assert.equal(dbError(t, { message: "invite_wrong_email", details: "a@b.c" }), "Ging an a@b.c")
   assert.equal(dbError(t, { code: "42501", message: "new row violates row-level security policy" }), "Verboten")
