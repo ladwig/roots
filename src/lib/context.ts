@@ -17,26 +17,35 @@ export const roleHas = (role: Role, perm: string) =>
   role.is_owner ||
   role.permissions.some((p) => p === "*" || p === perm || p === `${perm.split(".")[0]}.*`)
 
-export const getSession = cache(async () => {
+const getClaims = cache(async () => {
   await connection() // session checks read the clock (token expiry): always request-time
   const supabase = await createClient()
-  const { data } = await supabase.auth.getClaims()
-  if (!data?.claims) return null
-  const { data: isPlatformAdmin } = await supabase.rpc("is_platform_admin")
-  return { supabase, userId: data.claims.sub, email: data.claims.email ?? "", isPlatformAdmin: !!isPlatformAdmin }
+  const { data } = await supabase.auth.getClaims() // verified locally (asymmetric JWT keys), no round trip
+  return data?.claims ? { supabase, userId: data.claims.sub, email: data.claims.email ?? "" } : null
+})
+
+export const getSession = cache(async () => {
+  const c = await getClaims()
+  if (!c) return null
+  const { data: isPlatformAdmin } = await c.supabase.rpc("is_platform_admin")
+  return { ...c, isPlatformAdmin: !!isPlatformAdmin }
 })
 
 // Signed-in user + active org; `supabase` is scoped to that org via the x-org-id header. Redirects to /login, /onboarding (or /admin for platform admins without orgs).
 export const getContext = cache(async () => {
-  const session = await getSession()
+  const claims = await getClaims()
+  if (!claims) redirect("/login")
+  // In parallel: admin check + memberships with org, role and the org's modules (no x-org-id yet → all my orgs visible).
+  const [session, { data: memberships }] = await Promise.all([
+    getSession(),
+    claims.supabase
+      .from("org_members")
+      .select("org_id, orgs(id, name, slug, logo_path, deleted_at, org_modules(module_key)), roles(name, is_owner, permissions)")
+      .eq("user_id", claims.userId)
+      .order("created_at"),
+  ])
   if (!session) redirect("/login")
-  const { supabase, userId, isPlatformAdmin } = session
-
-  const { data: memberships } = await supabase
-    .from("org_members")
-    .select("org_id, orgs(id, name, slug, logo_path, deleted_at), roles(name, is_owner, permissions)")
-    .eq("user_id", userId)
-    .order("created_at")
+  const { supabase, isPlatformAdmin } = session
   const live = memberships?.filter((m) => m.orgs && !m.orgs.deleted_at) // deleted orgs: hidden, or in the trash for admins
   const orgs: Org[] = live?.map((m) => ({ id: m.orgs!.id, name: m.orgs!.name, slug: m.orgs!.slug, logo_path: m.orgs!.logo_path })) ?? []
   const active = (await cookies()).get(ACTIVE_ORG_COOKIE)?.value
@@ -49,15 +58,23 @@ export const getContext = cache(async () => {
   let org: Org | undefined = current ? orgs.find((o) => o.id === current!.org_id) : undefined
   let role = toRole(current?.roles)
   let viaPlatform = false
+  let platformModules: { module_key: string }[] = []
 
   // Platform admins can open any org; they act with full rights there.
   if (!current && active && isPlatformAdmin) {
-    const { data } = await supabase.from("orgs").select("id, name, slug, logo_path").eq("id", active).is("deleted_at", null).maybeSingle()
+    const { data } = await supabase
+      .from("orgs")
+      .select("id, name, slug, logo_path, org_modules(module_key)")
+      .eq("id", active)
+      .is("deleted_at", null)
+      .maybeSingle()
     if (data) {
-      org = data
+      const { org_modules, ...rest } = data
+      org = rest
+      platformModules = org_modules
+      orgs.push(rest)
       role = { name: t("admin.roleName"), is_owner: true, permissions: [] }
       viaPlatform = true
-      orgs.push(data)
     }
   }
   if (!org) {
@@ -69,7 +86,8 @@ export const getContext = cache(async () => {
 
   // From here on, every query is scoped to the active org by the database.
   const scoped = await createClient(org.id)
-  const { data: mods } = await scoped.from("org_modules").select("module_key").eq("org_id", org.id)
+  const activeOrgId = org.id
+  const mods = viaPlatform ? platformModules : (live?.find((m) => m.org_id === activeOrgId)?.orgs?.org_modules ?? [])
   const r = role
   return {
     ...session,
@@ -78,7 +96,7 @@ export const getContext = cache(async () => {
     org,
     role: r,
     viaPlatform,
-    modules: new Set(mods?.map((m) => m.module_key)),
+    modules: new Set(mods.map((m) => m.module_key)),
     can: (perm: string) => roleHas(r, perm),
   }
 })
