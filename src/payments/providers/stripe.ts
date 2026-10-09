@@ -41,6 +41,12 @@ export const stripeProvider: PaymentProvider = {
     )
     return { url: session.url!, providerRef: session.id }
   },
+  async checkoutStatus({ orgId, providerRef }) {
+    const s = await stripeFor(orgId)
+    const session = await s.client.checkout.sessions.retrieve(providerRef, {}, s.options)
+    const pi = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id
+    return { paid: session.payment_status !== "unpaid" && session.status === "complete", providerPaymentRef: pi }
+  },
   async refund({ orgId, providerPaymentRef, amount, idempotencyKey }) {
     const s = await stripeFor(orgId)
     const refund = await s.client.refunds.create(

@@ -4,7 +4,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getT } from "@/i18n/server"
 import { param, sitePath } from "@/lib/url"
+import { reconcileOrder } from "@/payments/server"
 import { qrSvg, ticketsForBuyer } from "@/tickets/server"
+import { AutoRefresh } from "./auto-refresh"
 import { getSite } from "../../data"
 
 // The buyer's tickets (link from the payment success page / email). Access = order id + secret token.
@@ -12,8 +14,12 @@ export default async function BuyerTickets({ params, searchParams }: PageProps<"
   const { site, order } = await params
   const sp = await searchParams
   const s = await getSite(site)
-  const data = s && (await ticketsForBuyer(order, param(sp, "k") ?? ""))
+  let data = s && (await ticketsForBuyer(order, param(sp, "k") ?? ""))
   if (!s || !data || data.order.org_id !== s.org.id) notFound()
+  if (data.order.status === "open") {
+    await reconcileOrder(order).catch((e) => console.error("reconcile", order, e))
+    data = (await ticketsForBuyer(order, param(sp, "k") ?? ""))!
+  }
   const t = await getT()
   const valid = data.tickets.filter((k) => k.status === "valid" || k.status === "used")
   const qrs = await Promise.all(valid.map((k) => qrSvg(k.code)))
@@ -24,6 +30,7 @@ export default async function BuyerTickets({ params, searchParams }: PageProps<"
       {data.order.status !== "paid" ? (
         <p className="rounded-lg border bg-muted px-3 py-2 text-sm">
           {data.order.status === "open" ? t("shop.waiting") : t.dynamic(`shop.orderStatus.${data.order.status}`)}
+          {data.order.status === "open" && <AutoRefresh />}
         </p>
       ) : (
         <div className="flex flex-wrap items-center gap-3">

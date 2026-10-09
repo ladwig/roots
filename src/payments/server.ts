@@ -105,6 +105,26 @@ export async function startCheckout(orderId: string, urls?: { successUrl?: strin
   return checkout.url
 }
 
+/**
+ * Still open? Ask the provider directly (the webhook may be late or lost) and mark it paid if so. Safe to call often:
+ * the provider's answer is the source of truth, never the buyer's browser.
+ */
+export async function reconcileOrder(orderId: string) {
+  const { data: pay } = await db()
+    .from("pay_payments")
+    .select("org_id, provider, provider_ref, status, pay_orders!inner(status)")
+    .eq("order_id", orderId)
+    .eq("status", "pending")
+    .eq("pay_orders.status", "open")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  const provider = pay && providers.find((p) => p.key === pay.provider)
+  if (!pay || !provider?.checkoutStatus) return
+  const r = await provider.checkoutStatus({ orgId: pay.org_id, providerRef: pay.provider_ref })
+  if (r.paid) await markPaid(pay.provider, pay.provider_ref, r.providerPaymentRef)
+}
+
 /** Payment confirmed by the provider (webhook). Safe to call repeatedly. */
 export async function markPaid(provider: string, providerRef: string, providerPaymentRef?: string) {
   const { data: payment } = await db()

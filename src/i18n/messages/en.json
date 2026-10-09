@@ -960,7 +960,7 @@
     "tooMany": "At most {max} tickets per order.",
     "failed": "That didn't work. Please try again.",
     "yourTickets": "Your tickets",
-    "waiting": "Your payment is still being confirmed. Reload this page in a moment.",
+    "waiting": "Confirming your payment … this page updates automatically.",
     "keepLink": "Show the QR code at the entrance. Save this page (link) or take a screenshot.",
     "orderStatus": {
       "expired": "The payment wasn't completed. The tickets were released.",

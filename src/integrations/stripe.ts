@@ -39,6 +39,8 @@ const WEBHOOK_EVENTS: Stripe.WebhookEndpointCreateParams.EnabledEvent[] = [
   "charge.refunded",
 ]
 const keyClient = (key: string) => new Stripe(key, { apiVersion: STRIPE_API_VERSION })
+// Signature checks need no API key (orgs with their own key work without STRIPE_SECRET_KEY on the platform).
+const webhooks = new Stripe("sk_unused", { apiVersion: STRIPE_API_VERSION }).webhooks
 
 /** How to talk to Stripe for an org: its own key ("key") or the platform key on its connected account. */
 export async function stripeFor(orgId: string) {
@@ -171,14 +173,14 @@ export const stripeIntegration: Integration = {
         let event: Stripe.Event | undefined
         for (const secret of [own, process.env.STRIPE_WEBHOOK_SECRET].filter((s): s is string => !!s)) {
           try {
-            event = stripe().webhooks.constructEvent(body, sig, secret)
+            event = webhooks.constructEvent(body, sig, secret)
             break
           } catch {}
         }
         if (!event) throw new Error("invalid signature")
         return { externalId: `${org}:${event.id}`, type: event.type, orgId: org, payload: event }
       }
-      const event = stripe().webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET ?? "")
+      const event = webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET ?? "")
       let orgId: string | undefined
       if (event.account) {
         const { data } = await createAdminClient()
