@@ -33,6 +33,10 @@ begin
   org_b := public.create_org('Org B', 'iso-org-b');
   reset role;
 
+  -- A subscribes to member.joined (as postgres here; the app does it via RLS as the owner)
+  insert into public.event_subscriptions (org_id, name, channel, event_types, config)
+  values (org_a, 'Hook', 'webhook', '{member.joined}', '{"url": "https://example.com/hook"}');
+
   -- C joins A as Member (bypassing invites, as postgres)
   insert into public.org_members (org_id, user_id, role_id)
   select org_a, c, id from public.roles where org_id is null and name ->> 'en' = 'Member';
@@ -40,6 +44,9 @@ begin
   -- payments: one paid order in A (written server-side, as the service role would)
   insert into public.org_modules (org_id, module_key) values (org_a, 'payments');
   insert into public.pay_orders (org_id, amount_total, source_module, status) values (org_a, 1000, 'test', 'paid');
+
+  select count(*) into n from public.event_deliveries d join public.events e on e.id = d.event_id
+    where e.org_id = org_a and e.type = 'member.joined';                     assert n >= 1, 'member.joined should fan out to the subscription';
 
   -- B must not see anything of A
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
@@ -50,6 +57,18 @@ begin
   select count(*) into n from public.audit_log where org_id = org_a;         assert n = 0, 'B sees activity of A';
   select count(*) into n from public.profiles where id = a;                  assert n = 0, 'B sees profile of A';
   select count(*) into n from public.pay_orders where org_id = org_a;        assert n = 0, 'B sees orders of A';
+  select count(*) into n from public.events where org_id = org_a;            assert n = 0, 'B sees events of A';
+  select count(*) into n from public.event_subscriptions where org_id = org_a; assert n = 0, 'B sees subscriptions of A';
+  begin
+    perform public.claim_event_deliveries(10);
+    assert false, 'a user claimed deliveries';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    perform public.emit_event(org_a, 'order.paid', '{}');
+    assert false, 'a user forged an event';
+  exception when insufficient_privilege then null;
+  end;
   update public.orgs set name = 'hacked' where id = org_a;
   get diagnostics n = row_count;                                             assert n = 0, 'B renamed org A';
   begin
@@ -79,6 +98,7 @@ begin
   select count(*) into n from public.profiles;                               assert n = 2, 'C should see self + A';
   select count(*) into n from public.audit_log;                              assert n = 0, 'C sees activity without org.audit.view';
   select count(*) into n from public.pay_orders;                             assert n = 0, 'C sees orders without payments.view';
+  select count(*) into n from public.event_subscriptions;                    assert n = 0, 'C sees subscriptions without permission';
   begin
     insert into public.pay_orders (org_id, amount_total, source_module) values (org_a, 1, 'test');
     assert false, 'a member wrote an order directly';
@@ -105,6 +125,8 @@ begin
   set local role authenticated;
   select count(*) into n from public.audit_log where org_id = org_a;         assert n >= 3, 'A should see activity';
   select count(*) into n from public.pay_orders;                             assert n = 1, 'owner should see orders';
+  select count(*) into n from public.event_subscriptions;                    assert n = 1, 'owner should see subscriptions';
+  select count(*) into n from public.event_deliveries;                       assert n >= 1, 'owner should see deliveries';
   begin
     update public.pay_orders set status = 'refunded' where org_id = org_a;
     assert false, 'owner changed an order directly';
@@ -118,6 +140,13 @@ begin
   perform public.save_integration(org_a, 'resend', '{"from":"x@y.z"}', 'secret-1');
   reset role;
   assert public.get_integration_secret(org_a, 'resend') = 'secret-1', 'secret round-trip failed';
+
+  -- worker functions (as the service role would): claim, fail with backoff, succeed
+  select count(*) into n from public.claim_event_deliveries(100);            assert n >= 1, 'worker should claim due deliveries';
+  select count(*) into n from public.claim_event_deliveries(100);            assert n = 0, 'claimed deliveries are leased';
+  perform public.finish_event_delivery(id, false, 'boom') from public.event_deliveries where org_id = org_a;
+  select count(*) into n from public.event_deliveries where org_id = org_a and status = 'pending' and next_attempt_at > now();
+                                                                             assert n >= 1, 'failed delivery should be retried later';
 
   -- Non-admins can't use admin powers
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);

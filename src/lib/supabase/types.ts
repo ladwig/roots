@@ -19,6 +19,78 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"event_deliveries": {
+                  Row: {
+                    "attempts": number,"created_at": string,"delivered_at": string | null,"event_id": number,"id": number,"last_error": string | null,"next_attempt_at": string,"org_id": string,"status": string,"subscription_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "attempts"?: number,"created_at"?: string,"delivered_at"?: string | null,"event_id": number,"id"?: never,"last_error"?: string | null,"next_attempt_at"?: string,"org_id": string,"status"?: string,"subscription_id": string
+                  }
+                  Update: {
+                    "attempts"?: number,"created_at"?: string,"delivered_at"?: string | null,"event_id"?: number,"id"?: never,"last_error"?: string | null,"next_attempt_at"?: string,"org_id"?: string,"status"?: string,"subscription_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "event_deliveries_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "event_deliveries_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "event_deliveries_subscription_id_fkey"
+      columns: ["subscription_id"]
+isOneToOne: false
+      referencedRelation: "event_subscriptions"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"event_subscriptions": {
+                  Row: {
+                    "active": boolean,"channel": string,"config": NonNullable<Json>,"created_at": string,"created_by": string | null,"event_types": (string)[],"id": string,"name": string,"org_id": string,"secret_id": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"channel": string,"config"?: NonNullable<Json>,"created_at"?: string,"created_by"?: string | null,"event_types"?: (string)[],"id"?: string,"name": string,"org_id": string,"secret_id"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "active"?: boolean,"channel"?: string,"config"?: NonNullable<Json>,"created_at"?: string,"created_by"?: string | null,"event_types"?: (string)[],"id"?: string,"name"?: string,"org_id"?: string,"secret_id"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "event_subscriptions_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"events": {
+                  Row: {
+                    "actor_id": string | null,"created_at": string,"id": number,"org_id": string,"payload": NonNullable<Json>,"subject_id": string | null,"subject_table": string | null,"type": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "actor_id"?: string | null,"created_at"?: string,"id"?: never,"org_id": string,"payload"?: NonNullable<Json>,"subject_id"?: string | null,"subject_table"?: string | null,"type": string
+                  }
+                  Update: {
+                    "actor_id"?: string | null,"created_at"?: string,"id"?: never,"org_id"?: string,"payload"?: NonNullable<Json>,"subject_id"?: string | null,"subject_table"?: string | null,"type"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "events_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"integration_events": {
                   Row: {
                     "attempts": number,"error": string | null,"external_id": string,"id": number,"org_id": string | null,"payload": NonNullable<Json>,"processed_at": string | null,"provider": string,"received_at": string,"type": string | null
@@ -311,17 +383,29 @@ isOneToOne: false
               "confirmed": boolean,"created_at": string,"email": string,"full_name": string,"id": string,"is_platform_admin": boolean,"last_sign_in_at": string,"org_count": number
             }[]
                            },
+"claim_event_deliveries":
+{ Args: { "p_limit"?: number }; Returns: number[]
+                           },
 "create_org":
 { Args: { "p_name": string,"p_slug": string }; Returns: string
                            },
 "delete_integration":
 { Args: { "p_org": string,"p_provider": string }; Returns: undefined
                            },
+"emit_event":
+{ Args: { "p_org": string,"p_payload"?: Json,"p_subject_id"?: string,"p_subject_table"?: string,"p_type": string }; Returns: number
+                           },
 "enable_audit":
 { Args: { "t": unknown }; Returns: undefined
                            },
+"finish_event_delivery":
+{ Args: { "p_error"?: string,"p_id": number,"p_ok": boolean }; Returns: undefined
+                           },
 "get_integration_secret":
 { Args: { "p_org": string,"p_provider": string }; Returns: string
+                           },
+"get_subscription_secret":
+{ Args: { "p_subscription": string }; Returns: string
                            },
 "has_perm":
 { Args: { "p_org": string,"p_perm": string }; Returns: boolean
@@ -351,6 +435,9 @@ isOneToOne: false
                            },
 "seed_org":
 { Args: { "p_name": string,"p_owner": string,"p_slug": string }; Returns: string
+                           },
+"set_subscription_secret":
+{ Args: { "p_secret": string,"p_subscription": string }; Returns: undefined
                            },
 "shares_org":
 { Args: { "p_user": string }; Returns: boolean
