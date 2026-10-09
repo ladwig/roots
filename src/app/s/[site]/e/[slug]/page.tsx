@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { sitePath } from "@/lib/url"
 import { notFound } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { getT } from "@/i18n/server"
@@ -21,7 +22,7 @@ export default async function PublicEvent({ params }: PageProps<"/s/[site]/e/[sl
 
   return (
     <main className="mx-auto grid max-w-2xl gap-6 px-4 py-12">
-      <Link href="/" className="text-sm text-muted-foreground underline-offset-4 hover:underline">
+      <Link href={sitePath(site)} className="text-sm text-muted-foreground underline-offset-4 hover:underline">
         ← {s.org.name} · {t("site.back")}
       </Link>
       {e.image_path && (

@@ -1,6 +1,7 @@
 // Public surface (<org>.ROOT_DOMAIN, rewritten here by proxy.ts). Only published data belongs here.
 // ponytail: plain list until the Public sites module; public pages will use the org's language, not the visitor cookie.
 import Link from "next/link"
+import { sitePath } from "@/lib/url"
 import { notFound } from "next/navigation"
 import { Picture } from "@/components/picture"
 import { Badge } from "@/components/ui/badge"
@@ -33,7 +34,7 @@ export default async function PublicSite({ params }: PageProps<"/s/[site]">) {
           <ul className="grid divide-y rounded-lg border">
             {events.map((e) => (
               <li key={e.id}>
-                <Link href={`/e/${e.slug}`} className="grid gap-0.5 px-4 py-3 hover:bg-muted">
+                <Link href={sitePath(site, `/e/${e.slug}`)} className="grid gap-0.5 px-4 py-3 hover:bg-muted">
                   <span className="flex flex-wrap items-center gap-2 font-medium">
                     {e.title}
                     {e.status === "cancelled" && <Badge variant="destructive">{t("site.cancelled")}</Badge>}

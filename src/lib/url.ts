@@ -35,5 +35,10 @@ export function withParams(sp: SearchParams, changes: Record<string, string | un
 
 export const pageParam = (sp: SearchParams) => Math.max(1, Number(param(sp, "page")) || 1)
 
-// Public page of an org: <slug>.ROOT_DOMAIN (same protocol as the app).
-export const siteUrl = (orgSlug: string, path = "") => `${new URL(APP_URL).protocol}//${orgSlug}.${ROOT_DOMAIN}${path}`
+// Public pages live on <slug>.ROOT_DOMAIN. Hosts without wildcard subdomains (*.vercel.app) use paths instead:
+// APP_URL/s/<slug>/… (the /s/[site] routes are reachable directly too).
+export const SITE_PATHS = ROOT_DOMAIN.endsWith(".vercel.app")
+export const siteUrl = (orgSlug: string, path = "") =>
+  SITE_PATHS ? `${APP_URL}/s/${orgSlug}${path}` : `${new URL(APP_URL).protocol}//${orgSlug}.${ROOT_DOMAIN}${path}`
+// Links between public pages of one org (relative on its subdomain, /s/<slug>/… in path mode).
+export const sitePath = (orgSlug: string, path = "/") => (SITE_PATHS ? `/s/${orgSlug}${path === "/" ? "" : path}` : path)
