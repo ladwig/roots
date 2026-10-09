@@ -4,7 +4,7 @@ import { useCallback } from "react"
 import { CsvImport } from "@/components/csv-import"
 import type { FieldDef } from "@/lib/custom-fields"
 import { importContacts } from "../actions"
-import { CONTACT_FIELDS, contactName, readContact } from "../fields"
+import { CONTACT_FIELDS, readContact } from "../fields"
 
 export function ContactImport({ defs, labels, matchLabel, maxRows }: { defs: FieldDef[]; labels: Record<string, string>; matchLabel: string; maxRows: number }) {
   const validate = useCallback((row: Record<string, string>) => readContact((k) => row[k] ?? "", defs), [defs])
@@ -16,10 +16,6 @@ export function ContactImport({ defs, labels, matchLabel, maxRows }: { defs: Fie
     <CsvImport
       fields={fields}
       validate={validate}
-      describe={(r) => {
-        const v = readContact((k) => r[k] ?? "", defs)
-        return "row" in v ? [contactName(v.row), v.row.email].filter(Boolean).join(" · ") : ""
-      }}
       onImport={importContacts}
       matchLabel={matchLabel}
       maxRows={maxRows}

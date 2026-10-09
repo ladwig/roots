@@ -765,7 +765,6 @@
     "preview": "Vorschau",
     "summary": "{good} Zeilen bereit, {bad} mit Fehlern (werden nicht importiert).",
     "line": "Zeile",
-    "record": "Eintrag",
     "lineError": "Zeile {line}: {message}",
     "moreErrors": "… und {count} weitere",
     "submit": {
@@ -775,6 +774,9 @@
     "importing": "Wird importiert…",
     "done": "Fertig: {inserted} neu, {updated} aktualisiert, {skipped} übersprungen.",
     "toList": "Zur Liste",
-    "another": "Weitere Datei importieren"
+    "another": "Weitere Datei importieren",
+    "status": "Status",
+    "ok": "In Ordnung",
+    "previewMore": "Die ersten {shown} von {total} Zeilen. Fehler in allen Zeilen stehen oben."
   }
 }

@@ -765,7 +765,6 @@
     "preview": "Preview",
     "summary": "{good} rows ready, {bad} with errors (won't be imported).",
     "line": "Row",
-    "record": "Record",
     "lineError": "Row {line}: {message}",
     "moreErrors": "… and {count} more",
     "submit": {
@@ -775,6 +774,9 @@
     "importing": "Importing…",
     "done": "Done: {inserted} new, {updated} updated, {skipped} skipped.",
     "toList": "Back to the list",
-    "another": "Import another file"
+    "another": "Import another file",
+    "status": "Status",
+    "ok": "OK",
+    "previewMore": "First {shown} of {total} rows. Errors in all rows are listed above."
   }
 }
