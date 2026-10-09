@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { getT } from "@/i18n/server"
 import { sitePath } from "@/lib/url"
 import { getSite } from "../../data"
+import { SubmitButton } from "@/components/submit-button"
 
 // Ticket types with quantity fields; a plain GET form to the checkout step (works without JS).
 export async function TicketShop({ site, slug, eventId, max, code }: { site: string; slug: string; eventId: string; max: number; code: string | null }) {
@@ -21,9 +21,9 @@ export async function TicketShop({ site, slug, eventId, max, code }: { site: str
       </h2>
       <form className="flex flex-wrap items-center gap-2">
         <Input name="code" defaultValue={code ?? ""} placeholder={t("shop.codePlaceholder")} aria-label={t("shop.code")} className="w-44 uppercase" />
-        <Button type="submit" variant="outline" size="sm">
+        <SubmitButton variant="outline" size="sm">
           {t("shop.applyCode")}
-        </Button>
+        </SubmitButton>
         {code && <span className={codeValid ? "text-sm" : "text-sm text-destructive"}>{codeValid ? t("shop.codeOk") : t("shop.codeInvalid")}</span>}
       </form>
       <form action={sitePath(site, `/e/${slug}/checkout`)} className="grid gap-3">
@@ -77,9 +77,9 @@ export async function TicketShop({ site, slug, eventId, max, code }: { site: str
           })}
         </ul>
         {anyOnSale && (
-          <Button type="submit" className="justify-self-start">
+          <SubmitButton className="justify-self-start">
             {t("shop.continue")}
-          </Button>
+          </SubmitButton>
         )}
       </form>
     </section>

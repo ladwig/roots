@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { useT } from "@/i18n/client"
 import { createInvite, type InviteState } from "./actions"
+import { SubmitButton } from "@/components/submit-button"
 
 export function InviteForm({ roles, defaultRoleId }: { roles: { id: string; name: string }[]; defaultRoleId?: string }) {
   const t = useT()
@@ -45,9 +46,9 @@ export function InviteForm({ roles, defaultRoleId }: { roles: { id: string; name
           ))}
         </NativeSelect>
       </div>
-      <Button type="submit" disabled={pending}>
+      <SubmitButton disabled={pending}>
         {t("members.createLink")}
-      </Button>
+      </SubmitButton>
     </form>
   )
 }

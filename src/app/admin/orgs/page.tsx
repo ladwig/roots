@@ -15,6 +15,7 @@ import { addMember, createOrg, deleteOrg, openOrg, removeMember, restoreOrg, tra
 import { disableModule, enableModule } from "./module-actions"
 import { missingModules, modules } from "@/modules/registry"
 import { Badge } from "@/components/ui/badge"
+import { SubmitButton } from "@/components/submit-button"
 
 export default async function AdminOrgs({ searchParams }: PageProps<"/admin/orgs">) {
   const { supabase } = await requirePlatformAdmin()
@@ -100,7 +101,7 @@ export default async function AdminOrgs({ searchParams }: PageProps<"/admin/orgs
               <Input id="org-owner" name="owner" type="email" />
               <p className="text-xs text-muted-foreground">{t("admin.orgs.ownerHelp")}</p>
             </div>
-            <Button type="submit">{t("admin.orgs.new")}</Button>
+            <SubmitButton>{t("admin.orgs.new")}</SubmitButton>
           </form>
         </UrlSheet>
       )}
@@ -143,7 +144,7 @@ async function EditOrg({ t, orgId, error, ok }: { t: T; orgId: string; error?: s
             })}
           </p>
           <form action={restoreOrg.bind(null, org.id)}>
-            <Button type="submit">{t("admin.trash.restore")}</Button>
+            <SubmitButton>{t("admin.trash.restore")}</SubmitButton>
           </form>
           <section className="grid gap-3 rounded-lg border border-destructive/30 p-3">
             <h3 className="font-medium text-destructive">{t("admin.dangerZone")}</h3>
@@ -152,9 +153,9 @@ async function EditOrg({ t, orgId, error, ok }: { t: T; orgId: string; error?: s
                 <Checkbox name="confirm" value="yes" className="mt-0.5" />
                 {t("admin.orgs.deleteConfirm")}
               </label>
-              <Button type="submit" variant="destructive" className="justify-self-start">
+              <SubmitButton variant="destructive" className="justify-self-start">
                 {t("admin.trash.deleteNow")}
-              </Button>
+              </SubmitButton>
             </form>
           </section>
         </>
@@ -162,9 +163,9 @@ async function EditOrg({ t, orgId, error, ok }: { t: T; orgId: string; error?: s
         <>
           <div className="grid grid-cols-2 gap-2">
             <form action={openOrg.bind(null, org.id)}>
-              <Button type="submit" variant="outline" className="w-full">
+              <SubmitButton variant="outline" className="w-full">
                 {t("admin.orgs.open")}
-              </Button>
+              </SubmitButton>
             </form>
             <Button render={<Link href={`/admin/activity?org=${org.id}`} />} nativeButton={false} variant="outline">
               {t("admin.activity.title")}
@@ -182,9 +183,9 @@ async function EditOrg({ t, orgId, error, ok }: { t: T; orgId: string; error?: s
                 <Label htmlFor="edit-slug">{t("admin.orgs.address")}</Label>
                 <Input id="edit-slug" name="slug" defaultValue={org.slug} required pattern="[a-z0-9][a-z0-9\-]{1,38}[a-z0-9]" />
               </div>
-              <Button type="submit" className="justify-self-start">
+              <SubmitButton className="justify-self-start">
                 {t("common.save")}
-              </Button>
+              </SubmitButton>
             </form>
           </section>
 
@@ -208,9 +209,9 @@ async function EditOrg({ t, orgId, error, ok }: { t: T; orgId: string; error?: s
                       )}
                     </span>
                     <form action={on ? disableModule.bind(null, org.id, m.key) : enableModule.bind(null, org.id, m.key)}>
-                      <Button type="submit" variant={on ? "outline" : "default"} size="sm">
+                      <SubmitButton variant={on ? "outline" : "default"} size="sm">
                         {on ? t("modules.turnOff") : t("modules.turnOn")}
-                      </Button>
+                      </SubmitButton>
                     </form>
                   </li>
                 )
@@ -231,9 +232,9 @@ async function EditOrg({ t, orgId, error, ok }: { t: T; orgId: string; error?: s
                         <span className="text-xs text-muted-foreground">{t.pick(m.roles?.name)}</span>
                       </span>
                       <form action={removeMember.bind(null, org.id, m.id)}>
-                        <Button type="submit" variant="ghost" size="sm">
+                        <SubmitButton variant="ghost" size="sm">
                           {t("members.remove")}
-                        </Button>
+                        </SubmitButton>
                       </form>
                     </li>
                   )
@@ -253,15 +254,15 @@ async function EditOrg({ t, orgId, error, ok }: { t: T; orgId: string; error?: s
                     </NativeSelectOption>
                   ))}
                 </NativeSelect>
-                <Button type="submit">{t("admin.orgs.add")}</Button>
+                <SubmitButton>{t("admin.orgs.add")}</SubmitButton>
               </div>
             </form>
           </section>
 
           <form action={trashOrg.bind(null, org.id)}>
-            <Button type="submit" variant="destructive" size="sm">
+            <SubmitButton variant="destructive" size="sm">
               {t("admin.trash.moveToTrash")}
-            </Button>
+            </SubmitButton>
           </form>
         </>
       )}

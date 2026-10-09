@@ -20,6 +20,7 @@ import type { Tables } from "@/lib/supabase/types"
 import { pageParam, param, withParams, type SearchParams } from "@/lib/url"
 import { addNote, createContact, deleteNote, restoreContact, trashContact, updateContact } from "./actions"
 import { contactName, COUNTRIES } from "./fields"
+import { SubmitButton } from "@/components/submit-button"
 
 type Contact = Tables<"contacts">
 type Ctx = Awaited<ReturnType<typeof requirePerm>>
@@ -196,9 +197,9 @@ function ContactForm({ t, action, c, disabled, defs }: { t: T; action: (fd: Form
         </div>
         <CustomFieldInputs defs={defs} values={c?.custom as CustomValues | undefined} idPrefix="c-custom" />
         {!disabled && (
-          <Button type="submit" className="justify-self-start">
+          <SubmitButton className="justify-self-start">
             {c ? t("common.save") : t("contacts.new")}
-          </Button>
+          </SubmitButton>
         )}
       </fieldset>
     </form>
@@ -243,7 +244,7 @@ async function EditContact({ t, ctx, c, sp, canManage, defs }: { t: T; ctx: Ctx;
           {canManage && (
             <form action={restoreContact}>
               <input type="hidden" name="id" value={c.id} />
-              <Button type="submit">{t("contacts.restore")}</Button>
+              <SubmitButton>{t("contacts.restore")}</SubmitButton>
             </form>
           )}
         </>
@@ -282,9 +283,9 @@ async function EditContact({ t, ctx, c, sp, canManage, defs }: { t: T; ctx: Ctx;
                   aria-label={t("contacts.notePlaceholder")}
                   className={textareaClass}
                 />
-                <Button type="submit" size="sm" variant="outline" className="justify-self-start">
+                <SubmitButton size="sm" variant="outline" className="justify-self-start">
                   {t("contacts.addNote")}
-                </Button>
+                </SubmitButton>
               </form>
             )}
             <ol className="grid gap-3 border-l pl-4">
@@ -304,7 +305,7 @@ async function EditContact({ t, ctx, c, sp, canManage, defs }: { t: T; ctx: Ctx;
                           <input type="hidden" name="note" value={e.note.id} />
                           <Tooltip>
                             <TooltipTrigger
-                              render={<Button type="submit" variant="ghost" size="icon-sm" aria-label={t("contacts.deleteNote")} />}
+                              render={<SubmitButton variant="ghost" size="icon-sm" aria-label={t("contacts.deleteNote")} />}
                             >
                               <Trash2Icon />
                             </TooltipTrigger>
@@ -329,9 +330,9 @@ async function EditContact({ t, ctx, c, sp, canManage, defs }: { t: T; ctx: Ctx;
               <h3 className="font-medium text-destructive">{t("admin.dangerZone")}</h3>
               <form action={trashContact}>
                 <input type="hidden" name="id" value={c.id} />
-                <Button type="submit" variant="outline" size="sm">
+                <SubmitButton variant="outline" size="sm">
                   {t("contacts.toTrash")}
-                </Button>
+                </SubmitButton>
               </form>
             </section>
           )}

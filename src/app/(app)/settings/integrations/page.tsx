@@ -11,6 +11,7 @@ import { param } from "@/lib/url"
 import { getIntegration, integrations } from "@/integrations/registry"
 import { connectIntegration, disconnectIntegration } from "./actions"
 import { NotificationsSection } from "../notifications/section"
+import { SubmitButton } from "@/components/submit-button"
 
 export default async function IntegrationsSettings({ searchParams }: PageProps<"/settings/integrations">) {
   const ctx = await requirePerm("org.integrations.manage")
@@ -124,9 +125,9 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
                   )}
                   {row && (
                     <form action={disconnectIntegration.bind(null, i.key)}>
-                      <Button type="submit" variant="outline" size="sm">
+                      <SubmitButton variant="outline" size="sm">
                         {t("integrations.disconnect")}
-                      </Button>
+                      </SubmitButton>
                     </form>
                   )}
                 </div>
@@ -168,7 +169,7 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
                 </div>
               )
             })}
-            <Button type="submit">{t("common.save")}</Button>
+            <SubmitButton>{t("common.save")}</SubmitButton>
           </form>
         </UrlDialog>
       )}

@@ -1,13 +1,13 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Notice } from "@/components/notice"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
 import { param, sitePath } from "@/lib/url"
 import { getSite } from "../../../data"
 import { buy } from "./actions"
+import { SubmitButton } from "@/components/submit-button"
 
 // Step 2: who buys + names per ticket (if the event asks), then off to the payment page.
 export default async function Checkout({ params, searchParams }: PageProps<"/s/[site]/e/[slug]/checkout">) {
@@ -92,9 +92,9 @@ export default async function Checkout({ params, searchParams }: PageProps<"/s/[
             </div>
           </div>
           <p className="text-xs text-muted-foreground">{t("shop.emailHint")}</p>
-          <Button type="submit" className="justify-self-start">
+          <SubmitButton className="justify-self-start">
             {total === 0 ? t("shop.getFree") : t("shop.pay", { amount: t.money(total, picked[0].currency) })}
-          </Button>
+          </SubmitButton>
         </form>
       )}
     </main>

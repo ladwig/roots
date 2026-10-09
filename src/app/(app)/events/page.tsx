@@ -17,6 +17,7 @@ import { toLocalInput } from "@/lib/time"
 import { pageParam, param, siteUrl, withParams, type SearchParams } from "@/lib/url"
 import type { Tables } from "@/lib/supabase/types"
 import { createEvent, restoreEvent, setEventStatus, trashEvent, updateEvent, updateEventImage } from "./actions"
+import { SubmitButton } from "@/components/submit-button"
 
 const VIEWS = ["upcoming", "past", "all"] as const
 const STATUSES = ["draft", "published", "cancelled"] as const
@@ -206,9 +207,9 @@ function EventForm({ t, action, ev, disabled }: { t: T; action: (fd: FormData) =
           </div>
         </div>
         {!disabled && (
-          <Button type="submit" className="justify-self-start">
+          <SubmitButton className="justify-self-start">
             {ev ? t("common.save") : t("eventsPage.new")}
-          </Button>
+          </SubmitButton>
         )}
       </fieldset>
     </form>
@@ -231,7 +232,7 @@ function EditEvent({ t, ev, sp, canManage, orgSlug, tickets }: { t: T; ev: Ev; s
           {canManage && (
             <form action={restoreEvent}>
               <input type="hidden" name="id" value={ev.id} />
-              <Button type="submit">{t("eventsPage.restore")}</Button>
+              <SubmitButton>{t("eventsPage.restore")}</SubmitButton>
             </form>
           )}
         </>
@@ -261,18 +262,18 @@ function EditEvent({ t, ev, sp, canManage, orgSlug, tickets }: { t: T; ev: Ev; s
                 <form action={setEventStatus}>
                   <input type="hidden" name="id" value={ev.id} />
                   <input type="hidden" name="status" value="published" />
-                  <Button type="submit" size="sm">
+                  <SubmitButton size="sm">
                     {t("eventsPage.publish")}
-                  </Button>
+                  </SubmitButton>
                 </form>
               )}
               {ev.status === "published" && (
                 <form action={setEventStatus}>
                   <input type="hidden" name="id" value={ev.id} />
                   <input type="hidden" name="status" value="draft" />
-                  <Button type="submit" size="sm" variant="outline">
+                  <SubmitButton size="sm" variant="outline">
                     {t("eventsPage.unpublish")}
-                  </Button>
+                  </SubmitButton>
                 </form>
               )}
             </div>
@@ -301,16 +302,16 @@ function EditEvent({ t, ev, sp, canManage, orgSlug, tickets }: { t: T; ev: Ev; s
                   <input type="hidden" name="id" value={ev.id} />
                   <input type="hidden" name="status" value="cancelled" />
                   <p className="text-sm text-muted-foreground">{t("eventsPage.cancelConfirm")}</p>
-                  <Button type="submit" variant="destructive" size="sm" className="justify-self-start">
+                  <SubmitButton variant="destructive" size="sm" className="justify-self-start">
                     {t("eventsPage.cancel")}
-                  </Button>
+                  </SubmitButton>
                 </form>
               )}
               <form action={trashEvent}>
                 <input type="hidden" name="id" value={ev.id} />
-                <Button type="submit" variant="outline" size="sm">
+                <SubmitButton variant="outline" size="sm">
                   {t("eventsPage.toTrash")}
-                </Button>
+                </SubmitButton>
               </form>
             </section>
           )}

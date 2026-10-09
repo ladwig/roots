@@ -1,11 +1,11 @@
 import Link from "next/link"
 import { Notice } from "@/components/notice"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
 import { param } from "@/lib/url"
 import { sendPasswordReset } from "@/app/login/actions"
+import { SubmitButton } from "@/components/submit-button"
 
 export default async function ForgotPage({ searchParams }: PageProps<"/forgot">) {
   const sp = await searchParams
@@ -22,7 +22,7 @@ export default async function ForgotPage({ searchParams }: PageProps<"/forgot">)
           <Label htmlFor="email">{t("auth.email")}</Label>
           <Input id="email" name="email" type="email" autoComplete="email" required />
         </div>
-        <Button type="submit">{t("auth.sendReset")}</Button>
+        <SubmitButton>{t("auth.sendReset")}</SubmitButton>
       </form>
       <Link href="/login" className="text-sm text-muted-foreground underline underline-offset-4">
         {t("auth.backToLogin")}

@@ -12,6 +12,7 @@ import { getContext } from "@/lib/context"
 import { param, withParams } from "@/lib/url"
 import { changeRole, removeMember, revokeInvite } from "./actions"
 import { InviteForm } from "./invite-form"
+import { SubmitButton } from "@/components/submit-button"
 
 export default async function MembersSettings({ searchParams }: PageProps<"/settings/members">) {
   const ctx = await getContext()
@@ -97,9 +98,9 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
                 className: "w-0 text-right",
                 cell: (i) => (
                   <form action={revokeInvite.bind(null, i.id)}>
-                    <Button type="submit" variant="ghost" size="sm">
+                    <SubmitButton variant="ghost" size="sm">
                       {t("members.revoke")}
-                    </Button>
+                    </SubmitButton>
                   </form>
                 ),
               },
@@ -128,15 +129,15 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
                   ))}
                 </NativeSelect>
               </div>
-              <Button type="submit" className="justify-self-start">
+              <SubmitButton className="justify-self-start">
                 {t("common.save")}
-              </Button>
+              </SubmitButton>
             </form>
           )}
           <form action={removeMember.bind(null, editing.id)}>
-            <Button type="submit" variant="destructive">
+            <SubmitButton variant="destructive">
               {editing.user_id === ctx.userId ? t("members.leave") : t("members.remove")}
-            </Button>
+            </SubmitButton>
           </form>
         </UrlSheet>
       )}

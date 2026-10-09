@@ -1,5 +1,4 @@
 import { Notice } from "@/components/notice"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
@@ -7,6 +6,7 @@ import { getContext } from "@/lib/context"
 import { param, ROOT_DOMAIN } from "@/lib/url"
 import { ImageForm } from "@/components/image-form"
 import { updateLogo, updateOrg } from "./actions"
+import { SubmitButton } from "@/components/submit-button"
 
 export default async function GeneralSettings({ searchParams }: PageProps<"/settings/general">) {
   const ctx = await getContext()
@@ -42,9 +42,9 @@ export default async function GeneralSettings({ searchParams }: PageProps<"/sett
           </span>
         </div>
         {canEdit && (
-          <Button type="submit" className="justify-self-start">
+          <SubmitButton className="justify-self-start">
             {t("common.save")}
-          </Button>
+          </SubmitButton>
         )}
       </form>
     </div>

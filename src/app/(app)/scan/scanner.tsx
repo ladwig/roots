@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { useT } from "@/i18n/client"
 import { cn } from "@/lib/utils"
 import { checkIn, scanList, syncCheckIns, type ScanEntry, type ScanResult } from "./actions"
+import { SubmitButton } from "@/components/submit-button"
 
 type Detector = { detect(source: CanvasImageSource): Promise<{ rawValue: string }[]> }
 
@@ -207,9 +208,9 @@ export function Scanner({ eventId }: { eventId: string }) {
         className="flex flex-wrap gap-2"
       >
         <Input name="code" placeholder={t("tickets.codePlaceholder")} aria-label={t("tickets.code")} autoComplete="off" className="w-48 font-mono uppercase" />
-        <Button type="submit" disabled={pending} variant="outline">
+        <SubmitButton disabled={pending} variant="outline">
           {t("tickets.checkIn")}
-        </Button>
+        </SubmitButton>
       </form>
     </div>
   )

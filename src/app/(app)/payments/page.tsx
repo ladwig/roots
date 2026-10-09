@@ -12,6 +12,7 @@ import type { T } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { pageParam, param, withParams } from "@/lib/url"
 import { createTestPayment, refund } from "./actions"
+import { SubmitButton } from "@/components/submit-button"
 
 const STATUSES = ["open", "paid", "partially_refunded", "refunded", "failed", "expired"]
 
@@ -107,7 +108,7 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/payment
               <Label htmlFor="test-email">{t("payments.testEmail")}</Label>
               <Input id="test-email" name="email" type="email" />
             </div>
-            <Button type="submit">{t("payments.startCheckout")}</Button>
+            <SubmitButton>{t("payments.startCheckout")}</SubmitButton>
           </form>
         </UrlSheet>
       )}
@@ -207,9 +208,9 @@ async function OrderSheet({ t, orderId, canRefund, error, ok }: { t: T; orderId:
             <Label htmlFor="refund-reason">{t("payments.refundReason")}</Label>
             <Input id="refund-reason" name="reason" maxLength={200} />
           </div>
-          <Button type="submit" variant="destructive" className="justify-self-start">
+          <SubmitButton variant="destructive" className="justify-self-start">
             {t("payments.refund")}
-          </Button>
+          </SubmitButton>
         </form>
       )}
     </UrlSheet>

@@ -14,6 +14,7 @@ import { roleSummary } from "@/lib/roles"
 import { param, withParams } from "@/lib/url"
 import { core, modules } from "@/modules/registry"
 import { deleteRole, saveRole } from "./actions"
+import { SubmitButton } from "@/components/submit-button"
 
 type Role = { id: string; name: unknown; permissions: string[]; is_owner: boolean }
 
@@ -121,11 +122,11 @@ function RoleForm({ t, role, error }: { t: T; role?: Role; error?: string }) {
         </div>
       )}
       <div className="flex flex-wrap justify-between gap-2">
-        <Button type="submit">{t("roles.save")}</Button>
+        <SubmitButton>{t("roles.save")}</SubmitButton>
         {role && !role.is_owner && (
-          <Button type="submit" variant="destructive" formAction={deleteRole.bind(null, role.id)} formNoValidate>
+          <SubmitButton variant="destructive" formAction={deleteRole.bind(null, role.id)} formNoValidate>
             {t("roles.delete")}
-          </Button>
+          </SubmitButton>
         )}
       </div>
     </form>

@@ -15,6 +15,7 @@ import { requirePerm } from "@/lib/context"
 import { param, withParams, type SearchParams } from "@/lib/url"
 import { deleteSubscription, sendTest, telegramChats, updateSubscription } from "./actions"
 import { CreateForm, RotateSecret } from "./forms"
+import { SubmitButton } from "@/components/submit-button"
 
 type Sub = {
   id: string
@@ -198,9 +199,9 @@ async function EditSheet({
             </label>
           ))}
         </fieldset>
-        <Button type="submit" className="justify-self-start">
+        <SubmitButton className="justify-self-start">
           {t("common.save")}
-        </Button>
+        </SubmitButton>
       </form>
 
       {sub.channel === "webhook" && (
@@ -211,9 +212,9 @@ async function EditSheet({
       )}
 
       <form action={sendTest.bind(null, sub.id)}>
-        <Button type="submit" variant="outline" size="sm">
+        <SubmitButton variant="outline" size="sm">
           {t("notifications.test")}
-        </Button>
+        </SubmitButton>
       </form>
 
       <section className="grid gap-2">
@@ -245,9 +246,9 @@ async function EditSheet({
       </section>
 
       <form action={deleteSubscription.bind(null, sub.id)}>
-        <Button type="submit" variant="destructive" size="sm">
+        <SubmitButton variant="destructive" size="sm">
           {t("notifications.delete")}
-        </Button>
+        </SubmitButton>
       </form>
     </UrlSheet>
   )

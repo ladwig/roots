@@ -1,8 +1,8 @@
 import { Picture } from "@/components/picture"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
+import { SubmitButton } from "@/components/submit-button"
 
 // Upload / remove one picture (profile picture, org logo). `hidden` fields go along with both buttons.
 export async function ImageForm(props: {
@@ -25,17 +25,17 @@ export async function ImageForm(props: {
         <form action={props.action} className="flex flex-wrap items-center gap-2">
           {hidden}
           <Input id={props.id} name="file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" required className="max-w-60" />
-          <Button type="submit" size="sm">
+          <SubmitButton size="sm">
             {t("common.upload")}
-          </Button>
+          </SubmitButton>
         </form>
         {props.path && (
           <form action={props.action}>
             {hidden}
             <input type="hidden" name="remove" value="1" />
-            <Button type="submit" size="sm" variant="ghost">
+            <SubmitButton size="sm" variant="ghost">
               {t("common.removeImage")}
-            </Button>
+            </SubmitButton>
           </form>
         )}
       </div>

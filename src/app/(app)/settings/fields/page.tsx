@@ -14,6 +14,7 @@ import { CUSTOM_ENTITIES, FIELD_TYPES, type CustomEntity } from "@/lib/custom-fi
 import type { Tables } from "@/lib/supabase/types"
 import { param, withParams } from "@/lib/url"
 import { createField, deleteField, updateField } from "./actions"
+import { SubmitButton } from "@/components/submit-button"
 
 type Field = Tables<"custom_fields">
 const textareaClass =
@@ -86,9 +87,9 @@ export default async function FieldsPage({ searchParams }: PageProps<"/settings/
             <p className="text-sm text-muted-foreground">{t("fields.deleteHint")}</p>
             <form action={deleteField}>
               <input type="hidden" name="id" value={editing.id} />
-              <Button type="submit" variant="outline" size="sm">
+              <SubmitButton variant="outline" size="sm">
                 {t("fields.delete")}
-              </Button>
+              </SubmitButton>
             </form>
           </section>
         </UrlSheet>
@@ -132,9 +133,9 @@ function FieldForm({ t, action, entity, field }: { t: T; action: (fd: FormData) 
         <input type="checkbox" name="required" value="1" defaultChecked={field?.required} className="size-4" />
         {t("fields.requiredLabel")}
       </label>
-      <Button type="submit" className="justify-self-start">
+      <SubmitButton className="justify-self-start">
         {field ? t("common.save") : t("fields.new")}
-      </Button>
+      </SubmitButton>
     </form>
   )
 }

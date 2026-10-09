@@ -2,7 +2,6 @@ import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/
 import { Notice } from "@/components/notice"
 import { UrlSheet } from "@/components/url-sheet"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,6 +10,7 @@ import type { T } from "@/i18n/translate"
 import { requirePlatformAdmin } from "@/lib/context"
 import { pageParam, param, withParams } from "@/lib/url"
 import { deleteUser, removeMembership, setSuperadmin, updateProfile } from "./actions"
+import { SubmitButton } from "@/components/submit-button"
 
 export default async function AdminUsers({ searchParams }: PageProps<"/admin/users">) {
   const { supabase } = await requirePlatformAdmin()
@@ -80,9 +80,9 @@ async function EditUser({ t, userId, error, ok }: { t: T; userId: string; error?
             <Label htmlFor="full-name">{t("admin.users.name")}</Label>
             <Input id="full-name" name="full_name" defaultValue={user.full_name ?? ""} maxLength={100} />
           </div>
-          <Button type="submit" className="justify-self-start">
+          <SubmitButton className="justify-self-start">
             {t("common.save")}
-          </Button>
+          </SubmitButton>
         </form>
       </section>
 
@@ -91,9 +91,9 @@ async function EditUser({ t, userId, error, ok }: { t: T; userId: string; error?
         <p className="text-sm text-muted-foreground">{t("admin.users.superadminHelp")}</p>
         {!isMe && (
           <form action={setSuperadmin.bind(null, user.id, !user.is_platform_admin)}>
-            <Button type="submit" variant="outline">
+            <SubmitButton variant="outline">
               {user.is_platform_admin ? t("admin.users.revoke") : t("admin.users.grant")}
-            </Button>
+            </SubmitButton>
           </form>
         )}
         {isMe && <Badge className="justify-self-start">{t("admin.users.superadmin")}</Badge>}
@@ -110,9 +110,9 @@ async function EditUser({ t, userId, error, ok }: { t: T; userId: string; error?
                   <span className="text-xs text-muted-foreground">{t.pick(m.roles?.name)}</span>
                 </span>
                 <form action={removeMembership.bind(null, user.id, m.id)}>
-                  <Button type="submit" variant="ghost" size="sm">
+                  <SubmitButton variant="ghost" size="sm">
                     {t("members.remove")}
-                  </Button>
+                  </SubmitButton>
                 </form>
               </li>
             ))}
@@ -130,9 +130,9 @@ async function EditUser({ t, userId, error, ok }: { t: T; userId: string; error?
               <Checkbox name="confirm" value="yes" className="mt-0.5" />
               {t("admin.users.deleteConfirm")}
             </label>
-            <Button type="submit" variant="destructive" className="justify-self-start">
+            <SubmitButton variant="destructive" className="justify-self-start">
               {t("admin.users.delete")}
-            </Button>
+            </SubmitButton>
           </form>
         </section>
       )}

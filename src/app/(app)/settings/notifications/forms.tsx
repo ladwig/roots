@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { useT } from "@/i18n/client"
 import { createSubscription, rotateSecret, type CreateState } from "./actions"
+import { SubmitButton } from "@/components/submit-button"
 
 function SecretOnce({ secret }: { secret: string }) {
   const t = useT()
@@ -60,9 +61,9 @@ export function CreateForm({ channel, chats = [] }: { channel: "webhook" | "tele
           </NativeSelect>
         </div>
       )}
-      <Button type="submit" disabled={pending}>
+      <SubmitButton disabled={pending}>
         {channel === "webhook" ? t("notifications.newWebhook") : t("notifications.newTelegram")}
-      </Button>
+      </SubmitButton>
     </form>
   )
 }
@@ -75,9 +76,9 @@ export function RotateSecret({ id }: { id: string }) {
   ) : (
     <form action={action}>
       <Notice error={state.error} />
-      <Button type="submit" variant="outline" size="sm" disabled={pending}>
+      <SubmitButton variant="outline" size="sm" disabled={pending}>
         {t("notifications.rotate")}
-      </Button>
+      </SubmitButton>
     </form>
   )
 }

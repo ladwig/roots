@@ -1,13 +1,13 @@
 import Link from "next/link"
 import { DataTable, Pager, pageRange, PAGE_SIZE } from "@/components/data-table"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { renderEvent } from "@/events/render"
 import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
 import { createClient } from "@/lib/supabase/server"
 import { pageParam, param, withParams } from "@/lib/url"
 import { markAllRead } from "./actions"
+import { SubmitButton } from "@/components/submit-button"
 
 // Personal inbox across all orgs (and platform events for superadmins).
 export default async function NotificationsPage({ searchParams }: PageProps<"/notifications">) {
@@ -34,9 +34,9 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-heading text-2xl font-semibold">{t("inbox.title")}</h1>
         <form action={markAllRead}>
-          <Button type="submit" variant="outline" size="sm">
+          <SubmitButton variant="outline" size="sm">
             {t("inbox.markAllRead")}
-          </Button>
+          </SubmitButton>
         </form>
       </div>
       <nav className="flex gap-1.5">

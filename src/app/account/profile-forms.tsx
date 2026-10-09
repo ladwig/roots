@@ -1,5 +1,4 @@
 import { Notice } from "@/components/notice"
-import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,6 +11,7 @@ import { emailConfigured } from "@/events/channels/email"
 import { eventTypes, personChannels } from "@/events/registry"
 import { ImageForm } from "@/components/image-form"
 import { savePreferences, updateAvatar, updateName, updatePassword } from "./actions"
+import { SubmitButton } from "@/components/submit-button"
 
 // Personal settings (name, language, password). Used by /settings/profile and /account (no org needed).
 export async function ProfileForms({ sp, path }: { sp: SearchParams; path: "/settings/profile" | "/account" }) {
@@ -46,9 +46,9 @@ export async function ProfileForms({ sp, path }: { sp: SearchParams; path: "/set
             <Label htmlFor="full-name">{t("account.name")}</Label>
             <Input id="full-name" name="full_name" defaultValue={profile?.full_name ?? ""} maxLength={100} autoComplete="name" />
           </div>
-          <Button type="submit" className="justify-self-start">
+          <SubmitButton className="justify-self-start">
             {t("common.save")}
-          </Button>
+          </SubmitButton>
         </form>
       </section>
       <Separator />
@@ -96,9 +96,9 @@ export async function ProfileForms({ sp, path }: { sp: SearchParams; path: "/set
               </table>
             </div>
             {!emailConfigured() && <p className="text-xs text-muted-foreground">{t("prefs.emailOff")}</p>}
-            <Button type="submit" className="justify-self-start">
+            <SubmitButton className="justify-self-start">
               {t("common.save")}
-            </Button>
+            </SubmitButton>
           </form>
         ) : (
           <p className="text-sm text-muted-foreground">{t("prefs.none")}</p>
@@ -118,9 +118,9 @@ export async function ProfileForms({ sp, path }: { sp: SearchParams; path: "/set
             <Label htmlFor="repeat">{t("account.repeatPassword")}</Label>
             <Input id="repeat" name="repeat" type="password" autoComplete="new-password" required minLength={8} />
           </div>
-          <Button type="submit" className="justify-self-start">
+          <SubmitButton className="justify-self-start">
             {t("account.changePassword")}
-          </Button>
+          </SubmitButton>
         </form>
       </section>
     </div>

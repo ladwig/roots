@@ -17,6 +17,7 @@ import { toLocalInput } from "@/lib/time"
 import { pageParam, param, siteUrl, withParams } from "@/lib/url"
 import { priceInput } from "@/tickets/price"
 import { deleteCode, deleteTicketType, deleteTier, saveCode, saveTicketSettings, saveTicketType, saveTier } from "./actions"
+import { SubmitButton } from "@/components/submit-button"
 
 type TicketType = Tables<"ticket_types">
 type Tier = Tables<"ticket_tiers">
@@ -221,9 +222,9 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
             <Label htmlFor="t-max">{t("tickets.maxPerOrder")}</Label>
             <Input id="t-max" name="max_tickets_per_order" type="number" min={1} max={100} defaultValue={ev.max_tickets_per_order} />
           </div>
-          <Button type="submit" variant="outline">
+          <SubmitButton variant="outline">
             {t("common.save")}
-          </Button>
+          </SubmitButton>
         </form>
       )}
 
@@ -291,9 +292,9 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
             <form action={deleteTicketType}>
               <input type="hidden" name="event" value={ev.id} />
               <input type="hidden" name="id" value={editing.id} />
-              <Button type="submit" variant="outline" size="sm">
+              <SubmitButton variant="outline" size="sm">
                 {t("tickets.deleteType")}
-              </Button>
+              </SubmitButton>
             </form>
           </section>
         </UrlSheet>
@@ -312,9 +313,9 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
                 <form action={deleteCode}>
                   <input type="hidden" name="event" value={ev.id} />
                   <input type="hidden" name="id" value={editingCode.id} />
-                  <Button type="submit" variant="outline" size="sm">
+                  <SubmitButton variant="outline" size="sm">
                     {t("tickets.deleteCode")}
-                  </Button>
+                  </SubmitButton>
                 </form>
               </section>
             </>
@@ -382,13 +383,13 @@ function TierList({
       />
       <div className="flex flex-wrap items-center gap-2 sm:justify-end">
         {r && <span className="text-xs text-muted-foreground">{t("tickets.tierSold", { count: used(r.id) })}</span>}
-        <Button type="submit" size="sm" variant={r ? "outline" : "default"}>
+        <SubmitButton size="sm" variant={r ? "outline" : "default"}>
           {r ? t("common.save") : t("tickets.addTier")}
-        </Button>
+        </SubmitButton>
         {r && (
-          <Button type="submit" size="sm" variant="ghost" formAction={deleteTier}>
+          <SubmitButton size="sm" variant="ghost" formAction={deleteTier}>
             {t("tickets.deleteTier")}
-          </Button>
+          </SubmitButton>
         )}
       </div>
     </form>
@@ -482,9 +483,9 @@ function CodeForm({ t, eventId, c, types }: { t: T; eventId: string; c?: Code; t
         <input type="checkbox" name="active" value="1" defaultChecked={c?.active ?? true} className="size-4" />
         {t("tickets.codeActive")}
       </label>
-      <Button type="submit" className="justify-self-start">
+      <SubmitButton className="justify-self-start">
         {c ? t("common.save") : t("tickets.newCode")}
-      </Button>
+      </SubmitButton>
     </form>
   )
 }
@@ -546,9 +547,9 @@ function TypeForm({ t, eventId, ty }: { t: T; eventId: string; ty?: TicketType }
           <span className="block text-xs text-muted-foreground">{t("tickets.hiddenHint")}</span>
         </span>
       </label>
-      <Button type="submit" className="justify-self-start">
+      <SubmitButton className="justify-self-start">
         {ty ? t("common.save") : t("tickets.newType")}
-      </Button>
+      </SubmitButton>
     </form>
   )
 }
