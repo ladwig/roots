@@ -48,6 +48,10 @@ begin
   select count(*) into n from public.event_deliveries d join public.events e on e.id = d.event_id
     where e.org_id = org_a and e.type = 'member.joined';                     assert n >= 1, 'member.joined should fan out to the subscription';
 
+  -- in-app notifications: one for A about A's org (as the worker would write it)
+  insert into public.notifications (user_id, org_id, event_id)
+  select a, org_a, id from public.events where org_id = org_a order by id limit 1;
+
   -- B must not see anything of A
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
   set local role authenticated;
@@ -58,6 +62,9 @@ begin
   select count(*) into n from public.profiles where id = a;                  assert n = 0, 'B sees profile of A';
   select count(*) into n from public.pay_orders where org_id = org_a;        assert n = 0, 'B sees orders of A';
   select count(*) into n from public.events where org_id = org_a;            assert n = 0, 'B sees events of A';
+  select count(*) into n from public.notifications;                          assert n = 0, 'B sees notifications of A';
+  update public.notifications set read_at = now();
+  get diagnostics n = row_count;                                             assert n = 0, 'B marked A''s notification read';
   select count(*) into n from public.event_subscriptions where org_id = org_a; assert n = 0, 'B sees subscriptions of A';
   begin
     perform public.claim_event_deliveries(10);
@@ -125,6 +132,14 @@ begin
   set local role authenticated;
   select count(*) into n from public.audit_log where org_id = org_a;         assert n = 0, 'only platform admins read the change log';
   select count(*) into n from public.pay_orders;                             assert n = 1, 'owner should see orders';
+  select count(*) into n from public.notifications;                          assert n = 1, 'A sees own notification';
+  update public.notifications set read_at = now();
+  get diagnostics n = row_count;                                             assert n = 1, 'A marks own notification read';
+  begin
+    insert into public.notifications (user_id, event_id) select b, id from public.events limit 1;
+    assert false, 'A wrote a notification for someone else';
+  exception when insufficient_privilege then null;
+  end;
   select count(*) into n from public.event_subscriptions;                    assert n = 1, 'owner should see subscriptions';
   select count(*) into n from public.event_deliveries;                       assert n >= 1, 'owner should see deliveries';
   begin

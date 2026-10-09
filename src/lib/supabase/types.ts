@@ -21,14 +21,14 @@ export type Database = {
                   ]
                 },"event_deliveries": {
                   Row: {
-                    "attempts": number,"created_at": string,"delivered_at": string | null,"event_id": number,"id": number,"last_error": string | null,"next_attempt_at": string,"org_id": string,"status": string,"subscription_id": string
+                    "attempts": number,"channel": string | null,"created_at": string,"delivered_at": string | null,"event_id": number,"id": number,"last_error": string | null,"next_attempt_at": string,"org_id": string | null,"status": string,"subscription_id": string | null,"user_id": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "attempts"?: number,"created_at"?: string,"delivered_at"?: string | null,"event_id": number,"id"?: never,"last_error"?: string | null,"next_attempt_at"?: string,"org_id": string,"status"?: string,"subscription_id": string
+                    "attempts"?: number,"channel"?: string | null,"created_at"?: string,"delivered_at"?: string | null,"event_id": number,"id"?: never,"last_error"?: string | null,"next_attempt_at"?: string,"org_id"?: string | null,"status"?: string,"subscription_id"?: string | null,"user_id"?: string | null
                   }
                   Update: {
-                    "attempts"?: number,"created_at"?: string,"delivered_at"?: string | null,"event_id"?: number,"id"?: never,"last_error"?: string | null,"next_attempt_at"?: string,"org_id"?: string,"status"?: string,"subscription_id"?: string
+                    "attempts"?: number,"channel"?: string | null,"created_at"?: string,"delivered_at"?: string | null,"event_id"?: number,"id"?: never,"last_error"?: string | null,"next_attempt_at"?: string,"org_id"?: string | null,"status"?: string,"subscription_id"?: string | null,"user_id"?: string | null
                   }
                   Relationships: [
                     {
@@ -73,14 +73,14 @@ isOneToOne: false
                   ]
                 },"events": {
                   Row: {
-                    "actor_id": string | null,"created_at": string,"id": number,"org_id": string,"payload": NonNullable<Json>,"subject_id": string | null,"subject_table": string | null,"type": string
+                    "actor_id": string | null,"created_at": string,"id": number,"org_id": string | null,"payload": NonNullable<Json>,"routed_at": string | null,"subject_id": string | null,"subject_table": string | null,"type": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "actor_id"?: string | null,"created_at"?: string,"id"?: never,"org_id": string,"payload"?: NonNullable<Json>,"subject_id"?: string | null,"subject_table"?: string | null,"type": string
+                    "actor_id"?: string | null,"created_at"?: string,"id"?: never,"org_id"?: string | null,"payload"?: NonNullable<Json>,"routed_at"?: string | null,"subject_id"?: string | null,"subject_table"?: string | null,"type": string
                   }
                   Update: {
-                    "actor_id"?: string | null,"created_at"?: string,"id"?: never,"org_id"?: string,"payload"?: NonNullable<Json>,"subject_id"?: string | null,"subject_table"?: string | null,"type"?: string
+                    "actor_id"?: string | null,"created_at"?: string,"id"?: never,"org_id"?: string | null,"payload"?: NonNullable<Json>,"routed_at"?: string | null,"subject_id"?: string | null,"subject_table"?: string | null,"type"?: string
                   }
                   Relationships: [
                     {
@@ -134,6 +134,46 @@ isOneToOne: false
       columns: ["role_id"]
 isOneToOne: false
       referencedRelation: "roles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"notification_preferences": {
+                  Row: {
+                    "channel": string,"enabled": boolean,"event_type": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "channel": string,"enabled": boolean,"event_type": string,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "channel"?: string,"enabled"?: boolean,"event_type"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"notifications": {
+                  Row: {
+                    "created_at": string,"event_id": number,"id": number,"org_id": string | null,"read_at": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"event_id": number,"id"?: never,"org_id"?: string | null,"read_at"?: string | null,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"event_id"?: number,"id"?: never,"org_id"?: string | null,"read_at"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "notifications_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notifications_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
       referencedColumns: ["id"]
     }
                   ]
@@ -386,6 +426,9 @@ isOneToOne: false
 "claim_event_deliveries":
 { Args: { "p_limit"?: number }; Returns: number[]
                            },
+"claim_unrouted_events":
+{ Args: { "p_limit"?: number }; Returns: number[]
+                           },
 "create_org":
 { Args: { "p_name": string,"p_slug": string }; Returns: string
                            },
@@ -423,6 +466,9 @@ isOneToOne: false
                            },
 "is_platform_admin":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"members_with_perm":
+{ Args: { "p_org": string,"p_perm": string }; Returns: string[]
                            },
 "module_enabled":
 { Args: { "p_key": string,"p_org": string }; Returns: boolean
