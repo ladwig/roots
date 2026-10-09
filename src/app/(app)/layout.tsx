@@ -1,10 +1,8 @@
-import Link from "next/link"
-import { signOut } from "@/app/login/actions"
-import { NavLink } from "@/components/nav-link"
-import { OrgSwitcher } from "@/components/org-switcher"
-import { Picture } from "@/components/picture"
-import { Button } from "@/components/ui/button"
-import { LocaleSwitcher } from "@/i18n/client"
+import { cookies } from "next/headers"
+import { HouseIcon, InboxIcon, SettingsIcon, ShieldIcon } from "lucide-react"
+import { AppSidebar, type SidebarLink } from "@/components/app-sidebar"
+import { Separator } from "@/components/ui/separator"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
 import { modules } from "@/modules/registry"
@@ -12,63 +10,58 @@ import { modules } from "@/modules/registry"
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getContext()
   const t = await getT()
-  const [{ count: unread }, { data: me }] = await Promise.all([
+  const [{ count: unread }, { data: me }, jar] = await Promise.all([
     ctx.supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", ctx.userId).is("read_at", null),
     ctx.supabase.from("profiles").select("full_name, avatar_path").eq("id", ctx.userId).maybeSingle(),
+    cookies(),
   ])
-  const nav = [
-    { href: "/", label: t("shell.home") },
-    { href: "/notifications", label: t("inbox.title"), count: unread ?? 0 },
-    ...modules
-      .filter((m) => ctx.modules.has(m.key))
-      .flatMap((m) => m.nav ?? [])
-      .filter((n) => !n.permission || ctx.can(n.permission))
-      .map((n) => ({ href: n.href, label: t.dynamic(n.label) })),
-    { href: "/settings", label: t("shell.settings") },
-    ...(ctx.isPlatformAdmin ? [{ href: "/admin", label: t("admin.link") }] : []),
-    { href: "/settings/profile", label: t("account.link"), mobileOnly: true },
+  const moduleLinks: SidebarLink[] = modules
+    .filter((m) => ctx.modules.has(m.key))
+    .flatMap((m) => m.nav ?? [])
+    .filter((n) => !n.permission || ctx.can(n.permission))
+    .map((n) => ({ href: n.href, label: t.dynamic(n.label), icon: <n.icon /> }))
+  const groups = [
+    {
+      items: [
+        { href: "/", label: t("shell.home"), icon: <HouseIcon /> },
+        { href: "/notifications", label: t("inbox.title"), icon: <InboxIcon />, count: unread ?? 0 },
+      ],
+    },
+    ...(moduleLinks.length ? [{ label: t("home.modules"), items: moduleLinks }] : []),
+    {
+      label: t("shell.org"),
+      items: [
+        { href: "/settings", label: t("shell.settings"), icon: <SettingsIcon /> },
+        ...(ctx.isPlatformAdmin ? [{ href: "/admin", label: t("admin.link"), icon: <ShieldIcon /> }] : []),
+      ],
+    },
   ]
 
   return (
-    <div className="flex min-h-full flex-col md:flex-row">
-      <aside className="flex flex-col gap-3 border-b bg-sidebar p-3 text-sidebar-foreground md:sticky md:top-0 md:h-dvh md:w-60 md:border-r md:border-b-0">
-        <OrgSwitcher orgs={ctx.orgs} current={ctx.org} />
-        <nav aria-label={t("shell.mainNav")} className="-mx-1 flex gap-1 overflow-x-auto px-1 md:flex-col md:overflow-visible">
-          {nav.map((n) => (
-            <NavLink key={n.href} href={n.href} className={"mobileOnly" in n ? "md:hidden" : undefined}>
-              {n.label}
-              {"count" in n && !!n.count && (
-                <span className="ml-1.5 rounded-full bg-primary px-1.5 text-xs text-primary-foreground tabular-nums">{n.count}</span>
-              )}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="hidden gap-2 md:mt-auto md:grid">
-          <LocaleSwitcher />
-          <form action={signOut} className="flex items-center justify-between gap-2">
-            <Link
-              href="/settings/profile"
-              className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground underline-offset-4 hover:underline"
-              title={t("account.link")}
-            >
-              <Picture path={me?.avatar_path} name={me?.full_name || ctx.email} size="sm" />
-              <span className="truncate">{me?.full_name || ctx.email}</span>
-            </Link>
-            <Button type="submit" variant="ghost" size="sm">
-              {t("auth.signOut")}
-            </Button>
-          </form>
-        </div>
-      </aside>
-      <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">
-        {ctx.viaPlatform && (
-          <p className="mx-auto mb-6 max-w-4xl rounded-lg border bg-muted px-3 py-2 text-sm">
-            {t("admin.banner", { org: ctx.org.name })}
-          </p>
-        )}
-        {children}
-      </main>
-    </div>
+    // Sidebar open/collapsed is remembered in the sidebar_state cookie (set by the shadcn sidebar).
+    <SidebarProvider defaultOpen={jar.get("sidebar_state")?.value !== "false"}>
+      <AppSidebar
+        orgs={ctx.orgs}
+        org={ctx.org}
+        groups={groups}
+        me={{ name: me?.full_name || ctx.email, email: ctx.email, avatar: me?.avatar_path ?? null }}
+      />
+      <SidebarInset>
+        <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-1 data-vertical:h-4" />
+          <span className="truncate text-sm font-medium">{ctx.org.name}</span>
+        </header>
+        <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">
+          {ctx.viaPlatform && (
+            <p className="mx-auto mb-6 max-w-4xl rounded-lg border bg-muted px-3 py-2 text-sm">
+              {t("admin.banner", { org: ctx.org.name })}
+            </p>
+          )}
+          {children}
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
 

@@ -5,6 +5,7 @@ import "./globals.css";
 import { messages } from "@/i18n/config";
 import { I18nProvider } from "@/i18n/client";
 import { getLocale, getT } from "@/i18n/server";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +33,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         {/* ponytail: one boundary so every page may read the session/params at request time (Cache Components).
             Add per-route static shells + finer boundaries where load speed matters (public pages first). */}
         <I18nProvider locale={locale} messages={messages[locale]}>
-          <Suspense>{children}</Suspense>
+          <TooltipProvider>
+            <Suspense>{children}</Suspense>
+          </TooltipProvider>
         </I18nProvider>
       </body>
     </html>

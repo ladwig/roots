@@ -140,7 +140,7 @@ Modules contribute to both: e.g. Events = event management in the App + event pa
 
 ### Ideas / next building blocks
 - **Public API** (next): org API keys, `/api/v1/...`, OpenAPI + docs page. Events first.
-- **CSV import (generic)**: upload → map file columns to our fields (auto-guess by header, remember per org) → preview with row errors → import. Each module only declares its importable fields + validation (contacts first, then events, guests…). Same declaration later drives CSV export.
+- **CSV import (generic)**: upload → map file columns to our fields (auto-guess by header, user fixes the rest in the UI; nothing remembered) → preview with row errors → import. Each module only declares its importable fields + validation (contacts first, then events, guests…). Same declaration later drives CSV export.
 - **Event reach without APIs**: schema.org `Event` JSON-LD on public event pages (Google events), `.ics` per event + calendar feed per org, share links. Resident Advisor and Facebook have no public create-event API (manual submit / copy-paste text); Eventbrite has one (later integration if wanted).
 
 Later: billing roots' own plans per org, German invoices, memberships (Vereinsverwaltung), custom domains.
