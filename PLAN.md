@@ -114,6 +114,7 @@ Modules contribute to both: e.g. Events = event management in the App + event pa
   - Price rules: group deals (buy 4, pay 3), promo codes, a max per order.
   - Tickets get a random code from an alphabet without look-alike characters, a QR code (generated on our own server), a PDF and an email.
   - Scanner page needs the `tickets.scan` permission, works offline with a sync queue, and refuses unpaid tickets.
+  - Names on tickets: a setting per event (off / optional / required), asked at checkout per ticket.
 - **Guest & artist lists**
   - Lists per event; each list gives out links (label, quota, revocable).
   - The link opens a page where a promoter or artist adds their friends by name and optional email. Each guest becomes a 0€ ticket.
