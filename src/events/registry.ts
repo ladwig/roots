@@ -26,6 +26,10 @@ export const eventTypes: EventType[] = [
   { key: "event.cancelled", module: "events" },
   { key: "contact.created", module: "crm" },
   { key: "contacts.imported", module: "crm" },
+  { key: "invoice.issued", module: "invoices" },
+  { key: "invoice.paid", module: "invoices", audience: { permission: "invoices.view", defaults: ["in_app"] }, href: (p) => `/invoices/${p.document_id}` },
+  { key: "quote.issued", module: "invoices" },
+  { key: "quote.accepted", module: "invoices", audience: { permission: "invoices.view", defaults: ["in_app"] }, href: (p) => `/invoices/${p.document_id}` },
   { key: "tickets.sold", module: "tickets", audience: { permission: "tickets.view", defaults: ["in_app"] }, href: (p) => `/events/${p.event_id}/tickets` },
   { key: "org.created", module: "platform", audience: { platform: true, defaults: ["in_app", "email"] }, href: (p) => `/admin/orgs?edit=${p.org_id}` },
 ]

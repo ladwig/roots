@@ -22,6 +22,8 @@ export type T = {
   date(value: string | Date, options?: Intl.DateTimeFormatOptions): string
   /** Amount in cents as money, e.g. money(1250, "eur") → "12,50 €". */
   money(cents: number, currency?: string): string
+  /** Plain number in the locale, e.g. number(1.5) → "1,5". */
+  number(value: number, options?: Intl.NumberFormatOptions): string
   /** Stored multi-language value ({"de": "…", "en": "…"}) in the current language, falling back to German. */
   pick(value: unknown): string
   locale: Locale
@@ -61,6 +63,7 @@ export function createT(locale: Locale, dict: Messages): T {
   t.date = (value, options = { dateStyle: "medium" }) => new Date(value).toLocaleString(intl[locale], { timeZone: TIME_ZONE, ...options })
   t.money = (cents, currency = "eur") =>
     new Intl.NumberFormat(intl[locale], { style: "currency", currency: currency.toUpperCase() }).format(cents / 100)
+  t.number = (value, options) => new Intl.NumberFormat(intl[locale], { maximumFractionDigits: 3, ...options }).format(value)
   t.pick = (value) => {
     if (typeof value === "string") return value
     const v = (value ?? {}) as Record<string, unknown>

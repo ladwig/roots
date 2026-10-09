@@ -123,6 +123,10 @@ Modules contribute to both: e.g. Events = event management in the App + event pa
   - Served on the Public surface (`clubname.roots.app`, wildcard domain on Vercel). Custom domains later.
   - Basic builder: a page is an ordered list of typed **blocks** (hero, text, image, lineup, ticket shop, FAQ) edited as a form. No drag-and-drop canvas.
 
+### Quotes & invoices ✅ v1
+- Org legal/tax/bank data, Kleinunternehmer (§ 19 UStG), number ranges (format + start + yearly reset), quote/invoice builder (free-text items, system units, 19/7/0 %), issue = number + freeze, quote → invoice, paid, storno, 3 print templates (browser PDF).
+- Next: Stornorechnung (negative invoice) instead of status only, send by email with PDF (server renderer), Stripe payment link on invoices, E-Rechnung (XRechnung/ZUGFeRD; issuing mandatory for most businesses from 2027/2028), reminders (Mahnungen), API endpoints.
+
 ### Shift planning (generic)
 - Shifts and roles per event, or standalone. Members sign up, staff can swap shifts, availability tracking.
 - Works without Events, so a Verein can use it for its bar or training schedule.

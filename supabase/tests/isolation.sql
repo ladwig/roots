@@ -447,6 +447,50 @@ begin
   reset role;
   select count(*) into n from public.api_key_auth(repeat('a', 64));           assert n = 1, 'service resolves a key';
 
+  -- Invoices: number assigned on issue (format, gap-free), issued documents frozen, B sees nothing
+  insert into public.org_modules (org_id, module_key) values (org_a, 'invoices');
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  declare v_doc uuid; v_num text;
+  begin
+    insert into public.documents (org_id, kind, recipient_name, recipient_address, service_from)
+      values (org_a, 'invoice', 'Kunde', 'Str. 1\n12345 Ort', current_date) returning id into v_doc;
+    begin
+      perform public.issue_document(v_doc);
+      assert false, 'issue needs billing data';
+    exception when raise_exception then null; end;
+    insert into public.org_billing (org_id, legal_name, street, postal_code, city, tax_number) values (org_a, 'Verein A', 'Weg 1', '50667', 'Köln', '214/5678/1234');
+    insert into public.number_ranges (org_id, kind, format, next_number) values (org_a, 'invoice', 'R{YY}-{NNN}', 7);
+    insert into public.document_items (org_id, document_id, position, title, unit, unit_price, tax_rate) values (org_a, v_doc, 0, 'Leistung', 'hour', 5000, 19);
+    begin
+      update public.documents set status = 'sent', number = 'X' where id = v_doc;
+      assert false, 'only issue_document leaves draft';
+    exception when raise_exception or check_violation then null; end;
+    v_num := public.issue_document(v_doc);
+    assert v_num = 'R' || to_char(current_date, 'YY') || '-007', 'number format: ' || v_num;
+    begin
+      update public.documents set recipient_name = 'Anders' where id = v_doc;
+      assert false, 'issued document is frozen';
+    exception when raise_exception then null; end;
+    begin
+      insert into public.document_items (org_id, document_id, position, title, unit, unit_price) values (org_a, v_doc, 1, 'Nachtrag', 'piece', 1);
+      assert false, 'no items on issued documents';
+    exception when insufficient_privilege then null; end;
+    begin
+      delete from public.documents where id = v_doc;
+      select count(*) into n from public.documents where id = v_doc; assert n = 1, 'issued documents are never deleted';
+    end;
+    update public.documents set status = 'paid' where id = v_doc;
+    select count(*) into n from public.documents where id = v_doc and paid_at is not null; assert n = 1, 'paid sets paid_at';
+    select count(*) into n from public.hub_events where org_id = org_a and type in ('invoice.issued', 'invoice.paid'); assert n = 2, 'invoice events';
+  end;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.documents where org_id = org_a;          assert n = 0, 'B sees invoices of A';
+  select count(*) into n from public.org_billing where org_id = org_a;        assert n = 0, 'B sees billing of A';
+  reset role;
+
   -- x-org-id header: C is now in A and B, but with the header only sees the active org
   perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
   set local role authenticated;

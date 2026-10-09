@@ -13,6 +13,7 @@ Production: https://roots-berlin.vercel.app · API docs: https://roots-berlin.ve
 | **Events** | Events with public pages (`<org>.<domain>` or `/s/<org>`), drafts, cancel, images |
 | **Ticketing** | Ticket types, price tiers, promo codes / discount links, hidden crew types, checkout with names per ticket, QR tickets + PDF + email, scanner with offline mode |
 | **Payments** | Orders, payments, refunds; Stripe (Connect OAuth, hosted onboarding or the org's own API key) and SumUp |
+| **Quotes & invoices** | German invoices (§ 14 UStG, Kleinunternehmer), number ranges, builder, issue + freeze, quote → invoice, print templates |
 | **Event hub** | Things that happen (`ticket.sold`, `contact.created`, …) → in-app inbox, email, webhooks, Telegram |
 | **Public API** | Per-org API keys with permissions, `/api/v1` (events, tickets, contacts), OpenAPI spec + interactive docs |
 

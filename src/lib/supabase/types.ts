@@ -105,6 +105,64 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"document_items": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"description": string | null,"document_id": string,"id": string,"org_id": string,"position": number,"quantity": number,"tax_rate": number,"title": string,"unit": string,"unit_price": number,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"description"?: string | null,"document_id": string,"id"?: string,"org_id": string,"position": number,"quantity"?: number,"tax_rate"?: number,"title": string,"unit": string,"unit_price": number,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"description"?: string | null,"document_id"?: string,"id"?: string,"org_id"?: string,"position"?: number,"quantity"?: number,"tax_rate"?: number,"title"?: string,"unit"?: string,"unit_price"?: number,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "document_items_document_id_fkey"
+      columns: ["document_id"]
+isOneToOne: false
+      referencedRelation: "documents"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "document_items_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"documents": {
+                  Row: {
+                    "cancelled_at": string | null,"contact_id": string | null,"created_at": string,"created_by": string | null,"currency": string,"due_date": string | null,"gross_total": number,"id": string,"intro": string | null,"issue_date": string | null,"issued_at": string | null,"kind": string,"net_total": number,"notes": string | null,"number": string | null,"org_id": string,"outro": string | null,"paid_at": string | null,"recipient_address": string | null,"recipient_email": string | null,"recipient_name": string | null,"recipient_vat_id": string | null,"seller": Json | null,"service_from": string | null,"service_to": string | null,"source_id": string | null,"status": string,"tax_mode": string,"tax_total": number,"title": string | null,"updated_at": string,"updated_by": string | null,"valid_until": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cancelled_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"due_date"?: string | null,"gross_total"?: number,"id"?: string,"intro"?: string | null,"issue_date"?: string | null,"issued_at"?: string | null,"kind": string,"net_total"?: number,"notes"?: string | null,"number"?: string | null,"org_id": string,"outro"?: string | null,"paid_at"?: string | null,"recipient_address"?: string | null,"recipient_email"?: string | null,"recipient_name"?: string | null,"recipient_vat_id"?: string | null,"seller"?: Json | null,"service_from"?: string | null,"service_to"?: string | null,"source_id"?: string | null,"status"?: string,"tax_mode"?: string,"tax_total"?: number,"title"?: string | null,"updated_at"?: string,"updated_by"?: string | null,"valid_until"?: string | null
+                  }
+                  Update: {
+                    "cancelled_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"due_date"?: string | null,"gross_total"?: number,"id"?: string,"intro"?: string | null,"issue_date"?: string | null,"issued_at"?: string | null,"kind"?: string,"net_total"?: number,"notes"?: string | null,"number"?: string | null,"org_id"?: string,"outro"?: string | null,"paid_at"?: string | null,"recipient_address"?: string | null,"recipient_email"?: string | null,"recipient_name"?: string | null,"recipient_vat_id"?: string | null,"seller"?: Json | null,"service_from"?: string | null,"service_to"?: string | null,"source_id"?: string | null,"status"?: string,"tax_mode"?: string,"tax_total"?: number,"title"?: string | null,"updated_at"?: string,"updated_by"?: string | null,"valid_until"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "documents_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "documents_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "documents_source_id_fkey"
+      columns: ["source_id"]
+isOneToOne: false
+      referencedRelation: "documents"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"event_deliveries": {
                   Row: {
                     "attempts": number,"channel": string | null,"created_at": string,"delivered_at": string | null,"event_id": number,"id": number,"last_error": string | null,"next_attempt_at": string,"org_id": string | null,"status": string,"subscription_id": string | null,"user_id": string | null
@@ -279,6 +337,46 @@ isOneToOne: false
       foreignKeyName: "notifications_org_id_fkey"
       columns: ["org_id"]
 isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"number_ranges": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"format": string,"id": string,"kind": string,"next_number": number,"org_id": string,"updated_at": string,"updated_by": string | null,"year": number | null,"yearly_reset": boolean
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"format": string,"id"?: string,"kind": string,"next_number"?: number,"org_id": string,"updated_at"?: string,"updated_by"?: string | null,"year"?: number | null,"yearly_reset"?: boolean
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"format"?: string,"id"?: string,"kind"?: string,"next_number"?: number,"org_id"?: string,"updated_at"?: string,"updated_by"?: string | null,"year"?: number | null,"yearly_reset"?: boolean
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "number_ranges_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"org_billing": {
+                  Row: {
+                    "bank_name": string | null,"bic": string | null,"city": string | null,"country": string,"created_at": string,"created_by": string | null,"email": string | null,"iban": string | null,"id": string,"invoice_intro": string | null,"invoice_outro": string | null,"legal_name": string | null,"org_id": string,"payment_days": number,"phone": string | null,"postal_code": string | null,"quote_days": number,"quote_intro": string | null,"quote_outro": string | null,"register": string | null,"representatives": string | null,"street": string | null,"tax_mode": string,"tax_number": string | null,"template": string,"updated_at": string,"updated_by": string | null,"vat_id": string | null,"website": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "bank_name"?: string | null,"bic"?: string | null,"city"?: string | null,"country"?: string,"created_at"?: string,"created_by"?: string | null,"email"?: string | null,"iban"?: string | null,"id"?: string,"invoice_intro"?: string | null,"invoice_outro"?: string | null,"legal_name"?: string | null,"org_id": string,"payment_days"?: number,"phone"?: string | null,"postal_code"?: string | null,"quote_days"?: number,"quote_intro"?: string | null,"quote_outro"?: string | null,"register"?: string | null,"representatives"?: string | null,"street"?: string | null,"tax_mode"?: string,"tax_number"?: string | null,"template"?: string,"updated_at"?: string,"updated_by"?: string | null,"vat_id"?: string | null,"website"?: string | null
+                  }
+                  Update: {
+                    "bank_name"?: string | null,"bic"?: string | null,"city"?: string | null,"country"?: string,"created_at"?: string,"created_by"?: string | null,"email"?: string | null,"iban"?: string | null,"id"?: string,"invoice_intro"?: string | null,"invoice_outro"?: string | null,"legal_name"?: string | null,"org_id"?: string,"payment_days"?: number,"phone"?: string | null,"postal_code"?: string | null,"quote_days"?: number,"quote_intro"?: string | null,"quote_outro"?: string | null,"register"?: string | null,"representatives"?: string | null,"street"?: string | null,"tax_mode"?: string,"tax_number"?: string | null,"template"?: string,"updated_at"?: string,"updated_by"?: string | null,"vat_id"?: string | null,"website"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "org_billing_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: true
       referencedRelation: "orgs"
       referencedColumns: ["id"]
     }
@@ -720,6 +818,9 @@ isOneToOne: false
 "finish_event_delivery":
 { Args: { "p_error"?: string,"p_id": number,"p_ok": boolean }; Returns: undefined
                            },
+"format_document_number":
+{ Args: { "p_date": string,"p_format": string,"p_n": number }; Returns: string
+                           },
 "get_integration_secret":
 { Args: { "p_org": string,"p_provider": string }; Returns: string
                            },
@@ -742,6 +843,9 @@ isOneToOne: false
                            },
 "is_platform_admin":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"issue_document":
+{ Args: { "p_id": string }; Returns: string
                            },
 "members_with_perm":
 { Args: { "p_org": string,"p_perm": string }; Returns: string[]
