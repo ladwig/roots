@@ -92,7 +92,6 @@ function UserMenu({ me }: { me: { name: string; email: string; avatar: string | 
   const t = useT()
   const router = useRouter()
   const [pending, start] = useTransition()
-  const { isMobile } = useSidebar()
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -102,11 +101,11 @@ function UserMenu({ me }: { me: { name: string; email: string; avatar: string | 
             <Picture path={me.avatar} name={me.name} size="sm" />
             <span className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">{me.name}</span>
-              <span className="truncate text-xs text-muted-foreground">{me.email}</span>
+              {me.name !== me.email && <span className="truncate text-xs text-muted-foreground">{me.email}</span>}
             </span>
             <ChevronsUpDownIcon className="ml-auto" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent side={isMobile ? "bottom" : "right"} align="end" className="min-w-56">
+          <DropdownMenuContent side="top" align="start" className="w-(--anchor-width) min-w-56">
             <DropdownMenuGroup>
               <DropdownMenuLabel className="truncate">{me.email}</DropdownMenuLabel>
             </DropdownMenuGroup>
