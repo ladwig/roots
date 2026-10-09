@@ -37,6 +37,10 @@ begin
   insert into public.org_members (org_id, user_id, role_id)
   select org_a, c, id from public.roles where org_id is null and name ->> 'en' = 'Member';
 
+  -- payments: one paid order in A (written server-side, as the service role would)
+  insert into public.org_modules (org_id, module_key) values (org_a, 'payments');
+  insert into public.pay_orders (org_id, amount_total, source_module, status) values (org_a, 1000, 'test', 'paid');
+
   -- B must not see anything of A
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
   set local role authenticated;
@@ -45,6 +49,7 @@ begin
   select count(*) into n from public.org_modules where org_id = org_a;       assert n = 0, 'B sees modules of A';
   select count(*) into n from public.audit_log where org_id = org_a;         assert n = 0, 'B sees activity of A';
   select count(*) into n from public.profiles where id = a;                  assert n = 0, 'B sees profile of A';
+  select count(*) into n from public.pay_orders where org_id = org_a;        assert n = 0, 'B sees orders of A';
   update public.orgs set name = 'hacked' where id = org_a;
   get diagnostics n = row_count;                                             assert n = 0, 'B renamed org A';
   begin
@@ -73,6 +78,12 @@ begin
   select count(*) into n from public.orgs;                                   assert n = 1, 'C should see org A';
   select count(*) into n from public.profiles;                               assert n = 2, 'C should see self + A';
   select count(*) into n from public.audit_log;                              assert n = 0, 'C sees activity without org.audit.view';
+  select count(*) into n from public.pay_orders;                             assert n = 0, 'C sees orders without payments.view';
+  begin
+    insert into public.pay_orders (org_id, amount_total, source_module) values (org_a, 1, 'test');
+    assert false, 'a member wrote an order directly';
+  exception when insufficient_privilege then null;
+  end;
   update public.orgs set name = 'renamed' where id = org_a;
   get diagnostics n = row_count;                                             assert n = 0, 'C renamed org without permission';
   update public.org_members set role_id = (select id from public.roles where org_id is null and name ->> 'en' = 'Admin') where user_id = c;
@@ -93,6 +104,12 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   set local role authenticated;
   select count(*) into n from public.audit_log where org_id = org_a;         assert n >= 3, 'A should see activity';
+  select count(*) into n from public.pay_orders;                             assert n = 1, 'owner should see orders';
+  begin
+    update public.pay_orders set status = 'refunded' where org_id = org_a;
+    assert false, 'owner changed an order directly';
+  exception when insufficient_privilege then null;
+  end;
   begin
     delete from public.org_members where user_id = a and org_id = org_a;
     assert false, 'last owner could leave';

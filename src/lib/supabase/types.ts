@@ -145,6 +145,104 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"pay_order_items": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"description": string,"id": string,"metadata": NonNullable<Json>,"order_id": string,"org_id": string,"quantity": number,"source_id": string | null,"unit_amount": number,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"description": string,"id"?: string,"metadata"?: NonNullable<Json>,"order_id": string,"org_id": string,"quantity": number,"source_id"?: string | null,"unit_amount": number,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"description"?: string,"id"?: string,"metadata"?: NonNullable<Json>,"order_id"?: string,"org_id"?: string,"quantity"?: number,"source_id"?: string | null,"unit_amount"?: number,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "pay_order_items_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "pay_orders"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "pay_order_items_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"pay_orders": {
+                  Row: {
+                    "amount_total": number,"application_fee": number,"created_at": string,"created_by": string | null,"currency": string,"customer_email": string | null,"customer_name": string | null,"expires_at": string | null,"fulfilled_at": string | null,"id": string,"metadata": NonNullable<Json>,"org_id": string,"paid_at": string | null,"provider": string | null,"source_id": string | null,"source_module": string,"status": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_total": number,"application_fee"?: number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"customer_email"?: string | null,"customer_name"?: string | null,"expires_at"?: string | null,"fulfilled_at"?: string | null,"id"?: string,"metadata"?: NonNullable<Json>,"org_id": string,"paid_at"?: string | null,"provider"?: string | null,"source_id"?: string | null,"source_module": string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "amount_total"?: number,"application_fee"?: number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"customer_email"?: string | null,"customer_name"?: string | null,"expires_at"?: string | null,"fulfilled_at"?: string | null,"id"?: string,"metadata"?: NonNullable<Json>,"org_id"?: string,"paid_at"?: string | null,"provider"?: string | null,"source_id"?: string | null,"source_module"?: string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "pay_orders_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"pay_payments": {
+                  Row: {
+                    "amount": number,"application_fee": number,"created_at": string,"created_by": string | null,"id": string,"order_id": string,"org_id": string,"provider": string,"provider_payment_ref": string | null,"provider_ref": string,"status": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount": number,"application_fee"?: number,"created_at"?: string,"created_by"?: string | null,"id"?: string,"order_id": string,"org_id": string,"provider": string,"provider_payment_ref"?: string | null,"provider_ref": string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "amount"?: number,"application_fee"?: number,"created_at"?: string,"created_by"?: string | null,"id"?: string,"order_id"?: string,"org_id"?: string,"provider"?: string,"provider_payment_ref"?: string | null,"provider_ref"?: string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "pay_payments_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "pay_orders"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "pay_payments_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"pay_refunds": {
+                  Row: {
+                    "amount": number,"created_at": string,"created_by": string | null,"id": string,"org_id": string,"payment_id": string,"provider_ref": string | null,"reason": string | null,"status": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount": number,"created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id": string,"payment_id": string,"provider_ref"?: string | null,"reason"?: string | null,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "amount"?: number,"created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id"?: string,"payment_id"?: string,"provider_ref"?: string | null,"reason"?: string | null,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "pay_refunds_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "pay_refunds_payment_id_fkey"
+      columns: ["payment_id"]
+isOneToOne: false
+      referencedRelation: "pay_payments"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"platform_admins": {
                   Row: {
                     "created_at": string,"created_by": string | null,"id": string,"updated_at": string,"updated_by": string | null,"user_id": string
@@ -249,7 +347,7 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: string
                            },
 "save_integration":
-{ Args: { "p_config": Json,"p_expires_at"?: string,"p_org": string,"p_provider": string,"p_secret"?: string }; Returns: string
+{ Args: { "p_config": Json,"p_expires_at"?: string,"p_org": string,"p_provider": string,"p_secret"?: string,"p_status"?: string }; Returns: string
                            },
 "seed_org":
 { Args: { "p_name": string,"p_owner": string,"p_slug": string }; Returns: string
