@@ -12,28 +12,34 @@ export type BuyInput = {
   eventId: string
   email: string
   name: string
+  code: string | null // promo / unlock code
   items: { typeId: string; holderName: string | null }[] // one per ticket
   successUrl: (orderId: string, token: string) => string
   cancelUrl: string
 }
 
+/** The current offer (tier prices, code discount, what's left) – same function the shop shows. */
+export async function ticketOffer(eventId: string, code: string | null) {
+  const { data } = await db().rpc("ticket_offer", { p_event: eventId, p_code: code ?? undefined })
+  return data ?? []
+}
+
 /** Reserve tickets, create the order and return where to send the buyer. Throws message keys. */
 export async function buyTickets(b: BuyInput) {
-  const { data: types } = await db()
-    .from("ticket_types")
-    .select("id, name, price, currency")
-    .eq("event_id", b.eventId)
-    .eq("active", true)
-  const byId = new Map(types?.map((t) => [t.id, t]))
-  if (!b.items.length || b.items.some((i) => !byId.has(i.typeId))) throw new Error("tickets.notOnSale")
-  const currencies = new Set(b.items.map((i) => byId.get(i.typeId)!.currency))
+  const offer = new Map((await ticketOffer(b.eventId, b.code)).map((o) => [o.type_id, o]))
+  if (!b.items.length || b.items.some((i) => !offer.has(i.typeId))) throw new Error("tickets.notOnSale")
+  const currencies = new Set(b.items.map((i) => offer.get(i.typeId)!.currency))
   if (currencies.size > 1) throw new Error("tickets.notOnSale")
   const { data: event } = await db().from("events").select("title").eq("id", b.eventId).single()
 
-  // Order items: one line per ticket type.
+  // Order items: one line per ticket type, at the price the buyer saw (tier + code).
   const counts = new Map<string, number>()
   b.items.forEach((i) => counts.set(i.typeId, (counts.get(i.typeId) ?? 0) + 1))
   const token = crypto.randomUUID() // access to the buyer's ticket page
+  const lines = [...counts].map(([typeId, quantity]) => {
+    const o = offer.get(typeId)!
+    return { description: [event?.title, o.name, o.tier_name].filter(Boolean).join(" · ").slice(0, 200), quantity, unitAmount: o.final_price, sourceId: typeId }
+  })
   const orderId = await createOrder({
     orgId: b.orgId,
     sourceModule: "tickets",
@@ -41,23 +47,23 @@ export async function buyTickets(b: BuyInput) {
     currency: [...currencies][0],
     customerEmail: b.email,
     customerName: b.name,
-    metadata: { ticket_token: token },
-    items: [...counts].map(([typeId, quantity]) => ({
-      description: `${event?.title ?? ""} · ${byId.get(typeId)!.name}`.slice(0, 200),
-      quantity,
-      unitAmount: byId.get(typeId)!.price,
-      sourceId: typeId,
-    })),
+    metadata: { ticket_token: token, ...(b.code ? { code: b.code.toUpperCase() } : {}) },
+    items: lines,
   })
-  const { error } = await db().rpc("reserve_tickets", {
+  const { data: reserved, error } = await db().rpc("reserve_tickets", {
     p_order: orderId,
     p_event: b.eventId,
     p_items: b.items.map((i) => ({ type_id: i.typeId, holder_name: i.holderName })),
     p_minutes: RESERVE_MINUTES,
+    p_code: b.code ?? undefined,
   })
-  if (error) {
+  // The tier or code changed between showing and reserving: don't charge a different price silently.
+  const expected = lines.reduce((s, l) => s + l.quantity * l.unitAmount, 0)
+  const actual = reserved?.reduce((s, k) => s + (k.price ?? 0), 0)
+  if (error || actual !== expected) {
     await db().from("pay_orders").update({ status: "cancelled" }).eq("id", orderId)
-    throw new Error(error.message.includes("sold_out") ? "tickets.soldOut" : "tickets.notOnSale")
+    if (!error) await db().from("tickets").update({ status: "void" }).eq("order_id", orderId)
+    throw new Error(error?.message.includes("sold_out") ? "tickets.soldOut" : error ? "tickets.notOnSale" : "tickets.priceChanged")
   }
   return startCheckout(orderId, { successUrl: b.successUrl(orderId, token), cancelUrl: b.cancelUrl })
 }

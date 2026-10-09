@@ -327,7 +327,9 @@
       "contact_notes": "Contact notes",
       "custom_fields": "Custom fields",
       "ticket_types": "Ticket types",
-      "tickets": "Tickets"
+      "tickets": "Tickets",
+      "ticket_tiers": "Price tiers",
+      "ticket_codes": "Ticket codes"
     }
   },
   "errors": {
@@ -869,7 +871,49 @@
       "error": "Error"
     },
     "usedAt": "Checked in at {time}",
-    "scanFailed": "Check failed. Please try again."
+    "scanFailed": "Check failed. Please try again.",
+    "hiddenBadge": "hidden",
+    "hiddenLabel": "Hidden",
+    "hiddenHint": "Only available with a code that unlocks this type (e.g. a crew link).",
+    "tiers": "Price tiers",
+    "tiersHint": "Optional. The first tier that isn't sold out or over applies (e.g. Early Bird → Regular → Door). Without tiers the price above applies.",
+    "tierName": "Tier name",
+    "tierNamePlaceholder": "e.g. Early Bird",
+    "tierQuota": "Tier quota",
+    "tierEnd": "Tier ends at",
+    "tierPosition": "Order",
+    "tierSold": {
+      "one": "1 sold",
+      "other": "{count} sold"
+    },
+    "addTier": "Add tier",
+    "deleteTier": "Delete",
+    "tierHasTickets": "There are already tickets in this tier.",
+    "codes": "Codes & discount links",
+    "newCode": "New code",
+    "noCodes": "No codes yet. Codes give a discount or unlock hidden ticket types; every code has a link.",
+    "discount": "Discount",
+    "unlockOnly": "unlock only",
+    "uses": "Used",
+    "link": "Link",
+    "deleteCode": "Delete code",
+    "codeUsed": "Tickets were already bought with this code. Deactivate it instead.",
+    "kinds": {
+      "percent": "Percent",
+      "amount": "Amount in €",
+      "none": "No discount (unlock only)"
+    },
+    "codeValueLabel": "Value (% or €)",
+    "maxUses": "Max. tickets",
+    "validFrom": "Valid from",
+    "validUntil": "Valid until",
+    "codeTypes": "Applies to",
+    "codeTypesHint": "Nothing selected = all visible ticket types. Hidden types are only unlocked when selected.",
+    "codeActive": "Active",
+    "codeFormat": "Code: 3–40 characters, letters, digits and dashes.",
+    "codeValue": "Please enter a valid discount (1–100 % or an amount).",
+    "codeTaken": "This code already exists for this event.",
+    "priceChanged": "The price just changed (new price tier). Please check the tickets and order again."
   },
   "shop": {
     "title": "Tickets",
@@ -910,6 +954,11 @@
       "partially_refunded": "This order was partly refunded."
     },
     "used": "Checked in",
-    "qr": "QR code for ticket {code}"
+    "qr": "QR code for ticket {code}",
+    "code": "Code",
+    "codePlaceholder": "Promo code",
+    "applyCode": "Apply",
+    "codeOk": "Code applied ✓",
+    "codeInvalid": "This code is invalid or expired."
   }
 }

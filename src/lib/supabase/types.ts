@@ -503,16 +503,68 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
-                },"ticket_types": {
+                },"ticket_codes": {
                   Row: {
-                    "active": boolean,"created_at": string,"created_by": string | null,"currency": string,"description": string | null,"event_id": string,"id": string,"name": string,"org_id": string,"position": number,"price": number,"quota": number | null,"sales_end": string | null,"sales_start": string | null,"updated_at": string,"updated_by": string | null
+                    "active": boolean,"code": string,"created_at": string,"created_by": string | null,"event_id": string,"id": string,"kind": string,"max_uses": number | null,"org_id": string,"type_ids": (string)[],"updated_at": string,"updated_by": string | null,"valid_from": string | null,"valid_until": string | null,"value": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"description"?: string | null,"event_id": string,"id"?: string,"name": string,"org_id": string,"position"?: number,"price": number,"quota"?: number | null,"sales_end"?: string | null,"sales_start"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "active"?: boolean,"code": string,"created_at"?: string,"created_by"?: string | null,"event_id": string,"id"?: string,"kind": string,"max_uses"?: number | null,"org_id": string,"type_ids"?: (string)[],"updated_at"?: string,"updated_by"?: string | null,"valid_from"?: string | null,"valid_until"?: string | null,"value"?: number
                   }
                   Update: {
-                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"description"?: string | null,"event_id"?: string,"id"?: string,"name"?: string,"org_id"?: string,"position"?: number,"price"?: number,"quota"?: number | null,"sales_end"?: string | null,"sales_start"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "active"?: boolean,"code"?: string,"created_at"?: string,"created_by"?: string | null,"event_id"?: string,"id"?: string,"kind"?: string,"max_uses"?: number | null,"org_id"?: string,"type_ids"?: (string)[],"updated_at"?: string,"updated_by"?: string | null,"valid_from"?: string | null,"valid_until"?: string | null,"value"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ticket_codes_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ticket_codes_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"ticket_tiers": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"id": string,"name": string,"org_id": string,"position": number,"price": number,"quota": number | null,"sales_end": string | null,"type_id": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"name": string,"org_id": string,"position"?: number,"price": number,"quota"?: number | null,"sales_end"?: string | null,"type_id": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"name"?: string,"org_id"?: string,"position"?: number,"price"?: number,"quota"?: number | null,"sales_end"?: string | null,"type_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ticket_tiers_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ticket_tiers_type_id_fkey"
+      columns: ["type_id"]
+isOneToOne: false
+      referencedRelation: "ticket_types"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"ticket_types": {
+                  Row: {
+                    "active": boolean,"created_at": string,"created_by": string | null,"currency": string,"description": string | null,"event_id": string,"hidden": boolean,"id": string,"name": string,"org_id": string,"position": number,"price": number,"quota": number | null,"sales_end": string | null,"sales_start": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"description"?: string | null,"event_id": string,"hidden"?: boolean,"id"?: string,"name": string,"org_id": string,"position"?: number,"price": number,"quota"?: number | null,"sales_end"?: string | null,"sales_start"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"description"?: string | null,"event_id"?: string,"hidden"?: boolean,"id"?: string,"name"?: string,"org_id"?: string,"position"?: number,"price"?: number,"quota"?: number | null,"sales_end"?: string | null,"sales_start"?: string | null,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -531,17 +583,23 @@ isOneToOne: false
                   ]
                 },"tickets": {
                   Row: {
-                    "checked_in_at": string | null,"checked_in_by": string | null,"code": string,"contact_id": string | null,"created_at": string,"created_by": string | null,"event_id": string,"expires_at": string | null,"holder_name": string | null,"id": string,"order_id": string,"org_id": string,"status": string,"type_id": string,"updated_at": string,"updated_by": string | null
+                    "checked_in_at": string | null,"checked_in_by": string | null,"code": string,"code_id": string | null,"contact_id": string | null,"created_at": string,"created_by": string | null,"event_id": string,"expires_at": string | null,"holder_name": string | null,"id": string,"order_id": string,"org_id": string,"price": number | null,"status": string,"tier_id": string | null,"type_id": string,"updated_at": string,"updated_by": string | null,"ticket_live": boolean | null
                   }
-                  ComputedFields: never
+                  ComputedFields: "ticket_live"
                   Insert: {
-                    "checked_in_at"?: string | null,"checked_in_by"?: string | null,"code": string,"contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"event_id": string,"expires_at"?: string | null,"holder_name"?: string | null,"id"?: string,"order_id": string,"org_id": string,"status"?: string,"type_id": string,"updated_at"?: string,"updated_by"?: string | null
+                    "checked_in_at"?: string | null,"checked_in_by"?: string | null,"code": string,"code_id"?: string | null,"contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"event_id": string,"expires_at"?: string | null,"holder_name"?: string | null,"id"?: string,"order_id": string,"org_id": string,"price"?: number | null,"status"?: string,"tier_id"?: string | null,"type_id": string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "checked_in_at"?: string | null,"checked_in_by"?: string | null,"code"?: string,"contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"event_id"?: string,"expires_at"?: string | null,"holder_name"?: string | null,"id"?: string,"order_id"?: string,"org_id"?: string,"status"?: string,"type_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "checked_in_at"?: string | null,"checked_in_by"?: string | null,"code"?: string,"code_id"?: string | null,"contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"event_id"?: string,"expires_at"?: string | null,"holder_name"?: string | null,"id"?: string,"order_id"?: string,"org_id"?: string,"price"?: number | null,"status"?: string,"tier_id"?: string | null,"type_id"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
+      foreignKeyName: "tickets_code_id_fkey"
+      columns: ["code_id"]
+isOneToOne: false
+      referencedRelation: "ticket_codes"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "tickets_contact_id_fkey"
       columns: ["contact_id"]
 isOneToOne: false
@@ -564,6 +622,12 @@ isOneToOne: false
       columns: ["org_id"]
 isOneToOne: false
       referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tickets_tier_id_fkey"
+      columns: ["tier_id"]
+isOneToOne: false
+      referencedRelation: "ticket_tiers"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "tickets_type_id_fkey"
@@ -670,10 +734,11 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: string
                            },
 "reserve_tickets":
-{ Args: { "p_event": string,"p_items": Json,"p_minutes": number,"p_order": string }; Returns: {
+{ Args: { "p_code"?: string,"p_event": string,"p_items": Json,"p_minutes": number,"p_order": string }; Returns: {
               "checked_in_at": string | null,
 "checked_in_by": string | null,
 "code": string,
+"code_id": string | null,
 "contact_id": string | null,
 "created_at": string,
 "created_by": string | null,
@@ -683,7 +748,9 @@ isOneToOne: false
 "id": string,
 "order_id": string,
 "org_id": string,
+"price": number | null,
 "status": string,
+"tier_id": string | null,
 "type_id": string,
 "updated_at": string,
 "updated_by": string | null
@@ -718,6 +785,17 @@ isOneToOne: false
 "ticket_availability":
 { Args: { "p_event": string }; Returns: {
               "remaining": number,"type_id": string
+            }[]
+                           },
+"ticket_event_public":
+{ Args: { "p_event": string }; Returns: boolean
+                           },
+"ticket_live":
+{ Args: { "k": Omit<Database["public"]['Tables']["tickets"]['Row'], Database["public"]['Tables']["tickets"]['ComputedFields']> }; Returns: boolean
+                           },
+"ticket_offer":
+{ Args: { "p_code"?: string,"p_event": string }; Returns: {
+              "code_applies": boolean,"code_id": string,"currency": string,"description": string,"final_price": number,"hidden": boolean,"name": string,"price": number,"remaining": number,"sales_end": string,"sales_start": string,"tier_id": string,"tier_name": string,"type_id": string
             }[]
                            },
 "tickets_public":

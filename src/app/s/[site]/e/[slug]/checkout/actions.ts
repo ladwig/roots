@@ -14,9 +14,11 @@ export async function buy(fd: FormData) {
   const site = String(fd.get("site") ?? "")
   const slug = String(fd.get("slug") ?? "")
   const items = fd.getAll("type").map(String)
-  const here = `${sitePath(site, `/e/${slug}/checkout`)}?${new URLSearchParams(
-    Object.entries(items.reduce<Record<string, number>>((a, id) => ((a[`t_${id}`] = (a[`t_${id}`] ?? 0) + 1), a), {})).map(([k, v]) => [k, String(v)]),
-  )}`
+  const code = String(fd.get("code") ?? "").trim().toUpperCase().slice(0, 40) || null
+  const here = `${sitePath(site, `/e/${slug}/checkout`)}?${new URLSearchParams([
+    ...Object.entries(items.reduce<Record<string, number>>((a, id) => ((a[`t_${id}`] = (a[`t_${id}`] ?? 0) + 1), a), {})).map(([k, v]) => [k, String(v)]),
+    ...(code ? [["code", code]] : []),
+  ])}`
   const s = await getSite(site)
   if (!s) back(here, { error: t("errors.not_allowed") })
   const { data: ev } = await s.db
@@ -44,6 +46,7 @@ export async function buy(fd: FormData) {
       eventId: ev.id,
       email,
       name,
+      code,
       items: items.map((typeId, i) => ({ typeId, holderName: ev.ticket_names === "off" ? null : holders[i] || null })),
       successUrl: (order, token) => siteUrl(site, `/t/${order}?k=${token}`),
       cancelUrl: siteUrl(site, `/e/${slug}`),

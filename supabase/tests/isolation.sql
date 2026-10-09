@@ -386,9 +386,40 @@ begin
     select result into v_res from public.check_in_ticket(v_ev, v_code);        assert v_res = 'used', 'second scan says used';
     select result into v_res from public.check_in_ticket(v_ev, 'ZZZZZZZZZZ');  assert v_res = 'invalid', 'unknown code invalid';
     reset role;
+    -- Tiers: Early (1 left) → Regular; codes: -50 %, max 1 use, unlocks the hidden Crew type
+    declare v_vip uuid; v_crew uuid; v_order2 uuid; v_price int; v_tier text;
+    begin
+      insert into public.ticket_types (org_id, event_id, name, price) values (org_a, v_ev, 'VIP', 9999) returning id into v_vip;
+      insert into public.ticket_tiers (org_id, type_id, name, price, quota, position) values
+        (org_a, v_vip, 'Early', 2000, 1, 0), (org_a, v_vip, 'Regular', 3000, null, 1);
+      insert into public.ticket_types (org_id, event_id, name, price, hidden) values (org_a, v_ev, 'Crew', 0, true) returning id into v_crew;
+      insert into public.ticket_codes (org_id, event_id, code, kind, value, max_uses, type_ids) values
+        (org_a, v_ev, 'HALF', 'percent', 50, 1, array[v_vip]), (org_a, v_ev, 'CREW', 'none', 0, null, array[v_crew]);
+      select tier_name, price into v_tier, v_price from public.ticket_offer(v_ev) where type_id = v_vip;
+      assert v_tier = 'Early' and v_price = 2000, 'first tier is current';
+      select count(*) into n from public.ticket_offer(v_ev) where type_id = v_crew;   assert n = 0, 'hidden type not offered';
+      select count(*) into n from public.ticket_offer(v_ev, 'crew') where type_id = v_crew; assert n = 1, 'code unlocks hidden type';
+      select final_price into v_price from public.ticket_offer(v_ev, 'HALF') where type_id = v_vip; assert v_price = 1000, 'code halves the price';
+      insert into public.pay_orders (org_id, amount_total, source_module) values (org_a, 1000, 'tickets') returning id into v_order2;
+      set local role service_role;
+      perform public.reserve_tickets(v_order2, v_ev, jsonb_build_array(jsonb_build_object('type_id', v_vip)), 30, 'HALF');
+      begin
+        perform public.reserve_tickets(v_order2, v_ev, jsonb_build_array(jsonb_build_object('type_id', v_vip)), 30, 'HALF');
+        assert false, 'code use limit';
+      exception when raise_exception then null; end;
+      reset role;
+      select price into v_price from public.tickets where order_id = v_order2;      assert v_price = 1000, 'ticket stores the paid price';
+      select tier_name, price into v_tier, v_price from public.ticket_offer(v_ev) where type_id = v_vip;
+      assert v_tier = 'Regular' and v_price = 3000, 'next tier after the first sold out';
+    end;
     perform set_config('request.jwt.claims', '{}', true);
     set local role anon;
-    select count(*) into n from public.ticket_types where event_id = v_ev;   assert n = 1, 'anon sees types of a published event';
+    select count(*) into n from public.ticket_offer(v_ev);                  assert n = 2, 'anon gets the offer (no hidden)';
+    begin
+      perform 1 from public.ticket_codes limit 1;
+      assert false, 'anon must not read codes';
+    exception when insufficient_privilege then null; end;
+    select count(*) into n from public.ticket_types where event_id = v_ev;   assert n = 2, 'anon sees visible types of a published event';
     begin
       perform 1 from public.tickets limit 1;
       assert false, 'anon must not read tickets';

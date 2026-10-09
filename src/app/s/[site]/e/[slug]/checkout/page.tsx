@@ -24,7 +24,9 @@ export default async function Checkout({ params, searchParams }: PageProps<"/s/[
     .maybeSingle()
   if (!ev) notFound()
   const t = await getT()
-  const { data: types } = await s.db.from("ticket_types").select("id, name, price, currency").eq("event_id", ev.id).order("position")
+  const code = param(sp, "code")?.trim().toUpperCase().slice(0, 40) || null
+  const { data: offer } = await s.db.rpc("ticket_offer", { p_event: ev.id, p_code: code ?? undefined })
+  const types = offer?.map((o) => ({ id: o.type_id, name: o.tier_name ? `${o.name} · ${o.tier_name}` : o.name, price: o.final_price, currency: o.currency }))
   // One entry per ticket, from ?t_<typeId>=<qty>
   const picked = (types ?? []).flatMap((ty) => {
     const n = Math.max(0, Math.min(ev.max_tickets_per_order, Math.floor(Number(param(sp, `t_${ty.id}`)) || 0)))
@@ -53,6 +55,7 @@ export default async function Checkout({ params, searchParams }: PageProps<"/s/[
         <form action={buy} className="grid gap-6">
           <input type="hidden" name="site" value={site} />
           <input type="hidden" name="slug" value={slug} />
+          {code && <input type="hidden" name="code" value={code} />}
           <ol className="grid gap-3">
             {picked.map((ty, i) => (
               <li key={i} className="grid gap-2 rounded-lg border p-3">

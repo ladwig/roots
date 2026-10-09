@@ -327,7 +327,9 @@
       "contact_notes": "Kontakt-Notizen",
       "custom_fields": "Eigene Felder",
       "ticket_types": "Ticketarten",
-      "tickets": "Tickets"
+      "tickets": "Tickets",
+      "ticket_tiers": "Preisstufen",
+      "ticket_codes": "Ticket-Codes"
     }
   },
   "errors": {
@@ -869,7 +871,49 @@
       "error": "Fehler"
     },
     "usedAt": "Eingecheckt um {time}",
-    "scanFailed": "Prüfung fehlgeschlagen. Bitte noch einmal versuchen."
+    "scanFailed": "Prüfung fehlgeschlagen. Bitte noch einmal versuchen.",
+    "hiddenBadge": "versteckt",
+    "hiddenLabel": "Versteckt",
+    "hiddenHint": "Nur mit einem Code erhältlich, der diese Ticketart freischaltet (z. B. Crew-Link).",
+    "tiers": "Preisstufen",
+    "tiersHint": "Optional. Die erste Stufe, die nicht ausverkauft und nicht abgelaufen ist, gilt (z. B. Early Bird → Regulär → Abendkasse). Ohne Stufen gilt der Preis oben.",
+    "tierName": "Name der Stufe",
+    "tierNamePlaceholder": "z. B. Early Bird",
+    "tierQuota": "Kontingent der Stufe",
+    "tierEnd": "Stufe endet am",
+    "tierPosition": "Reihenfolge",
+    "tierSold": {
+      "one": "1 verkauft",
+      "other": "{count} verkauft"
+    },
+    "addTier": "Stufe hinzufügen",
+    "deleteTier": "Löschen",
+    "tierHasTickets": "Für diese Stufe gibt es schon Tickets.",
+    "codes": "Codes & Rabatt-Links",
+    "newCode": "Neuer Code",
+    "noCodes": "Noch keine Codes. Codes geben Rabatt oder schalten versteckte Ticketarten frei; jeder Code hat einen Link.",
+    "discount": "Rabatt",
+    "unlockOnly": "nur freischalten",
+    "uses": "Genutzt",
+    "link": "Link",
+    "deleteCode": "Code löschen",
+    "codeUsed": "Mit diesem Code wurden schon Tickets gekauft. Deaktiviere ihn stattdessen.",
+    "kinds": {
+      "percent": "Prozent",
+      "amount": "Betrag in €",
+      "none": "Kein Rabatt (nur freischalten)"
+    },
+    "codeValueLabel": "Wert (% oder €)",
+    "maxUses": "Max. Tickets",
+    "validFrom": "Gültig ab",
+    "validUntil": "Gültig bis",
+    "codeTypes": "Gilt für",
+    "codeTypesHint": "Nichts ausgewählt = alle sichtbaren Ticketarten. Versteckte Arten werden nur durch Auswahl freigeschaltet.",
+    "codeActive": "Aktiv",
+    "codeFormat": "Code: 3–40 Zeichen, Buchstaben, Zahlen und Bindestriche.",
+    "codeValue": "Bitte einen gültigen Rabatt angeben (1–100 % oder einen Betrag).",
+    "codeTaken": "Diesen Code gibt es für dieses Event schon.",
+    "priceChanged": "Der Preis hat sich gerade geändert (neue Preisstufe). Bitte prüfe die Tickets und bestell noch einmal."
   },
   "shop": {
     "title": "Tickets",
@@ -910,6 +954,11 @@
       "partially_refunded": "Diese Bestellung wurde teilweise erstattet."
     },
     "used": "Eingecheckt",
-    "qr": "QR-Code für Ticket {code}"
+    "qr": "QR-Code für Ticket {code}",
+    "code": "Code",
+    "codePlaceholder": "Gutscheincode",
+    "applyCode": "Einlösen",
+    "codeOk": "Code gilt ✓",
+    "codeInvalid": "Dieser Code ist ungültig oder abgelaufen."
   }
 }
