@@ -80,7 +80,8 @@
       "roles": "Roles",
       "modules": "Modules",
       "integrations": "Integrations",
-      "activity": "Activity"
+      "activity": "Activity",
+      "notifications": "Notifications"
     }
   },
   "general": {
@@ -438,5 +439,80 @@
     "expired": "This payment has expired.",
     "notFound": "Order not found.",
     "refresh": "Refresh"
+  },
+  "notifications": {
+    "intro": "Send events to your tools: by webhook (Zapier, Make, n8n, your own systems) or to a Telegram chat. You choose per target which events arrive.",
+    "newWebhook": "New webhook",
+    "newTelegram": "New Telegram chat",
+    "name": "Name",
+    "channel": "Channel",
+    "channels": {
+      "webhook": "Webhook",
+      "telegram": "Telegram"
+    },
+    "events": "Events",
+    "allEvents": "All events",
+    "eventCount": {
+      "one": "{count} event",
+      "other": "{count} events"
+    },
+    "noEvents": "No events chosen",
+    "status": "Status",
+    "active": "Active",
+    "paused": "Paused",
+    "waiting": "Waiting for Telegram",
+    "linkedTo": "Linked to {chat}",
+    "empty": "No notifications yet.",
+    "url": "Target URL",
+    "urlHelp": "Must start with https://.",
+    "urlInvalid": "Please enter a public https:// address.",
+    "secret": "Signing secret",
+    "secretHelp": "Use it to check that requests come from roots (header X-Roots-Signature). It is only shown now.",
+    "rotate": "Create new secret",
+    "done": "Continue",
+    "saved": "Saved.",
+    "deleted": "Deleted.",
+    "delete": "Delete",
+    "test": "Send test event",
+    "testSent": "Test event is on its way.",
+    "deliveries": "Recent deliveries",
+    "noDeliveries": "No deliveries yet.",
+    "attempts": {
+      "one": "{count} attempt",
+      "other": "{count} attempts"
+    },
+    "statuses": {
+      "pending": "pending",
+      "succeeded": "delivered",
+      "failed": "failed"
+    },
+    "telegram": {
+      "howTo": "Open one of the links in Telegram. For a group: pick the group, add the bot, done.",
+      "group": "Connect a group",
+      "private": "Connect to me",
+      "notConfigured": "The Telegram bot isn't set up yet (TELEGRAM_BOT_TOKEN is missing).",
+      "unknownCode": "This link is invalid or was already used.",
+      "linked": "Connected! This chat now gets notifications from {org}."
+    }
+  },
+  "events": {
+    "types": {
+      "member.joined": "Member joined",
+      "member.left": "Member left",
+      "member.invited": "Invite sent",
+      "order.paid": "Order paid",
+      "order.refunded": "Order refunded",
+      "order.failed": "Payment failed",
+      "test.ping": "Test event"
+    },
+    "messages": {
+      "member.joined": "👋 New member: {who}",
+      "member.left": "👋 Member left: {who}",
+      "member.invited": "✉️ Invite sent to {who}",
+      "order.paid": "💶 Paid: {amount} by {who}",
+      "order.refunded": "↩️ Refunded: {amount} to {who}",
+      "order.failed": "⚠️ Payment failed: {amount} by {who}",
+      "test.ping": "✅ Test from roots: notifications work."
+    }
   }
 }

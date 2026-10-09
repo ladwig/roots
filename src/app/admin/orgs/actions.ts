@@ -1,6 +1,7 @@
 "use server"
 
 import { redirect } from "next/navigation"
+import { deliverSoon } from "@/events/worker"
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { requirePlatformAdmin, setActiveOrg } from "@/lib/context"
@@ -59,6 +60,7 @@ export async function addMember(orgId: string, formData: FormData) {
     .from("org_members")
     .insert({ org_id: orgId, user_id: userId, role_id: String(formData.get("role_id")) })
   if (error) back(retry, { error: error.code === "23505" ? t("admin.orgs.alreadyMember") : dbError(t, error) })
+  deliverSoon()
   back(retry, { ok: t("admin.orgs.added") })
 }
 

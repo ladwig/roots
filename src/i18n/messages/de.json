@@ -80,7 +80,8 @@
       "roles": "Rollen",
       "modules": "Module",
       "integrations": "Integrationen",
-      "activity": "Aktivität"
+      "activity": "Aktivität",
+      "notifications": "Benachrichtigungen"
     }
   },
   "general": {
@@ -438,5 +439,80 @@
     "expired": "Diese Bezahlung ist abgelaufen.",
     "notFound": "Bestellung nicht gefunden.",
     "refresh": "Aktualisieren"
+  },
+  "notifications": {
+    "intro": "Schick Ereignisse an deine Tools: per Webhook (Zapier, Make, n8n, eigene Systeme) oder in einen Telegram-Chat. Du wählst pro Ziel, welche Ereignisse ankommen.",
+    "newWebhook": "Neuer Webhook",
+    "newTelegram": "Neuer Telegram-Chat",
+    "name": "Name",
+    "channel": "Kanal",
+    "channels": {
+      "webhook": "Webhook",
+      "telegram": "Telegram"
+    },
+    "events": "Ereignisse",
+    "allEvents": "Alle Ereignisse",
+    "eventCount": {
+      "one": "{count} Ereignis",
+      "other": "{count} Ereignisse"
+    },
+    "noEvents": "Keine Ereignisse gewählt",
+    "status": "Status",
+    "active": "Aktiv",
+    "paused": "Pausiert",
+    "waiting": "Wartet auf Telegram",
+    "linkedTo": "Verbunden mit {chat}",
+    "empty": "Noch keine Benachrichtigungen.",
+    "url": "Ziel-URL",
+    "urlHelp": "Muss mit https:// beginnen.",
+    "urlInvalid": "Bitte eine öffentliche https://-Adresse angeben.",
+    "secret": "Signatur-Secret",
+    "secretHelp": "Damit prüfst du, dass Anfragen von roots kommen (Header X-Roots-Signature). Es wird nur jetzt angezeigt.",
+    "rotate": "Neues Secret erzeugen",
+    "done": "Weiter",
+    "saved": "Gespeichert.",
+    "deleted": "Gelöscht.",
+    "delete": "Löschen",
+    "test": "Testereignis senden",
+    "testSent": "Testereignis ist unterwegs.",
+    "deliveries": "Letzte Zustellungen",
+    "noDeliveries": "Noch keine Zustellungen.",
+    "attempts": {
+      "one": "{count} Versuch",
+      "other": "{count} Versuche"
+    },
+    "statuses": {
+      "pending": "ausstehend",
+      "succeeded": "zugestellt",
+      "failed": "fehlgeschlagen"
+    },
+    "telegram": {
+      "howTo": "Öffne einen der Links in Telegram. Für eine Gruppe: Gruppe auswählen, den Bot hinzufügen, fertig.",
+      "group": "Mit einer Gruppe verbinden",
+      "private": "Mit mir verbinden",
+      "notConfigured": "Der Telegram-Bot ist noch nicht eingerichtet (TELEGRAM_BOT_TOKEN fehlt).",
+      "unknownCode": "Dieser Link ist ungültig oder wurde schon benutzt.",
+      "linked": "Verbunden! Dieser Chat bekommt jetzt Benachrichtigungen von {org}."
+    }
+  },
+  "events": {
+    "types": {
+      "member.joined": "Mitglied beigetreten",
+      "member.left": "Mitglied ausgetreten",
+      "member.invited": "Einladung verschickt",
+      "order.paid": "Bestellung bezahlt",
+      "order.refunded": "Bestellung erstattet",
+      "order.failed": "Zahlung fehlgeschlagen",
+      "test.ping": "Testereignis"
+    },
+    "messages": {
+      "member.joined": "👋 Neues Mitglied: {who}",
+      "member.left": "👋 Mitglied ausgetreten: {who}",
+      "member.invited": "✉️ Einladung an {who} verschickt",
+      "order.paid": "💶 Bezahlt: {amount} von {who}",
+      "order.refunded": "↩️ Erstattet: {amount} an {who}",
+      "order.failed": "⚠️ Zahlung fehlgeschlagen: {amount} von {who}",
+      "test.ping": "✅ Test von roots: Benachrichtigungen funktionieren."
+    }
   }
 }

@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server"
 
 const ROOT = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "localhost:3000"
 // App paths reachable without signing in.
-const PUBLIC_PATHS = ["/login", "/forgot", "/auth", "/invite", "/api/webhooks", "/api/integrations", "/checkout", "/s"]
+const PUBLIC_PATHS = ["/login", "/forgot", "/auth", "/invite", "/api/webhooks", "/api/integrations", "/api/cron", "/checkout", "/s"]
 
 export async function proxy(request: NextRequest) {
   // Public surface: <org>.ROOT → /s/<org>/… (no session). app.ROOT and ROOT itself are the App.
