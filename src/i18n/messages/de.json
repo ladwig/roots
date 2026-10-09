@@ -6,7 +6,12 @@
     "save": "Speichern",
     "cancel": "Abbrechen",
     "close": "Schließen",
-    "language": "Sprache"
+    "language": "Sprache",
+    "search": "Suchen…",
+    "newer": "Neuer",
+    "older": "Älter",
+    "created": "Angelegt",
+    "open": "Öffnen"
   },
   "auth": {
     "title": "Bei Roots anmelden",
@@ -101,7 +106,12 @@
     "copy": "Link kopieren",
     "copied": "Kopiert",
     "invalidEmail": "Gib eine gültige E-Mail-Adresse ein.",
-    "cantInviteRole": "Mit dieser Rolle kannst du nicht einladen."
+    "cantInviteRole": "Mit dieser Rolle kannst du nicht einladen.",
+    "joined": "Beigetreten",
+    "editTitle": "Mitglied",
+    "invitesEmpty": "Keine offenen Einladungen.",
+    "emptyMembers": "Noch keine Mitglieder.",
+    "expiresHeader": "Läuft ab"
   },
   "roles": {
     "intro": "Eine Rolle legt fest, was Personen tun dürfen.",
@@ -135,7 +145,10 @@
       "admin": "Admin",
       "member": "Mitglied",
       "doorStaff": "Einlass"
-    }
+    },
+    "permissions": "Berechtigungen",
+    "members": "Mitglieder",
+    "empty": "Noch keine Rollen."
   },
   "modules": {
     "on": "Aktiv",
@@ -268,6 +281,66 @@
       "weak_password": "Dieses Passwort ist zu schwach.",
       "over_email_send_rate_limit": "Zu viele E-Mails. Bitte warte kurz.",
       "generic": "Die Anmeldung hat nicht geklappt. Bitte versuch es noch einmal."
-    }
+    },
+    "cannot_delete_self": "Du kannst dein eigenes Konto hier nicht löschen.",
+    "slug_admin_only": "Nur Plattform-Admins können die Adresse ändern."
+  },
+  "admin": {
+    "title": "Plattform",
+    "nav": "Plattform-Navigation",
+    "backToApp": "Zur App",
+    "roleName": "Plattform-Admin",
+    "banner": "Du bist in {org} als Plattform-Admin.",
+    "link": "Plattform",
+    "orgs": {
+      "title": "Organisationen",
+      "name": "Name",
+      "address": "Adresse",
+      "members": "Mitglieder",
+      "new": "Neue Organisation",
+      "empty": "Keine Organisationen gefunden.",
+      "owner": "Inhaber (E-Mail)",
+      "ownerHelp": "Bestehendes Konto. Leer lassen, um selbst Inhaber zu werden.",
+      "ownerNotFound": "Es gibt kein Konto mit dieser E-Mail.",
+      "created": "Organisation angelegt.",
+      "saved": "Gespeichert.",
+      "open": "Organisation öffnen",
+      "details": "Details",
+      "delete": "Organisation löschen",
+      "deleteConfirm": "Ich verstehe, dass alle Daten dieser Organisation gelöscht werden.",
+      "deleted": "Organisation gelöscht.",
+      "addMember": "Mitglied hinzufügen",
+      "add": "Hinzufügen",
+      "added": "Mitglied hinzugefügt.",
+      "alreadyMember": "Diese Person ist schon Mitglied.",
+      "memberRemoved": "Mitglied entfernt.",
+      "noMembers": "Noch keine Mitglieder."
+    },
+    "users": {
+      "title": "Benutzer",
+      "email": "E-Mail",
+      "name": "Name",
+      "orgs": "Organisationen",
+      "lastSignIn": "Letzte Anmeldung",
+      "never": "nie",
+      "superadmin": "Superadmin",
+      "unconfirmed": "unbestätigt",
+      "empty": "Keine Benutzer gefunden.",
+      "profile": "Profil",
+      "access": "Plattform-Zugriff",
+      "superadminHelp": "Superadmins sehen und verwalten alle Organisationen und Benutzer.",
+      "grant": "Superadmin machen",
+      "revoke": "Superadmin entziehen",
+      "granted": "Superadmin-Rechte vergeben.",
+      "revoked": "Superadmin-Rechte entzogen.",
+      "saved": "Gespeichert.",
+      "memberships": "Mitgliedschaften",
+      "noMemberships": "Keine Mitgliedschaften.",
+      "delete": "Benutzer löschen",
+      "deleteConfirm": "Ich verstehe, dass dieses Konto endgültig gelöscht wird.",
+      "deleted": "Benutzer gelöscht.",
+      "you": "Du"
+    },
+    "dangerZone": "Gefahrenzone"
   }
 }

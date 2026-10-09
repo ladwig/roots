@@ -40,7 +40,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## App patterns
 - `getContext()` / `requirePerm(perm)` (`src/lib/context.ts`): signed-in user, active org, role, enabled modules, `can(perm)`.
 - Server Actions report back through the URL: `back(path, { error | ok })` + `<Notice>`. Forms that must keep their state use `useActionState`.
-- Dialogs/sheets: render `<UrlDialog params={["edit"]}>` when the search param is set; closing removes it.
+- CRUD screens: `<DataTable>` (+ `<SearchBox>` `?q=`, `<Pager>` `?page=`) from `@/components/data-table`; clicking a row links to `?edit=<id>`, which renders `<UrlSheet params={["edit"]}>` (side drawer) with the edit form. "New" = `?new=<thing>` + `<UrlSheet>`. Build links with `withParams(sp, {...})` to keep other params. `<UrlDialog>` only for confirmations.
+- Plain shadcn styling for now; the design system comes later.
+- Platform admins (superadmins, `platform_admins` table) pass every org check in the DB (`is_member/is_owner/has_perm` → true) and get `/admin` (orgs + users). `getContext().viaPlatform` = admin is inside an org they're not a member of. Grant the first one with `npm run admin:grant -- <email>`.
 - Modules: `src/modules/registry.ts` (key, requires, permissions, nav). Integrations: one file per provider in `src/integrations/`.
 - Cache Components is on: the root layout has one `<Suspense>`, request-time pages export `instant = false`, and `getSession()` calls `connection()`. Read the session before creating other Supabase clients. Public pages should later get real static shells.
 

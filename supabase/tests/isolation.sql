@@ -8,6 +8,7 @@ declare
   a uuid := gen_random_uuid();
   b uuid := gen_random_uuid();
   c uuid := gen_random_uuid(); -- member of org A with the plain "Member" role
+  d uuid := gen_random_uuid(); -- platform admin, member of nothing
   org_a uuid;
   org_b uuid;
   n int;
@@ -15,7 +16,9 @@ begin
   insert into auth.users (id, email, aud, role) values
     (a, 'a@isolation.test', 'authenticated', 'authenticated'),
     (b, 'b@isolation.test', 'authenticated', 'authenticated'),
-    (c, 'c@isolation.test', 'authenticated', 'authenticated');
+    (c, 'c@isolation.test', 'authenticated', 'authenticated'),
+    (d, 'd@isolation.test', 'authenticated', 'authenticated');
+  insert into public.platform_admins (user_id) values (d);
 
   -- as A: create org A
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
@@ -92,6 +95,53 @@ begin
   perform public.save_integration(org_a, 'resend', '{"from":"x@y.z"}', 'secret-1');
   reset role;
   assert public.get_integration_secret(org_a, 'resend') = 'secret-1', 'secret round-trip failed';
+
+  -- Non-admins can't use admin powers
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.admin_users();                          assert n = 0, 'non-admin listed users';
+  begin
+    insert into public.platform_admins (user_id) values (a);
+    assert false, 'owner made themselves platform admin';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    update public.orgs set slug = 'iso-renamed' where id = org_a;
+    assert false, 'owner changed the org address';
+  exception when raise_exception then null;
+  end;
+  begin
+    perform public.admin_delete_user(b);
+    assert false, 'non-admin deleted a user';
+  exception when raise_exception then null;
+  end;
+  delete from public.orgs where id = org_b;
+  get diagnostics n = row_count;                                             assert n = 0, 'non-admin deleted an org';
+  reset role;
+
+  -- Platform admin sees and manages everything
+  perform set_config('request.jwt.claims', json_build_object('sub', d, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.orgs where id in (org_a, org_b);        assert n = 2, 'admin should see all orgs';
+  select count(*) into n from public.admin_users() where id in (a, b, c, d); assert n = 4, 'admin should list users';
+  assert public.has_perm(org_b, 'org.members.manage'), 'admin should have every permission';
+  update public.orgs set slug = 'iso-org-b2' where id = org_b;
+  get diagnostics n = row_count;                                             assert n = 1, 'admin should change the address';
+  insert into public.org_members (org_id, user_id, role_id)
+  select org_b, c, id from public.roles where org_id = org_b and name = 'Member';
+  begin
+    delete from public.platform_admins where user_id = d;
+    get diagnostics n = row_count;                                           assert n = 0, 'admin removed themselves';
+  end;
+  begin
+    perform public.admin_delete_user(b);                                     -- b is the only owner of org B
+    assert false, 'deleted the last owner of an org';
+  exception when raise_exception then null;
+  end;
+  delete from public.orgs where id = org_b;
+  get diagnostics n = row_count;                                             assert n = 1, 'admin should delete orgs';
+  perform public.admin_delete_user(b);                                       -- now allowed
+  reset role;
 
   raise exception 'isolation: all checks passed';
 end $$;

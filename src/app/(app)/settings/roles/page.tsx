@@ -1,6 +1,7 @@
 import Link from "next/link"
+import { DataTable } from "@/components/data-table"
 import { Notice } from "@/components/notice"
-import { UrlDialog } from "@/components/url-dialog"
+import { UrlSheet } from "@/components/url-sheet"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -9,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
 import type { T } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
-import { param } from "@/lib/url"
+import { param, withParams } from "@/lib/url"
 import { core, modules, type ModuleDef } from "@/modules/registry"
 import { deleteRole, saveRole } from "./actions"
 
@@ -37,34 +38,34 @@ export default async function RolesSettings({ searchParams }: PageProps<"/settin
       <Notice error={!editing && !creating ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">{t("roles.intro")}</p>
-        <Button render={<Link href="?new=role" scroll={false} />} nativeButton={false} size="sm">
+        <Button render={<Link href={withParams(sp, { new: "role", edit: undefined })} scroll={false} />} nativeButton={false} size="sm">
           {t("roles.new")}
         </Button>
       </div>
-      <ul className="grid gap-2">
-        {roles?.map((r) => (
-          <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border px-4 py-3">
-            <div className="min-w-0">
-              <p className="font-medium">{r.name}</p>
-              <p className="text-sm text-muted-foreground">
-                {summary(t, r)} · {t("roles.memberCount", { count: memberCount(r.id) })}
-              </p>
-            </div>
-            {r.is_owner ? (
-              <Badge variant="secondary">{t("roles.locked")}</Badge>
-            ) : (
-              <Button render={<Link href={`?edit=${r.id}`} scroll={false} />} nativeButton={false} variant="outline" size="sm">
-                {t("roles.edit")}
-              </Button>
-            )}
-          </li>
-        ))}
-      </ul>
+      <DataTable
+        rows={roles ?? []}
+        rowKey={(r) => r.id}
+        rowHref={(r) => (r.is_owner ? undefined : withParams(sp, { edit: r.id, new: undefined }))}
+        empty={t("roles.empty")}
+        columns={[
+          {
+            header: t("roles.name"),
+            cell: (r) => (
+              <span className="flex items-center gap-2">
+                <span className="font-medium">{r.name}</span>
+                {r.is_owner && <Badge variant="secondary">{t("roles.locked")}</Badge>}
+              </span>
+            ),
+          },
+          { header: t("roles.permissions"), cell: (r) => summary(t, r) },
+          { header: t("roles.members"), cell: (r) => memberCount(r.id), className: "tabular-nums" },
+        ]}
+      />
 
       {(editing || creating) && (
-        <UrlDialog params={["edit", "new"]} title={editing ? t("roles.editTitle", { name: editing.name }) : t("roles.new")}>
+        <UrlSheet params={["edit", "new"]} title={editing ? t("roles.editTitle", { name: editing.name }) : t("roles.new")}>
           <RoleForm t={t} role={editing} groups={groups} error={param(sp, "error")} />
-        </UrlDialog>
+        </UrlSheet>
       )}
     </div>
   )
@@ -90,7 +91,7 @@ function RoleForm({ t, role, groups, error }: { t: T; role?: Role; groups: Modul
         <Label htmlFor="role-name">{t("roles.name")}</Label>
         <Input id="role-name" name="name" defaultValue={role?.name} required maxLength={50} />
       </div>
-      <div className="grid max-h-[50vh] gap-4 overflow-y-auto pr-1">
+      <div className="grid gap-4">
         <label className="flex items-start gap-2 text-sm">
           <Checkbox name="permissions" value="*" defaultChecked={has.has("*")} className="mt-0.5" />
           <span>

@@ -21,3 +21,16 @@ export function back(path: string, result: { error?: string; ok?: string }): nev
   for (const [k, v] of Object.entries(result)) if (v) url.searchParams.set(k, v)
   redirect(url.pathname + url.search)
 }
+
+// Current search params with changes applied (undefined removes a key), as "?…" for links.
+export function withParams(sp: SearchParams, changes: Record<string, string | undefined>) {
+  const next = new URLSearchParams()
+  for (const [k, v] of Object.entries(sp)) if (typeof v === "string" && !["error", "ok"].includes(k)) next.set(k, v)
+  for (const [k, v] of Object.entries(changes)) {
+    if (v === undefined) next.delete(k)
+    else next.set(k, v)
+  }
+  return next.size ? `?${next}` : "?"
+}
+
+export const pageParam = (sp: SearchParams) => Math.max(1, Number(param(sp, "page")) || 1)

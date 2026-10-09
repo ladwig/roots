@@ -5,8 +5,11 @@ import { notFound, redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 
 export const ACTIVE_ORG_COOKIE = "active_org"
+export const setActiveOrg = async (orgId: string) =>
+  (await cookies()).set(ACTIVE_ORG_COOKIE, orgId, { path: "/", httpOnly: true, sameSite: "lax", maxAge: 60 * 60 * 24 * 365 })
 
 type Role = { name: string; is_owner: boolean; permissions: string[] }
+type Org = { id: string; name: string; slug: string }
 
 // Mirrors public.has_perm() for hiding UI. The database is the real check.
 export const roleHas = (role: Role, perm: string) =>
@@ -18,34 +21,56 @@ export const getSession = cache(async () => {
   const supabase = await createClient()
   const { data } = await supabase.auth.getClaims()
   if (!data?.claims) return null
-  return { supabase, userId: data.claims.sub, email: data.claims.email ?? "" }
+  const { data: isPlatformAdmin } = await supabase.rpc("is_platform_admin")
+  return { supabase, userId: data.claims.sub, email: data.claims.email ?? "", isPlatformAdmin: !!isPlatformAdmin }
 })
 
-// Signed-in user + active org. Redirects to /login or /onboarding when missing.
+// Signed-in user + active org. Redirects to /login, /onboarding (or /admin for platform admins without orgs).
 export const getContext = cache(async () => {
   const session = await getSession()
   if (!session) redirect("/login")
-  const { supabase, userId } = session
+  const { supabase, userId, isPlatformAdmin } = session
 
   const { data: memberships } = await supabase
     .from("org_members")
     .select("org_id, orgs(id, name, slug), roles(name, is_owner, permissions)")
     .eq("user_id", userId)
     .order("created_at")
-  if (!memberships?.length) redirect("/onboarding")
-
+  const orgs: Org[] = memberships?.map((m) => m.orgs!) ?? []
   const active = (await cookies()).get(ACTIVE_ORG_COOKIE)?.value
-  const current = memberships.find((m) => m.org_id === active) ?? memberships[0]
-  const role = current.roles!
-  const { data: mods } = await supabase.from("org_modules").select("module_key").eq("org_id", current.org_id)
 
+  let current = memberships?.find((m) => m.org_id === active)
+  let org = current?.orgs ?? undefined
+  let role: Role | undefined = current?.roles ?? undefined
+  let viaPlatform = false
+
+  // Platform admins can open any org; they act with full rights there.
+  if (!current && active && isPlatformAdmin) {
+    const { data } = await supabase.from("orgs").select("id, name, slug").eq("id", active).maybeSingle()
+    if (data) {
+      org = data
+      role = { name: "Platform admin", is_owner: true, permissions: [] }
+      viaPlatform = true
+      orgs.push(data)
+    }
+  }
+  if (!org) {
+    current = memberships?.[0]
+    org = current?.orgs ?? undefined
+    role = current?.roles ?? undefined
+  }
+  if (!org || !role) redirect(isPlatformAdmin ? "/admin" : "/onboarding")
+
+  const { data: mods } = await supabase.from("org_modules").select("module_key").eq("org_id", org.id)
+  const r = role
   return {
     ...session,
-    orgs: memberships.map((m) => m.orgs!),
-    org: current.orgs!,
-    role,
+    orgs,
+    org,
+    role: r,
+    viaPlatform,
     modules: new Set(mods?.map((m) => m.module_key)),
-    can: (perm: string) => roleHas(role, perm),
+    can: (perm: string) => roleHas(r, perm),
   }
 })
 
@@ -53,4 +78,11 @@ export async function requirePerm(perm: string) {
   const ctx = await getContext()
   if (!ctx.can(perm)) notFound()
   return ctx
+}
+
+export async function requirePlatformAdmin() {
+  const session = await getSession()
+  if (!session) redirect("/login?next=/admin")
+  if (!session.isPlatformAdmin) notFound()
+  return session
 }

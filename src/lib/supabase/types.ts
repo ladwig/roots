@@ -145,6 +145,20 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"platform_admins": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"id": string,"updated_at": string,"updated_by": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"updated_at"?: string,"updated_by"?: string | null,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"updated_at"?: string,"updated_by"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"profiles": {
                   Row: {
                     "created_at": string,"email": string,"full_name": string | null,"id": string
@@ -188,6 +202,17 @@ isOneToOne: false
             "accept_invite":
 { Args: { "p_token": string }; Returns: string
                            },
+"admin_create_org":
+{ Args: { "p_name": string,"p_owner": string,"p_role_names"?: (string)[],"p_slug": string }; Returns: string
+                           },
+"admin_delete_user":
+{ Args: { "p_user": string }; Returns: undefined
+                           },
+"admin_users":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "confirmed": boolean,"created_at": string,"email": string,"full_name": string,"id": string,"is_platform_admin": boolean,"last_sign_in_at": string,"org_count": number
+            }[]
+                           },
 "create_org":
 { Args: { "p_name": string,"p_role_names"?: (string)[],"p_slug": string }; Returns: string
                            },
@@ -214,11 +239,17 @@ isOneToOne: false
 "is_owner":
 { Args: { "p_org": string }; Returns: boolean
                            },
+"is_platform_admin":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
 "module_enabled":
 { Args: { "p_key": string,"p_org": string }; Returns: boolean
                            },
 "save_integration":
 { Args: { "p_config": Json,"p_expires_at"?: string,"p_org": string,"p_provider": string,"p_secret"?: string }; Returns: string
+                           },
+"seed_org":
+{ Args: { "p_name": string,"p_owner": string,"p_role_names": (string)[],"p_slug": string }; Returns: string
                            },
 "shares_org":
 { Args: { "p_user": string }; Returns: boolean

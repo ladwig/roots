@@ -6,7 +6,12 @@
     "save": "Save",
     "cancel": "Cancel",
     "close": "Close",
-    "language": "Language"
+    "language": "Language",
+    "search": "Search…",
+    "newer": "Newer",
+    "older": "Older",
+    "created": "Created",
+    "open": "Open"
   },
   "auth": {
     "title": "Sign in to Roots",
@@ -101,7 +106,12 @@
     "copy": "Copy link",
     "copied": "Copied",
     "invalidEmail": "Enter a valid email address.",
-    "cantInviteRole": "You can't invite with this role."
+    "cantInviteRole": "You can't invite with this role.",
+    "joined": "Joined",
+    "editTitle": "Member",
+    "invitesEmpty": "No open invites.",
+    "emptyMembers": "No members yet.",
+    "expiresHeader": "Expires"
   },
   "roles": {
     "intro": "A role is a set of things people are allowed to do.",
@@ -135,7 +145,10 @@
       "admin": "Admin",
       "member": "Member",
       "doorStaff": "Door staff"
-    }
+    },
+    "permissions": "Permissions",
+    "members": "Members",
+    "empty": "No roles yet."
   },
   "modules": {
     "on": "On",
@@ -268,6 +281,66 @@
       "weak_password": "This password is too weak.",
       "over_email_send_rate_limit": "Too many emails. Please wait a moment.",
       "generic": "Signing in didn't work. Please try again."
-    }
+    },
+    "cannot_delete_self": "You can't delete your own account here.",
+    "slug_admin_only": "Only platform admins can change the address."
+  },
+  "admin": {
+    "title": "Platform",
+    "nav": "Platform navigation",
+    "backToApp": "Back to app",
+    "roleName": "Platform admin",
+    "banner": "You're in {org} as a platform admin.",
+    "link": "Platform",
+    "orgs": {
+      "title": "Organisations",
+      "name": "Name",
+      "address": "Address",
+      "members": "Members",
+      "new": "New organisation",
+      "empty": "No organisations found.",
+      "owner": "Owner (email)",
+      "ownerHelp": "An existing account. Leave empty to become the owner yourself.",
+      "ownerNotFound": "There is no account with this email.",
+      "created": "Organisation created.",
+      "saved": "Saved.",
+      "open": "Open organisation",
+      "details": "Details",
+      "delete": "Delete organisation",
+      "deleteConfirm": "I understand that all data of this organisation will be deleted.",
+      "deleted": "Organisation deleted.",
+      "addMember": "Add member",
+      "add": "Add",
+      "added": "Member added.",
+      "alreadyMember": "This person is already a member.",
+      "memberRemoved": "Member removed.",
+      "noMembers": "No members yet."
+    },
+    "users": {
+      "title": "Users",
+      "email": "Email",
+      "name": "Name",
+      "orgs": "Organisations",
+      "lastSignIn": "Last sign-in",
+      "never": "never",
+      "superadmin": "Superadmin",
+      "unconfirmed": "unconfirmed",
+      "empty": "No users found.",
+      "profile": "Profile",
+      "access": "Platform access",
+      "superadminHelp": "Superadmins see and manage all organisations and users.",
+      "grant": "Make superadmin",
+      "revoke": "Remove superadmin",
+      "granted": "Superadmin rights granted.",
+      "revoked": "Superadmin rights removed.",
+      "saved": "Saved.",
+      "memberships": "Memberships",
+      "noMemberships": "No memberships.",
+      "delete": "Delete user",
+      "deleteConfirm": "I understand that this account will be deleted for good.",
+      "deleted": "User deleted.",
+      "you": "You"
+    },
+    "dangerZone": "Danger zone"
   }
 }

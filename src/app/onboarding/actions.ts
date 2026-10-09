@@ -1,10 +1,9 @@
 "use server"
 
-import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
-import { ACTIVE_ORG_COOKIE, getSession } from "@/lib/context"
+import { setActiveOrg, getSession } from "@/lib/context"
 import { back } from "@/lib/url"
 
 export async function createOrg(formData: FormData) {
@@ -22,6 +21,6 @@ export async function createOrg(formData: FormData) {
     p_role_names: [t("roles.defaults.owner"), t("roles.defaults.admin"), t("roles.defaults.member"), t("roles.defaults.doorStaff")],
   })
   if (error) back("/onboarding", { error: error.code === "23505" ? t("onboarding.addressTaken") : dbError(t, error) })
-  ;(await cookies()).set(ACTIVE_ORG_COOKIE, data!, { path: "/", httpOnly: true, sameSite: "lax", maxAge: 60 * 60 * 24 * 365 })
+  await setActiveOrg(data!)
   redirect("/")
 }

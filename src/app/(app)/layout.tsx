@@ -18,6 +18,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       .filter((n) => !n.permission || ctx.can(n.permission))
       .map((n) => ({ href: n.href, label: t.dynamic(n.label) })),
     { href: "/settings", label: t("shell.settings") },
+    ...(ctx.isPlatformAdmin ? [{ href: "/admin", label: t("admin.link") }] : []),
   ]
 
   return (
@@ -43,7 +44,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </form>
         </div>
       </aside>
-      <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
+      <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">
+        {ctx.viaPlatform && (
+          <p className="mx-auto mb-6 max-w-4xl rounded-lg border bg-muted px-3 py-2 text-sm">
+            {t("admin.banner", { org: ctx.org.name })}
+          </p>
+        )}
+        {children}
+      </main>
     </div>
   )
 }
