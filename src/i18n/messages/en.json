@@ -41,13 +41,13 @@
     "subtitle": "Your club, business or event series. You can invite others next.",
     "name": "Name",
     "namePlaceholder": "Musterstadt Arts Club",
-    "address": "Address",
+    "address": "Slug",
     "addressPlaceholder": "artsclub",
     "addressHelp": "Used for your public pages. Lowercase letters, numbers and dashes.",
     "submit": "Create organisation",
     "nameRequired": "Give your organisation a name.",
-    "addressInvalid": "The address needs 3–40 characters: lowercase letters, numbers and dashes.",
-    "addressTaken": "That address is already taken."
+    "addressInvalid": "The slug needs 3–40 characters: lowercase letters, numbers and dashes.",
+    "addressTaken": "That slug is already taken."
   },
   "invite": {
     "invalidTitle": "Invite not valid",
@@ -93,7 +93,7 @@
   },
   "general": {
     "name": "Name",
-    "publicAddress": "Public address",
+    "publicAddress": "Slug (website)",
     "saved": "Saved.",
     "nameRequired": "The name can't be empty.",
     "logo": "Logo",
@@ -327,12 +327,12 @@
       "generic": "Signing in didn't work. Please try again."
     },
     "cannot_delete_self": "You can't delete your own account here.",
-    "slug_admin_only": "Only platform admins can change the address.",
+    "slug_admin_only": "Only platform admins can change the slug.",
     "invalid_role": "This role doesn't exist here.",
     "image_missing": "Please choose an image.",
     "image_type": "Only PNG, JPG, WebP or GIF.",
     "image_too_large": "The image is larger than 2 MB.",
-    "slug_taken": "This address is already taken.",
+    "slug_taken": "This slug is already taken.",
     "invalid_time": "Please enter a valid date and time.",
     "end_before_start": "The end must be after the start.",
     "invalid_input": "Please check your input."
@@ -347,7 +347,7 @@
     "orgs": {
       "title": "Organisations",
       "name": "Name",
-      "address": "Address",
+      "address": "Slug",
       "members": "Members",
       "new": "New organisation",
       "empty": "No organisations found.",
@@ -414,7 +414,7 @@
     },
     "trash": {
       "title": "Trash",
-      "hint": "Deleted organisations stay here for {days} days and can be restored. After that they are removed with all their data; their address stays reserved until then.",
+      "hint": "Deleted organisations stay here for {days} days and can be restored. After that they are removed with all their data; their slug stays reserved until then.",
       "deletedAt": "Deleted on",
       "deletedOn": "Deleted on {date}. Will be removed for good on {purge}.",
       "restore": "Restore",
@@ -613,8 +613,7 @@
     "trash": "Trash",
     "trashHint": "Deleted events are removed for good after {days} days.",
     "titleLabel": "Title",
-    "slug": "Slug (website)",
-    "slugHelp": "Leave empty = from the title. Lowercase letters, numbers and hyphens.",
+    "slug": "Slug",
     "startsAt": "Starts",
     "endsAt": "Ends (optional)",
     "venueName": "Venue",

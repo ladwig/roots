@@ -202,9 +202,8 @@ function EventForm({ t, action, ev, disabled }: { t: T; action: (fd: FormData) =
           <Label htmlFor="ev-slug">{t("eventsPage.slug")}</Label>
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <span className="shrink-0">/e/</span>
-            <Input id="ev-slug" name="slug" defaultValue={ev?.slug} placeholder="sommerfest-2026" pattern="[a-z0-9][a-z0-9\-]{0,78}[a-z0-9]" aria-describedby="ev-slug-help" />
+            <Input id="ev-slug" name="slug" defaultValue={ev?.slug} placeholder="sommerfest-2026" pattern="[a-z0-9][a-z0-9\-]{0,78}[a-z0-9]" />
           </div>
-          <p id="ev-slug-help" className="text-xs text-muted-foreground">{t("eventsPage.slugHelp")}</p>
         </div>
         {!disabled && (
           <Button type="submit" className="justify-self-start">

@@ -41,13 +41,13 @@
     "subtitle": "Dein Verein, dein Betrieb oder deine Eventreihe. Danach kannst du andere einladen.",
     "name": "Name",
     "namePlaceholder": "Kulturverein Musterstadt",
-    "address": "Adresse",
+    "address": "Slug",
     "addressPlaceholder": "kulturverein",
     "addressHelp": "Für deine öffentlichen Seiten. Kleinbuchstaben, Zahlen und Bindestriche.",
     "submit": "Organisation anlegen",
     "nameRequired": "Gib deiner Organisation einen Namen.",
-    "addressInvalid": "Die Adresse braucht 3–40 Zeichen: Kleinbuchstaben, Zahlen und Bindestriche.",
-    "addressTaken": "Diese Adresse ist schon vergeben."
+    "addressInvalid": "Der Slug braucht 3–40 Zeichen: Kleinbuchstaben, Zahlen und Bindestriche.",
+    "addressTaken": "Dieser Slug ist schon vergeben."
   },
   "invite": {
     "invalidTitle": "Einladung ungültig",
@@ -93,7 +93,7 @@
   },
   "general": {
     "name": "Name",
-    "publicAddress": "Öffentliche Adresse",
+    "publicAddress": "Slug (Webseite)",
     "saved": "Gespeichert.",
     "nameRequired": "Der Name darf nicht leer sein.",
     "logo": "Logo",
@@ -327,12 +327,12 @@
       "generic": "Die Anmeldung hat nicht geklappt. Bitte versuch es noch einmal."
     },
     "cannot_delete_self": "Du kannst dein eigenes Konto hier nicht löschen.",
-    "slug_admin_only": "Nur Plattform-Admins können die Adresse ändern.",
+    "slug_admin_only": "Nur Plattform-Admins können den Slug ändern.",
     "invalid_role": "Diese Rolle gibt es hier nicht.",
     "image_missing": "Bitte wähle ein Bild aus.",
     "image_type": "Nur PNG, JPG, WebP oder GIF.",
     "image_too_large": "Das Bild ist größer als 2 MB.",
-    "slug_taken": "Diese Adresse ist schon vergeben.",
+    "slug_taken": "Dieser Slug ist schon vergeben.",
     "invalid_time": "Bitte gib ein gültiges Datum mit Uhrzeit an.",
     "end_before_start": "Das Ende muss nach dem Beginn liegen.",
     "invalid_input": "Bitte prüfe deine Eingaben."
@@ -347,7 +347,7 @@
     "orgs": {
       "title": "Organisationen",
       "name": "Name",
-      "address": "Adresse",
+      "address": "Slug",
       "members": "Mitglieder",
       "new": "Neue Organisation",
       "empty": "Keine Organisationen gefunden.",
@@ -414,7 +414,7 @@
     },
     "trash": {
       "title": "Papierkorb",
-      "hint": "Gelöschte Organisationen bleiben {days} Tage hier und können wiederhergestellt werden. Danach werden sie mit allen Daten entfernt; ihre Adresse ist bis dahin reserviert.",
+      "hint": "Gelöschte Organisationen bleiben {days} Tage hier und können wiederhergestellt werden. Danach werden sie mit allen Daten entfernt; ihr Slug ist bis dahin reserviert.",
       "deletedAt": "Gelöscht am",
       "deletedOn": "Gelöscht am {date}. Wird am {purge} endgültig entfernt.",
       "restore": "Wiederherstellen",
@@ -613,8 +613,7 @@
     "trash": "Papierkorb",
     "trashHint": "Gelöschte Events werden nach {days} Tagen endgültig entfernt.",
     "titleLabel": "Titel",
-    "slug": "Slug (Webseite)",
-    "slugHelp": "Leer lassen = aus dem Titel. Kleinbuchstaben, Zahlen und Bindestriche.",
+    "slug": "Slug",
     "startsAt": "Beginn",
     "endsAt": "Ende (optional)",
     "venueName": "Ort",
