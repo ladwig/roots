@@ -161,14 +161,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "created_at": string,"email": string,"full_name": string | null,"id": string
+                    "created_at": string,"email": string,"full_name": string | null,"id": string,"locale": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"email": string,"full_name"?: string | null,"id": string
+                    "created_at"?: string,"email": string,"full_name"?: string | null,"id": string,"locale"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"email"?: string,"full_name"?: string | null,"id"?: string
+                    "created_at"?: string,"email"?: string,"full_name"?: string | null,"id"?: string,"locale"?: string | null
                   }
                   Relationships: [
                     
@@ -244,6 +244,9 @@ isOneToOne: false
                            },
 "module_enabled":
 { Args: { "p_key": string,"p_org": string }; Returns: boolean
+                           },
+"request_org":
+{ Args: Record<PropertyKey, never>; Returns: string
                            },
 "save_integration":
 { Args: { "p_config": Json,"p_expires_at"?: string,"p_org": string,"p_provider": string,"p_secret"?: string }; Returns: string

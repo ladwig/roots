@@ -26,7 +26,13 @@
     "confirmEmail": "Wir haben dir einen Link an {email} geschickt. Bestätige damit dein Konto.",
     "magicLinkSent": "Wir haben dir einen Anmeldelink an {email} geschickt.",
     "enterEmail": "Gib zuerst deine E-Mail-Adresse ein.",
-    "linkInvalid": "Dieser Link ist ungültig oder abgelaufen."
+    "linkInvalid": "Dieser Link ist ungültig oder abgelaufen.",
+    "forgot": "Passwort vergessen?",
+    "forgotTitle": "Passwort zurücksetzen",
+    "forgotSubtitle": "Wir schicken dir einen Link, mit dem du ein neues Passwort setzt.",
+    "sendReset": "Link senden",
+    "resetSent": "Falls es ein Konto für {email} gibt, haben wir einen Link geschickt.",
+    "backToLogin": "Zurück zur Anmeldung"
   },
   "onboarding": {
     "title": "Organisation anlegen",
@@ -63,8 +69,7 @@
   "home": {
     "role": "Du bist angemeldet als {role}.",
     "modules": "Module",
-    "noModules": "Noch keine Module aktiv.",
-    "chooseModules": "Wähle aus, was diese Organisation braucht"
+    "noModules": "Noch keine Module aktiv. Module werden von der Plattform freigeschaltet."
   },
   "settings": {
     "title": "Einstellungen",
@@ -188,12 +193,12 @@
     "sites": {
       "name": "Öffentliche Seite",
       "description": "Seiten auf deiner eigenen Subdomain, aus Blöcken gebaut."
-    }
+    },
+    "managedByPlatform": "Module werden von der Plattform für deine Organisation freigeschaltet."
   },
   "permissions": {
     "org.settings.manage": "Organisationseinstellungen bearbeiten",
     "org.members.manage": "Mitglieder einladen und verwalten",
-    "org.modules.manage": "Module aktivieren und deaktivieren",
     "org.integrations.manage": "Integrationen verbinden",
     "org.audit.view": "Aktivitätsprotokoll ansehen",
     "crm.view": "Kontakte ansehen",
@@ -309,7 +314,9 @@
       "added": "Mitglied hinzugefügt.",
       "alreadyMember": "Diese Person ist schon Mitglied.",
       "memberRemoved": "Mitglied entfernt.",
-      "noMembers": "Noch keine Mitglieder."
+      "noMembers": "Noch keine Mitglieder.",
+      "modules": "Module",
+      "alsoNeeds": "Wird mit aktiviert: {list}"
     },
     "users": {
       "title": "Benutzer",
@@ -346,5 +353,21 @@
       "inOrgs": "Vergeben",
       "ownerBadge": "Inhaber-Rolle"
     }
+  },
+  "account": {
+    "title": "Dein Konto",
+    "link": "Konto",
+    "back": "Zurück",
+    "profile": "Profil",
+    "name": "Name",
+    "language": "Sprache",
+    "password": "Passwort",
+    "newPassword": "Neues Passwort",
+    "repeatPassword": "Neues Passwort wiederholen",
+    "changePassword": "Passwort ändern",
+    "passwordChanged": "Passwort geändert.",
+    "passwordsDontMatch": "Die Passwörter stimmen nicht überein.",
+    "saved": "Gespeichert.",
+    "resetHint": "Setze jetzt ein neues Passwort."
   }
 }

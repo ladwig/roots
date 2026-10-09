@@ -18,7 +18,6 @@ export const core: ModuleDef = {
   permissions: [
     "org.settings.manage",
     "org.members.manage",
-    "org.modules.manage",
     "org.integrations.manage",
     "org.audit.view",
   ],

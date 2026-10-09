@@ -24,8 +24,8 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   set local role authenticated;
   org_a := public.create_org('Org A', 'iso-org-a');
-  insert into public.org_modules (org_id, module_key) values (org_a, 'events');
   reset role;
+  insert into public.org_modules (org_id, module_key) values (org_a, 'events'); -- modules: platform admins only
 
   -- as B: create org B
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
@@ -50,6 +50,11 @@ begin
   begin
     insert into public.org_modules (org_id, module_key) values (org_a, 'crm');
     assert false, 'B enabled a module in A';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    insert into public.org_modules (org_id, module_key) values (org_b, 'crm');
+    assert false, 'an owner enabled a module (platform admins only)';
   exception when insufficient_privilege then null;
   end;
   begin
@@ -144,6 +149,24 @@ begin
     assert false, 'deleted the last owner of an org';
   exception when raise_exception then null;
   end;
+  reset role;
+
+  -- x-org-id header: C is now in A and B, but with the header only sees the active org
+  perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.orgs;                                   assert n = 2, 'C is in two orgs';
+  perform set_config('request.headers', json_build_object('x-org-id', org_a)::text, true);
+  select count(*) into n from public.orgs;                                   assert n = 1, 'header should scope to one org';
+  select count(*) into n from public.org_members where org_id = org_b;       assert n = 0, 'header should hide the other org';
+  perform set_config('request.headers', json_build_object('x-org-id', org_b)::text, true);
+  select count(*) into n from public.org_members where org_id = org_a;       assert n = 0, 'header should hide org A';
+  perform set_config('request.headers', json_build_object('x-org-id', gen_random_uuid())::text, true);
+  select count(*) into n from public.orgs;                                   assert n = 0, 'unknown org header grants nothing';
+  perform set_config('request.headers', '{}', true);
+  reset role;
+
+  perform set_config('request.jwt.claims', json_build_object('sub', d, 'role', 'authenticated')::text, true);
+  set local role authenticated;
   delete from public.orgs where id = org_b;
   get diagnostics n = row_count;                                             assert n = 1, 'admin should delete orgs';
   perform public.admin_delete_user(b);                                       -- now allowed

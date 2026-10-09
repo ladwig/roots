@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { adoptProfileLocale } from "@/i18n/actions"
 import { getT } from "@/i18n/server"
 import { createClient } from "@/lib/supabase/server"
 import { safeNext } from "@/lib/url"
@@ -11,7 +12,10 @@ export async function GET(request: Request) {
   if (code) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) return NextResponse.redirect(new URL(next, url.origin))
+    if (!error) {
+      await adoptProfileLocale()
+      return NextResponse.redirect(new URL(next, url.origin))
+    }
   }
   const t = await getT()
   return NextResponse.redirect(new URL(`/login?${new URLSearchParams({ error: t("auth.linkInvalid") })}`, url.origin))

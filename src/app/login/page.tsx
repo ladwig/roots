@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Notice } from "@/components/notice"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,7 +27,12 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
           <Input id="email" name="email" type="email" autoComplete="email" required />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="password">{t("auth.password")}</Label>
+          <div className="flex items-baseline justify-between gap-2">
+            <Label htmlFor="password">{t("auth.password")}</Label>
+            <Link href="/forgot" className="text-xs text-muted-foreground underline underline-offset-4">
+              {t("auth.forgot")}
+            </Link>
+          </div>
           <Input id="password" name="password" type="password" autoComplete="current-password" />
         </div>
         <Button type="submit">{t("auth.signIn")}</Button>

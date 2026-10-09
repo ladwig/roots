@@ -12,6 +12,9 @@ import type { T } from "@/i18n/translate"
 import { requirePlatformAdmin } from "@/lib/context"
 import { pageParam, param, ROOT_DOMAIN, withParams } from "@/lib/url"
 import { addMember, createOrg, deleteOrg, openOrg, removeMember, updateOrg } from "./actions"
+import { disableModule, enableModule } from "./module-actions"
+import { missingModules, modules } from "@/modules/registry"
+import { Badge } from "@/components/ui/badge"
 
 export default async function AdminOrgs({ searchParams }: PageProps<"/admin/orgs">) {
   const { supabase } = await requirePlatformAdmin()
@@ -85,11 +88,13 @@ export default async function AdminOrgs({ searchParams }: PageProps<"/admin/orgs
 
 async function EditOrg({ t, orgId, error, ok }: { t: T; orgId: string; error?: string; ok?: string }) {
   const { supabase } = await requirePlatformAdmin()
-  const [{ data: org }, { data: members }, { data: roles }] = await Promise.all([
+  const [{ data: org }, { data: members }, { data: roles }, { data: mods }] = await Promise.all([
     supabase.from("orgs").select("id, name, slug").eq("id", orgId).maybeSingle(),
     supabase.from("org_members").select("id, user_id, roles(name)").eq("org_id", orgId).order("created_at"),
     supabase.from("roles").select("id, name, is_owner").or(`org_id.is.null,org_id.eq.${orgId}`).order("is_owner", { ascending: false }).order("created_at"),
+    supabase.from("org_modules").select("module_key").eq("org_id", orgId),
   ])
+  const enabled = new Set(mods?.map((m) => m.module_key))
   if (!org) return null
   const { data: profiles } = await supabase.from("profiles").select("id, email, full_name").in("id", members?.map((m) => m.user_id) ?? [])
   const profile = new Map(profiles?.map((p) => [p.id, p]))
@@ -118,6 +123,36 @@ async function EditOrg({ t, orgId, error, ok }: { t: T; orgId: string; error?: s
             {t("common.save")}
           </Button>
         </form>
+      </section>
+
+      <section className="grid gap-3">
+        <h3 className="font-medium">{t("admin.orgs.modules")}</h3>
+        <ul className="grid divide-y rounded-lg border">
+          {modules.map((m) => {
+            const on = enabled.has(m.key)
+            const extra = on ? [] : missingModules(m.key, enabled)
+            return (
+              <li key={m.key} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+                <span className="min-w-0">
+                  <span className="flex items-center gap-2">
+                    {t.dynamic(`modules.${m.key}.name`)}
+                    {on && <Badge>{t("modules.on")}</Badge>}
+                  </span>
+                  {extra.length > 0 && (
+                    <span className="text-xs text-muted-foreground">
+                      {t("admin.orgs.alsoNeeds", { list: t.list(extra.map((k) => t.dynamic(`modules.${k}.name`))) })}
+                    </span>
+                  )}
+                </span>
+                <form action={on ? disableModule.bind(null, org.id, m.key) : enableModule.bind(null, org.id, m.key)}>
+                  <Button type="submit" variant={on ? "outline" : "default"} size="sm">
+                    {on ? t("modules.turnOff") : t("modules.turnOn")}
+                  </Button>
+                </form>
+              </li>
+            )
+          })}
+        </ul>
       </section>
 
       <section className="grid gap-3">

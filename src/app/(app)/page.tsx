@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
 import { modules } from "@/modules/registry"
@@ -26,14 +25,7 @@ export default async function HomePage() {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            {t("home.noModules")}{" "}
-            {ctx.can("org.modules.manage") && (
-              <Link href="/settings/modules" className="text-foreground underline underline-offset-4">
-                {t("home.chooseModules")}
-              </Link>
-            )}
-          </p>
+          <p className="text-sm text-muted-foreground">{t("home.noModules")}</p>
         )}
       </section>
     </div>

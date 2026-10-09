@@ -24,9 +24,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </Button>
           <LocaleSwitcher />
           <form action={signOut} className="flex items-center justify-between gap-2">
-            <span className="truncate text-xs text-muted-foreground" title={session.email}>
+            <Link href="/account" className="truncate text-xs text-muted-foreground underline-offset-4 hover:underline" title={t("account.link")}>
               {session.email}
-            </span>
+            </Link>
             <Button type="submit" variant="ghost" size="sm">
               {t("auth.signOut")}
             </Button>

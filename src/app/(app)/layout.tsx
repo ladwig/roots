@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { signOut } from "@/app/login/actions"
 import { NavLink } from "@/components/nav-link"
 import { OrgSwitcher } from "@/components/org-switcher"
@@ -19,6 +20,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       .map((n) => ({ href: n.href, label: t.dynamic(n.label) })),
     { href: "/settings", label: t("shell.settings") },
     ...(ctx.isPlatformAdmin ? [{ href: "/admin", label: t("admin.link") }] : []),
+    { href: "/account", label: t("account.link"), mobileOnly: true },
   ]
 
   return (
@@ -27,7 +29,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <OrgSwitcher orgs={ctx.orgs} current={ctx.org} />
         <nav aria-label={t("shell.mainNav")} className="-mx-1 flex gap-1 overflow-x-auto px-1 md:flex-col md:overflow-visible">
           {nav.map((n) => (
-            <NavLink key={n.href} href={n.href}>
+            <NavLink key={n.href} href={n.href} className={"mobileOnly" in n ? "md:hidden" : undefined}>
               {n.label}
             </NavLink>
           ))}
@@ -35,9 +37,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <div className="hidden gap-2 md:mt-auto md:grid">
           <LocaleSwitcher />
           <form action={signOut} className="flex items-center justify-between gap-2">
-            <span className="truncate text-xs text-muted-foreground" title={ctx.email}>
+            <Link href="/account" className="truncate text-xs text-muted-foreground underline-offset-4 hover:underline" title={t("account.link")}>
               {ctx.email}
-            </span>
+            </Link>
             <Button type="submit" variant="ghost" size="sm">
               {t("auth.signOut")}
             </Button>

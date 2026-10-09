@@ -39,11 +39,13 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## App patterns
 - `getContext()` / `requirePerm(perm)` (`src/lib/context.ts`): signed-in user, active org, role, enabled modules, `can(perm)`.
+  `ctx.supabase` sends `x-org-id` → the database only shows the active org (`public.request_org()` inside `is_member/has_perm`). Still filter by `org_id` in queries; the header is the safety net. Cross-org queries (org switcher, `/admin`) use the unscoped session client.
 - Server Actions report back through the URL: `back(path, { error | ok })` + `<Notice>`. Forms that must keep their state use `useActionState`.
 - CRUD screens: `<DataTable>` (+ `<SearchBox>` `?q=`, `<Pager>` `?page=`) from `@/components/data-table`; clicking a row links to `?edit=<id>`, which renders `<UrlSheet params={["edit"]}>` (side drawer) with the edit form. "New" = `?new=<thing>` + `<UrlSheet>`. Build links with `withParams(sp, {...})` to keep other params. `<UrlDialog>` only for confirmations.
 - Plain shadcn styling for now; the design system comes later.
 - Roles are global (`roles.org_id is null`), defined by platform admins at `/admin/roles`, names stored as `{"de","en"}` (show with `t.pick(name)`). Orgs only assign roles; the org Roles tab is read-only. `org_id` on roles stays for possible org-specific roles later.
 - Platform admins (superadmins, `platform_admins` table) pass every org check in the DB (`is_member/is_owner/has_perm` → true) and get `/admin` (orgs + users). `getContext().viaPlatform` = admin is inside an org they're not a member of. Grant the first one with `npm run admin:grant -- <email>`.
+- Modules are switched on per org by platform admins only (`/admin/orgs` drawer); the org Modules tab is read-only.
 - Modules: `src/modules/registry.ts` (key, requires, permissions, nav). Integrations: one file per provider in `src/integrations/`.
 - Cache Components is on: the root layout has one `<Suspense>`, request-time pages export `instant = false`, and `getSession()` calls `connection()`. Read the session before creating other Supabase clients. Public pages should later get real static shells.
 

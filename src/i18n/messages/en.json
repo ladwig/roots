@@ -26,7 +26,13 @@
     "confirmEmail": "Check {email} for a link to confirm your account.",
     "magicLinkSent": "We sent a sign-in link to {email}.",
     "enterEmail": "Enter your email address first.",
-    "linkInvalid": "This link is invalid or has expired."
+    "linkInvalid": "This link is invalid or has expired.",
+    "forgot": "Forgot password?",
+    "forgotTitle": "Reset your password",
+    "forgotSubtitle": "We'll send you a link to set a new password.",
+    "sendReset": "Send link",
+    "resetSent": "If there is an account for {email}, we sent a link.",
+    "backToLogin": "Back to sign in"
   },
   "onboarding": {
     "title": "Create an organisation",
@@ -63,8 +69,7 @@
   "home": {
     "role": "You're signed in as {role}.",
     "modules": "Modules",
-    "noModules": "No modules on yet.",
-    "chooseModules": "Choose what this organisation needs"
+    "noModules": "No modules on yet. Modules are switched on by the platform."
   },
   "settings": {
     "title": "Settings",
@@ -188,12 +193,12 @@
     "sites": {
       "name": "Public site",
       "description": "Pages on your own subdomain, built from blocks."
-    }
+    },
+    "managedByPlatform": "Modules are switched on for your organisation by the platform."
   },
   "permissions": {
     "org.settings.manage": "Edit organisation settings",
     "org.members.manage": "Invite and manage members",
-    "org.modules.manage": "Turn modules on and off",
     "org.integrations.manage": "Connect integrations",
     "org.audit.view": "View the activity log",
     "crm.view": "View contacts",
@@ -309,7 +314,9 @@
       "added": "Member added.",
       "alreadyMember": "This person is already a member.",
       "memberRemoved": "Member removed.",
-      "noMembers": "No members yet."
+      "noMembers": "No members yet.",
+      "modules": "Modules",
+      "alsoNeeds": "Also turns on: {list}"
     },
     "users": {
       "title": "Users",
@@ -346,5 +353,21 @@
       "inOrgs": "Assigned",
       "ownerBadge": "Owner role"
     }
+  },
+  "account": {
+    "title": "Your account",
+    "link": "Account",
+    "back": "Back",
+    "profile": "Profile",
+    "name": "Name",
+    "language": "Language",
+    "password": "Password",
+    "newPassword": "New password",
+    "repeatPassword": "Repeat new password",
+    "changePassword": "Change password",
+    "passwordChanged": "Password changed.",
+    "passwordsDontMatch": "The passwords don't match.",
+    "saved": "Saved.",
+    "resetHint": "Set a new password now."
   }
 }

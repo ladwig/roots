@@ -26,7 +26,7 @@ export const getSession = cache(async () => {
   return { supabase, userId: data.claims.sub, email: data.claims.email ?? "", isPlatformAdmin: !!isPlatformAdmin }
 })
 
-// Signed-in user + active org. Redirects to /login, /onboarding (or /admin for platform admins without orgs).
+// Signed-in user + active org; `supabase` is scoped to that org via the x-org-id header. Redirects to /login, /onboarding (or /admin for platform admins without orgs).
 export const getContext = cache(async () => {
   const session = await getSession()
   if (!session) redirect("/login")
@@ -66,10 +66,13 @@ export const getContext = cache(async () => {
   }
   if (!org || !role) redirect(isPlatformAdmin ? "/admin" : "/onboarding")
 
-  const { data: mods } = await supabase.from("org_modules").select("module_key").eq("org_id", org.id)
+  // From here on, every query is scoped to the active org by the database.
+  const scoped = await createClient(org.id)
+  const { data: mods } = await scoped.from("org_modules").select("module_key").eq("org_id", org.id)
   const r = role
   return {
     ...session,
+    supabase: scoped,
     orgs,
     org,
     role: r,
