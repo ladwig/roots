@@ -600,6 +600,9 @@ isOneToOne: false
 "save_integration":
 { Args: { "p_config": Json,"p_expires_at"?: string,"p_org": string,"p_provider": string,"p_secret"?: string,"p_status"?: string }; Returns: string
                            },
+"schedule_worker":
+{ Args: { "p_secret"?: string,"p_url": string }; Returns: string
+                           },
 "seed_org":
 { Args: { "p_name": string,"p_owner": string,"p_slug": string }; Returns: string
                            },
