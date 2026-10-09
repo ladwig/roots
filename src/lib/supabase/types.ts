@@ -5,7 +5,27 @@ export type Database = {
   
   "public": {
           Tables: {
-            "audit_log": {
+            "api_keys": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"id": string,"key_hash": string,"last_used_at": string | null,"name": string,"org_id": string,"permissions": (string)[],"prefix": string,"revoked_at": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"key_hash": string,"last_used_at"?: string | null,"name": string,"org_id": string,"permissions"?: (string)[],"prefix": string,"revoked_at"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"key_hash"?: string,"last_used_at"?: string | null,"name"?: string,"org_id"?: string,"permissions"?: (string)[],"prefix"?: string,"revoked_at"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "api_keys_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"audit_log": {
                   Row: {
                     "action": string,"actor_id": string | null,"at": string,"id": number,"new": Json | null,"old": Json | null,"org_id": string | null,"row_id": string,"table_name": string
                   }
@@ -655,6 +675,11 @@ isOneToOne: false
 "admin_users":
 { Args: Record<PropertyKey, never>; Returns: {
               "confirmed": boolean,"created_at": string,"email": string,"full_name": string,"id": string,"is_platform_admin": boolean,"last_sign_in_at": string,"org_count": number
+            }[]
+                           },
+"api_key_auth":
+{ Args: { "p_hash": string }; Returns: {
+              "key_id": string,"modules": (string)[],"org_id": string,"permissions": (string)[]
             }[]
                            },
 "can_see_deleted":

@@ -90,7 +90,8 @@
       "integrations": "Integrations",
       "notifications": "Notifications",
       "profile": "Profile",
-      "fields": "Fields"
+      "fields": "Fields",
+      "api": "API"
     }
   },
   "general": {
@@ -329,7 +330,8 @@
       "ticket_types": "Ticket types",
       "tickets": "Tickets",
       "ticket_tiers": "Price tiers",
-      "ticket_codes": "Ticket codes"
+      "ticket_codes": "Ticket codes",
+      "api_keys": "API keys"
     }
   },
   "errors": {
@@ -457,7 +459,8 @@
       "restore": "Restore",
       "deleteNow": "Delete for good now",
       "moveToTrash": "Move to trash"
-    }
+    },
+    "apiDocs": "API docs"
   },
   "account": {
     "title": "Your account",
@@ -978,5 +981,26 @@
     "emailIntro": "Hi {name}, here are your tickets ({count}) for {event} on {when}. Show the QR code at the entrance – printed or on your phone.",
     "emailLink": "View tickets online",
     "emailFooter": "This email is from {org} via roots."
+  },
+  "api": {
+    "intro": "API keys let your own tools, scripts or apps access your organisation's data. Each key can only do what you tick and can be revoked any time.",
+    "docs": "API documentation",
+    "name": "Name",
+    "namePlaceholder": "e.g. Website sync, Zapier",
+    "permissions": "Permissions",
+    "create": "Create key",
+    "createdTitle": "Your new API key",
+    "createdHint": "Copy it now – it's only shown this once.",
+    "copy": "Copy",
+    "copied": "Copied.",
+    "empty": "No API keys yet.",
+    "lastUsed": "Last used",
+    "never": "never",
+    "revoke": "Revoke",
+    "revoked": "Key revoked.",
+    "revokedBadge": "revoked",
+    "nameMissing": "Please give the key a name.",
+    "permsMissing": "Please pick at least one permission.",
+    "noModules": "The API needs at least one enabled module."
   }
 }

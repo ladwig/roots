@@ -427,6 +427,26 @@ begin
     reset role;
   end;
 
+  -- API keys: only integration managers of the org see them, the hash isn't readable, auth is server-only
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  insert into public.api_keys (org_id, name, prefix, key_hash, permissions) values (org_a, 'Sync', 'roots_abcdef', repeat('a', 64), '{crm.view}');
+  select count(*) into n from public.api_keys where org_id = org_a;           assert n = 1, 'owner sees own keys';
+  begin
+    perform key_hash from public.api_keys limit 1;
+    assert false, 'key hash must not be readable';
+  exception when insufficient_privilege then null; end;
+  begin
+    perform public.api_key_auth(repeat('a', 64));
+    assert false, 'api_key_auth is server-only';
+  exception when insufficient_privilege then null; end;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.api_keys where org_id = org_a;           assert n = 0, 'B sees keys of A';
+  reset role;
+  select count(*) into n from public.api_key_auth(repeat('a', 64));           assert n = 1, 'service resolves a key';
+
   -- x-org-id header: C is now in A and B, but with the header only sees the active org
   perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
   set local role authenticated;

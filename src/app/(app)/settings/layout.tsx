@@ -10,6 +10,7 @@ const tabs = [
   { key: "modules" },
   { key: "fields" },
   { key: "integrations", permission: "org.integrations.manage" },
+  { key: "api", permission: "org.integrations.manage" },
 ]
 
 export default async function SettingsLayout({ children }: { children: React.ReactNode }) {

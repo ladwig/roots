@@ -90,7 +90,8 @@
       "integrations": "Integrationen",
       "notifications": "Benachrichtigungen",
       "profile": "Profil",
-      "fields": "Felder"
+      "fields": "Felder",
+      "api": "API"
     }
   },
   "general": {
@@ -329,7 +330,8 @@
       "ticket_types": "Ticketarten",
       "tickets": "Tickets",
       "ticket_tiers": "Preisstufen",
-      "ticket_codes": "Ticket-Codes"
+      "ticket_codes": "Ticket-Codes",
+      "api_keys": "API-Schlüssel"
     }
   },
   "errors": {
@@ -457,7 +459,8 @@
       "restore": "Wiederherstellen",
       "deleteNow": "Jetzt endgültig löschen",
       "moveToTrash": "In den Papierkorb"
-    }
+    },
+    "apiDocs": "API-Doku"
   },
   "account": {
     "title": "Dein Konto",
@@ -978,5 +981,26 @@
     "emailIntro": "Hallo {name}, hier sind deine Tickets ({count}) für {event} am {when}. Zeig den QR-Code am Einlass – ausgedruckt oder auf dem Handy.",
     "emailLink": "Tickets online ansehen",
     "emailFooter": "Diese E-Mail kommt von {org} über roots."
+  },
+  "api": {
+    "intro": "Mit API-Schlüsseln greifen eigene Tools, Skripte oder Apps auf die Daten deiner Organisation zu. Jeder Schlüssel darf nur, was du ankreuzt, und lässt sich jederzeit widerrufen.",
+    "docs": "API-Dokumentation",
+    "name": "Name",
+    "namePlaceholder": "z. B. Website-Sync, Zapier",
+    "permissions": "Rechte",
+    "create": "Schlüssel erstellen",
+    "createdTitle": "Dein neuer API-Schlüssel",
+    "createdHint": "Kopiere ihn jetzt – er wird nur dieses eine Mal angezeigt.",
+    "copy": "Kopieren",
+    "copied": "Kopiert.",
+    "empty": "Noch keine API-Schlüssel.",
+    "lastUsed": "Zuletzt genutzt",
+    "never": "nie",
+    "revoke": "Widerrufen",
+    "revoked": "Schlüssel widerrufen.",
+    "revokedBadge": "widerrufen",
+    "nameMissing": "Bitte gib dem Schlüssel einen Namen.",
+    "permsMissing": "Bitte wähle mindestens ein Recht.",
+    "noModules": "Für die API muss mindestens ein Modul aktiv sein."
   }
 }
