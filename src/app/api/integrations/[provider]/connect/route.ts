@@ -26,13 +26,13 @@ export async function GET(request: Request, { params }: RouteContext<"/api/integ
       orgName: ctx.org.name,
       email: ctx.email,
       callbackUrl: `${APP_URL}/api/integrations/${provider}/callback`,
-      existing: row?.config as Record<string, string> | undefined,
+      existing: row?.config as Record<string, unknown> | undefined,
     })
     if (connection) {
       const { error } = await ctx.supabase.rpc("save_integration", {
         p_org: ctx.org.id,
         p_provider: provider,
-        p_config: connection.config,
+        p_config: connection.config as never,
         p_secret: connection.secret ? JSON.stringify(connection.secret) : undefined,
         p_status: connection.status ?? "connected",
       })

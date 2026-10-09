@@ -48,7 +48,7 @@ export const stripeIntegration: Integration = {
       }
 
       // "new" (also used to continue an unfinished onboarding)
-      let accountId = existing?.via === "onboarding" ? existing.accountId : undefined
+      let accountId = existing?.via === "onboarding" ? (existing.accountId as string) : undefined
       if (!accountId) {
         const account = await stripe().v2.core.accounts.create({
           ...NEW_ACCOUNT,
@@ -82,16 +82,16 @@ export const stripeIntegration: Integration = {
         if (!accountId) throw new Error("integrations.connectFailed")
         return { config: { accountId, via: "oauth" }, status: (await stripeAccountReady(accountId)) ? "connected" : "pending" }
       }
-      const accountId = existing?.accountId
+      const accountId = existing?.accountId as string | undefined
       if (!accountId) throw new Error("integrations.connectFailed")
-      return { config: { accountId, via: existing.via ?? "onboarding" }, status: (await stripeAccountReady(accountId)) ? "connected" : "pending" }
+      return { config: { accountId, via: existing?.via ?? "onboarding" }, status: (await stripeAccountReady(accountId)) ? "connected" : "pending" }
     },
   },
 
   // Linked via OAuth: revoke roots' access at Stripe. Accounts created via onboarding stay with the org.
-  async disconnect(config) {
+  async disconnect({ config }) {
     if (config.via === "oauth" && config.accountId && process.env.STRIPE_CLIENT_ID)
-      await stripe().oauth.deauthorize({ client_id: process.env.STRIPE_CLIENT_ID, stripe_user_id: config.accountId })
+      await stripe().oauth.deauthorize({ client_id: process.env.STRIPE_CLIENT_ID, stripe_user_id: String(config.accountId) })
   },
 
   webhook: {

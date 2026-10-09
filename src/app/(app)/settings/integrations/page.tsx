@@ -43,6 +43,12 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
                 )}
               </div>
               {row?.last_error && <p className="text-xs text-destructive">{row.last_error}</p>}
+              {i.key === "telegram" && row && (
+                <p className="text-xs text-muted-foreground">
+                  {t("integrations.telegram.bot", { name: String((row.config as Record<string, unknown>)?.bot_username ?? "") })} ·{" "}
+                  {t("integrations.telegram.chats", { count: (((row.config as Record<string, unknown>)?.chats as unknown[]) ?? []).length })}
+                </p>
+              )}
               <div className="mt-auto flex flex-wrap gap-2">
                 {i.connect ? (
                   row?.status === "connected" ? null : row?.status === "pending" && (row.config as Record<string, string>)?.via === "onboarding" ? (
@@ -99,7 +105,7 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
                     type={f.secret ? "password" : "text"}
                     autoComplete="off"
                     placeholder={f.secret && current?.secret_id ? t("integrations.secretSaved") : f.placeholder}
-                    defaultValue={f.secret ? undefined : (current?.config as Record<string, string> | undefined)?.[f.key]}
+                    defaultValue={f.secret ? undefined : String((current?.config as Record<string, unknown> | undefined)?.[f.key] ?? "")}
                     required={f.secret && !current?.secret_id}
                   />
                   {t.has(help) && <p className="text-xs text-muted-foreground">{t.dynamic(help)}</p>}

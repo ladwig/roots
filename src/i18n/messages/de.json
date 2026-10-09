@@ -252,7 +252,22 @@
       "invalidKey": "Resend hat diesen API-Schlüssel abgelehnt."
     },
     "continueSetup": "Einrichtung fortsetzen",
-    "pendingHint": "{name} ist verbunden, aber die Einrichtung ist noch nicht abgeschlossen. Klicke auf „Einrichtung fortsetzen“."
+    "pendingHint": "{name} ist verbunden, aber die Einrichtung ist noch nicht abgeschlossen. Klicke auf „Einrichtung fortsetzen“.",
+    "telegram": {
+      "description": "Dein eigener Telegram-Bot für Benachrichtigungen in Gruppen und Chats.",
+      "fields": {
+        "botToken": "Bot-Token"
+      },
+      "help": {
+        "botToken": "In Telegram @BotFather öffnen, /newbot senden und den Token hier einfügen. Danach den Bot zu deiner Gruppe hinzufügen."
+      },
+      "invalidToken": "Telegram kennt diesen Bot-Token nicht.",
+      "bot": "Bot: @{name}",
+      "chats": {
+        "one": "{count} Chat",
+        "other": "{count} Chats"
+      }
+    }
   },
   "activity": {
     "filter": "Nach Bereich filtern",
@@ -460,7 +475,6 @@
     "status": "Status",
     "active": "Aktiv",
     "paused": "Pausiert",
-    "waiting": "Wartet auf Telegram",
     "linkedTo": "Verbunden mit {chat}",
     "empty": "Noch keine Benachrichtigungen.",
     "url": "Ziel-URL",
@@ -487,12 +501,10 @@
       "failed": "fehlgeschlagen"
     },
     "telegram": {
-      "howTo": "Öffne einen der Links in Telegram. Für eine Gruppe: Gruppe auswählen, den Bot hinzufügen, fertig.",
-      "group": "Mit einer Gruppe verbinden",
-      "private": "Mit mir verbinden",
-      "notConfigured": "Der Telegram-Bot ist noch nicht eingerichtet (TELEGRAM_BOT_TOKEN fehlt).",
-      "unknownCode": "Dieser Link ist ungültig oder wurde schon benutzt.",
-      "linked": "Verbunden! Dieser Chat bekommt jetzt Benachrichtigungen von {org}."
+      "linked": "Verbunden! Dieser Chat kann jetzt Benachrichtigungen von {org} bekommen.",
+      "chat": "Chat",
+      "noChats": "Noch keine Chats. Füge deinen Bot zu einer Gruppe hinzu oder schreib ihm /start, dann erscheint der Chat hier (kann bis zu einer Minute dauern).",
+      "notConnected": "Verbinde zuerst deinen Telegram-Bot unter Integrationen."
     }
   },
   "events": {

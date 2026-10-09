@@ -252,7 +252,22 @@
       "invalidKey": "Resend rejected this API key."
     },
     "continueSetup": "Continue setup",
-    "pendingHint": "{name} is connected, but setup isn't finished yet. Click “Continue setup”."
+    "pendingHint": "{name} is connected, but setup isn't finished yet. Click “Continue setup”.",
+    "telegram": {
+      "description": "Your own Telegram bot for notifications in groups and chats.",
+      "fields": {
+        "botToken": "Bot token"
+      },
+      "help": {
+        "botToken": "Open @BotFather in Telegram, send /newbot and paste the token here. Then add the bot to your group."
+      },
+      "invalidToken": "Telegram doesn't know this bot token.",
+      "bot": "Bot: @{name}",
+      "chats": {
+        "one": "{count} chat",
+        "other": "{count} chats"
+      }
+    }
   },
   "activity": {
     "filter": "Filter by area",
@@ -460,7 +475,6 @@
     "status": "Status",
     "active": "Active",
     "paused": "Paused",
-    "waiting": "Waiting for Telegram",
     "linkedTo": "Linked to {chat}",
     "empty": "No notifications yet.",
     "url": "Target URL",
@@ -487,12 +501,10 @@
       "failed": "failed"
     },
     "telegram": {
-      "howTo": "Open one of the links in Telegram. For a group: pick the group, add the bot, done.",
-      "group": "Connect a group",
-      "private": "Connect to me",
-      "notConfigured": "The Telegram bot isn't set up yet (TELEGRAM_BOT_TOKEN is missing).",
-      "unknownCode": "This link is invalid or was already used.",
-      "linked": "Connected! This chat now gets notifications from {org}."
+      "linked": "Connected! This chat can now get notifications from {org}.",
+      "chat": "Chat",
+      "noChats": "No chats yet. Add your bot to a group or send it /start, then the chat shows up here (can take up to a minute).",
+      "notConnected": "Connect your Telegram bot under Integrations first."
     }
   },
   "events": {

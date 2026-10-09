@@ -30,12 +30,12 @@ export async function GET(request: Request, { params }: RouteContext<"/api/integ
     const conn = await integration.connect.finish({
       params: url.searchParams,
       callbackUrl: `${APP_URL}/api/integrations/${provider}/callback`,
-      existing: row?.config as Record<string, string> | undefined,
+      existing: row?.config as Record<string, unknown> | undefined,
     })
     const { error } = await db.rpc("save_integration", {
       p_org: orgId,
       p_provider: provider,
-      p_config: conn.config,
+      p_config: conn.config as never,
       p_secret: conn.secret ? JSON.stringify(conn.secret) : undefined,
       p_expires_at: conn.expiresAt,
       p_status: conn.status ?? "connected",

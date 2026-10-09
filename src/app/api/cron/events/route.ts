@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { pollTelegram } from "@/events/channels/telegram"
+import { pollTelegram } from "@/integrations/telegram"
 import { deliverDue } from "@/events/worker"
 
 // Called every minute (vercel.json cron, or `npm run worker` locally). Protected by CRON_SECRET.

@@ -4,6 +4,7 @@ import { randomBytes } from "node:crypto"
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { isAllowedUrl } from "@/events/channels/webhook"
+import type { TelegramChat } from "@/integrations/telegram"
 import { TEST_EVENT, eventTypes } from "@/events/registry"
 import { deliverSoon } from "@/events/worker"
 import { requirePerm } from "@/lib/context"
@@ -12,6 +13,13 @@ import { back } from "@/lib/url"
 
 const PATH = "/settings/notifications"
 const newSecret = () => `whsec_${randomBytes(24).toString("base64url")}`
+
+// Chats the org's bot knows (collected from Telegram updates, see src/integrations/telegram.ts).
+export async function telegramChats(orgId: string): Promise<TelegramChat[]> {
+  const ctx = await requirePerm("org.integrations.manage")
+  const { data } = await ctx.supabase.from("org_integrations").select("config, status").eq("org_id", orgId).eq("provider", "telegram").maybeSingle()
+  return data?.status === "connected" ? (((data.config ?? {}) as { chats?: TelegramChat[] }).chats ?? []) : []
+}
 
 export type CreateState = { error?: string; id?: string; secret?: string }
 
@@ -23,10 +31,15 @@ export async function createSubscription(_: CreateState, formData: FormData): Pr
   const url = String(formData.get("url") ?? "").trim()
   if (channel === "webhook" && !isAllowedUrl(url)) return { error: t("notifications.urlInvalid") }
 
-  const config = channel === "webhook" ? { url } : { link_code: randomBytes(12).toString("base64url") }
+  let config: Record<string, unknown> = { url }
+  if (channel === "telegram") {
+    const chat = (await telegramChats(ctx.org.id)).find((c) => String(c.id) === String(formData.get("chat_id")))
+    if (!chat) return { error: t("notifications.telegram.notConnected") }
+    config = { chat_id: chat.id, chat_title: chat.title }
+  }
   const { data, error } = await ctx.supabase
     .from("event_subscriptions")
-    .insert({ org_id: ctx.org.id, name, channel, config, event_types: ["*"] })
+    .insert({ org_id: ctx.org.id, name, channel, config: config as never, event_types: ["*"] })
     .select("id")
     .single()
   if (error) return { error: dbError(t, error) }
@@ -57,6 +70,10 @@ export async function updateSubscription(id: string, formData: FormData) {
   if (!sub) back(PATH, { error: t("errors.not_allowed") })
 
   let config = sub.config as Record<string, unknown>
+  if (sub.channel === "telegram" && formData.get("chat_id")) {
+    const chat = (await telegramChats(ctx.org.id)).find((c) => String(c.id) === String(formData.get("chat_id")))
+    if (chat) config = { chat_id: chat.id, chat_title: chat.title }
+  }
   if (sub.channel === "webhook") {
     const url = String(formData.get("url") ?? "").trim()
     if (!isAllowedUrl(url)) back(retry, { error: t("notifications.urlInvalid") })

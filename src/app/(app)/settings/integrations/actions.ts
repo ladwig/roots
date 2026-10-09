@@ -4,7 +4,8 @@ import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { getContext } from "@/lib/context"
 import { back } from "@/lib/url"
-import { getIntegration, type Secret } from "@/integrations/registry"
+import { getIntegration, type Config, type Secret } from "@/integrations/registry"
+import { getSecret } from "@/integrations/server"
 
 const PATH = "/settings/integrations"
 
@@ -15,7 +16,7 @@ export async function connectIntegration(provider: string, formData: FormData) {
   if (!integration?.fields) back(PATH, { error: t("errors.unknown_integration") })
   const retry = `${PATH}?connect=${provider}`
 
-  const config: Record<string, string> = {}
+  let config: Config = {}
   const secret: Secret = {}
   for (const f of integration.fields) {
     const value = String(formData.get(f.key) ?? "").trim()
@@ -28,7 +29,7 @@ export async function connectIntegration(provider: string, formData: FormData) {
   // Check the credentials before storing them. Leaving the secret empty keeps the stored one.
   if (hasSecret && integration.test) {
     try {
-      await integration.test(secret, config)
+      config = { ...config, ...((await integration.test(secret, config)) ?? {}) }
     } catch (e) {
       const key = e instanceof Error ? e.message : ""
       back(retry, { error: t.has(key) ? t.dynamic(key) : t("integrations.credentialsFailed") })
@@ -38,10 +39,18 @@ export async function connectIntegration(provider: string, formData: FormData) {
   const { error } = await ctx.supabase.rpc("save_integration", {
     p_org: ctx.org.id,
     p_provider: provider,
-    p_config: config,
+    p_config: config as never,
     p_secret: hasSecret ? JSON.stringify(secret) : undefined,
   })
   if (error) back(retry, { error: dbError(t, error) })
+  if (integration.onConnected && hasSecret) {
+    try {
+      await integration.onConnected({ orgId: ctx.org.id, config, secret })
+    } catch (e) {
+      console.error(e)
+      back(retry, { error: t("integrations.connectFailed") })
+    }
+  }
   back(PATH, { ok: t("integrations.connected", { name: integration.name }) })
 }
 
@@ -52,7 +61,7 @@ export async function disconnectIntegration(provider: string) {
   if (integration?.disconnect) {
     const { data: row } = await ctx.supabase.from("org_integrations").select("config").eq("org_id", ctx.org.id).eq("provider", provider).maybeSingle()
     try {
-      if (row) await integration.disconnect(row.config as Record<string, string>)
+      if (row) await integration.disconnect({ orgId: ctx.org.id, config: row.config as Config, secret: await getSecret(ctx.org.id, provider) })
     } catch (e) {
       console.error(e) // e.g. already revoked at the provider: remove our side anyway
     }

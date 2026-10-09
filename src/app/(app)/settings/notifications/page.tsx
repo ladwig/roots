@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { eventTypes } from "@/events/registry"
 import { getT } from "@/i18n/server"
 import type { T } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { param, withParams } from "@/lib/url"
-import { deleteSubscription, sendTest, updateSubscription } from "./actions"
+import { deleteSubscription, sendTest, telegramChats, updateSubscription } from "./actions"
 import { CreateForm, RotateSecret } from "./forms"
 
 type Sub = { id: string; name: string; channel: string; event_types: string[]; config: unknown; active: boolean }
@@ -29,6 +30,9 @@ export default async function NotificationsSettings({ searchParams }: PageProps<
   const editing = subs?.find((s) => s.id === param(sp, "edit"))
   const creating = param(sp, "new")
   const available = eventTypes.filter((e) => e.module === "org" || ctx.modules.has(e.module))
+  const chats = await telegramChats(ctx.org.id)
+  const { data: botRow } = await ctx.supabase.from("org_integrations").select("status").eq("org_id", ctx.org.id).eq("provider", "telegram").maybeSingle()
+  const botConnected = botRow?.status === "connected"
 
   return (
     <div className="grid gap-4">
@@ -57,10 +61,21 @@ export default async function NotificationsSettings({ searchParams }: PageProps<
 
       {(creating === "webhook" || creating === "telegram") && (
         <UrlSheet params={["new"]} title={creating === "webhook" ? t("notifications.newWebhook") : t("notifications.newTelegram")}>
-          <CreateForm channel={creating} />
+          {creating === "telegram" && !botConnected ? (
+            <p className="text-sm">
+              {t("notifications.telegram.notConnected")}{" "}
+              <Link href="/settings/integrations?connect=telegram" className="underline underline-offset-4">
+                {t("payments.toIntegrations")}
+              </Link>
+            </p>
+          ) : creating === "telegram" && !chats.length ? (
+            <p className="text-sm text-muted-foreground">{t("notifications.telegram.noChats")}</p>
+          ) : (
+            <CreateForm channel={creating} chats={chats} />
+          )}
         </UrlSheet>
       )}
-      {editing && <EditSheet t={t} sub={editing} available={available} error={param(sp, "error")} ok={param(sp, "ok")} />}
+      {editing && <EditSheet t={t} sub={editing} available={available} chats={chats} error={param(sp, "error")} ok={param(sp, "ok")} />}
     </div>
   )
 }
@@ -71,12 +86,10 @@ function eventsSummary(t: T, types: string[]) {
 }
 
 function SubStatus({ t, sub }: { t: T; sub: Sub }) {
-  const config = (sub.config ?? {}) as Record<string, string>
-  if (sub.channel === "telegram" && !config.chat_id) return <Badge variant="outline">{t("notifications.waiting")}</Badge>
   return sub.active ? <Badge>{t("notifications.active")}</Badge> : <Badge variant="secondary">{t("notifications.paused")}</Badge>
 }
 
-async function EditSheet({ t, sub, available, error, ok }: { t: T; sub: Sub; available: typeof eventTypes; error?: string; ok?: string }) {
+async function EditSheet({ t, sub, available, chats, error, ok }: { t: T; sub: Sub; available: typeof eventTypes; chats: { id: number; title: string }[]; error?: string; ok?: string }) {
   const ctx = await requirePerm("org.integrations.manage")
   const { data: deliveries } = await ctx.supabase
     .from("event_deliveries")
@@ -86,32 +99,10 @@ async function EditSheet({ t, sub, available, error, ok }: { t: T; sub: Sub; ava
     .limit(20)
   const config = (sub.config ?? {}) as Record<string, string>
   const all = sub.event_types.includes("*")
-  const bot = process.env.TELEGRAM_BOT_USERNAME
 
   return (
     <UrlSheet params={["edit"]} title={sub.name} description={t.dynamic(`notifications.channels.${sub.channel}`)}>
       <Notice error={error} ok={ok} />
-
-      {sub.channel === "telegram" && !config.chat_id && (
-        <section className="grid gap-2 rounded-lg border p-3 text-sm">
-          {bot ? (
-            <>
-              <p>{t("notifications.telegram.howTo")}</p>
-              <div className="flex flex-wrap gap-2">
-                <Button render={<a href={`https://t.me/${bot}?startgroup=${config.link_code}`} target="_blank" rel="noreferrer" />} nativeButton={false} size="sm">
-                  {t("notifications.telegram.group")}
-                </Button>
-                <Button render={<a href={`https://t.me/${bot}?start=${config.link_code}`} target="_blank" rel="noreferrer" />} nativeButton={false} size="sm" variant="outline">
-                  {t("notifications.telegram.private")}
-                </Button>
-              </div>
-            </>
-          ) : (
-            <p className="text-muted-foreground">{t("notifications.telegram.notConfigured")}</p>
-          )}
-        </section>
-      )}
-      {sub.channel === "telegram" && config.chat_id && <p className="text-sm">{t("notifications.linkedTo", { chat: config.chat_title || config.chat_id })}</p>}
 
       <form action={updateSubscription.bind(null, sub.id)} className="grid gap-4">
         <div className="grid gap-2">
@@ -122,6 +113,18 @@ async function EditSheet({ t, sub, available, error, ok }: { t: T; sub: Sub; ava
           <div className="grid gap-2">
             <Label htmlFor="sub-url">{t("notifications.url")}</Label>
             <Input id="sub-url" name="url" type="url" defaultValue={config.url} required />
+          </div>
+        )}
+        {sub.channel === "telegram" && (
+          <div className="grid gap-2">
+            <Label htmlFor="sub-chat">{t("notifications.telegram.chat")}</Label>
+            <NativeSelect id="sub-chat" name="chat_id" defaultValue={String(config.chat_id ?? "")}>
+              {[...chats, ...(chats.some((c) => String(c.id) === String(config.chat_id)) ? [] : [{ id: Number(config.chat_id), title: String(config.chat_title ?? config.chat_id) }])].map((c) => (
+                <NativeSelectOption key={c.id} value={String(c.id)}>
+                  {c.title}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
           </div>
         )}
         <label className="flex items-center gap-2 text-sm">
@@ -154,7 +157,7 @@ async function EditSheet({ t, sub, available, error, ok }: { t: T; sub: Sub; ava
       )}
 
       <form action={sendTest.bind(null, sub.id)}>
-        <Button type="submit" variant="outline" size="sm" disabled={sub.channel === "telegram" && !config.chat_id}>
+        <Button type="submit" variant="outline" size="sm">
           {t("notifications.test")}
         </Button>
       </form>

@@ -3,11 +3,13 @@
 // Secrets (API keys, OAuth tokens) are stored as one JSON object in Supabase Vault; `config` holds non-secret settings.
 import { resend } from "./resend"
 import { stripeIntegration } from "./stripe"
+import { telegram } from "./telegram"
 
 export type Field = { key: string; secret?: boolean; placeholder?: string }
 export type Secret = Record<string, string>
+export type Config = Record<string, unknown>
 export type Connection = {
-  config: Record<string, string>
+  config: Config
   secret?: Secret
   expiresAt?: string
   status?: "pending" | "connected" // pending = the org still has to finish something at the provider
@@ -32,17 +34,22 @@ export type Integration = {
       orgName: string
       email: string
       callbackUrl: string // without query; providers append `state` where they need to
-      existing?: Record<string, string>
+      existing?: Config
     }): Promise<{
       url: string
       connection?: Connection // saved before redirecting (e.g. a created account id, status pending)
     }>
-    finish(c: { params: URLSearchParams; callbackUrl: string; existing?: Record<string, string> }): Promise<Connection>
+    finish(c: { params: URLSearchParams; callbackUrl: string; existing?: Config }): Promise<Connection>
   }
   /** Called before the connection is removed (e.g. revoke access at the provider). */
-  disconnect?(config: Record<string, string>): Promise<void>
-  /** Throws an Error whose message is a message key (or plain text) if the credentials don't work. */
-  test?(secret: Secret, config: Record<string, string>): Promise<void>
+  disconnect?(c: { orgId: string; config: Config; secret: Secret | null }): Promise<void>
+  /** Called after an API-key connection was saved (e.g. register a webhook at the provider). */
+  onConnected?(c: { orgId: string; config: Config; secret: Secret }): Promise<void>
+  /**
+   * Throws an Error whose message is a message key (or plain text) if the credentials don't work.
+   * May return extra non-secret config to store (e.g. the bot's username).
+   */
+  test?(secret: Secret, config: Config): Promise<void | Config>
   /** Handled by /api/webhooks/[provider]: verify → store in integration_events (deduped) → handle. */
   webhook?: {
     verify(req: Request, body: string): Promise<IncomingEvent>
@@ -50,6 +57,6 @@ export type Integration = {
   }
 }
 
-export const integrations: Integration[] = [stripeIntegration, resend]
+export const integrations: Integration[] = [stripeIntegration, telegram, resend]
 
 export const getIntegration = (key: string) => integrations.find((i) => i.key === key)

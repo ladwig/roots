@@ -6,6 +6,7 @@ import { Notice } from "@/components/notice"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { useT } from "@/i18n/client"
 import { createSubscription, rotateSecret, type CreateState } from "./actions"
 
@@ -20,7 +21,7 @@ function SecretOnce({ secret }: { secret: string }) {
   )
 }
 
-export function CreateForm({ channel }: { channel: "webhook" | "telegram" }) {
+export function CreateForm({ channel, chats = [] }: { channel: "webhook" | "telegram"; chats?: { id: number; title: string }[] }) {
   const t = useT()
   const [state, action, pending] = useActionState(createSubscription, {} as CreateState)
   if (state.id)
@@ -45,6 +46,18 @@ export function CreateForm({ channel }: { channel: "webhook" | "telegram" }) {
           <Label htmlFor="sub-url">{t("notifications.url")}</Label>
           <Input id="sub-url" name="url" type="url" required placeholder="https://hooks.zapier.com/…" />
           <p className="text-xs text-muted-foreground">{t("notifications.urlHelp")}</p>
+        </div>
+      )}
+      {channel === "telegram" && (
+        <div className="grid gap-2">
+          <Label htmlFor="sub-chat">{t("notifications.telegram.chat")}</Label>
+          <NativeSelect id="sub-chat" name="chat_id" required>
+            {chats.map((c) => (
+              <NativeSelectOption key={c.id} value={String(c.id)}>
+                {c.title}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
         </div>
       )}
       <Button type="submit" disabled={pending}>
