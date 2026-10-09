@@ -27,9 +27,22 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Validate all input at Server Action / Route Handler boundaries.
 
 ## Database
-- Schema changes = migration files in `supabase/migrations/` (via MCP `apply_migration` or `npx supabase migration new`). No ad-hoc DDL.
-- After schema changes, regenerate types: `npx supabase gen types typescript --project-id <ref> > src/lib/supabase/types.ts`
-- Run the Supabase security advisor after adding tables/policies.
+- Schema changes = new file `supabase/migrations/<yyyymmddhhmmss>_<name>.sql`, then `npm run db:push` (CLI over the session pooler in `DATABASE_URL`). Never edit an applied migration; add a new one. No ad-hoc DDL.
+  Don't use MCP `apply_migration` for schema: its versions drift from the files and it rejects some statements.
+- After every schema change: `npm run db:types` (regenerates `src/lib/supabase/types.ts`), `npm run db:test` (tenant isolation, must print "all checks passed"), MCP `get_advisors` (security + performance).
+- Every org-scoped table:
+  - `org_id uuid not null references public.orgs on delete cascade`
+  - audit columns `created_at timestamptz not null default now(), created_by uuid, updated_at timestamptz not null default now(), updated_by uuid` + `select public.enable_audit('public.<table>')`
+  - RLS on, policies via `public.is_member / has_perm(org_id, '<module>.<action>') / module_enabled(org_id, '<module>')`, `revoke all ... from anon`
+  - a few assertions added to `supabase/tests/isolation.sql`
+- Secrets only via `save_integration` / `get_integration_secret` (Vault). Never store secrets in normal columns.
+
+## App patterns
+- `getContext()` / `requirePerm(perm)` (`src/lib/context.ts`): signed-in user, active org, role, enabled modules, `can(perm)`.
+- Server Actions report back through the URL: `back(path, { error | ok })` + `<Notice>`. Forms that must keep their state use `useActionState`.
+- Dialogs/sheets: render `<UrlDialog params={["edit"]}>` when the search param is set; closing removes it.
+- Modules: `src/modules/registry.ts` (key, requires, permissions, nav). Integrations: one file per provider in `src/integrations/`.
+- Cache Components is on: the root layout has one `<Suspense>`, request-time pages export `instant = false`, and `getSession()` calls `connection()`. Read the session before creating other Supabase clients. Public pages should later get real static shells.
 
 ## Design system
 - Tokens live in `src/app/globals.css` (`:root` + `.dark`, oklch). Change the look there, not per-component.

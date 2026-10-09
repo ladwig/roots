@@ -37,7 +37,7 @@ The UI stays simple even when the system behind it isn't.
 - One "Activity" view per record and per org can read it.
 
 ### Modules
-- Code lives in `src/modules/<key>/` with a `module.ts` manifest: key, name, `requires: [...]`, permissions, nav entries.
+- Definitions live in `src/modules/registry.ts` (key, `requires`, permissions, nav entries); a module moves to `src/modules/<key>/` once it has its own code.
 - The DB table `org_modules` (org_id, module_key, enabled_at) records what's on.
 - Turning a module on checks `requires`. Ticketing, for example, says "needs Payments + Contacts → enable both?"
 - RLS checks `module_enabled(org_id, 'events')`, so a module that's off is really off.
@@ -129,7 +129,7 @@ Modules contribute to both: e.g. Events = event management in the App + event pa
 
 | Phase | Scope | Done when |
 |---|---|---|
-| **0 — Foundation** | Auth (email + magic link), orgs, members, roles/permissions, invites, audit triggers, `org_modules` + manifest registry, integrations core (Vault, `org_integrations`, registry, webhook inbox), app shell (org switcher, nav from enabled modules + permissions, settings) | Two users in two orgs can't see each other's data; you can invite a user, give them a custom role, and see an audit trail |
+| **0 — Foundation** ✅ | Auth (email + magic link), orgs, members, roles/permissions, invites, audit triggers, `org_modules` + manifest registry, integrations core (Vault, `org_integrations`, registry, webhook inbox), app shell (org switcher, nav from enabled modules + permissions, settings) | Two users in two orgs can't see each other's data; you can invite a user, give them a custom role, and see an audit trail |
 | **1 — Contacts** | Core contacts + CRM module basics | Contacts can be created, imported and viewed with history |
 | **2 — Payments** | Stripe Connect onboarding, orders, webhook, refunds, fee handling | Test org connects Stripe and takes a test payment |
 | **3 — Events + Ticketing** | Events, ticket types/tiers, holds, checkout, tickets/QR/PDF/email, scanner | End-to-end test event: buy, receive ticket, scan |

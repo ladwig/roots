@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:push": "set -a && . ./.env.local && supabase db push --db-url \"$DATABASE_URL\"",
+    "db:test": "set -a && . ./.env.local && supabase db query --db-url \"$DATABASE_URL\" -f supabase/tests/isolation.sql 2>&1 | grep -q \"all checks passed\" && echo \"isolation: all checks passed\" || (supabase db query --db-url \"$DATABASE_URL\" -f supabase/tests/isolation.sql; exit 1)",
+    "db:types": "set -a && . ./.env.local && supabase gen types typescript --db-url \"$DATABASE_URL\" --schema public > src/lib/supabase/types.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
