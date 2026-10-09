@@ -230,10 +230,11 @@
     "status": {
       "connected": "connected",
       "error": "error",
-      "revoked": "revoked"
+      "revoked": "revoked",
+      "pending": "setup open"
     },
     "stripe": {
-      "description": "Payments through your own Stripe account."
+      "description": "Take payments through your own Stripe account. Stripe guides you through the setup."
     },
     "resend": {
       "description": "Send emails from your own domain.",
@@ -242,7 +243,9 @@
         "from": "Sender"
       },
       "invalidKey": "Resend rejected this API key."
-    }
+    },
+    "continueSetup": "Continue setup",
+    "pendingHint": "{name} is connected, but setup isn't finished yet. Click “Continue setup”."
   },
   "activity": {
     "filter": "Filter by area",
@@ -369,5 +372,65 @@
     "passwordsDontMatch": "The passwords don't match.",
     "saved": "Saved.",
     "resetHint": "Set a new password now."
+  },
+  "payments": {
+    "nav": "Payments",
+    "title": "Payments",
+    "notConnected": "Connect Stripe to take payments.",
+    "notReady": "Stripe is connected, but setup isn't finished yet.",
+    "toIntegrations": "Go to integrations",
+    "date": "Date",
+    "customer": "Customer",
+    "what": "For",
+    "amount": "Amount",
+    "status": "Status",
+    "all": "All",
+    "empty": "No orders yet.",
+    "statuses": {
+      "open": "open",
+      "paid": "paid",
+      "failed": "failed",
+      "expired": "expired",
+      "cancelled": "cancelled",
+      "refunded": "refunded",
+      "partially_refunded": "partly refunded",
+      "pending": "pending",
+      "succeeded": "succeeded"
+    },
+    "sources": {
+      "test": "Test payment",
+      "tickets": "Tickets"
+    },
+    "order": "Order",
+    "items": "Items",
+    "total": "Total",
+    "fee": "Platform fee",
+    "paidAt": "Paid at",
+    "payments": "Payments",
+    "refunds": "Refunds",
+    "refund": "Refund",
+    "refundAmount": "Amount in euros (empty = everything)",
+    "refundReason": "Reason (optional)",
+    "refundPending": "Refund requested. Stripe will confirm it shortly.",
+    "refunded": "Refunded.",
+    "testPayment": "Test payment",
+    "testHelp": "Creates an order for the amount and opens Stripe Checkout. Platform admins only.",
+    "testAmount": "Amount in euros",
+    "testEmail": "Email (optional)",
+    "startCheckout": "Go to checkout",
+    "notOpen": "This order can no longer be paid.",
+    "invalidOrder": "The order is invalid.",
+    "notRefundable": "This order can't be refunded.",
+    "invalidRefund": "Invalid refund amount."
+  },
+  "checkout": {
+    "title": "Order",
+    "paid": "Thank you! Your payment has arrived.",
+    "open": "We're still waiting for your payment to be confirmed. This can take a moment.",
+    "cancelled": "Payment cancelled. Nothing was charged.",
+    "failed": "The payment failed.",
+    "expired": "This payment has expired.",
+    "notFound": "Order not found.",
+    "refresh": "Refresh"
   }
 }

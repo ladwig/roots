@@ -25,7 +25,12 @@ export const core: ModuleDef = {
 
 export const modules: ModuleDef[] = [
   { key: "crm", permissions: ["crm.view", "crm.manage"] },
-  { key: "payments", requires: { integrations: ["stripe"] }, permissions: ["payments.view", "payments.refund"] },
+  {
+    key: "payments",
+    requires: { integrations: ["stripe"] },
+    permissions: ["payments.view", "payments.refund"],
+    nav: [{ href: "/payments", label: "payments.nav", permission: "payments.view" }],
+  },
   { key: "events", permissions: ["events.view", "events.manage"] },
   {
     key: "tickets",

@@ -230,10 +230,11 @@
     "status": {
       "connected": "verbunden",
       "error": "Fehler",
-      "revoked": "widerrufen"
+      "revoked": "widerrufen",
+      "pending": "Einrichtung offen"
     },
     "stripe": {
-      "description": "Zahlungen über dein eigenes Stripe-Konto."
+      "description": "Zahlungen über dein eigenes Stripe-Konto annehmen. Stripe führt dich durch die Einrichtung."
     },
     "resend": {
       "description": "E-Mails von deiner eigenen Domain senden.",
@@ -242,7 +243,9 @@
         "from": "Absender"
       },
       "invalidKey": "Resend hat diesen API-Schlüssel abgelehnt."
-    }
+    },
+    "continueSetup": "Einrichtung fortsetzen",
+    "pendingHint": "{name} ist verbunden, aber die Einrichtung ist noch nicht abgeschlossen. Klicke auf „Einrichtung fortsetzen“."
   },
   "activity": {
     "filter": "Nach Bereich filtern",
@@ -369,5 +372,65 @@
     "passwordsDontMatch": "Die Passwörter stimmen nicht überein.",
     "saved": "Gespeichert.",
     "resetHint": "Setze jetzt ein neues Passwort."
+  },
+  "payments": {
+    "nav": "Zahlungen",
+    "title": "Zahlungen",
+    "notConnected": "Verbinde Stripe, um Zahlungen anzunehmen.",
+    "notReady": "Stripe ist verbunden, aber die Einrichtung ist noch nicht abgeschlossen.",
+    "toIntegrations": "Zu den Integrationen",
+    "date": "Datum",
+    "customer": "Kunde",
+    "what": "Wofür",
+    "amount": "Betrag",
+    "status": "Status",
+    "all": "Alle",
+    "empty": "Noch keine Bestellungen.",
+    "statuses": {
+      "open": "offen",
+      "paid": "bezahlt",
+      "failed": "fehlgeschlagen",
+      "expired": "abgelaufen",
+      "cancelled": "storniert",
+      "refunded": "erstattet",
+      "partially_refunded": "teilweise erstattet",
+      "pending": "ausstehend",
+      "succeeded": "erfolgreich"
+    },
+    "sources": {
+      "test": "Testzahlung",
+      "tickets": "Tickets"
+    },
+    "order": "Bestellung",
+    "items": "Positionen",
+    "total": "Summe",
+    "fee": "Plattformgebühr",
+    "paidAt": "Bezahlt am",
+    "payments": "Zahlungen",
+    "refunds": "Erstattungen",
+    "refund": "Erstatten",
+    "refundAmount": "Betrag in Euro (leer = alles)",
+    "refundReason": "Grund (optional)",
+    "refundPending": "Erstattung angefragt. Stripe bestätigt sie gleich.",
+    "refunded": "Erstattet.",
+    "testPayment": "Testzahlung",
+    "testHelp": "Erzeugt eine Bestellung über den Betrag und öffnet den Stripe-Checkout. Nur für Plattform-Admins.",
+    "testAmount": "Betrag in Euro",
+    "testEmail": "E-Mail (optional)",
+    "startCheckout": "Zum Checkout",
+    "notOpen": "Diese Bestellung kann nicht mehr bezahlt werden.",
+    "invalidOrder": "Die Bestellung ist ungültig.",
+    "notRefundable": "Diese Bestellung kann nicht erstattet werden.",
+    "invalidRefund": "Ungültiger Betrag für die Erstattung."
+  },
+  "checkout": {
+    "title": "Bestellung",
+    "paid": "Danke! Deine Zahlung ist eingegangen.",
+    "open": "Wir warten noch auf die Bestätigung deiner Zahlung. Das kann einen Moment dauern.",
+    "cancelled": "Zahlung abgebrochen. Es wurde nichts abgebucht.",
+    "failed": "Die Zahlung ist fehlgeschlagen.",
+    "expired": "Diese Bezahlung ist abgelaufen.",
+    "notFound": "Bestellung nicht gefunden.",
+    "refresh": "Aktualisieren"
   }
 }

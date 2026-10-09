@@ -1,42 +1,51 @@
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
-import { getSession } from "@/lib/context"
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
+import { getSession } from "@/lib/context"
+import { createClient } from "@/lib/supabase/server"
 import { APP_URL } from "@/lib/url"
 import { getIntegration } from "@/integrations/registry"
 
-// Provider redirects back here. Check state, exchange the code, store the tokens (save_integration checks permissions).
+// The provider sends the user back here. Check state (CSRF), let the provider finish, store the result
+// (save_integration checks the user's permission in the database).
 export async function GET(request: Request, { params }: RouteContext<"/api/integrations/[provider]/callback">) {
   const { provider } = await params
   const url = new URL(request.url)
+  const t = await getT()
   const done = (result: Record<string, string>) =>
     NextResponse.redirect(`${APP_URL}/settings/integrations?${new URLSearchParams(result)}`)
 
   const jar = await cookies()
-  const [state, cookieProvider, orgId] = (jar.get("oauth_state")?.value ?? "").split(":")
-  jar.delete({ name: "oauth_state", path: "/api/integrations" })
+  const [state, cookieProvider, orgId] = (jar.get("connect_state")?.value ?? "").split(":")
   const integration = getIntegration(provider)
   const session = await getSession()
-  const code = url.searchParams.get("code")
-  const t = await getT()
-
-  if (!integration?.oauth || !session || !code || !state || state !== url.searchParams.get("state") || cookieProvider !== provider)
+  if (!integration?.connect || !session || !state || state !== url.searchParams.get("state") || cookieProvider !== provider)
     return done({ error: t("integrations.connectFailed") })
+  jar.delete({ name: "connect_state", path: "/api/integrations" })
 
+  const db = await createClient(orgId)
+  const { data: row } = await db.from("org_integrations").select("config").eq("org_id", orgId).eq("provider", provider).maybeSingle()
   try {
-    const conn = await integration.oauth.exchange(code, `${APP_URL}/api/integrations/${provider}/callback`)
-    const { error } = await session.supabase.rpc("save_integration", {
+    const conn = await integration.connect.finish({
+      params: url.searchParams,
+      callbackUrl: `${APP_URL}/api/integrations/${provider}/callback?state=${state}`,
+      existing: row?.config as Record<string, string> | undefined,
+    })
+    const { error } = await db.rpc("save_integration", {
       p_org: orgId,
       p_provider: provider,
       p_config: conn.config,
       p_secret: conn.secret ? JSON.stringify(conn.secret) : undefined,
       p_expires_at: conn.expiresAt,
+      p_status: conn.status ?? "connected",
     })
     if (error) return done({ error: dbError(t, error) })
+    return conn.status === "pending"
+      ? done({ error: t("integrations.pendingHint", { name: integration.name }) })
+      : done({ ok: t("integrations.connected", { name: integration.name }) })
   } catch (e) {
     console.error(e)
     return done({ error: t("integrations.connectFailed") })
   }
-  return done({ ok: t("integrations.connected", { name: integration.name }) })
 }

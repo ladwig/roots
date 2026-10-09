@@ -2,10 +2,16 @@
 // + texts in src/i18n/messages (integrations.<key>.description, .fields.<field>, optional .help.<field>).
 // Secrets (API keys, OAuth tokens) are stored as one JSON object in Supabase Vault; `config` holds non-secret settings.
 import { resend } from "./resend"
+import { stripeIntegration } from "./stripe"
 
 export type Field = { key: string; secret?: boolean; placeholder?: string }
 export type Secret = Record<string, string>
-export type Connection = { config: Record<string, string>; secret?: Secret; expiresAt?: string }
+export type Connection = {
+  config: Record<string, string>
+  secret?: Secret
+  expiresAt?: string
+  status?: "pending" | "connected" // pending = the org still has to finish something at the provider
+}
 export type IncomingEvent = { externalId: string; type?: string; orgId?: string; payload: unknown }
 
 export type Integration = {
@@ -13,10 +19,16 @@ export type Integration = {
   name: string // brand name, not translated
   /** API-key style: fields asked in the connect dialog. */
   fields?: Field[]
-  /** OAuth style: handled by /api/integrations/[provider]/connect + /callback. */
-  oauth?: {
-    authorizeUrl(state: string, redirectUri: string): string
-    exchange(code: string, redirectUri: string): Promise<Connection>
+  /**
+   * Redirect style (OAuth, hosted onboarding): /api/integrations/[provider]/connect calls `start`, sends the user to
+   * the returned URL, and the provider sends them back to `callbackUrl` (which carries `state`), where `finish` runs.
+   */
+  connect?: {
+    start(c: { orgName: string; email: string; callbackUrl: string; existing?: Record<string, string> }): Promise<{
+      url: string
+      connection?: Connection // saved before redirecting (e.g. a created account id, status pending)
+    }>
+    finish(c: { params: URLSearchParams; callbackUrl: string; existing?: Record<string, string> }): Promise<Connection>
   }
   /** Throws an Error whose message is a message key (or plain text) if the credentials don't work. */
   test?(secret: Secret, config: Record<string, string>): Promise<void>
@@ -27,6 +39,6 @@ export type Integration = {
   }
 }
 
-export const integrations: Integration[] = [resend]
+export const integrations: Integration[] = [stripeIntegration, resend]
 
 export const getIntegration = (key: string) => integrations.find((i) => i.key === key)

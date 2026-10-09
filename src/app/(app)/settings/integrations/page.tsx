@@ -37,16 +37,16 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
                   <p className="text-sm text-muted-foreground">{t.dynamic(`integrations.${i.key}.description`)}</p>
                 </div>
                 {row && (
-                  <Badge variant={row.status === "connected" ? "default" : "destructive"}>
+                  <Badge variant={row.status === "connected" ? "default" : row.status === "pending" ? "outline" : "destructive"}>
                     {t.dynamic(`integrations.status.${row.status}`)}
                   </Badge>
                 )}
               </div>
               {row?.last_error && <p className="text-xs text-destructive">{row.last_error}</p>}
               <div className="mt-auto flex gap-2">
-                {i.oauth ? (
+                {i.connect ? (
                   <Button render={<a href={`/api/integrations/${i.key}/connect`} />} nativeButton={false} size="sm">
-                    {row ? t("integrations.reconnect") : t("integrations.connect")}
+                    {row?.status === "pending" ? t("integrations.continueSetup") : row ? t("integrations.reconnect") : t("integrations.connect")}
                   </Button>
                 ) : (
                   <Button render={<Link href={`?connect=${i.key}`} scroll={false} />} nativeButton={false} size="sm">
