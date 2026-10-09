@@ -211,6 +211,33 @@ begin
     assert false, 'deleted the last owner of an org';
   exception when raise_exception then null;
   end;
+  -- soft delete: admin moves org A to the trash
+  assert public.soft_delete('public.orgs', org_a), 'admin should soft-delete an org';
+  select count(*) into n from public.orgs where id = org_a;                  assert n = 1, 'admin still sees the deleted org (trash)';
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.orgs where id = org_a;                  assert n = 0, 'owner no longer sees a deleted org';
+  assert not public.has_perm(org_a, 'org.settings.manage'), 'no rights in a deleted org';
+  select count(*) into n from public.org_members where org_id = org_a;       assert n = 0, 'members of a deleted org are hidden';
+  begin
+    perform public.restore_deleted('public.orgs', org_a);
+    assert false, 'owner restored without permission';
+  exception when raise_exception then null;
+  end;
+  begin
+    perform public.soft_delete('public.orgs', org_b);
+    assert false, 'non-admin soft-deleted an org';
+  exception when raise_exception then null;
+  end;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', d, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  assert public.restore_deleted('public.orgs', org_a), 'admin should restore';
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.orgs where id = org_a;                  assert n = 1, 'restored org is back for its owner';
   reset role;
 
   -- x-org-id header: C is now in A and B, but with the header only sees the active org

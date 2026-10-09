@@ -245,14 +245,14 @@ isOneToOne: false
                   ]
                 },"orgs": {
                   Row: {
-                    "created_at": string,"created_by": string | null,"id": string,"name": string,"settings": NonNullable<Json>,"slug": string,"updated_at": string,"updated_by": string | null
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"id": string,"name": string,"settings": NonNullable<Json>,"slug": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"name": string,"settings"?: NonNullable<Json>,"slug": string,"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"name": string,"settings"?: NonNullable<Json>,"slug": string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"name"?: string,"settings"?: NonNullable<Json>,"slug"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"name"?: string,"settings"?: NonNullable<Json>,"slug"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     
@@ -403,6 +403,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"soft_delete_tables": {
+                  Row: {
+                    "org_column": string,"perm": string | null,"purge_days": number,"table_name": unknown
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "org_column"?: string,"perm"?: string | null,"purge_days"?: number,"table_name": unknown
+                  }
+                  Update: {
+                    "org_column"?: string,"perm"?: string | null,"purge_days"?: number,"table_name"?: unknown
+                  }
+                  Relationships: [
+                    
+                  ]
                 }
           }
           Views: {
@@ -423,6 +437,9 @@ isOneToOne: false
               "confirmed": boolean,"created_at": string,"email": string,"full_name": string,"id": string,"is_platform_admin": boolean,"last_sign_in_at": string,"org_count": number
             }[]
                            },
+"can_see_deleted":
+{ Args: { "p_org": string,"p_table": unknown }; Returns: boolean
+                           },
 "claim_event_deliveries":
 { Args: { "p_limit"?: number }; Returns: number[]
                            },
@@ -440,6 +457,9 @@ isOneToOne: false
                            },
 "enable_audit":
 { Args: { "t": unknown }; Returns: undefined
+                           },
+"enable_soft_delete":
+{ Args: { "p_org_column"?: string,"p_perm"?: string,"p_purge_days"?: number,"p_table": unknown }; Returns: undefined
                            },
 "finish_event_delivery":
 { Args: { "p_error"?: string,"p_id": number,"p_ok": boolean }; Returns: undefined
@@ -473,8 +493,17 @@ isOneToOne: false
 "module_enabled":
 { Args: { "p_key": string,"p_org": string }; Returns: boolean
                            },
+"org_alive":
+{ Args: { "p_org": string }; Returns: boolean
+                           },
+"purge_deleted":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
 "request_org":
 { Args: Record<PropertyKey, never>; Returns: string
+                           },
+"restore_deleted":
+{ Args: { "p_id": string,"p_table": unknown }; Returns: boolean
                            },
 "save_integration":
 { Args: { "p_config": Json,"p_expires_at"?: string,"p_org": string,"p_provider": string,"p_secret"?: string,"p_status"?: string }; Returns: string
@@ -487,6 +516,9 @@ isOneToOne: false
                            },
 "shares_org":
 { Args: { "p_user": string }; Returns: boolean
+                           },
+"soft_delete":
+{ Args: { "p_id": string,"p_table": unknown }; Returns: boolean
                            }
           }
           Enums: {
