@@ -154,8 +154,12 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
                   <Input
                     id={`f-${f.key}`}
                     name={f.key}
-                    type={f.secret ? "password" : "text"}
+                    // Not type="password": browsers would offer (and autofill) the login password into API key fields.
+                    type="text"
                     autoComplete="off"
+                    spellCheck={false}
+                    data-1p-ignore
+                    data-lpignore="true"
                     placeholder={f.secret && current?.secret_id ? t("integrations.secretSaved") : f.placeholder}
                     defaultValue={f.secret ? undefined : String((current?.config as Record<string, unknown> | undefined)?.[f.key] ?? "")}
                     required={f.secret && !current?.secret_id}

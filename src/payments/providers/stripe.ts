@@ -11,7 +11,8 @@ export const stripeProvider: PaymentProvider = {
   async ready(orgId) {
     try {
       const s = await stripeFor(orgId)
-      if (s.direct) return !!(await s.client.accounts.retrieveCurrent()).charges_enabled
+      // Own key: charges_enabled if the key may read the account, else trust the key (checked when connecting).
+      if (s.direct) return (await s.client.accounts.retrieveCurrent().catch(() => null))?.charges_enabled ?? true
       return await stripeAccountReady(String(s.options.stripeAccount))
     } catch {
       return false

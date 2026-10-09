@@ -61,12 +61,16 @@ export const stripeIntegration: Integration = {
   async test(secret) {
     const key = secret.secretKey ?? ""
     if (!/^(rk|sk)_(live|test)_[A-Za-z0-9]+$/.test(key)) throw new Error("integrations.stripe.invalidKey")
+    // Check exactly what we use (Checkout Sessions, Refunds, Webhook Endpoints). Account details are optional
+    // (restricted keys often lack "Accounts read"); without them we just don't show the account name.
+    const client = keyClient(key)
     try {
-      const account = await keyClient(key).accounts.retrieveCurrent()
-      return { via: "key", accountId: account.id, livemode: key.includes("_live_"), name: account.settings?.dashboard?.display_name ?? null }
+      await Promise.all([client.checkout.sessions.list({ limit: 1 }), client.refunds.list({ limit: 1 }), client.webhookEndpoints.list({ limit: 1 })])
     } catch {
       throw new Error("integrations.stripe.keyNoAccess")
     }
+    const account = await client.accounts.retrieveCurrent().catch(() => null)
+    return { via: "key", accountId: account?.id ?? null, livemode: key.includes("_live_"), name: account?.settings?.dashboard?.display_name ?? null }
   },
   // Register (or replace) our webhook endpoint on the org's account and keep its signing secret with the key.
   // Locally (no https) Stripe can't reach us: use `stripe listen --forward-to localhost:3000/api/webhooks/stripe?org=<id>`.
