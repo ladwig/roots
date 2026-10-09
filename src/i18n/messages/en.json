@@ -478,7 +478,13 @@
     "saved": "Saved.",
     "resetHint": "Set a new password now.",
     "picture": "Profile picture",
-    "pictureHint": "PNG, JPG, WebP or GIF, max. 2 MB."
+    "pictureHint": "PNG, JPG, WebP or GIF, max. 2 MB.",
+    "theme": "Appearance",
+    "themes": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    }
   },
   "payments": {
     "nav": "Payments",

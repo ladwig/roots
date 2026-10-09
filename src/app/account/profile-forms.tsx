@@ -10,6 +10,7 @@ import { param, type SearchParams } from "@/lib/url"
 import { emailConfigured } from "@/events/channels/email"
 import { eventTypes, personChannels } from "@/events/registry"
 import { ImageForm } from "@/components/image-form"
+import { ThemeSwitch } from "@/components/theme-switch"
 import { savePreferences, updateAvatar, updateName, updatePassword } from "./actions"
 import { SubmitButton } from "@/components/submit-button"
 
@@ -56,6 +57,12 @@ export async function ProfileForms({ sp, path }: { sp: SearchParams; path: "/set
       <section id="language" className="grid gap-3">
         <h2 className="font-medium">{t("account.language")}</h2>
         <LocaleSwitcher className="justify-self-start" />
+      </section>
+      <Separator />
+
+      <section id="theme" className="grid gap-3">
+        <h2 className="font-medium">{t("account.theme")}</h2>
+        <ThemeSwitch />
       </section>
       <Separator />
 

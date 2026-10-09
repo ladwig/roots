@@ -6,7 +6,7 @@ import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon
 const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
-      // ponytail: colors come from our tokens; pass the theme once dark mode is switchable.
+      // Colors come from our tokens (which follow the .dark class).
       className="toaster group"
       icons={{
         success: (
