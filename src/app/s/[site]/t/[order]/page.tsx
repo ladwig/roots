@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation"
+import { DownloadIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { getT } from "@/i18n/server"
-import { param } from "@/lib/url"
+import { param, sitePath } from "@/lib/url"
 import { qrSvg, ticketsForBuyer } from "@/tickets/server"
 import { getSite } from "../../data"
 
@@ -24,7 +26,12 @@ export default async function BuyerTickets({ params, searchParams }: PageProps<"
           {data.order.status === "open" ? t("shop.waiting") : t.dynamic(`shop.orderStatus.${data.order.status}`)}
         </p>
       ) : (
-        <p className="text-sm text-muted-foreground">{t("shop.keepLink")}</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-sm text-muted-foreground">{t("shop.keepLink")}</p>
+          <Button render={<a href={`${sitePath(site, `/t/${order}/pdf`)}?k=${param(sp, "k")}`} />} nativeButton={false} size="sm" variant="outline">
+            <DownloadIcon /> {t("shop.pdf")}
+          </Button>
+        </div>
       )}
       <ul className="grid gap-4">
         {valid.map((k, i) => (

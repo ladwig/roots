@@ -15,3 +15,36 @@ export async function checkIn(eventId: string, code: string): Promise<ScanResult
   if (error || !data) return { result: "error", message: error?.message === "not_allowed" ? t("errors.not_allowed") : t("tickets.scanFailed") }
   return { result: data.result as ScanResult["result"], holder: data.holder_name, type: data.type_name, at: data.checked_in_at }
 }
+
+export type ScanEntry = { code: string; status: "valid" | "used"; holder: string | null; type: string | null }
+
+// Offline: the event's valid/used tickets for the device (staff with tickets.scan only).
+export async function scanList(eventId: string): Promise<ScanEntry[]> {
+  const ctx = await requirePerm("tickets.scan")
+  if (!/^[0-9a-f-]{36}$/.test(eventId)) return []
+  const out: ScanEntry[] = []
+  for (let from = 0; ; from += 1000) {
+    const { data } = await ctx.supabase
+      .from("tickets")
+      .select("code, status, holder_name, ticket_types(name)")
+      .eq("event_id", eventId)
+      .in("status", ["valid", "used"])
+      .order("id")
+      .range(from, from + 999)
+    data?.forEach((k) => out.push({ code: k.code, status: k.status as ScanEntry["status"], holder: k.holder_name, type: k.ticket_types?.name ?? null }))
+    if (!data || data.length < 1000) return out
+  }
+}
+
+// Offline check-ins, sent when the device is back online. "conflict" = someone else let this ticket in already.
+export async function syncCheckIns(eventId: string, codes: string[]): Promise<{ synced: number; conflicts: string[] }> {
+  let synced = 0
+  const conflicts: string[] = []
+  for (const code of codes.slice(0, 2000)) {
+    const r = await checkIn(eventId, code)
+    if (r.result === "ok") synced++
+    else if (r.result === "error") throw new Error(r.message)
+    else conflicts.push(code)
+  }
+  return { synced, conflicts }
+}

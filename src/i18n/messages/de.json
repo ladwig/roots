@@ -913,7 +913,20 @@
     "codeFormat": "Code: 3–40 Zeichen, Buchstaben, Zahlen und Bindestriche.",
     "codeValue": "Bitte einen gültigen Rabatt angeben (1–100 % oder einen Betrag).",
     "codeTaken": "Diesen Code gibt es für dieses Event schon.",
-    "priceChanged": "Der Preis hat sich gerade geändert (neue Preisstufe). Bitte prüfe die Tickets und bestell noch einmal."
+    "priceChanged": "Der Preis hat sich gerade geändert (neue Preisstufe). Bitte prüfe die Tickets und bestell noch einmal.",
+    "offline": "Offline",
+    "listInfo": "{count} Tickets auf dem Gerät, Stand {time}",
+    "listLoading": "Ticketliste wird geladen…",
+    "queued": {
+      "one": "1 Check-in wartet auf Sync",
+      "other": "{count} Check-ins warten auf Sync"
+    },
+    "refreshList": "Liste aktualisieren und synchronisieren",
+    "synced": {
+      "one": "1 Check-in synchronisiert",
+      "other": "{count} Check-ins synchronisiert"
+    },
+    "conflicts": "schon an anderem Gerät eingecheckt: {codes}"
   },
   "shop": {
     "title": "Tickets",
@@ -959,6 +972,11 @@
     "codePlaceholder": "Gutscheincode",
     "applyCode": "Einlösen",
     "codeOk": "Code gilt ✓",
-    "codeInvalid": "Dieser Code ist ungültig oder abgelaufen."
+    "codeInvalid": "Dieser Code ist ungültig oder abgelaufen.",
+    "pdf": "PDF herunterladen",
+    "emailSubject": "Deine Tickets: {event}",
+    "emailIntro": "Hallo {name}, hier sind deine Tickets ({count}) für {event} am {when}. Zeig den QR-Code am Einlass – ausgedruckt oder auf dem Handy.",
+    "emailLink": "Tickets online ansehen",
+    "emailFooter": "Diese E-Mail kommt von {org} über roots."
   }
 }

@@ -913,7 +913,20 @@
     "codeFormat": "Code: 3–40 characters, letters, digits and dashes.",
     "codeValue": "Please enter a valid discount (1–100 % or an amount).",
     "codeTaken": "This code already exists for this event.",
-    "priceChanged": "The price just changed (new price tier). Please check the tickets and order again."
+    "priceChanged": "The price just changed (new price tier). Please check the tickets and order again.",
+    "offline": "Offline",
+    "listInfo": "{count} tickets on this device, as of {time}",
+    "listLoading": "Loading ticket list…",
+    "queued": {
+      "one": "1 check-in waiting to sync",
+      "other": "{count} check-ins waiting to sync"
+    },
+    "refreshList": "Refresh list and sync",
+    "synced": {
+      "one": "1 check-in synced",
+      "other": "{count} check-ins synced"
+    },
+    "conflicts": "already checked in on another device: {codes}"
   },
   "shop": {
     "title": "Tickets",
@@ -959,6 +972,11 @@
     "codePlaceholder": "Promo code",
     "applyCode": "Apply",
     "codeOk": "Code applied ✓",
-    "codeInvalid": "This code is invalid or expired."
+    "codeInvalid": "This code is invalid or expired.",
+    "pdf": "Download PDF",
+    "emailSubject": "Your tickets: {event}",
+    "emailIntro": "Hi {name}, here are your tickets ({count}) for {event} on {when}. Show the QR code at the entrance – printed or on your phone.",
+    "emailLink": "View tickets online",
+    "emailFooter": "This email is from {org} via roots."
   }
 }

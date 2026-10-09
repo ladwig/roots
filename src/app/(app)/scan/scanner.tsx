@@ -1,16 +1,33 @@
 "use client"
 
-import { useEffect, useRef, useState, useTransition } from "react"
-import { CameraIcon, CameraOffIcon } from "lucide-react"
+import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react"
+import { CameraIcon, CameraOffIcon, CloudOffIcon, RefreshCwIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useT } from "@/i18n/client"
 import { cn } from "@/lib/utils"
-import { checkIn, type ScanResult } from "./actions"
+import { checkIn, scanList, syncCheckIns, type ScanEntry, type ScanResult } from "./actions"
 
 type Detector = { detect(source: CanvasImageSource): Promise<{ rawValue: string }[]> }
 
 // Camera QR scanning: native BarcodeDetector (Chrome/Android) or jsQR (Safari/iPhone), plus typing the code.
+// Offline: the ticket list is kept on the device (localStorage); without connection codes are checked against it and
+// check-ins queue up until the device is online again. ponytail: two offline devices can both let in the same ticket
+// (reported as conflict on sync); the page must stay open (no service worker yet).
+type Store = { list: Record<string, ScanEntry>; at: string; queue: string[] }
+const KEY = (eventId: string) => `roots-scan-${eventId}`
+const load = (eventId: string): Store => {
+  try {
+    return JSON.parse(localStorage.getItem(KEY(eventId)) ?? "") as Store
+  } catch {
+    return { list: {}, at: "", queue: [] }
+  }
+}
+const save = (eventId: string, s: Store) => {
+  try {
+    localStorage.setItem(KEY(eventId), JSON.stringify(s))
+  } catch {}
+}
 export function Scanner({ eventId }: { eventId: string }) {
   const t = useT()
   const video = useRef<HTMLVideoElement>(null)
@@ -19,6 +36,67 @@ export function Scanner({ eventId }: { eventId: string }) {
   const [pending, start] = useTransition()
   const busy = useRef(false)
   const recent = useRef<{ code: string; at: number }>({ code: "", at: 0 })
+  const [store, setStore] = useState<Store>({ list: {}, at: "", queue: [] })
+  const online = useSyncExternalStore(
+    (cb) => {
+      window.addEventListener("online", cb)
+      window.addEventListener("offline", cb)
+      return () => {
+        window.removeEventListener("online", cb)
+        window.removeEventListener("offline", cb)
+      }
+    },
+    () => navigator.onLine,
+    () => true,
+  )
+  const [syncNote, setSyncNote] = useState("")
+  const update = (next: Store) => {
+    save(eventId, next)
+    setStore(next)
+  }
+
+  async function refresh() {
+    try {
+      const list = await scanList(eventId)
+      const cur = load(eventId)
+      // Keep local check-ins that haven't been synced yet.
+      const map = Object.fromEntries(list.map((e) => [e.code, cur.queue.includes(e.code) ? { ...e, status: "used" as const } : e]))
+      update({ list: map, at: new Date().toISOString(), queue: cur.queue })
+    } catch {}
+  }
+
+  async function sync() {
+    const cur = load(eventId)
+    if (!cur.queue.length) return
+    try {
+      const r = await syncCheckIns(eventId, cur.queue)
+      update({ ...load(eventId), queue: [] })
+      setSyncNote(t("tickets.synced", { count: r.synced }) + (r.conflicts.length ? ` · ${t("tickets.conflicts", { codes: r.conflicts.join(", ") })}` : ""))
+    } catch {}
+  }
+
+  useEffect(() => {
+    const on = () => sync().then(refresh)
+    window.addEventListener("online", on)
+    Promise.resolve().then(() => setStore(load(eventId))).then(on) // device list first, then server
+    const timer = setInterval(() => navigator.onLine && on(), 60_000)
+    return () => {
+      window.removeEventListener("online", on)
+      clearInterval(timer)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once per event
+  }, [eventId])
+
+  // No connection: decide on the device and queue the check-in.
+  function checkLocally(code: string): ScanResult {
+    const clean = code.trim().toUpperCase().replace(/[^A-Z0-9]/g, "")
+    const cur = load(eventId)
+    const e = cur.list[clean]
+    if (!e) return { result: "invalid" }
+    if (e.status === "used") return { result: "used", holder: e.holder, type: e.type }
+    update({ ...cur, list: { ...cur.list, [clean]: { ...e, status: "used" } }, queue: [...cur.queue, clean] })
+    return { result: "ok", holder: e.holder, type: e.type, at: new Date().toISOString() }
+  }
 
   function submit(code: string) {
     const now = Date.now()
@@ -26,7 +104,18 @@ export function Scanner({ eventId }: { eventId: string }) {
     busy.current = true
     recent.current = { code, at: now }
     start(async () => {
-      const r = await checkIn(eventId, code)
+      let r: ScanResult
+      try {
+        r = navigator.onLine ? await checkIn(eventId, code) : checkLocally(code)
+        if (r.result === "error" && !navigator.onLine) r = checkLocally(code)
+      } catch {
+        r = checkLocally(code) // request failed (bad venue Wi-Fi): fall back to the device list
+      }
+      if (r.result === "ok" || r.result === "used") {
+        const clean = code.trim().toUpperCase().replace(/[^A-Z0-9]/g, "")
+        const cur = load(eventId)
+        if (cur.list[clean]?.status === "valid") update({ ...cur, list: { ...cur.list, [clean]: { ...cur.list[clean], status: "used" } } })
+      }
       setLast({ ...r, code })
       navigator.vibrate?.(r.result === "ok" ? 80 : [80, 60, 80])
       busy.current = false
@@ -71,8 +160,24 @@ export function Scanner({ eventId }: { eventId: string }) {
 
   const tone = last?.result === "ok" ? "border-primary bg-primary/15" : last?.result === "used" ? "border-border bg-muted" : "border-destructive bg-destructive/10"
 
+  const count = Object.keys(store.list).length
   return (
     <div className="grid gap-4">
+      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        {!online && (
+          <span className="inline-flex items-center gap-1 rounded-full border border-destructive/40 px-2 py-0.5 text-destructive">
+            <CloudOffIcon className="size-3.5" /> {t("tickets.offline")}
+          </span>
+        )}
+        <span>
+          {store.at ? t("tickets.listInfo", { count, time: t.date(store.at, { timeStyle: "short" }) }) : t("tickets.listLoading")}
+          {store.queue.length > 0 && ` · ${t("tickets.queued", { count: store.queue.length })}`}
+        </span>
+        <Button type="button" size="xs" variant="ghost" onClick={() => sync().then(refresh)} aria-label={t("tickets.refreshList")}>
+          <RefreshCwIcon />
+        </Button>
+        {syncNote && <span>{syncNote}</span>}
+      </div>
       {last && (
         <div role="status" aria-live="assertive" className={cn("grid gap-1 rounded-xl border-2 p-4", tone)}>
           <p className="text-2xl font-semibold">{t.dynamic(`tickets.scanResult.${last.result}`)}</p>
