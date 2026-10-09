@@ -55,7 +55,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Cache Components is on: the root layout has one `<Suspense>`, request-time pages export `instant = false`, and `getSession()` calls `connection()`. Read the session before creating other Supabase clients. Public pages should later get real static shells.
 
 ## Design system
-- Tokens live in `src/app/globals.css` (`:root` + `.dark`, oklch). Change the look there, not per-component.
+- Theme tokens live in `src/app/theme.css` (`:root` + `.dark`, oklch, radius, shadows). Switching themes = replace that file with a tweakcn/shadcn export. Change the look there, not per-component.
 - Use semantic classes only: `bg-background`, `text-muted-foreground`, `border-border`, `bg-primary`… **No raw colors** (`bg-blue-500`, hex) in components.
 - Radius via `rounded-md/lg/xl` (derived from `--radius`). Spacing on Tailwind scale.
 - Compose from `src/components/ui/*`; app-level components go in `src/components/`. Use `cn()` from `@/lib/utils` for class merging.
