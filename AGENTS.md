@@ -130,7 +130,7 @@ Every view a user can reach must be shareable/bookmarkable and survive reload + 
 - Keep params short, lowercase, stable — they are public API once shared.
 
 ## Deployment
-- Vercel project `roots` (team daniel-ladwigs-projects), Git-connected: every push to `main` deploys production (https://roots-six-theta.vercel.app for now). Functions run in `lhr1` (vercel.json) next to the Supabase database (eu-west-2); keep them together.
+- Vercel project `roots` (team daniel-ladwigs-projects), Git-connected: every push to `main` deploys production (https://roots-berlin.vercel.app). Functions run in `lhr1` (vercel.json) next to the Supabase database (eu-west-2); keep them together.
 - Env vars live in Vercel (Production + Preview); `NEXT_PUBLIC_*` are baked in at build time, so redeploy after changing them.
 - The worker runs every minute via Supabase pg_cron (`npm run worker:schedule -- <prod-url>`; `CRON_SECRET` must match Vercel's). Vercel's own cron (daily, Hobby limit) is only a fallback.
 - Org subdomains (`<org>.<root>`) need a real domain with a wildcard; on `*.vercel.app` only the App works.
