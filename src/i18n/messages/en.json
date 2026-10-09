@@ -613,7 +613,7 @@
     "trash": "Trash",
     "trashHint": "Deleted events are removed for good after {days} days.",
     "titleLabel": "Title",
-    "slug": "Address",
+    "slug": "Slug (website)",
     "slugHelp": "Leave empty = from the title. Lowercase letters, numbers and hyphens.",
     "startsAt": "Starts",
     "endsAt": "Ends (optional)",

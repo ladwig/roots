@@ -613,7 +613,7 @@
     "trash": "Papierkorb",
     "trashHint": "Gelöschte Events werden nach {days} Tagen endgültig entfernt.",
     "titleLabel": "Titel",
-    "slug": "Adresse",
+    "slug": "Slug (Webseite)",
     "slugHelp": "Leer lassen = aus dem Titel. Kleinbuchstaben, Zahlen und Bindestriche.",
     "startsAt": "Beginn",
     "endsAt": "Ende (optional)",

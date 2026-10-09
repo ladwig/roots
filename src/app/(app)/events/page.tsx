@@ -194,17 +194,18 @@ function EventForm({ t, action, ev, disabled }: { t: T; action: (fd: FormData) =
             className="rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
           />
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2">
-            <Label htmlFor="ev-capacity">{t("eventsPage.capacity")}</Label>
-            <Input id="ev-capacity" name="capacity" type="number" min={1} step={1} defaultValue={ev?.capacity ?? ""} />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="ev-slug">{t("eventsPage.slug")}</Label>
-            <Input id="ev-slug" name="slug" defaultValue={ev?.slug} pattern="[a-z0-9][a-z0-9\-]{0,78}[a-z0-9]" />
-          </div>
+        <div className="grid gap-2">
+          <Label htmlFor="ev-capacity">{t("eventsPage.capacity")}</Label>
+          <Input id="ev-capacity" name="capacity" type="number" min={1} step={1} defaultValue={ev?.capacity ?? ""} className="sm:max-w-40" />
         </div>
-        <p className="-mt-2 text-xs text-muted-foreground">{t("eventsPage.slugHelp")}</p>
+        <div className="grid gap-2">
+          <Label htmlFor="ev-slug">{t("eventsPage.slug")}</Label>
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <span className="shrink-0">/e/</span>
+            <Input id="ev-slug" name="slug" defaultValue={ev?.slug} placeholder="sommerfest-2026" pattern="[a-z0-9][a-z0-9\-]{0,78}[a-z0-9]" aria-describedby="ev-slug-help" />
+          </div>
+          <p id="ev-slug-help" className="text-xs text-muted-foreground">{t("eventsPage.slugHelp")}</p>
+        </div>
         {!disabled && (
           <Button type="submit" className="justify-self-start">
             {ev ? t("common.save") : t("eventsPage.new")}
