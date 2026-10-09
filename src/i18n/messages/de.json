@@ -59,7 +59,12 @@
     "signInFirst": "Anmelden oder Konto erstellen"
   },
   "site": {
-    "comingSoon": "Hier entstehen die öffentlichen Seiten dieser Organisation."
+    "comingSoon": "Hier entstehen die öffentlichen Seiten dieser Organisation.",
+    "upcoming": "Kommende Events",
+    "noEvents": "Gerade sind keine Events geplant.",
+    "cancelled": "Abgesagt",
+    "back": "Alle Events",
+    "until": "bis {time}"
   },
   "shell": {
     "home": "Start",
@@ -299,7 +304,8 @@
       "org_integrations": "Integrationen",
       "platform_admins": "Superadmins",
       "event_subscriptions": "Benachrichtigungen",
-      "pay_orders": "Bestellungen"
+      "pay_orders": "Bestellungen",
+      "events": "Events"
     }
   },
   "errors": {
@@ -325,7 +331,11 @@
     "invalid_role": "Diese Rolle gibt es hier nicht.",
     "image_missing": "Bitte wähle ein Bild aus.",
     "image_type": "Nur PNG, JPG, WebP oder GIF.",
-    "image_too_large": "Das Bild ist größer als 2 MB."
+    "image_too_large": "Das Bild ist größer als 2 MB.",
+    "slug_taken": "Diese Adresse ist schon vergeben.",
+    "invalid_time": "Bitte gib ein gültiges Datum mit Uhrzeit an.",
+    "end_before_start": "Das Ende muss nach dem Beginn liegen.",
+    "invalid_input": "Bitte prüfe deine Eingaben."
   },
   "admin": {
     "title": "Plattform",
@@ -551,7 +561,10 @@
       "order.refunded": "Bestellung erstattet",
       "order.failed": "Zahlung fehlgeschlagen",
       "test.ping": "Testereignis",
-      "org.created": "Neue Organisation"
+      "org.created": "Neue Organisation",
+      "event.published": "Event veröffentlicht",
+      "event.updated": "Event geändert (Zeit/Ort)",
+      "event.cancelled": "Event abgesagt"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -561,7 +574,10 @@
       "order.refunded": "↩️ Erstattet: {amount} an {who}",
       "order.failed": "⚠️ Zahlung fehlgeschlagen: {amount} von {who}",
       "test.ping": "✅ Test von roots: Benachrichtigungen funktionieren.",
-      "org.created": "🌱 Neue Organisation: {name}"
+      "org.created": "🌱 Neue Organisation: {name}",
+      "event.published": "📅 Neues Event: {title}, {when}",
+      "event.updated": "🕒 Geändert: {title}, jetzt {when}",
+      "event.cancelled": "❌ Abgesagt: {title} ({when})"
     }
   },
   "inbox": {
@@ -584,5 +600,53 @@
     "emailOff": "E-Mail-Versand ist auf der Plattform noch nicht eingerichtet.",
     "saved": "Einstellungen gespeichert.",
     "none": "Für deine Rollen gibt es noch keine Benachrichtigungen."
+  },
+  "eventsPage": {
+    "nav": "Events",
+    "title": "Events",
+    "new": "Neues Event",
+    "empty": "Noch keine Events.",
+    "emptyTrash": "Der Papierkorb ist leer.",
+    "upcoming": "Kommend",
+    "past": "Vergangen",
+    "all": "Alle",
+    "trash": "Papierkorb",
+    "trashHint": "Gelöschte Events werden nach {days} Tagen endgültig entfernt.",
+    "titleLabel": "Titel",
+    "slug": "Adresse",
+    "slugHelp": "Leer lassen = aus dem Titel. Kleinbuchstaben, Zahlen und Bindestriche.",
+    "startsAt": "Beginn",
+    "endsAt": "Ende (optional)",
+    "venueName": "Ort",
+    "venueAddress": "Adresse des Orts",
+    "description": "Beschreibung",
+    "capacity": "Kapazität (optional)",
+    "capacityHelp": "Maximale Anzahl Personen.",
+    "image": "Bild",
+    "imageHint": "PNG, JPG, WebP oder GIF, max. 2 MB.",
+    "status": "Status",
+    "when": "Wann",
+    "where": "Wo",
+    "statuses": {
+      "draft": "Entwurf",
+      "published": "Veröffentlicht",
+      "cancelled": "Abgesagt"
+    },
+    "publish": "Veröffentlichen",
+    "unpublish": "Zurück zu Entwurf",
+    "cancel": "Absagen",
+    "cancelConfirm": "Event wirklich absagen? Wer es abonniert hat (Webhooks, Telegram), wird informiert.",
+    "publicLink": "Öffentliche Seite",
+    "created": "Event angelegt.",
+    "saved": "Gespeichert.",
+    "published": "Veröffentlicht.",
+    "unpublished": "Wieder Entwurf.",
+    "cancelledOk": "Abgesagt.",
+    "toTrash": "In den Papierkorb",
+    "trashed": "In den Papierkorb verschoben.",
+    "restore": "Wiederherstellen",
+    "restored": "Wiederhergestellt.",
+    "deletedOn": "Gelöscht am {date}, wird am {purge} endgültig entfernt.",
+    "readOnly": "Du kannst Events ansehen, aber nicht bearbeiten."
   }
 }

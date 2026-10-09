@@ -30,7 +30,7 @@ export const modules: ModuleDef[] = [
     permissions: ["payments.view", "payments.refund"],
     nav: [{ href: "/payments", label: "payments.nav", permission: "payments.view" }],
   },
-  { key: "events", permissions: ["events.view", "events.manage"] },
+  { key: "events", permissions: ["events.view", "events.manage"], nav: [{ href: "/events", label: "eventsPage.nav", permission: "events.view" }] },
   {
     key: "tickets",
     requires: { modules: ["events", "payments"] },

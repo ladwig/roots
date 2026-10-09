@@ -34,3 +34,6 @@ export function withParams(sp: SearchParams, changes: Record<string, string | un
 }
 
 export const pageParam = (sp: SearchParams) => Math.max(1, Number(param(sp, "page")) || 1)
+
+// Public page of an org: <slug>.ROOT_DOMAIN (same protocol as the app).
+export const siteUrl = (orgSlug: string, path = "") => `${new URL(APP_URL).protocol}//${orgSlug}.${ROOT_DOMAIN}${path}`

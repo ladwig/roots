@@ -96,7 +96,7 @@ export async function sendTest(id: string) {
   if (!sub) back(PATH, { error: t("errors.not_allowed") })
   const db = createAdminClient()
   const { data: event, error } = await db
-    .from("events")
+    .from("hub_events")
     .insert({ org_id: ctx.org.id, type: TEST_EVENT, actor_id: ctx.userId, payload: { message: "Hello from roots" } })
     .select("id")
     .single()

@@ -1,3 +1,4 @@
+import { TIME_ZONE } from "../lib/time.ts"
 // Pure translation core (no Next/React imports) so it runs on server, client and in `node --test`.
 import type { Locale, Messages } from "./config"
 
@@ -57,7 +58,7 @@ export function createT(locale: Locale, dict: Messages): T {
   t.dynamic = translate
   t.has = (key) => lookup(dict, key.split(".")) !== undefined
   t.list = (items) => new Intl.ListFormat(intl[locale], { type: "conjunction" }).format(items)
-  t.date = (value, options = { dateStyle: "medium" }) => new Date(value).toLocaleString(intl[locale], options)
+  t.date = (value, options = { dateStyle: "medium" }) => new Date(value).toLocaleString(intl[locale], { timeZone: TIME_ZONE, ...options })
   t.money = (cents, currency = "eur") =>
     new Intl.NumberFormat(intl[locale], { style: "currency", currency: currency.toUpperCase() }).format(cents / 100)
   t.pick = (value) => {

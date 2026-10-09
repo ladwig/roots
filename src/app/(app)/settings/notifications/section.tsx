@@ -137,7 +137,7 @@ async function EditSheet({
   const ctx = await requirePerm("org.integrations.manage")
   const { data: deliveries } = await ctx.supabase
     .from("event_deliveries")
-    .select("id, status, attempts, last_error, created_at, events(type)")
+    .select("id, status, attempts, last_error, created_at, events:hub_events(type)")
     .eq("subscription_id", sub.id)
     .order("created_at", { ascending: false })
     .limit(20)

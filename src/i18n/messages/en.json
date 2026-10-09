@@ -59,7 +59,12 @@
     "signInFirst": "Sign in or create an account"
   },
   "site": {
-    "comingSoon": "This organisation's public pages will live here."
+    "comingSoon": "This organisation's public pages will live here.",
+    "upcoming": "Upcoming events",
+    "noEvents": "No events planned right now.",
+    "cancelled": "Cancelled",
+    "back": "All events",
+    "until": "until {time}"
   },
   "shell": {
     "home": "Home",
@@ -299,7 +304,8 @@
       "org_integrations": "Integrations",
       "platform_admins": "Superadmins",
       "event_subscriptions": "Notifications",
-      "pay_orders": "Orders"
+      "pay_orders": "Orders",
+      "events": "Events"
     }
   },
   "errors": {
@@ -325,7 +331,11 @@
     "invalid_role": "This role doesn't exist here.",
     "image_missing": "Please choose an image.",
     "image_type": "Only PNG, JPG, WebP or GIF.",
-    "image_too_large": "The image is larger than 2 MB."
+    "image_too_large": "The image is larger than 2 MB.",
+    "slug_taken": "This address is already taken.",
+    "invalid_time": "Please enter a valid date and time.",
+    "end_before_start": "The end must be after the start.",
+    "invalid_input": "Please check your input."
   },
   "admin": {
     "title": "Platform",
@@ -551,7 +561,10 @@
       "order.refunded": "Order refunded",
       "order.failed": "Payment failed",
       "test.ping": "Test event",
-      "org.created": "New organisation"
+      "org.created": "New organisation",
+      "event.published": "Event published",
+      "event.updated": "Event changed (time/place)",
+      "event.cancelled": "Event cancelled"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -561,7 +574,10 @@
       "order.refunded": "↩️ Refunded: {amount} to {who}",
       "order.failed": "⚠️ Payment failed: {amount} by {who}",
       "test.ping": "✅ Test from roots: notifications work.",
-      "org.created": "🌱 New organisation: {name}"
+      "org.created": "🌱 New organisation: {name}",
+      "event.published": "📅 New event: {title}, {when}",
+      "event.updated": "🕒 Changed: {title}, now {when}",
+      "event.cancelled": "❌ Cancelled: {title} ({when})"
     }
   },
   "inbox": {
@@ -584,5 +600,53 @@
     "emailOff": "Email isn't set up on the platform yet.",
     "saved": "Settings saved.",
     "none": "There are no notifications for your roles yet."
+  },
+  "eventsPage": {
+    "nav": "Events",
+    "title": "Events",
+    "new": "New event",
+    "empty": "No events yet.",
+    "emptyTrash": "The trash is empty.",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "all": "All",
+    "trash": "Trash",
+    "trashHint": "Deleted events are removed for good after {days} days.",
+    "titleLabel": "Title",
+    "slug": "Address",
+    "slugHelp": "Leave empty = from the title. Lowercase letters, numbers and hyphens.",
+    "startsAt": "Starts",
+    "endsAt": "Ends (optional)",
+    "venueName": "Venue",
+    "venueAddress": "Venue address",
+    "description": "Description",
+    "capacity": "Capacity (optional)",
+    "capacityHelp": "Maximum number of people.",
+    "image": "Image",
+    "imageHint": "PNG, JPG, WebP or GIF, max. 2 MB.",
+    "status": "Status",
+    "when": "When",
+    "where": "Where",
+    "statuses": {
+      "draft": "Draft",
+      "published": "Published",
+      "cancelled": "Cancelled"
+    },
+    "publish": "Publish",
+    "unpublish": "Back to draft",
+    "cancel": "Cancel event",
+    "cancelConfirm": "Really cancel this event? Subscribers (webhooks, Telegram) are notified.",
+    "publicLink": "Public page",
+    "created": "Event created.",
+    "saved": "Saved.",
+    "published": "Published.",
+    "unpublished": "Back to draft.",
+    "cancelledOk": "Cancelled.",
+    "toTrash": "Move to trash",
+    "trashed": "Moved to the trash.",
+    "restore": "Restore",
+    "restored": "Restored.",
+    "deletedOn": "Deleted on {date}, removed for good on {purge}.",
+    "readOnly": "You can view events but not edit them."
   }
 }

@@ -45,12 +45,12 @@ begin
   insert into public.org_modules (org_id, module_key) values (org_a, 'payments');
   insert into public.pay_orders (org_id, amount_total, source_module, status) values (org_a, 1000, 'test', 'paid');
 
-  select count(*) into n from public.event_deliveries d join public.events e on e.id = d.event_id
+  select count(*) into n from public.event_deliveries d join public.hub_events e on e.id = d.event_id
     where e.org_id = org_a and e.type = 'member.joined';                     assert n >= 1, 'member.joined should fan out to the subscription';
 
   -- in-app notifications: one for A about A's org (as the worker would write it)
   insert into public.notifications (user_id, org_id, event_id)
-  select a, org_a, id from public.events where org_id = org_a order by id limit 1;
+  select a, org_a, id from public.hub_events where org_id = org_a order by id limit 1;
 
   -- B must not see anything of A
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
@@ -61,7 +61,7 @@ begin
   select count(*) into n from public.audit_log where org_id = org_a;         assert n = 0, 'B sees activity of A';
   select count(*) into n from public.profiles where id = a;                  assert n = 0, 'B sees profile of A';
   select count(*) into n from public.pay_orders where org_id = org_a;        assert n = 0, 'B sees orders of A';
-  select count(*) into n from public.events where org_id = org_a;            assert n = 0, 'B sees events of A';
+  select count(*) into n from public.hub_events where org_id = org_a;            assert n = 0, 'B sees events of A';
   select count(*) into n from public.notifications;                          assert n = 0, 'B sees notifications of A';
   update public.notifications set read_at = now();
   get diagnostics n = row_count;                                             assert n = 0, 'B marked A''s notification read';
@@ -136,7 +136,7 @@ begin
   update public.notifications set read_at = now();
   get diagnostics n = row_count;                                             assert n = 1, 'A marks own notification read';
   begin
-    insert into public.notifications (user_id, event_id) select b, id from public.events limit 1;
+    insert into public.notifications (user_id, event_id) select b, id from public.hub_events limit 1;
     assert false, 'A wrote a notification for someone else';
   exception when insufficient_privilege then null;
   end;
@@ -238,6 +238,47 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   set local role authenticated;
   select count(*) into n from public.orgs where id = org_a;                  assert n = 1, 'restored org is back for its owner';
+  reset role;
+
+  -- Events module: A (owner, module on) manages; C (Member, no events.view) and B see nothing; anon sees published only
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  insert into public.events (org_id, title, slug, starts_at, status) values
+    (org_a, 'Draft', 'draft', now() + interval '7 days', 'draft'),
+    (org_a, 'Live', 'live', now() + interval '7 days', 'published');
+  select count(*) into n from public.events where org_id = org_a;            assert n = 2, 'owner sees own events';
+  begin
+    insert into public.events (org_id, title, slug, starts_at) values (org_a, 'Dup', 'live', now());
+    assert false, 'slug must be unique per org';
+  exception when unique_violation then null; end;
+  perform public.soft_delete('public.events', (select id from public.events where org_id = org_a and slug = 'draft'));
+  insert into public.events (org_id, title, slug, starts_at) values (org_a, 'Draft again', 'draft', now()); -- deleted slug reusable
+  reset role;
+  select count(*) into n from public.hub_events where org_id = org_a and type = 'event.published'; assert n = 1, 'publishing emits event.published';
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.events where org_id = org_a;            assert n = 0, 'B sees events of A';
+  begin
+    insert into public.events (org_id, title, slug, starts_at) values (org_a, 'X', 'x', now());
+    assert false, 'B must not create events in A';
+  exception when insufficient_privilege then null; end;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.events where org_id = org_a;            assert n = 0, 'Member without events.view sees events';
+  reset role;
+  perform set_config('request.jwt.claims', '{}', true);
+  set local role anon;
+  select count(*) into n from public.events where org_id = org_a;            assert n = 1, 'anon sees only the published event';
+  begin
+    perform created_by from public.events limit 1;
+    assert false, 'anon must not read audit columns';
+  exception when insufficient_privilege then null; end;
+  select count(*) into n from public.orgs where id = org_a;                  assert n = 1, 'anon resolves a live org';
+  reset role;
+  delete from public.org_modules where org_id = org_a and module_key = 'events';
+  set local role anon;
+  select count(*) into n from public.events where org_id = org_a;            assert n = 0, 'module off hides public events';
   reset role;
 
   -- x-org-id header: C is now in A and B, but with the header only sees the active org

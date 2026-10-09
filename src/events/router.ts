@@ -10,7 +10,7 @@ export async function routeEvents(limit = 50) {
   const { data: ids, error } = await db.rpc("claim_unrouted_events", { p_limit: limit })
   if (error) throw error
   if (!ids?.length) return 0
-  const { data: events } = await db.from("events").select("id, org_id, type, actor_id").in("id", ids)
+  const { data: events } = await db.from("hub_events").select("id, org_id, type, actor_id").in("id", ids)
 
   for (const event of events ?? []) {
     const audience = getEventType(event.type)?.audience

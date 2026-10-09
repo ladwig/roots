@@ -21,7 +21,7 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
   const db = await createClient()
   let query = db
     .from("notifications")
-    .select("id, read_at, created_at, org_id, orgs(name), events(type, payload)")
+    .select("id, read_at, created_at, org_id, orgs(name), events:hub_events(type, payload)")
     .eq("user_id", ctx.userId)
     .order("created_at", { ascending: false })
     .range(...pageRange(page))

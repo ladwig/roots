@@ -10,7 +10,7 @@ export async function GET(_: Request, { params }: RouteContext<"/notifications/[
   if (!session) return NextResponse.redirect(`${APP_URL}/login`)
   const { data: n } = await session.supabase
     .from("notifications")
-    .select("id, org_id, events(type, payload)")
+    .select("id, org_id, events:hub_events(type, payload)")
     .eq("id", Number(id))
     .eq("user_id", session.userId)
     .maybeSingle()

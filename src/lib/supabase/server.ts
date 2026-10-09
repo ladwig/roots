@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr"
+import { createClient as createPlainClient } from "@supabase/supabase-js"
 import { cookies } from "next/headers"
 import type { Database } from "./types"
 
@@ -22,4 +23,11 @@ export async function createClient(orgId?: string) {
       },
     }
   )
+}
+
+// Public surface: always anonymous (even for signed-in visitors), so it only sees what the `anon` policies publish.
+export function createPublicClient() {
+  return createPlainClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
 }

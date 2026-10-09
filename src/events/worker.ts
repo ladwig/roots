@@ -9,7 +9,7 @@ import { telegramChannel } from "./channels/telegram"
 import { webhookChannel } from "./channels/webhook"
 import { routeEvents } from "./router"
 
-export type EventRow = Database["public"]["Tables"]["events"]["Row"]
+export type EventRow = Database["public"]["Tables"]["hub_events"]["Row"]
 export type SubscriptionRow = Database["public"]["Tables"]["event_subscriptions"]["Row"]
 /** Org destinations (webhook, Telegram, …) */
 export type Channel = { send(subscription: SubscriptionRow, event: EventRow): Promise<void> }
@@ -26,7 +26,7 @@ export async function deliverDue(limit = 25) {
   const { data: ids, error } = await db.rpc("claim_event_deliveries", { p_limit: limit })
   if (error) throw error
   if (!ids?.length) return 0
-  const { data: rows } = await db.from("event_deliveries").select("id, user_id, channel, events(*), event_subscriptions(*)").in("id", ids)
+  const { data: rows } = await db.from("event_deliveries").select("id, user_id, channel, events:hub_events(*), event_subscriptions(*)").in("id", ids)
   const userIds = [...new Set((rows ?? []).map((r) => r.user_id).filter((u): u is string => !!u))]
   const { data: profiles } = userIds.length ? await db.from("profiles").select("id, email, locale").in("id", userIds) : { data: [] }
 

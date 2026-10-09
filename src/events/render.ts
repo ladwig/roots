@@ -11,6 +11,7 @@ export function renderEvent(event: EventLike, locale: string | null | undefined)
   const p = (event.payload ?? {}) as Record<string, unknown>
   const vars: Record<string, string> = Object.fromEntries(Object.entries(p).map(([k, v]) => [k, String(v ?? "")]))
   if (typeof p.amount === "number") vars.amount = t.money(p.amount, String(p.currency ?? "eur"))
+  if (typeof p.starts_at === "string") vars.when = t.date(p.starts_at, { dateStyle: "medium", timeStyle: "short" })
   vars.who = String(p.customer_email || p.email || p.name || "–")
   return {
     title: t.has(`events.messages.${event.type}`) ? t.dynamic(`events.messages.${event.type}`, vars) : event.type,

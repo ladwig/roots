@@ -35,7 +35,7 @@ export type Database = {
       foreignKeyName: "event_deliveries_event_id_fkey"
       columns: ["event_id"]
 isOneToOne: false
-      referencedRelation: "events"
+      referencedRelation: "hub_events"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "event_deliveries_org_id_fkey"
@@ -72,6 +72,26 @@ isOneToOne: false
     }
                   ]
                 },"events": {
+                  Row: {
+                    "capacity": number | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"ends_at": string | null,"id": string,"image_path": string | null,"org_id": string,"published_at": string | null,"slug": string,"starts_at": string,"status": string,"title": string,"updated_at": string,"updated_by": string | null,"venue_address": string | null,"venue_name": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "capacity"?: number | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"ends_at"?: string | null,"id"?: string,"image_path"?: string | null,"org_id": string,"published_at"?: string | null,"slug": string,"starts_at": string,"status"?: string,"title": string,"updated_at"?: string,"updated_by"?: string | null,"venue_address"?: string | null,"venue_name"?: string | null
+                  }
+                  Update: {
+                    "capacity"?: number | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"ends_at"?: string | null,"id"?: string,"image_path"?: string | null,"org_id"?: string,"published_at"?: string | null,"slug"?: string,"starts_at"?: string,"status"?: string,"title"?: string,"updated_at"?: string,"updated_by"?: string | null,"venue_address"?: string | null,"venue_name"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "events_org_id_fkey1"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"hub_events": {
                   Row: {
                     "actor_id": string | null,"created_at": string,"id": number,"org_id": string | null,"payload": NonNullable<Json>,"routed_at": string | null,"subject_id": string | null,"subject_table": string | null,"type": string
                   }
@@ -167,7 +187,7 @@ isOneToOne: false
       foreignKeyName: "notifications_event_id_fkey"
       columns: ["event_id"]
 isOneToOne: false
-      referencedRelation: "events"
+      referencedRelation: "hub_events"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "notifications_org_id_fkey"
@@ -463,6 +483,9 @@ isOneToOne: false
                            },
 "enable_soft_delete":
 { Args: { "p_org_column"?: string,"p_perm"?: string,"p_purge_days"?: number,"p_table": unknown }; Returns: undefined
+                           },
+"events_public":
+{ Args: { "p_org": string }; Returns: boolean
                            },
 "finish_event_delivery":
 { Args: { "p_error"?: string,"p_id": number,"p_ok": boolean }; Returns: undefined

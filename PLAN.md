@@ -103,7 +103,8 @@ Modules contribute to both: e.g. Events = event management in the App + event pa
 - Later: segments, newsletter (Resend).
 
 ### Events
-- Events (date, venue, status, capacity), lineup/artists.
+- ✅ Events (date/time in Berlin time, venue, description, image, status draft/published/cancelled, capacity), soft delete + trash, public list + event page, hub events `event.published/updated/cancelled`.
+- Next: lineup/artists, public API (`/api/v1`, org API keys, OpenAPI docs page).
 - **Ticketing**
   - Ticket types, each with a list of **tiers** (price, quota, sale window, order).
     The active tier is the first one that isn't sold out and is inside its window. When one sells out, the next one takes over automatically.
