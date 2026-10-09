@@ -70,7 +70,7 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
   )
 
   return (
-    <div className="mx-auto grid max-w-5xl gap-6">
+    <div className="grid max-w-5xl gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-heading text-2xl font-semibold">{t("contacts.title")}</h1>
         {canManage && (

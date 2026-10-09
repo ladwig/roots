@@ -74,7 +74,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
   )
 
   return (
-    <div className="mx-auto grid max-w-5xl gap-6">
+    <div className="grid max-w-5xl gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-heading text-2xl font-semibold">{t("eventsPage.title")}</h1>
         {canManage && (

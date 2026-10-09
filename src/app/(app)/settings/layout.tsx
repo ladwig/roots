@@ -15,7 +15,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
   const ctx = await getContext()
   const t = await getT()
   return (
-    <div className="mx-auto grid max-w-4xl gap-6">
+    <div className="grid max-w-4xl gap-6">
       <h1 className="font-heading text-2xl font-semibold">{t("settings.title")}</h1>
       <nav aria-label={t("settings.nav")} className="-mx-1 flex gap-1 overflow-x-auto border-b px-1 pb-2">
         {tabs

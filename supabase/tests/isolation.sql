@@ -299,7 +299,8 @@ begin
   perform public.soft_delete('public.contacts', (select id from public.contacts where email = 'erika@x.de'));
   insert into public.contacts (org_id, email) values (org_a, 'erika@x.de'); -- deleted email reusable
   reset role;
-  select count(*) into n from public.hub_events where org_id = org_a and type = 'contact.created'; assert n = 3, 'contacts emit contact.created';
+  select count(*) into n from public.hub_events where org_id = org_a and type = 'contact.created'; assert n = 1, 'single insert emits contact.created';
+  select count(*) into n from public.hub_events where org_id = org_a and type = 'contacts.imported'; assert n = 1, 'bulk insert emits one contacts.imported';
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
   set local role authenticated;
   select count(*) into n from public.contacts where org_id = org_a;          assert n = 0, 'B sees contacts of A';
@@ -318,6 +319,25 @@ begin
   begin
     perform 1 from public.contacts limit 1;
     assert false, 'anon must not read contacts';
+  exception when insufficient_privilege then null; end;
+  reset role;
+
+  -- Custom fields: owner defines, members read, B sees nothing, values must be an object
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  insert into public.custom_fields (org_id, entity, key, label, type) values (org_a, 'contacts', 'member_no', 'Mitgliedsnr.', 'text');
+  update public.contacts set custom = '{"member_no": "42"}' where org_id = org_a and email = 'max@x.de';
+  begin
+    update public.contacts set custom = '[]' where org_id = org_a and email = 'max@x.de';
+    assert false, 'custom must be a json object';
+  exception when check_violation then null; end;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.custom_fields where org_id = org_a;     assert n = 0, 'B sees custom fields of A';
+  begin
+    insert into public.custom_fields (org_id, entity, key, label, type) values (org_a, 'contacts', 'x', 'X', 'text');
+    assert false, 'B must not define fields in A';
   exception when insufficient_privilege then null; end;
   reset role;
 

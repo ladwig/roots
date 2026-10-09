@@ -43,7 +43,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       title={ctx.org.name}
     >
       {ctx.viaPlatform && (
-        <p className="mx-auto mb-6 max-w-4xl rounded-lg border bg-muted px-3 py-2 text-sm">{t("admin.banner", { org: ctx.org.name })}</p>
+        <p className="mb-6 max-w-4xl rounded-lg border bg-muted px-3 py-2 text-sm">{t("admin.banner", { org: ctx.org.name })}</p>
       )}
       {children}
     </AppShell>

@@ -69,6 +69,7 @@ Every screen works on phone (from 360px), tablet (iPad, `md` = 768px+) and deskt
 - Lists: `<DataTable>` shows cards on phones (first column = title, others label/value) and a table from `md`. Keep the first column meaningful.
 - Drawers (`<UrlSheet>`) are full-width on phones. Forms stack on phones: `grid gap-4 sm:grid-cols-2`.
 - Toolbars and page headers wrap: `flex flex-wrap items-center gap-3`.
+- Pages are left-aligned (same left margin everywhere): `grid max-w-5xl gap-6`, never `mx-auto` in the App/admin. Popovers from the sidebar open below/above their trigger, as wide as the sidebar.
 - Icon-only buttons get a `<Tooltip>` and an `aria-label`. Touch targets at least `size-8`.
 - Check new screens at 375px, 768px and 1280px before committing.
 

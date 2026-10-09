@@ -13,14 +13,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar"
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
 
 type Org = { id: string; name: string; logo_path?: string | null }
 
 export function OrgSwitcher({ orgs, current }: { orgs: Org[]; current: Org }) {
   const t = useT()
   const [pending, start] = useTransition()
-  const { isMobile } = useSidebar()
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -30,7 +29,7 @@ export function OrgSwitcher({ orgs, current }: { orgs: Org[]; current: Org }) {
             <span className="flex-1 truncate text-left font-medium">{current.name}</span>
             <ChevronsUpDownIcon className="ml-auto" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent side={isMobile ? "bottom" : "right"} align="start" className="min-w-56">
+          <DropdownMenuContent side="bottom" align="start" className="w-(--anchor-width) min-w-56">
             {orgs.map((o) => (
               <DropdownMenuItem key={o.id} onClick={() => o.id !== current.id && start(() => switchOrg(o.id))}>
                 <Picture path={o.logo_path} name={o.name} size="sm" square />

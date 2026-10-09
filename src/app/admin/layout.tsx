@@ -35,7 +35,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       me={{ name: me?.full_name || session.email, email: session.email, avatar: me?.avatar_path ?? null }}
       title={t("admin.title")}
     >
-      <div className="mx-auto grid max-w-5xl gap-6">{children}</div>
+      <div className="grid max-w-5xl gap-6">{children}</div>
     </AppShell>
   )
 }
