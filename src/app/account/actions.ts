@@ -5,6 +5,7 @@ import { getT } from "@/i18n/server"
 import { authError, dbError } from "@/i18n/translate"
 import { getSession } from "@/lib/context"
 import { back } from "@/lib/url"
+import { eventTypes, personChannels } from "@/events/registry"
 
 const backTo = (formData: FormData) => (formData.get("back") === "/settings/profile" ? "/settings/profile" : "/account")
 
@@ -28,4 +29,19 @@ export async function updatePassword(formData: FormData) {
   const { error } = await session.supabase.auth.updateUser({ password })
   if (error) back(backTo(formData), { error: authError(t, error) })
   back(backTo(formData), { ok: t("account.passwordChanged") })
+}
+
+// Saves the whole grid: every visible event type × channel gets an explicit on/off.
+export async function savePreferences(formData: FormData) {
+  const session = await getSession()
+  if (!session) redirect("/login?next=/account")
+  const t = await getT()
+  const rows = eventTypes
+    .filter((e) => e.audience && (!e.audience.platform || session.isPlatformAdmin))
+    .flatMap((e) =>
+      personChannels.map((channel) => ({ user_id: session.userId, event_type: e.key, channel, enabled: formData.get(`${e.key}:${channel}`) === "on" }))
+    )
+  const { error } = await session.supabase.from("notification_preferences").upsert(rows, { onConflict: "user_id,event_type,channel" })
+  if (error) back(backTo(formData), { error: dbError(t, error) })
+  back(backTo(formData), { ok: t("prefs.saved") })
 }

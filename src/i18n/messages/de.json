@@ -529,7 +529,8 @@
       "order.paid": "Bestellung bezahlt",
       "order.refunded": "Bestellung erstattet",
       "order.failed": "Zahlung fehlgeschlagen",
-      "test.ping": "Testereignis"
+      "test.ping": "Testereignis",
+      "org.created": "Neue Organisation"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -538,7 +539,29 @@
       "order.paid": "💶 Bezahlt: {amount} von {who}",
       "order.refunded": "↩️ Erstattet: {amount} an {who}",
       "order.failed": "⚠️ Zahlung fehlgeschlagen: {amount} von {who}",
-      "test.ping": "✅ Test von roots: Benachrichtigungen funktionieren."
+      "test.ping": "✅ Test von roots: Benachrichtigungen funktionieren.",
+      "org.created": "🌱 Neue Organisation: {name}"
     }
+  },
+  "inbox": {
+    "title": "Benachrichtigungen",
+    "empty": "Keine Benachrichtigungen.",
+    "markAllRead": "Alle als gelesen markieren",
+    "all": "Alle",
+    "unread": "Ungelesen",
+    "when": "Wann",
+    "what": "Was",
+    "org": "Organisation"
+  },
+  "prefs": {
+    "title": "Benachrichtigungen",
+    "intro": "Wähle, worüber und auf welchem Weg du benachrichtigt wirst.",
+    "event": "Ereignis",
+    "in_app": "In der App",
+    "email": "E-Mail",
+    "push": "Push",
+    "emailOff": "E-Mail-Versand ist auf der Plattform noch nicht eingerichtet.",
+    "saved": "Einstellungen gespeichert.",
+    "none": "Für deine Rollen gibt es noch keine Benachrichtigungen."
   }
 }

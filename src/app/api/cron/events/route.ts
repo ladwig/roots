@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   await pollTelegram().catch(console.error)
   let sent = 0
   for (let round = 0; round < 10; round++) {
-    const n = await deliverDue()
+    const n = await deliverDue() // routes new events first
     sent += n
     if (n === 0) break
   }

@@ -64,6 +64,11 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 **Events (when something meaningful happens):** if an org would want to be told about it (sale, sign-up, booking, cancellation…), emit a named event (`<module>.<thing>`, past tense: `ticket.sold`, `contact.created`) via a DB trigger or `emit_event()`, register it in `src/events/registry.ts` with `events.types/messages` texts, and call `deliverSoon()` after the action. Events are facts; never rely on them for the change itself.
 
+**Who gets told what (three separate streams):**
+1. *roots → people on the platform*: personal notifications (in-app inbox, email, later push). Give the event type an `audience` (permission or `platform: true`) and default channels in `src/events/registry.ts`; the router (`src/events/router.ts`) finds the people, applies their preferences (Settings → Profile) and skips whoever caused the event. New channel = one sender in `src/events/channels/` + add to `personChannels`.
+2. *Org → its own tools*: webhooks / Telegram etc. (Settings → Integrations), fanned out by `emit_event()` to `event_subscriptions`.
+3. *Org → its customers* (ticket buyers, guests): transactional messages sent by the module itself in the org's name (org's email integration, roots fallback). Not preference-driven, not through the router.
+
 **Deleting, by kind of data:**
 | Kind | Rule |
 |---|---|

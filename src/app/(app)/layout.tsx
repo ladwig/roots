@@ -11,8 +11,14 @@ import { modules } from "@/modules/registry"
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getContext()
   const t = await getT()
+  const { count: unread } = await ctx.supabase
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", ctx.userId)
+    .is("read_at", null)
   const nav = [
     { href: "/", label: t("shell.home") },
+    { href: "/notifications", label: t("inbox.title"), count: unread ?? 0 },
     ...modules
       .filter((m) => ctx.modules.has(m.key))
       .flatMap((m) => m.nav ?? [])
@@ -31,6 +37,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           {nav.map((n) => (
             <NavLink key={n.href} href={n.href} className={"mobileOnly" in n ? "md:hidden" : undefined}>
               {n.label}
+              {"count" in n && !!n.count && (
+                <span className="ml-1.5 rounded-full bg-primary px-1.5 text-xs text-primary-foreground tabular-nums">{n.count}</span>
+              )}
             </NavLink>
           ))}
         </nav>

@@ -529,7 +529,8 @@
       "order.paid": "Order paid",
       "order.refunded": "Order refunded",
       "order.failed": "Payment failed",
-      "test.ping": "Test event"
+      "test.ping": "Test event",
+      "org.created": "New organisation"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -538,7 +539,29 @@
       "order.paid": "💶 Paid: {amount} by {who}",
       "order.refunded": "↩️ Refunded: {amount} to {who}",
       "order.failed": "⚠️ Payment failed: {amount} by {who}",
-      "test.ping": "✅ Test from roots: notifications work."
+      "test.ping": "✅ Test from roots: notifications work.",
+      "org.created": "🌱 New organisation: {name}"
     }
+  },
+  "inbox": {
+    "title": "Notifications",
+    "empty": "No notifications.",
+    "markAllRead": "Mark all as read",
+    "all": "All",
+    "unread": "Unread",
+    "when": "When",
+    "what": "What",
+    "org": "Organisation"
+  },
+  "prefs": {
+    "title": "Notifications",
+    "intro": "Choose what you hear about, and how.",
+    "event": "Event",
+    "in_app": "In the app",
+    "email": "Email",
+    "push": "Push",
+    "emailOff": "Email isn't set up on the platform yet.",
+    "saved": "Settings saved.",
+    "none": "There are no notifications for your roles yet."
   }
 }
