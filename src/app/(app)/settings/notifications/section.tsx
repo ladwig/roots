@@ -12,16 +12,23 @@ import { eventTypes } from "@/events/registry"
 import { getT } from "@/i18n/server"
 import type { T } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
-import { param, withParams } from "@/lib/url"
+import { param, withParams, type SearchParams } from "@/lib/url"
 import { deleteSubscription, sendTest, telegramChats, updateSubscription } from "./actions"
 import { CreateForm, RotateSecret } from "./forms"
 
-type Sub = { id: string; name: string; channel: string; event_types: string[]; config: unknown; active: boolean }
+type Sub = {
+  id: string
+  name: string
+  channel: string
+  event_types: string[]
+  config: unknown
+  active: boolean
+}
 
-export default async function NotificationsSettings({ searchParams }: PageProps<"/settings/notifications">) {
+// Notification targets (webhooks, Telegram chats) – shown as a section on Settings → Integrations.
+export async function NotificationsSection({ sp }: { sp: SearchParams }) {
   const ctx = await requirePerm("org.integrations.manage")
   const t = await getT()
-  const sp = await searchParams
   const { data: subs } = await ctx.supabase
     .from("event_subscriptions")
     .select("id, name, channel, event_types, config, active")
@@ -31,17 +38,28 @@ export default async function NotificationsSettings({ searchParams }: PageProps<
   const creating = param(sp, "new")
   const available = eventTypes.filter((e) => e.module === "org" || ctx.modules.has(e.module))
   const chats = await telegramChats(ctx.org.id)
-  const { data: botRow } = await ctx.supabase.from("org_integrations").select("status").eq("org_id", ctx.org.id).eq("provider", "telegram").maybeSingle()
+  const { data: botRow } = await ctx.supabase
+    .from("org_integrations")
+    .select("status")
+    .eq("org_id", ctx.org.id)
+    .eq("provider", "telegram")
+    .maybeSingle()
   const botConnected = botRow?.status === "connected"
 
   return (
-    <div className="grid gap-4">
+    <section id="notifications" className="grid gap-4">
+      <h2 className="font-medium">{t("settings.tabs.notifications")}</h2>
       <p className="text-sm text-muted-foreground">{t("notifications.intro")}</p>
       <div className="flex flex-wrap gap-2">
         <Button render={<Link href={withParams(sp, { new: "webhook", edit: undefined })} scroll={false} />} nativeButton={false} size="sm">
           {t("notifications.newWebhook")}
         </Button>
-        <Button render={<Link href={withParams(sp, { new: "telegram", edit: undefined })} scroll={false} />} nativeButton={false} size="sm" variant="outline">
+        <Button
+          render={<Link href={withParams(sp, { new: "telegram", edit: undefined })} scroll={false} />}
+          nativeButton={false}
+          size="sm"
+          variant="outline"
+        >
           {t("notifications.newTelegram")}
         </Button>
       </div>
@@ -52,10 +70,22 @@ export default async function NotificationsSettings({ searchParams }: PageProps<
         rowHref={(s) => withParams(sp, { edit: s.id, new: undefined })}
         empty={t("notifications.empty")}
         columns={[
-          { header: t("notifications.name"), cell: (s) => <span className="font-medium">{s.name}</span> },
-          { header: t("notifications.channel"), cell: (s) => t.dynamic(`notifications.channels.${s.channel}`) },
-          { header: t("notifications.events"), cell: (s) => eventsSummary(t, s.event_types) },
-          { header: t("notifications.status"), cell: (s) => <SubStatus t={t} sub={s} /> },
+          {
+            header: t("notifications.name"),
+            cell: (s) => <span className="font-medium">{s.name}</span>,
+          },
+          {
+            header: t("notifications.channel"),
+            cell: (s) => t.dynamic(`notifications.channels.${s.channel}`),
+          },
+          {
+            header: t("notifications.events"),
+            cell: (s) => eventsSummary(t, s.event_types),
+          },
+          {
+            header: t("notifications.status"),
+            cell: (s) => <SubStatus t={t} sub={s} />,
+          },
         ]}
       />
 
@@ -64,7 +94,7 @@ export default async function NotificationsSettings({ searchParams }: PageProps<
           {creating === "telegram" && !botConnected ? (
             <p className="text-sm">
               {t("notifications.telegram.notConnected")}{" "}
-              <Link href="/settings/integrations?connect=telegram" className="underline underline-offset-4">
+              <Link href={withParams(sp, { new: undefined, connect: "telegram" })} scroll={false} className="underline underline-offset-4">
                 {t("payments.toIntegrations")}
               </Link>
             </p>
@@ -76,7 +106,7 @@ export default async function NotificationsSettings({ searchParams }: PageProps<
         </UrlSheet>
       )}
       {editing && <EditSheet t={t} sub={editing} available={available} chats={chats} error={param(sp, "error")} ok={param(sp, "ok")} />}
-    </div>
+    </section>
   )
 }
 
@@ -89,7 +119,21 @@ function SubStatus({ t, sub }: { t: T; sub: Sub }) {
   return sub.active ? <Badge>{t("notifications.active")}</Badge> : <Badge variant="secondary">{t("notifications.paused")}</Badge>
 }
 
-async function EditSheet({ t, sub, available, chats, error, ok }: { t: T; sub: Sub; available: typeof eventTypes; chats: { id: number; title: string }[]; error?: string; ok?: string }) {
+async function EditSheet({
+  t,
+  sub,
+  available,
+  chats,
+  error,
+  ok,
+}: {
+  t: T
+  sub: Sub
+  available: typeof eventTypes
+  chats: { id: number; title: string }[]
+  error?: string
+  ok?: string
+}) {
   const ctx = await requirePerm("org.integrations.manage")
   const { data: deliveries } = await ctx.supabase
     .from("event_deliveries")
@@ -119,7 +163,17 @@ async function EditSheet({ t, sub, available, chats, error, ok }: { t: T; sub: S
           <div className="grid gap-2">
             <Label htmlFor="sub-chat">{t("notifications.telegram.chat")}</Label>
             <NativeSelect id="sub-chat" name="chat_id" defaultValue={String(config.chat_id ?? "")}>
-              {[...chats, ...(chats.some((c) => String(c.id) === String(config.chat_id)) ? [] : [{ id: Number(config.chat_id), title: String(config.chat_title ?? config.chat_id) }])].map((c) => (
+              {[
+                ...chats,
+                ...(chats.some((c) => String(c.id) === String(config.chat_id))
+                  ? []
+                  : [
+                      {
+                        id: Number(config.chat_id),
+                        title: String(config.chat_title ?? config.chat_id),
+                      },
+                    ]),
+              ].map((c) => (
                 <NativeSelectOption key={c.id} value={String(c.id)}>
                   {c.title}
                 </NativeSelectOption>
@@ -175,7 +229,11 @@ async function EditSheet({ t, sub, available, chats, error, ok }: { t: T; sub: S
                   </Badge>
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {t.date(d.created_at, { dateStyle: "short", timeStyle: "short" })} · {t("notifications.attempts", { count: d.attempts })}
+                  {t.date(d.created_at, {
+                    dateStyle: "short",
+                    timeStyle: "short",
+                  })}{" "}
+                  · {t("notifications.attempts", { count: d.attempts })}
                   {d.last_error ? ` · ${d.last_error}` : ""}
                 </span>
               </li>
@@ -194,6 +252,3 @@ async function EditSheet({ t, sub, available, chats, error, ok }: { t: T; sub: S
     </UrlSheet>
   )
 }
-
-// Reads session/URL at request time; no static shell needed yet (see AGENTS.md › Cache Components).
-export const instant = false

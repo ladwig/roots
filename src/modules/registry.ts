@@ -19,7 +19,6 @@ export const core: ModuleDef = {
     "org.settings.manage",
     "org.members.manage",
     "org.integrations.manage",
-    "org.audit.view",
   ],
 }
 

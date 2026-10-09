@@ -11,7 +11,7 @@ import { requirePerm } from "@/lib/context"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { back } from "@/lib/url"
 
-const PATH = "/settings/notifications"
+const PATH = "/settings/integrations"
 const newSecret = () => `whsec_${randomBytes(24).toString("base64url")}`
 
 // Chats the org's bot knows (collected from Telegram updates, see src/integrations/telegram.ts).

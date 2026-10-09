@@ -10,6 +10,7 @@ import { requirePerm } from "@/lib/context"
 import { param } from "@/lib/url"
 import { getIntegration, integrations } from "@/integrations/registry"
 import { connectIntegration, disconnectIntegration } from "./actions"
+import { NotificationsSection } from "../notifications/section"
 
 export default async function IntegrationsSettings({ searchParams }: PageProps<"/settings/integrations">) {
   const ctx = await requirePerm("org.integrations.manage")
@@ -21,79 +22,98 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
     .eq("org_id", ctx.org.id)
   const connected = new Map(rows?.map((r) => [r.provider, r]))
   const connecting = getIntegration(param(sp, "connect") ?? "")
+  const notificationSheet = !!(param(sp, "edit") || param(sp, "new"))
   const current = connecting && connected.get(connecting.key)
 
   return (
-    <div className="grid gap-4">
-      <Notice error={!connecting ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {integrations.map((i) => {
-          const row = connected.get(i.key)
-          return (
-            <li key={i.key} className="flex flex-col gap-3 rounded-lg border p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="font-medium">{i.name}</p>
-                  <p className="text-sm text-muted-foreground">{t.dynamic(`integrations.${i.key}.description`)}</p>
+    <div className="grid gap-8">
+      <div className="grid gap-4">
+        <h2 className="font-medium">{t("settings.tabs.integrations")}</h2>
+        <Notice
+          error={!connecting && !notificationSheet ? param(sp, "error") : undefined}
+          ok={!notificationSheet ? param(sp, "ok") : undefined}
+        />
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {integrations.map((i) => {
+            const row = connected.get(i.key)
+            return (
+              <li key={i.key} className="flex flex-col gap-3 rounded-lg border p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-medium">{i.name}</p>
+                    <p className="text-sm text-muted-foreground">{t.dynamic(`integrations.${i.key}.description`)}</p>
+                  </div>
+                  {row && (
+                    <Badge variant={row.status === "connected" ? "default" : row.status === "pending" ? "outline" : "destructive"}>
+                      {t.dynamic(`integrations.status.${row.status}`)}
+                    </Badge>
+                  )}
                 </div>
-                {row && (
-                  <Badge variant={row.status === "connected" ? "default" : row.status === "pending" ? "outline" : "destructive"}>
-                    {t.dynamic(`integrations.status.${row.status}`)}
-                  </Badge>
+                {row?.last_error && <p className="text-xs text-destructive">{row.last_error}</p>}
+                {i.key === "sumup" && row && (
+                  <p className="text-xs text-muted-foreground">
+                    {t("integrations.sumup.merchant", {
+                      name: String((row.config as Record<string, unknown>)?.merchant_name ?? ""),
+                      code: String((row.config as Record<string, unknown>)?.merchant_code ?? ""),
+                    })}
+                    {!(row.config as Record<string, unknown>)?.can_take_payments && (
+                      <span className="block">{t("integrations.sumup.noPayments")}</span>
+                    )}
+                  </p>
                 )}
-              </div>
-              {row?.last_error && <p className="text-xs text-destructive">{row.last_error}</p>}
-              {i.key === "sumup" && row && (
-                <p className="text-xs text-muted-foreground">
-                  {t("integrations.sumup.merchant", {
-                    name: String((row.config as Record<string, unknown>)?.merchant_name ?? ""),
-                    code: String((row.config as Record<string, unknown>)?.merchant_code ?? ""),
-                  })}
-                  {!(row.config as Record<string, unknown>)?.can_take_payments && <span className="block">{t("integrations.sumup.noPayments")}</span>}
-                </p>
-              )}
-              {i.key === "telegram" && row && (
-                <p className="text-xs text-muted-foreground">
-                  {t("integrations.telegram.bot", { name: String((row.config as Record<string, unknown>)?.bot_username ?? "") })} ·{" "}
-                  {t("integrations.telegram.chats", { count: (((row.config as Record<string, unknown>)?.chats as unknown[]) ?? []).length })}
-                </p>
-              )}
-              <div className="mt-auto flex flex-wrap gap-2">
-                {i.connect ? (
-                  row?.status === "connected" ? null : row?.status === "pending" && (row.config as Record<string, string>)?.via === "onboarding" ? (
-                    <Button render={<a href={`/api/integrations/${i.key}/connect?mode=new`} />} nativeButton={false} size="sm">
-                      {t("integrations.continueSetup")}
-                    </Button>
-                  ) : (
-                    (i.connect.modes ?? ["default"]).map((mode, n) => (
-                      <Button
-                        key={mode}
-                        render={<a href={`/api/integrations/${i.key}/connect?mode=${mode}`} />}
-                        nativeButton={false}
-                        size="sm"
-                        variant={n === 0 ? "default" : "outline"}
-                      >
-                        {t.has(`integrations.${i.key}.modes.${mode}`) ? t.dynamic(`integrations.${i.key}.modes.${mode}`) : t("integrations.connect")}
+                {i.key === "telegram" && row && (
+                  <p className="text-xs text-muted-foreground">
+                    {t("integrations.telegram.bot", {
+                      name: String((row.config as Record<string, unknown>)?.bot_username ?? ""),
+                    })}{" "}
+                    ·{" "}
+                    {t("integrations.telegram.chats", {
+                      count: (((row.config as Record<string, unknown>)?.chats as unknown[]) ?? []).length,
+                    })}
+                  </p>
+                )}
+                <div className="mt-auto flex flex-wrap gap-2">
+                  {i.connect ? (
+                    row?.status === "connected" ? null : row?.status === "pending" &&
+                      (row.config as Record<string, string>)?.via === "onboarding" ? (
+                      <Button render={<a href={`/api/integrations/${i.key}/connect?mode=new`} />} nativeButton={false} size="sm">
+                        {t("integrations.continueSetup")}
                       </Button>
-                    ))
-                  )
-                ) : (
-                  <Button render={<Link href={`?connect=${i.key}`} scroll={false} />} nativeButton={false} size="sm">
-                    {row ? t("integrations.edit") : t("integrations.connect")}
-                  </Button>
-                )}
-                {row && (
-                  <form action={disconnectIntegration.bind(null, i.key)}>
-                    <Button type="submit" variant="outline" size="sm">
-                      {t("integrations.disconnect")}
+                    ) : (
+                      (i.connect.modes ?? ["default"]).map((mode, n) => (
+                        <Button
+                          key={mode}
+                          render={<a href={`/api/integrations/${i.key}/connect?mode=${mode}`} />}
+                          nativeButton={false}
+                          size="sm"
+                          variant={n === 0 ? "default" : "outline"}
+                        >
+                          {t.has(`integrations.${i.key}.modes.${mode}`)
+                            ? t.dynamic(`integrations.${i.key}.modes.${mode}`)
+                            : t("integrations.connect")}
+                        </Button>
+                      ))
+                    )
+                  ) : (
+                    <Button render={<Link href={`?connect=${i.key}`} scroll={false} />} nativeButton={false} size="sm">
+                      {row ? t("integrations.edit") : t("integrations.connect")}
                     </Button>
-                  </form>
-                )}
-              </div>
-            </li>
-          )
-        })}
-      </ul>
+                  )}
+                  {row && (
+                    <form action={disconnectIntegration.bind(null, i.key)}>
+                      <Button type="submit" variant="outline" size="sm">
+                        {t("integrations.disconnect")}
+                      </Button>
+                    </form>
+                  )}
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+
+      <NotificationsSection sp={sp} />
 
       {connecting?.fields && (
         <UrlDialog

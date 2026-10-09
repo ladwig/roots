@@ -123,7 +123,7 @@ begin
   -- A (owner): can't remove the last owner; audit trail exists
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   set local role authenticated;
-  select count(*) into n from public.audit_log where org_id = org_a;         assert n >= 3, 'A should see activity';
+  select count(*) into n from public.audit_log where org_id = org_a;         assert n = 0, 'only platform admins read the change log';
   select count(*) into n from public.pay_orders;                             assert n = 1, 'owner should see orders';
   select count(*) into n from public.event_subscriptions;                    assert n = 1, 'owner should see subscriptions';
   select count(*) into n from public.event_deliveries;                       assert n >= 1, 'owner should see deliveries';
@@ -175,6 +175,7 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', d, 'role', 'authenticated')::text, true);
   set local role authenticated;
   select count(*) into n from public.orgs where id in (org_a, org_b);        assert n = 2, 'admin should see all orgs';
+  select count(*) into n from public.audit_log where org_id = org_a;         assert n >= 3, 'admin should read the change log';
   select count(*) into n from public.admin_users() where id in (a, b, c, d); assert n = 4, 'admin should list users';
   assert public.has_perm(org_b, 'org.members.manage'), 'admin should have every permission';
   update public.orgs set slug = 'iso-org-b2' where id = org_b;

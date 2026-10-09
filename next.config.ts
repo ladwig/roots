@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
     return [
       { source: "/settings", destination: "/settings/general", permanent: false },
       { source: "/admin", destination: "/admin/orgs", permanent: false },
+      { source: "/settings/activity", destination: "/settings/general", permanent: false },
+      { source: "/settings/notifications", destination: "/settings/integrations#notifications", permanent: false },
     ];
   },
   partialPrefetching: true,

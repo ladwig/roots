@@ -102,11 +102,16 @@ async function EditOrg({ t, orgId, error, ok }: { t: T; orgId: string; error?: s
   return (
     <UrlSheet params={["edit"]} title={org.name} description={`${org.slug}.${ROOT_DOMAIN}`}>
       <Notice error={error} ok={ok} />
-      <form action={openOrg.bind(null, org.id)}>
-        <Button type="submit" variant="outline" className="w-full">
-          {t("admin.orgs.open")}
+      <div className="grid grid-cols-2 gap-2">
+        <form action={openOrg.bind(null, org.id)}>
+          <Button type="submit" variant="outline" className="w-full">
+            {t("admin.orgs.open")}
+          </Button>
+        </form>
+        <Button render={<Link href={`/admin/activity?org=${org.id}`} />} nativeButton={false} variant="outline">
+          {t("admin.activity.title")}
         </Button>
-      </form>
+      </div>
 
       <section className="grid gap-3">
         <h3 className="font-medium">{t("admin.orgs.details")}</h3>

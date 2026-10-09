@@ -3,13 +3,12 @@ import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
 
 const tabs = [
+  { key: "profile" },
   { key: "general" },
   { key: "members" },
   { key: "roles" },
   { key: "modules" },
   { key: "integrations", permission: "org.integrations.manage" },
-  { key: "notifications", permission: "org.integrations.manage" },
-  { key: "activity", permission: "org.audit.view" },
 ]
 
 export default async function SettingsLayout({ children }: { children: React.ReactNode }) {

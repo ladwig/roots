@@ -80,8 +80,8 @@
       "roles": "Rollen",
       "modules": "Module",
       "integrations": "Integrationen",
-      "activity": "Aktivität",
-      "notifications": "Benachrichtigungen"
+      "notifications": "Benachrichtigungen",
+      "profile": "Profil"
     }
   },
   "general": {
@@ -201,7 +201,6 @@
     "org.settings.manage": "Organisationseinstellungen bearbeiten",
     "org.members.manage": "Mitglieder einladen und verwalten",
     "org.integrations.manage": "Integrationen verbinden",
-    "org.audit.view": "Aktivitätsprotokoll ansehen",
     "crm.view": "Kontakte ansehen",
     "crm.manage": "Kontakte bearbeiten",
     "payments.view": "Bestellungen und Zahlungen ansehen",
@@ -293,7 +292,10 @@
       "org_members": "Mitglieder",
       "invites": "Einladungen",
       "org_modules": "Module",
-      "org_integrations": "Integrationen"
+      "org_integrations": "Integrationen",
+      "platform_admins": "Superadmins",
+      "event_subscriptions": "Benachrichtigungen",
+      "pay_orders": "Bestellungen"
     }
   },
   "errors": {
@@ -385,6 +387,10 @@
       "intro": "Rollen gelten für alle Organisationen. Organisationen weisen sie nur zu.",
       "inOrgs": "Vergeben",
       "ownerBadge": "Inhaber-Rolle"
+    },
+    "activity": {
+      "title": "Aktivität",
+      "filteredBy": "Gefiltert auf {org}."
     }
   },
   "account": {

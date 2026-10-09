@@ -20,7 +20,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       .map((n) => ({ href: n.href, label: t.dynamic(n.label) })),
     { href: "/settings", label: t("shell.settings") },
     ...(ctx.isPlatformAdmin ? [{ href: "/admin", label: t("admin.link") }] : []),
-    { href: "/account", label: t("account.link"), mobileOnly: true },
+    { href: "/settings/profile", label: t("account.link"), mobileOnly: true },
   ]
 
   return (
@@ -37,7 +37,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <div className="hidden gap-2 md:mt-auto md:grid">
           <LocaleSwitcher />
           <form action={signOut} className="flex items-center justify-between gap-2">
-            <Link href="/account" className="truncate text-xs text-muted-foreground underline-offset-4 hover:underline" title={t("account.link")}>
+            <Link href="/settings/profile" className="truncate text-xs text-muted-foreground underline-offset-4 hover:underline" title={t("account.link")}>
               {ctx.email}
             </Link>
             <Button type="submit" variant="ghost" size="sm">

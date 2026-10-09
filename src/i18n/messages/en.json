@@ -80,8 +80,8 @@
       "roles": "Roles",
       "modules": "Modules",
       "integrations": "Integrations",
-      "activity": "Activity",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "profile": "Profile"
     }
   },
   "general": {
@@ -201,7 +201,6 @@
     "org.settings.manage": "Edit organisation settings",
     "org.members.manage": "Invite and manage members",
     "org.integrations.manage": "Connect integrations",
-    "org.audit.view": "View the activity log",
     "crm.view": "View contacts",
     "crm.manage": "Edit contacts",
     "payments.view": "View orders and payments",
@@ -293,7 +292,10 @@
       "org_members": "Members",
       "invites": "Invites",
       "org_modules": "Modules",
-      "org_integrations": "Integrations"
+      "org_integrations": "Integrations",
+      "platform_admins": "Superadmins",
+      "event_subscriptions": "Notifications",
+      "pay_orders": "Orders"
     }
   },
   "errors": {
@@ -385,6 +387,10 @@
       "intro": "Roles apply to all organisations. Organisations only assign them.",
       "inOrgs": "Assigned",
       "ownerBadge": "Owner role"
+    },
+    "activity": {
+      "title": "Activity",
+      "filteredBy": "Filtered to {org}."
     }
   },
   "account": {

@@ -6,7 +6,7 @@ import { authError, dbError } from "@/i18n/translate"
 import { getSession } from "@/lib/context"
 import { back } from "@/lib/url"
 
-const PATH = "/account"
+const backTo = (formData: FormData) => (formData.get("back") === "/settings/profile" ? "/settings/profile" : "/account")
 
 export async function updateName(formData: FormData) {
   const session = await getSession()
@@ -14,8 +14,8 @@ export async function updateName(formData: FormData) {
   const t = await getT()
   const full_name = String(formData.get("full_name") ?? "").trim() || null
   const { error } = await session.supabase.from("profiles").update({ full_name }).eq("id", session.userId)
-  if (error) back(PATH, { error: dbError(t, error) })
-  back(PATH, { ok: t("account.saved") })
+  if (error) back(backTo(formData), { error: dbError(t, error) })
+  back(backTo(formData), { ok: t("account.saved") })
 }
 
 export async function updatePassword(formData: FormData) {
@@ -23,9 +23,9 @@ export async function updatePassword(formData: FormData) {
   if (!session) redirect("/login?next=/account")
   const t = await getT()
   const password = String(formData.get("password") ?? "")
-  if (password.length < 8) back(PATH, { error: t("auth.passwordTooShort") })
-  if (password !== String(formData.get("repeat") ?? "")) back(PATH, { error: t("account.passwordsDontMatch") })
+  if (password.length < 8) back(backTo(formData), { error: t("auth.passwordTooShort") })
+  if (password !== String(formData.get("repeat") ?? "")) back(backTo(formData), { error: t("account.passwordsDontMatch") })
   const { error } = await session.supabase.auth.updateUser({ password })
-  if (error) back(PATH, { error: authError(t, error) })
-  back(PATH, { ok: t("account.passwordChanged") })
+  if (error) back(backTo(formData), { error: authError(t, error) })
+  back(backTo(formData), { ok: t("account.passwordChanged") })
 }
