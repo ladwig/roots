@@ -5,6 +5,7 @@ import "./globals.css";
 import { messages } from "@/i18n/config";
 import { I18nProvider } from "@/i18n/client";
 import { getLocale, getT } from "@/i18n/server";
+import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 const geistSans = Geist({
@@ -36,6 +37,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <TooltipProvider>
             <Suspense>{children}</Suspense>
           </TooltipProvider>
+          <Toaster position="top-center" />
         </I18nProvider>
       </body>
     </html>

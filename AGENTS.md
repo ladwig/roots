@@ -40,7 +40,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## App patterns
 - `getContext()` / `requirePerm(perm)` (`src/lib/context.ts`): signed-in user, active org, role, enabled modules, `can(perm)`.
   `ctx.supabase` sends `x-org-id` → the database only shows the active org (`public.request_org()` inside `is_member/has_perm`). Still filter by `org_id` in queries; the header is the safety net. Cross-org queries (org switcher, `/admin`) use the unscoped session client.
-- Server Actions report back through the URL: `back(path, { error | ok })` + `<Notice>`. Forms that must keep their state use `useActionState`.
+- Server Actions report back through the URL: `back(path, { error | ok })` + `<Notice>`, which shows it as a toast (sonner, `<Toaster>` in the root layout) and strips the params. No inline success/error boxes; for client code call `toast()` from `sonner`. Forms that must keep their state use `useActionState`.
 - CRUD screens: `<DataTable>` (+ `<SearchBox>` `?q=`, `<Pager>` `?page=`) from `@/components/data-table`; clicking a row links to `?edit=<id>`, which renders `<UrlSheet params={["edit"]}>` (side drawer) with the edit form. "New" = `?new=<thing>` + `<UrlSheet>`. Build links with `withParams(sp, {...})` to keep other params. `<UrlDialog>` only for confirmations.
 - Plain shadcn styling for now; the design system comes later.
 - Forms in drawers pass the record id as a hidden `id` field (not `action.bind(null, id)`), so every action is a plain form post (no JS needed, callable from tests).
