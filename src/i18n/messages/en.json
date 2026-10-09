@@ -325,7 +325,9 @@
       "events": "Events",
       "contacts": "Contacts",
       "contact_notes": "Contact notes",
-      "custom_fields": "Custom fields"
+      "custom_fields": "Custom fields",
+      "ticket_types": "Ticket types",
+      "tickets": "Tickets"
     }
   },
   "errors": {
@@ -599,7 +601,8 @@
       "event.updated": "Event changed (time/place)",
       "event.cancelled": "Event cancelled",
       "contact.created": "Contact created",
-      "contacts.imported": "Contacts imported"
+      "contacts.imported": "Contacts imported",
+      "tickets.sold": "Tickets sold"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -614,7 +617,8 @@
       "event.updated": "🕒 Changed: {title}, now {when}",
       "event.cancelled": "❌ Cancelled: {title} ({when})",
       "contact.created": "👤 New contact: {name}",
-      "contacts.imported": "📥 {count} contacts imported"
+      "contacts.imported": "📥 {count} contacts imported",
+      "tickets.sold": "🎟️ {count} tickets for {title} ({email})"
     }
   },
   "inbox": {
@@ -797,5 +801,115 @@
     "previewMore": "First {shown} of {total} rows. Errors in all rows are listed above.",
     "mapManual": "No column was recognised automatically. Map your file's columns (left) to our fields (right).",
     "mapFirst": "Map at least one column to see the preview here."
+  },
+  "tickets": {
+    "title": "Tickets",
+    "manage": "Manage tickets",
+    "scan": "Scan",
+    "scanNav": "Check-in",
+    "shop": "Ticket shop",
+    "summary": "{sold} sold · {checkedIn} checked in",
+    "notPublished": "The event isn't published yet – the ticket shop appears on the public page once it is.",
+    "types": "Ticket types",
+    "newType": "New ticket type",
+    "noTypes": "No ticket types yet. Add e.g. “Regular” and “Reduced”.",
+    "typeName": "Ticket type",
+    "typeNamePlaceholder": "e.g. Regular, Reduced, VIP",
+    "typeDescription": "Description (optional)",
+    "price": "Price",
+    "priceEur": "Price in € (0 = free)",
+    "quota": "Quota (empty = unlimited)",
+    "sold": "Sold",
+    "left": "Left",
+    "window": "Sales window",
+    "salesStart": "On sale from (optional)",
+    "salesEnd": "On sale until (optional)",
+    "activeLabel": "Offer in the shop",
+    "inactive": "inactive",
+    "invalidPrice": "Please enter a valid price, e.g. 12.50.",
+    "saved": "Saved.",
+    "deleted": "Ticket type deleted.",
+    "deleteType": "Delete ticket type",
+    "deleteHint": "Only possible while no tickets of this type were sold. Otherwise deactivate it.",
+    "typeHasTickets": "There are already tickets of this type. Deactivate it instead.",
+    "names": "Names on tickets",
+    "namesMode": {
+      "off": "No names",
+      "optional": "Ask, optional",
+      "required": "Required"
+    },
+    "maxPerOrder": "Max. tickets per order",
+    "soldTickets": "Sold tickets",
+    "search": "Search code or name…",
+    "status": "Status",
+    "allSold": "All",
+    "statuses": {
+      "valid": "Valid",
+      "used": "Checked in",
+      "reserved": "Reserved",
+      "void": "Cancelled"
+    },
+    "noTickets": "No tickets sold yet.",
+    "code": "Code",
+    "holder": "Name",
+    "buyer": "Buyer",
+    "notOnSale": "These tickets aren't available right now.",
+    "soldOut": "Sold out – someone was faster.",
+    "scanTitle": "Check-in",
+    "pickEvent": "Choose event",
+    "noEventsToScan": "No published events in the last days or coming up.",
+    "cameraOn": "Start camera",
+    "cameraOff": "Stop camera",
+    "codePlaceholder": "Enter code",
+    "checkIn": "Check in",
+    "scanResult": {
+      "ok": "✓ Valid – let in",
+      "used": "Already checked in",
+      "invalid": "✗ Invalid",
+      "error": "Error"
+    },
+    "usedAt": "Checked in at {time}",
+    "scanFailed": "Check failed. Please try again."
+  },
+  "shop": {
+    "title": "Tickets",
+    "free": "Free",
+    "soldOut": "sold out",
+    "from": "from {date}",
+    "over": "no longer available",
+    "left": {
+      "one": "only 1 left",
+      "other": "only {count} left"
+    },
+    "quantity": "Quantity {name}",
+    "continue": "Continue",
+    "checkoutTitle": "Order tickets",
+    "nothing": "You haven't picked any tickets.",
+    "backToEvent": "Back to the event",
+    "ticketN": "Ticket {n}",
+    "holder": "Name on the ticket",
+    "holderOptional": "Name on the ticket (optional)",
+    "total": "Total",
+    "name": "Your name",
+    "email": "Your email",
+    "emailHint": "You get your tickets right after paying on the next page. Save the link.",
+    "pay": "Pay {amount}",
+    "getFree": "Get tickets",
+    "nameMissing": "Please enter your name.",
+    "holderMissing": "Please enter a name on every ticket.",
+    "tooMany": "At most {max} tickets per order.",
+    "failed": "That didn't work. Please try again.",
+    "yourTickets": "Your tickets",
+    "waiting": "Your payment is still being confirmed. Reload this page in a moment.",
+    "keepLink": "Show the QR code at the entrance. Save this page (link) or take a screenshot.",
+    "orderStatus": {
+      "expired": "The payment wasn't completed. The tickets were released.",
+      "failed": "The payment failed.",
+      "cancelled": "This order was cancelled.",
+      "refunded": "This order was refunded. The tickets are invalid.",
+      "partially_refunded": "This order was partly refunded."
+    },
+    "used": "Checked in",
+    "qr": "QR code for ticket {code}"
   }
 }

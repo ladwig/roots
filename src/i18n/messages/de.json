@@ -325,7 +325,9 @@
       "events": "Events",
       "contacts": "Kontakte",
       "contact_notes": "Kontakt-Notizen",
-      "custom_fields": "Eigene Felder"
+      "custom_fields": "Eigene Felder",
+      "ticket_types": "Ticketarten",
+      "tickets": "Tickets"
     }
   },
   "errors": {
@@ -599,7 +601,8 @@
       "event.updated": "Event geändert (Zeit/Ort)",
       "event.cancelled": "Event abgesagt",
       "contact.created": "Kontakt angelegt",
-      "contacts.imported": "Kontakte importiert"
+      "contacts.imported": "Kontakte importiert",
+      "tickets.sold": "Tickets verkauft"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -614,7 +617,8 @@
       "event.updated": "🕒 Geändert: {title}, jetzt {when}",
       "event.cancelled": "❌ Abgesagt: {title} ({when})",
       "contact.created": "👤 Neuer Kontakt: {name}",
-      "contacts.imported": "📥 {count} Kontakte importiert"
+      "contacts.imported": "📥 {count} Kontakte importiert",
+      "tickets.sold": "🎟️ {count} Tickets für {title} ({email})"
     }
   },
   "inbox": {
@@ -797,5 +801,115 @@
     "previewMore": "Die ersten {shown} von {total} Zeilen. Fehler in allen Zeilen stehen oben.",
     "mapManual": "Keine Spalte automatisch erkannt. Ordne die Spalten deiner Datei (links) unseren Feldern (rechts) zu.",
     "mapFirst": "Ordne mindestens eine Spalte zu, dann siehst du hier die Vorschau."
+  },
+  "tickets": {
+    "title": "Tickets",
+    "manage": "Tickets verwalten",
+    "scan": "Scannen",
+    "scanNav": "Einlass",
+    "shop": "Ticketshop",
+    "summary": "{sold} verkauft · {checkedIn} eingecheckt",
+    "notPublished": "Das Event ist noch nicht veröffentlicht – der Ticketshop erscheint erst danach auf der öffentlichen Seite.",
+    "types": "Ticketarten",
+    "newType": "Neue Ticketart",
+    "noTypes": "Noch keine Ticketarten. Lege z. B. „Normal“ und „Ermäßigt“ an.",
+    "typeName": "Ticketart",
+    "typeNamePlaceholder": "z. B. Normal, Ermäßigt, VIP",
+    "typeDescription": "Beschreibung (optional)",
+    "price": "Preis",
+    "priceEur": "Preis in € (0 = kostenlos)",
+    "quota": "Kontingent (leer = unbegrenzt)",
+    "sold": "Verkauft",
+    "left": "Frei",
+    "window": "Verkaufszeitraum",
+    "salesStart": "Verkauf ab (optional)",
+    "salesEnd": "Verkauf bis (optional)",
+    "activeLabel": "Im Shop anbieten",
+    "inactive": "inaktiv",
+    "invalidPrice": "Bitte einen gültigen Preis angeben, z. B. 12,50.",
+    "saved": "Gespeichert.",
+    "deleted": "Ticketart gelöscht.",
+    "deleteType": "Ticketart löschen",
+    "deleteHint": "Nur möglich, solange noch keine Tickets dieser Art verkauft wurden. Sonst deaktivieren.",
+    "typeHasTickets": "Für diese Ticketart gibt es schon Tickets. Deaktiviere sie stattdessen.",
+    "names": "Namen auf Tickets",
+    "namesMode": {
+      "off": "Keine Namen",
+      "optional": "Optional abfragen",
+      "required": "Pflicht"
+    },
+    "maxPerOrder": "Max. Tickets pro Bestellung",
+    "soldTickets": "Verkaufte Tickets",
+    "search": "Code oder Name suchen…",
+    "status": "Status",
+    "allSold": "Alle",
+    "statuses": {
+      "valid": "Gültig",
+      "used": "Eingecheckt",
+      "reserved": "Reserviert",
+      "void": "Storniert"
+    },
+    "noTickets": "Noch keine Tickets verkauft.",
+    "code": "Code",
+    "holder": "Name",
+    "buyer": "Käufer:in",
+    "notOnSale": "Diese Tickets sind gerade nicht erhältlich.",
+    "soldOut": "Leider ausverkauft – jemand war schneller.",
+    "scanTitle": "Einlass",
+    "pickEvent": "Event wählen",
+    "noEventsToScan": "Keine veröffentlichten Events in den letzten Tagen oder demnächst.",
+    "cameraOn": "Kamera starten",
+    "cameraOff": "Kamera stoppen",
+    "codePlaceholder": "Code eingeben",
+    "checkIn": "Einchecken",
+    "scanResult": {
+      "ok": "✓ Gültig – Einlass",
+      "used": "Schon eingecheckt",
+      "invalid": "✗ Ungültig",
+      "error": "Fehler"
+    },
+    "usedAt": "Eingecheckt um {time}",
+    "scanFailed": "Prüfung fehlgeschlagen. Bitte noch einmal versuchen."
+  },
+  "shop": {
+    "title": "Tickets",
+    "free": "Kostenlos",
+    "soldOut": "ausverkauft",
+    "from": "ab {date}",
+    "over": "nicht mehr erhältlich",
+    "left": {
+      "one": "nur noch 1",
+      "other": "nur noch {count}"
+    },
+    "quantity": "Anzahl {name}",
+    "continue": "Weiter",
+    "checkoutTitle": "Tickets bestellen",
+    "nothing": "Du hast keine Tickets ausgewählt.",
+    "backToEvent": "Zurück zum Event",
+    "ticketN": "Ticket {n}",
+    "holder": "Name auf dem Ticket",
+    "holderOptional": "Name auf dem Ticket (optional)",
+    "total": "Gesamt",
+    "name": "Dein Name",
+    "email": "Deine E-Mail",
+    "emailHint": "Deine Tickets bekommst du direkt nach der Zahlung auf der nächsten Seite. Speichere dir den Link.",
+    "pay": "{amount} bezahlen",
+    "getFree": "Tickets holen",
+    "nameMissing": "Bitte gib deinen Namen an.",
+    "holderMissing": "Bitte trage auf jedem Ticket einen Namen ein.",
+    "tooMany": "Höchstens {max} Tickets pro Bestellung.",
+    "failed": "Das hat nicht geklappt. Bitte versuche es noch einmal.",
+    "yourTickets": "Deine Tickets",
+    "waiting": "Deine Zahlung wird noch bestätigt. Lade die Seite in einem Moment neu.",
+    "keepLink": "Zeig den QR-Code am Einlass vor. Speichere dir diese Seite (Link) oder mach einen Screenshot.",
+    "orderStatus": {
+      "expired": "Die Zahlung wurde nicht abgeschlossen. Die Tickets sind wieder freigegeben.",
+      "failed": "Die Zahlung ist fehlgeschlagen.",
+      "cancelled": "Diese Bestellung wurde abgebrochen.",
+      "refunded": "Diese Bestellung wurde erstattet. Die Tickets sind ungültig.",
+      "partially_refunded": "Diese Bestellung wurde teilweise erstattet."
+    },
+    "used": "Eingecheckt",
+    "qr": "QR-Code für Ticket {code}"
   }
 }

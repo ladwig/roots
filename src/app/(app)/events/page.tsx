@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ExternalLinkIcon } from "lucide-react"
+import { ExternalLinkIcon, TicketIcon } from "lucide-react"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { ImageForm } from "@/components/image-form"
 import { Notice } from "@/components/notice"
@@ -140,7 +140,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
           <EventForm t={t} action={createEvent} />
         </UrlSheet>
       )}
-      {editing && <EditEvent t={t} ev={editing} sp={sp} canManage={canManage} orgSlug={ctx.org.slug} />}
+      {editing && <EditEvent t={t} ev={editing} sp={sp} canManage={canManage} orgSlug={ctx.org.slug} tickets={ctx.modules.has("tickets") && ctx.can("tickets.view")} />}
     </div>
   )
 }
@@ -215,7 +215,7 @@ function EventForm({ t, action, ev, disabled }: { t: T; action: (fd: FormData) =
   )
 }
 
-function EditEvent({ t, ev, sp, canManage, orgSlug }: { t: T; ev: Ev; sp: SearchParams; canManage: boolean; orgSlug: string }) {
+function EditEvent({ t, ev, sp, canManage, orgSlug, tickets }: { t: T; ev: Ev; sp: SearchParams; canManage: boolean; orgSlug: string; tickets: boolean }) {
   const publicHref = siteUrl(orgSlug, `/e/${ev.slug}`)
   return (
     <UrlSheet params={["edit"]} title={ev.title} description={t.date(ev.starts_at, { dateStyle: "full", timeStyle: "short" })}>
@@ -250,6 +250,11 @@ function EditEvent({ t, ev, sp, canManage, orgSlug }: { t: T; ev: Ev; sp: Search
               </a>
             )}
           </div>
+          {tickets && (
+            <Button render={<Link href={`/events/${ev.id}/tickets`} />} nativeButton={false} size="sm" variant="outline" className="justify-self-start">
+              <TicketIcon /> {t("tickets.manage")}
+            </Button>
+          )}
           {canManage ? (
             <div className="flex flex-wrap gap-2">
               {ev.status !== "published" && (

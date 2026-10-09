@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { getT } from "@/i18n/server"
 import { imageUrl } from "@/lib/images"
 import { getSite } from "../../data"
+import { TicketShop } from "./shop"
 
 export default async function PublicEvent({ params }: PageProps<"/s/[site]/e/[slug]">) {
   const { site, slug } = await params
@@ -12,7 +13,7 @@ export default async function PublicEvent({ params }: PageProps<"/s/[site]/e/[sl
   if (!s) notFound()
   const { data: e } = await s.db
     .from("events")
-    .select("title, status, starts_at, ends_at, venue_name, venue_address, description, image_path")
+    .select("id, title, status, starts_at, ends_at, venue_name, venue_address, description, image_path, max_tickets_per_order")
     .eq("org_id", s.org.id)
     .eq("slug", slug)
     .maybeSingle()
@@ -45,6 +46,7 @@ export default async function PublicEvent({ params }: PageProps<"/s/[site]/e/[sl
         )}
       </header>
       {e.description && <p className="whitespace-pre-line">{e.description}</p>}
+      {e.status === "published" && <TicketShop site={site} slug={slug} eventId={e.id} max={e.max_tickets_per_order} />}
     </main>
   )
 }

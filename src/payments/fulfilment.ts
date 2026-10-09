@@ -1,3 +1,5 @@
+import { issueTickets, voidTickets } from "@/tickets/server"
+
 // What happens when an order is paid or refunded, per selling module (pay_orders.source_module).
 // Handlers must be idempotent: a webhook can be delivered more than once.
 export type PaidOrder = {
@@ -13,5 +15,5 @@ type Handlers = { onPaid?(order: PaidOrder): Promise<void>; onRefunded?(order: P
 
 export const fulfilment: Record<string, Handlers> = {
   test: {}, // test payments from /payments: nothing to deliver
-  // tickets: { onPaid: issueTickets, onRefunded: voidTickets },  ← Ticketing registers here
+  tickets: { onPaid: (o) => issueTickets(o), onRefunded: (o) => voidTickets(o) },
 }

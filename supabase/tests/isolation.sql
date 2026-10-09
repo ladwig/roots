@@ -341,6 +341,61 @@ begin
   exception when insufficient_privilege then null; end;
   reset role;
 
+  -- Tickets: quota can't be oversold, scan needs tickets.scan, anon sees types of published events only
+  insert into public.org_modules (org_id, module_key) values (org_a, 'tickets'), (org_a, 'events');
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  insert into public.ticket_types (org_id, event_id, name, price, quota)
+    select org_a, id, 'Normal', 1500, 2 from public.events where org_id = org_a and slug = 'live';
+  reset role;
+  declare
+    v_ev uuid := (select id from public.events where org_id = org_a and slug = 'live');
+    v_type uuid := (select id from public.ticket_types where event_id = (select id from public.events where org_id = org_a and slug = 'live'));
+    v_order uuid;
+    v_code text;
+    v_res text;
+  begin
+    insert into public.pay_orders (org_id, amount_total, source_module) values (org_a, 3000, 'tickets') returning id into v_order;
+    set local role service_role;
+    perform public.reserve_tickets(v_order, v_ev, jsonb_build_array(jsonb_build_object('type_id', v_type, 'holder_name', 'Max'), jsonb_build_object('type_id', v_type)), 30);
+    begin
+      perform public.reserve_tickets(v_order, v_ev, jsonb_build_array(jsonb_build_object('type_id', v_type)), 30);
+      assert false, 'quota must not be oversold';
+    exception when raise_exception then null; end;
+    reset role;
+    select remaining into n from public.ticket_availability(v_ev) where type_id = v_type; assert n = 0, 'availability counts reservations';
+    update public.tickets set status = 'valid' where order_id = v_order;
+    select count(*) into n from public.hub_events where org_id = org_a and type = 'tickets.sold'; assert n = 1, 'one tickets.sold per order';
+    select code into v_code from public.tickets where order_id = v_order and holder_name = 'Max';
+    assert v_code ~ '^[A-HJ-NP-Z2-9]{10}$', 'ticket code format';
+    perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.tickets where org_id = org_a;         assert n = 0, 'B sees tickets of A';
+    begin
+      perform public.check_in_ticket(v_ev, v_code);
+      assert false, 'B must not check in tickets of A';
+    exception when raise_exception then null; end;
+    begin
+      update public.tickets set status = 'used' where org_id = org_a;
+      assert false, 'tickets are not writable directly';
+    exception when insufficient_privilege then null; end;
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select result into v_res from public.check_in_ticket(v_ev, lower(v_code)); assert v_res = 'ok', 'owner checks in: ' || v_res;
+    select result into v_res from public.check_in_ticket(v_ev, v_code);        assert v_res = 'used', 'second scan says used';
+    select result into v_res from public.check_in_ticket(v_ev, 'ZZZZZZZZZZ');  assert v_res = 'invalid', 'unknown code invalid';
+    reset role;
+    perform set_config('request.jwt.claims', '{}', true);
+    set local role anon;
+    select count(*) into n from public.ticket_types where event_id = v_ev;   assert n = 1, 'anon sees types of a published event';
+    begin
+      perform 1 from public.tickets limit 1;
+      assert false, 'anon must not read tickets';
+    exception when insufficient_privilege then null; end;
+    reset role;
+  end;
+
   -- x-org-id header: C is now in A and B, but with the header only sees the active org
   perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
   set local role authenticated;

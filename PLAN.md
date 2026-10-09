@@ -107,7 +107,7 @@ Modules contribute to both: e.g. Events = event management in the App + event pa
 ### Events
 - ✅ Events (date/time in Berlin time, venue, description, image, status draft/published/cancelled, capacity), soft delete + trash, public list + event page, hub events `event.published/updated/cancelled`.
 - Next: lineup/artists, public API (`/api/v1`, org API keys, OpenAPI docs page).
-- **Ticketing**
+- **Ticketing** ✅ v1: ticket types (price, quota, sale window), public shop + checkout with names per ticket (event setting), atomic reservations, tickets on webhook, buyer page with QR (token link), buyer → contact, `tickets.sold`, scanner (camera + code). Next: tiers, promo codes / discount links, PDF + email, offline scanning.
   - Ticket types, each with a list of **tiers** (price, quota, sale window, order).
     The active tier is the first one that isn't sold out and is inside its window. When one sells out, the next one takes over automatically.
   - Inventory is changed **atomically in Postgres** (a function that locks the row). Checkout creates a short **hold** that expires, so tickets can't be oversold.
