@@ -35,13 +35,12 @@ begin
 
   -- C joins A as Member (bypassing invites, as postgres)
   insert into public.org_members (org_id, user_id, role_id)
-  select org_a, c, id from public.roles where org_id = org_a and name = 'Member';
+  select org_a, c, id from public.roles where org_id is null and name ->> 'en' = 'Member';
 
   -- B must not see anything of A
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
   set local role authenticated;
   select count(*) into n from public.orgs;                                   assert n = 1, 'B sees other orgs';
-  select count(*) into n from public.roles where org_id = org_a;             assert n = 0, 'B sees roles of A';
   select count(*) into n from public.org_members where org_id = org_a;       assert n = 0, 'B sees members of A';
   select count(*) into n from public.org_modules where org_id = org_a;       assert n = 0, 'B sees modules of A';
   select count(*) into n from public.audit_log where org_id = org_a;         assert n = 0, 'B sees activity of A';
@@ -54,10 +53,12 @@ begin
   exception when insufficient_privilege then null;
   end;
   begin
-    insert into public.roles (org_id, name, permissions) values (org_a, 'Evil', '{*}');
-    assert false, 'B created a role in A';
+    insert into public.roles (name, permissions) values ('{"de": "Böse"}', '{*}');
+    assert false, 'non-admin created a role';
   exception when insufficient_privilege then null;
   end;
+  update public.roles set permissions = '{*}' where org_id is null and name ->> 'en' = 'Member';
+  get diagnostics n = row_count;                                             assert n = 0, 'non-admin edited a global role';
   assert not public.has_perm(org_a, 'events.view'), 'B has a permission in A';
   reset role;
 
@@ -69,7 +70,7 @@ begin
   select count(*) into n from public.audit_log;                              assert n = 0, 'C sees activity without org.audit.view';
   update public.orgs set name = 'renamed' where id = org_a;
   get diagnostics n = row_count;                                             assert n = 0, 'C renamed org without permission';
-  update public.org_members set role_id = (select id from public.roles where org_id = org_a and name = 'Admin') where user_id = c;
+  update public.org_members set role_id = (select id from public.roles where org_id is null and name ->> 'en' = 'Admin') where user_id = c;
   get diagnostics n = row_count;                                             assert n = 0, 'C promoted themselves';
   begin
     perform public.save_integration(org_a, 'resend', '{}', 'secret');
@@ -86,7 +87,7 @@ begin
   -- A (owner): can't remove the last owner; audit trail exists
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   set local role authenticated;
-  select count(*) into n from public.audit_log where org_id = org_a;         assert n >= 6, 'A should see activity';
+  select count(*) into n from public.audit_log where org_id = org_a;         assert n >= 3, 'A should see activity';
   begin
     delete from public.org_members where user_id = a and org_id = org_a;
     assert false, 'last owner could leave';
@@ -128,7 +129,12 @@ begin
   update public.orgs set slug = 'iso-org-b2' where id = org_b;
   get diagnostics n = row_count;                                             assert n = 1, 'admin should change the address';
   insert into public.org_members (org_id, user_id, role_id)
-  select org_b, c, id from public.roles where org_id = org_b and name = 'Member';
+  select org_b, c, id from public.roles where org_id is null and name ->> 'en' = 'Member';
+  insert into public.roles (name, permissions) values ('{"de": "Kassenwart", "en": "Treasurer"}', '{payments.*}');
+  update public.roles set permissions = '{payments.view}' where name ->> 'en' = 'Treasurer';
+  get diagnostics n = row_count;                                             assert n = 1, 'admin should edit roles';
+  delete from public.roles where is_owner;
+  get diagnostics n = row_count;                                             assert n = 0, 'owner role must not be deletable';
   begin
     delete from public.platform_admins where user_id = d;
     get diagnostics n = row_count;                                           assert n = 0, 'admin removed themselves';

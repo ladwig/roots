@@ -88,7 +88,7 @@ async function EditOrg({ t, orgId, error, ok }: { t: T; orgId: string; error?: s
   const [{ data: org }, { data: members }, { data: roles }] = await Promise.all([
     supabase.from("orgs").select("id, name, slug").eq("id", orgId).maybeSingle(),
     supabase.from("org_members").select("id, user_id, roles(name)").eq("org_id", orgId).order("created_at"),
-    supabase.from("roles").select("id, name, is_owner").eq("org_id", orgId).order("is_owner", { ascending: false }).order("name"),
+    supabase.from("roles").select("id, name, is_owner").or(`org_id.is.null,org_id.eq.${orgId}`).order("is_owner", { ascending: false }).order("created_at"),
   ])
   if (!org) return null
   const { data: profiles } = await supabase.from("profiles").select("id, email, full_name").in("id", members?.map((m) => m.user_id) ?? [])
@@ -130,7 +130,7 @@ async function EditOrg({ t, orgId, error, ok }: { t: T; orgId: string; error?: s
                 <li key={m.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
                   <span className="min-w-0">
                     <span className="block truncate">{p?.full_name || p?.email}</span>
-                    <span className="text-xs text-muted-foreground">{m.roles?.name}</span>
+                    <span className="text-xs text-muted-foreground">{t.pick(m.roles?.name)}</span>
                   </span>
                   <form action={removeMember.bind(null, org.id, m.id)}>
                     <Button type="submit" variant="ghost" size="sm">
@@ -151,7 +151,7 @@ async function EditOrg({ t, orgId, error, ok }: { t: T; orgId: string; error?: s
             <NativeSelect name="role_id" aria-label={t("members.role")} className="flex-1">
               {roles?.map((r) => (
                 <NativeSelectOption key={r.id} value={r.id}>
-                  {r.name}
+                  {t.pick(r.name)}
                 </NativeSelectOption>
               ))}
             </NativeSelect>

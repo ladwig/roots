@@ -114,7 +114,7 @@
     "expiresHeader": "Expires"
   },
   "roles": {
-    "intro": "A role is a set of things people are allowed to do.",
+    "intro": "Roles are set by the platform. Here you can see what each role may do.",
     "new": "New role",
     "locked": "Can't be changed",
     "edit": "Edit",
@@ -140,15 +140,10 @@
     "saved": "Role saved.",
     "deleted": "Role deleted.",
     "inUse": "Members still have this role. Give them another role first.",
-    "defaults": {
-      "owner": "Owner",
-      "admin": "Admin",
-      "member": "Member",
-      "doorStaff": "Door staff"
-    },
     "permissions": "Permissions",
     "members": "Members",
-    "empty": "No roles yet."
+    "empty": "No roles yet.",
+    "canDo": "What this role can do"
   },
   "modules": {
     "on": "On",
@@ -198,7 +193,6 @@
   "permissions": {
     "org.settings.manage": "Edit organisation settings",
     "org.members.manage": "Invite and manage members",
-    "org.roles.manage": "Create and edit roles",
     "org.modules.manage": "Turn modules on and off",
     "org.integrations.manage": "Connect integrations",
     "org.audit.view": "View the activity log",
@@ -283,7 +277,8 @@
       "generic": "Signing in didn't work. Please try again."
     },
     "cannot_delete_self": "You can't delete your own account here.",
-    "slug_admin_only": "Only platform admins can change the address."
+    "slug_admin_only": "Only platform admins can change the address.",
+    "invalid_role": "This role doesn't exist here."
   },
   "admin": {
     "title": "Platform",
@@ -341,6 +336,15 @@
       "deleted": "User deleted.",
       "you": "You"
     },
-    "dangerZone": "Danger zone"
+    "dangerZone": "Danger zone",
+    "roles": {
+      "title": "Roles",
+      "new": "New role",
+      "nameDe": "Name (German)",
+      "nameEn": "Name (English)",
+      "intro": "Roles apply to all organisations. Organisations only assign them.",
+      "inOrgs": "Assigned",
+      "ownerBadge": "Owner role"
+    }
   }
 }

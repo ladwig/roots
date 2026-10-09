@@ -16,6 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <nav aria-label={t("admin.nav")} className="-mx-1 flex gap-1 overflow-x-auto px-1 md:flex-col md:overflow-visible">
           <NavLink href="/admin/orgs">{t("admin.orgs.title")}</NavLink>
           <NavLink href="/admin/users">{t("admin.users.title")}</NavLink>
+          <NavLink href="/admin/roles">{t("admin.roles.title")}</NavLink>
         </nav>
         <div className="hidden gap-2 md:mt-auto md:grid">
           <Button render={<Link href="/" />} nativeButton={false} variant="outline" size="sm">

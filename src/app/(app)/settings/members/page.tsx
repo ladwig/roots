@@ -21,7 +21,7 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
 
   const [{ data: members }, { data: roles }, { data: invites }] = await Promise.all([
     db.from("org_members").select("id, user_id, role_id, created_at").eq("org_id", ctx.org.id).order("created_at"),
-    db.from("roles").select("id, name, is_owner, permissions").eq("org_id", ctx.org.id).order("name"),
+    db.from("roles").select("id, name, is_owner, permissions").or(`org_id.is.null,org_id.eq.${ctx.org.id}`).order("is_owner", { ascending: false }).order("created_at"),
     canManage
       ? db.from("invites").select("id, email, role_id, expires_at").eq("org_id", ctx.org.id).is("accepted_at", null).order("created_at")
       : Promise.resolve({ data: [] }),
@@ -31,9 +31,9 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
     .select("id, email, full_name")
     .in("id", members?.map((m) => m.user_id) ?? [])
   const profile = new Map(profiles?.map((p) => [p.id, p]))
-  const roleName = new Map(roles?.map((r) => [r.id, r.name]))
+  const roleName = new Map(roles?.map((r) => [r.id, t.pick(r.name)]))
   // Only owners can hand out the owner role.
-  const assignable = roles?.filter((r) => ctx.role.is_owner || !r.is_owner) ?? []
+  const assignable = roles?.filter((r) => ctx.role.is_owner || !r.is_owner).map((r) => ({ ...r, name: t.pick(r.name) })) ?? []
   // New people default to the role with the fewest permissions.
   const defaultRole = assignable.filter((r) => !r.is_owner).sort((a, b) => a.permissions.length - b.permissions.length)[0]
 
@@ -117,7 +117,7 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
               <div className="grid gap-2">
                 <Label htmlFor="member-role">{t("members.role")}</Label>
                 <NativeSelect id="member-role" name="role_id" defaultValue={editing.role_id}>
-                  {(assignable.some((r) => r.id === editing.role_id) ? assignable : roles ?? []).map((r) => (
+                  {(assignable.some((r) => r.id === editing.role_id) ? assignable : (roles ?? []).map((r) => ({ ...r, name: t.pick(r.name) }))).map((r) => (
                     <NativeSelectOption key={r.id} value={r.id}>
                       {r.name}
                     </NativeSelectOption>

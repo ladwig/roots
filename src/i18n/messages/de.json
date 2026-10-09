@@ -114,7 +114,7 @@
     "expiresHeader": "Läuft ab"
   },
   "roles": {
-    "intro": "Eine Rolle legt fest, was Personen tun dürfen.",
+    "intro": "Rollen werden von der Plattform festgelegt. Hier siehst du, was jede Rolle darf.",
     "new": "Neue Rolle",
     "locked": "Nicht änderbar",
     "edit": "Bearbeiten",
@@ -140,15 +140,10 @@
     "saved": "Rolle gespeichert.",
     "deleted": "Rolle gelöscht.",
     "inUse": "Mitglieder haben diese Rolle noch. Gib ihnen zuerst eine andere.",
-    "defaults": {
-      "owner": "Inhaber",
-      "admin": "Admin",
-      "member": "Mitglied",
-      "doorStaff": "Einlass"
-    },
     "permissions": "Berechtigungen",
     "members": "Mitglieder",
-    "empty": "Noch keine Rollen."
+    "empty": "Noch keine Rollen.",
+    "canDo": "Das darf diese Rolle"
   },
   "modules": {
     "on": "Aktiv",
@@ -198,7 +193,6 @@
   "permissions": {
     "org.settings.manage": "Organisationseinstellungen bearbeiten",
     "org.members.manage": "Mitglieder einladen und verwalten",
-    "org.roles.manage": "Rollen anlegen und bearbeiten",
     "org.modules.manage": "Module aktivieren und deaktivieren",
     "org.integrations.manage": "Integrationen verbinden",
     "org.audit.view": "Aktivitätsprotokoll ansehen",
@@ -283,7 +277,8 @@
       "generic": "Die Anmeldung hat nicht geklappt. Bitte versuch es noch einmal."
     },
     "cannot_delete_self": "Du kannst dein eigenes Konto hier nicht löschen.",
-    "slug_admin_only": "Nur Plattform-Admins können die Adresse ändern."
+    "slug_admin_only": "Nur Plattform-Admins können die Adresse ändern.",
+    "invalid_role": "Diese Rolle gibt es hier nicht."
   },
   "admin": {
     "title": "Plattform",
@@ -341,6 +336,15 @@
       "deleted": "Benutzer gelöscht.",
       "you": "Du"
     },
-    "dangerZone": "Gefahrenzone"
+    "dangerZone": "Gefahrenzone",
+    "roles": {
+      "title": "Rollen",
+      "new": "Neue Rolle",
+      "nameDe": "Name (Deutsch)",
+      "nameEn": "Name (Englisch)",
+      "intro": "Rollen gelten für alle Organisationen. Organisationen weisen sie nur zu.",
+      "inOrgs": "Vergeben",
+      "ownerBadge": "Inhaber-Rolle"
+    }
   }
 }

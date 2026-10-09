@@ -28,7 +28,7 @@ export default async function InvitePage({ params, searchParams }: PageProps<"/i
           <div className="space-y-1">
             <h1 className="font-heading text-2xl font-semibold">{t("invite.joinTitle", { org: invite.org_name })}</h1>
             <p className="text-sm text-muted-foreground">
-              {t("invite.invitedAs", { role: invite.role_name, email: invite.email })}
+              {t("invite.invitedAs", { role: t.pick(invite.role_name), email: invite.email })}
             </p>
           </div>
           <Notice error={param(sp, "error")} />

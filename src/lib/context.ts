@@ -2,6 +2,7 @@ import { cache } from "react"
 import { cookies } from "next/headers"
 import { connection } from "next/server"
 import { notFound, redirect } from "next/navigation"
+import { getT } from "@/i18n/server"
 import { createClient } from "@/lib/supabase/server"
 
 export const ACTIVE_ORG_COOKIE = "active_org"
@@ -39,9 +40,13 @@ export const getContext = cache(async () => {
   const orgs: Org[] = memberships?.map((m) => m.orgs!) ?? []
   const active = (await cookies()).get(ACTIVE_ORG_COOKIE)?.value
 
+  const t = await getT()
+  const toRole = (r: { name: unknown; is_owner: boolean; permissions: string[] } | null | undefined): Role | undefined =>
+    r ? { ...r, name: t.pick(r.name) } : undefined
+
   let current = memberships?.find((m) => m.org_id === active)
   let org = current?.orgs ?? undefined
-  let role: Role | undefined = current?.roles ?? undefined
+  let role = toRole(current?.roles)
   let viaPlatform = false
 
   // Platform admins can open any org; they act with full rights there.
@@ -49,7 +54,7 @@ export const getContext = cache(async () => {
     const { data } = await supabase.from("orgs").select("id, name, slug").eq("id", active).maybeSingle()
     if (data) {
       org = data
-      role = { name: "Platform admin", is_owner: true, permissions: [] }
+      role = { name: t("admin.roleName"), is_owner: true, permissions: [] }
       viaPlatform = true
       orgs.push(data)
     }
@@ -57,7 +62,7 @@ export const getContext = cache(async () => {
   if (!org) {
     current = memberships?.[0]
     org = current?.orgs ?? undefined
-    role = current?.roles ?? undefined
+    role = toRole(current?.roles)
   }
   if (!org || !role) redirect(isPlatformAdmin ? "/admin" : "/onboarding")
 

@@ -107,7 +107,7 @@ async function EditUser({ t, userId, error, ok }: { t: T; userId: string; error?
               <li key={m.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
                 <span className="min-w-0">
                   <span className="block truncate">{m.orgs?.name}</span>
-                  <span className="text-xs text-muted-foreground">{m.roles?.name}</span>
+                  <span className="text-xs text-muted-foreground">{t.pick(m.roles?.name)}</span>
                 </span>
                 <form action={removeMembership.bind(null, user.id, m.id)}>
                   <Button type="submit" variant="ghost" size="sm">

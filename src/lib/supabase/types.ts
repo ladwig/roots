@@ -58,11 +58,11 @@ isOneToOne: false
       referencedRelation: "orgs"
       referencedColumns: ["id"]
     },{
-      foreignKeyName: "invites_role_id_org_id_fkey"
-      columns: ["role_id","org_id"]
+      foreignKeyName: "invites_role_id_fkey"
+      columns: ["role_id"]
 isOneToOne: false
       referencedRelation: "roles"
-      referencedColumns: ["id","org_id"]
+      referencedColumns: ["id"]
     }
                   ]
                 },"org_integrations": {
@@ -104,11 +104,11 @@ isOneToOne: false
       referencedRelation: "orgs"
       referencedColumns: ["id"]
     },{
-      foreignKeyName: "org_members_role_id_org_id_fkey"
-      columns: ["role_id","org_id"]
+      foreignKeyName: "org_members_role_id_fkey"
+      columns: ["role_id"]
 isOneToOne: false
       referencedRelation: "roles"
-      referencedColumns: ["id","org_id"]
+      referencedColumns: ["id"]
     }
                   ]
                 },"org_modules": {
@@ -175,14 +175,14 @@ isOneToOne: false
                   ]
                 },"roles": {
                   Row: {
-                    "created_at": string,"created_by": string | null,"id": string,"is_owner": boolean,"name": string,"org_id": string,"permissions": (string)[],"updated_at": string,"updated_by": string | null
+                    "created_at": string,"created_by": string | null,"id": string,"is_owner": boolean,"name": NonNullable<Json>,"org_id": string | null,"permissions": (string)[],"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"is_owner"?: boolean,"name": string,"org_id": string,"permissions"?: (string)[],"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"is_owner"?: boolean,"name": NonNullable<Json>,"org_id"?: string | null,"permissions"?: (string)[],"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"is_owner"?: boolean,"name"?: string,"org_id"?: string,"permissions"?: (string)[],"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"is_owner"?: boolean,"name"?: NonNullable<Json>,"org_id"?: string | null,"permissions"?: (string)[],"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -203,7 +203,7 @@ isOneToOne: false
 { Args: { "p_token": string }; Returns: string
                            },
 "admin_create_org":
-{ Args: { "p_name": string,"p_owner": string,"p_role_names"?: (string)[],"p_slug": string }; Returns: string
+{ Args: { "p_name": string,"p_owner": string,"p_slug": string }; Returns: string
                            },
 "admin_delete_user":
 { Args: { "p_user": string }; Returns: undefined
@@ -214,7 +214,7 @@ isOneToOne: false
             }[]
                            },
 "create_org":
-{ Args: { "p_name": string,"p_role_names"?: (string)[],"p_slug": string }; Returns: string
+{ Args: { "p_name": string,"p_slug": string }; Returns: string
                            },
 "delete_integration":
 { Args: { "p_org": string,"p_provider": string }; Returns: undefined
@@ -230,7 +230,7 @@ isOneToOne: false
                            },
 "invite_info":
 { Args: { "p_token": string }; Returns: {
-              "email": string,"org_name": string,"role_name": string,"valid": boolean
+              "email": string,"org_name": string,"role_name": Json,"valid": boolean
             }[]
                            },
 "is_member":
@@ -249,7 +249,7 @@ isOneToOne: false
 { Args: { "p_config": Json,"p_expires_at"?: string,"p_org": string,"p_provider": string,"p_secret"?: string }; Returns: string
                            },
 "seed_org":
-{ Args: { "p_name": string,"p_owner": string,"p_role_names": (string)[],"p_slug": string }; Returns: string
+{ Args: { "p_name": string,"p_owner": string,"p_slug": string }; Returns: string
                            },
 "shares_org":
 { Args: { "p_user": string }; Returns: boolean

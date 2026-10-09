@@ -12,7 +12,7 @@ export default async function HomePage() {
     <div className="mx-auto grid max-w-3xl gap-6">
       <div className="space-y-1">
         <h1 className="font-heading text-2xl font-semibold">{ctx.org.name}</h1>
-        <p className="text-sm text-muted-foreground">{t("home.role", { role: ctx.viaPlatform ? t("admin.roleName") : ctx.role.name })}</p>
+        <p className="text-sm text-muted-foreground">{t("home.role", { role: ctx.role.name })}</p>
       </div>
       <section className="grid gap-3">
         <h2 className="font-medium">{t("home.modules")}</h2>

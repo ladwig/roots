@@ -31,7 +31,6 @@ export async function createOrg(formData: FormData) {
     p_name: name,
     p_slug: slug,
     p_owner: owner,
-    p_role_names: [t("roles.defaults.owner"), t("roles.defaults.admin"), t("roles.defaults.member"), t("roles.defaults.doorStaff")],
   })
   if (error) back(retry, { error: error.code === "23505" ? t("onboarding.addressTaken") : dbError(t, error) })
   back(`${PATH}?edit=${data}`, { ok: t("admin.orgs.created") })
