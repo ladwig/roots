@@ -343,7 +343,7 @@
       "details": "Details",
       "delete": "Delete organisation",
       "deleteConfirm": "I understand that all data of this organisation will be deleted.",
-      "deleted": "Organisation deleted.",
+      "deleted": "Deleted for good.",
       "addMember": "Add member",
       "add": "Add",
       "added": "Member added.",
@@ -351,7 +351,10 @@
       "memberRemoved": "Member removed.",
       "noMembers": "No members yet.",
       "modules": "Modules",
-      "alsoNeeds": "Also turns on: {list}"
+      "alsoNeeds": "Also turns on: {list}",
+      "active": "Active",
+      "trashed": "Moved to the trash.",
+      "restored": "Restored."
     },
     "users": {
       "title": "Users",
@@ -391,6 +394,15 @@
     "activity": {
       "title": "Activity",
       "filteredBy": "Filtered to {org}."
+    },
+    "trash": {
+      "title": "Trash",
+      "hint": "Deleted organisations stay here for {days} days and can be restored. After that they are removed with all their data; their address stays reserved until then.",
+      "deletedAt": "Deleted on",
+      "deletedOn": "Deleted on {date}. Will be removed for good on {purge}.",
+      "restore": "Restore",
+      "deleteNow": "Delete for good now",
+      "moveToTrash": "Move to trash"
     }
   },
   "account": {

@@ -11,7 +11,7 @@ import { getT } from "@/i18n/server"
 import type { T } from "@/i18n/translate"
 import { requirePlatformAdmin } from "@/lib/context"
 import { pageParam, param, ROOT_DOMAIN, withParams } from "@/lib/url"
-import { addMember, createOrg, deleteOrg, openOrg, removeMember, updateOrg } from "./actions"
+import { addMember, createOrg, deleteOrg, openOrg, removeMember, restoreOrg, trashOrg, updateOrg } from "./actions"
 import { disableModule, enableModule } from "./module-actions"
 import { missingModules, modules } from "@/modules/registry"
 import { Badge } from "@/components/ui/badge"
@@ -20,16 +20,20 @@ export default async function AdminOrgs({ searchParams }: PageProps<"/admin/orgs
   const { supabase } = await requirePlatformAdmin()
   const t = await getT()
   const sp = await searchParams
-  const q = param(sp, "q")?.replace(/[%,()*]/g, "").trim()
+  const q = param(sp, "q")
+    ?.replace(/[%,()*]/g, "")
+    .trim()
   const page = pageParam(sp)
   const editId = param(sp, "edit")
   const creating = param(sp, "new") === "org"
+  const trash = param(sp, "trash") === "1"
 
   let query = supabase
     .from("orgs")
-    .select("id, name, slug, created_at, org_members(count)")
-    .order("created_at", { ascending: false })
+    .select("id, name, slug, created_at, deleted_at, org_members(count)")
+    .order(trash ? "deleted_at" : "created_at", { ascending: false })
     .range(...pageRange(page))
+  query = trash ? query.not("deleted_at", "is", null) : query.is("deleted_at", null)
   if (q) query = query.or(`name.ilike.%${q}%,slug.ilike.%${q}%`)
   const { data } = await query
   const rows = data?.slice(0, PAGE_SIZE) ?? []
@@ -43,7 +47,25 @@ export default async function AdminOrgs({ searchParams }: PageProps<"/admin/orgs
         </Button>
       </div>
       <Notice error={!editId && !creating ? param(sp, "error") : undefined} ok={!editId ? param(sp, "ok") : undefined} />
-      <SearchBox q={q} label={t("common.search")} />
+      <div className="flex flex-wrap items-center gap-3">
+        <SearchBox q={q} label={t("common.search")} />
+        <nav className="flex gap-1.5">
+          {[
+            [undefined, t("admin.orgs.active")],
+            ["1", t("admin.trash.title")],
+          ].map(([v, label]) => (
+            <Link
+              key={label}
+              href={withParams(sp, { trash: v, page: undefined, edit: undefined })}
+              aria-current={(v === "1") === trash ? "true" : undefined}
+              className="rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground aria-[current=true]:bg-primary aria-[current=true]:text-primary-foreground"
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+      </div>
+      {trash && <p className="text-sm text-muted-foreground">{t("admin.trash.hint", { days: 30 })}</p>}
       <DataTable
         rows={rows}
         rowKey={(r) => r.id}
@@ -53,7 +75,9 @@ export default async function AdminOrgs({ searchParams }: PageProps<"/admin/orgs
           { header: t("admin.orgs.name"), cell: (r) => <span className="font-medium">{r.name}</span> },
           { header: t("admin.orgs.address"), cell: (r) => <span className="text-muted-foreground">{r.slug}</span> },
           { header: t("admin.orgs.members"), cell: (r) => r.org_members[0]?.count ?? 0, className: "tabular-nums" },
-          { header: t("common.created"), cell: (r) => t.date(r.created_at) },
+          trash
+            ? { header: t("admin.trash.deletedAt"), cell: (r) => t.date(r.deleted_at!) }
+            : { header: t("common.created"), cell: (r) => t.date(r.created_at) },
         ]}
       />
       <Pager sp={sp} page={page} hasNext={(data?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
@@ -89,129 +113,158 @@ export default async function AdminOrgs({ searchParams }: PageProps<"/admin/orgs
 async function EditOrg({ t, orgId, error, ok }: { t: T; orgId: string; error?: string; ok?: string }) {
   const { supabase } = await requirePlatformAdmin()
   const [{ data: org }, { data: members }, { data: roles }, { data: mods }] = await Promise.all([
-    supabase.from("orgs").select("id, name, slug").eq("id", orgId).maybeSingle(),
+    supabase.from("orgs").select("id, name, slug, deleted_at").eq("id", orgId).maybeSingle(),
     supabase.from("org_members").select("id, user_id, roles(name)").eq("org_id", orgId).order("created_at"),
-    supabase.from("roles").select("id, name, is_owner").or(`org_id.is.null,org_id.eq.${orgId}`).order("is_owner", { ascending: false }).order("created_at"),
+    supabase
+      .from("roles")
+      .select("id, name, is_owner")
+      .or(`org_id.is.null,org_id.eq.${orgId}`)
+      .order("is_owner", { ascending: false })
+      .order("created_at"),
     supabase.from("org_modules").select("module_key").eq("org_id", orgId),
   ])
   const enabled = new Set(mods?.map((m) => m.module_key))
   if (!org) return null
-  const { data: profiles } = await supabase.from("profiles").select("id, email, full_name").in("id", members?.map((m) => m.user_id) ?? [])
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, email, full_name")
+    .in("id", members?.map((m) => m.user_id) ?? [])
   const profile = new Map(profiles?.map((p) => [p.id, p]))
 
   return (
     <UrlSheet params={["edit"]} title={org.name} description={`${org.slug}.${ROOT_DOMAIN}`}>
       <Notice error={error} ok={ok} />
-      <div className="grid grid-cols-2 gap-2">
-        <form action={openOrg.bind(null, org.id)}>
-          <Button type="submit" variant="outline" className="w-full">
-            {t("admin.orgs.open")}
-          </Button>
-        </form>
-        <Button render={<Link href={`/admin/activity?org=${org.id}`} />} nativeButton={false} variant="outline">
-          {t("admin.activity.title")}
-        </Button>
-      </div>
-
-      <section className="grid gap-3">
-        <h3 className="font-medium">{t("admin.orgs.details")}</h3>
-        <form action={updateOrg.bind(null, org.id)} className="grid gap-3">
-          <div className="grid gap-2">
-            <Label htmlFor="edit-name">{t("admin.orgs.name")}</Label>
-            <Input id="edit-name" name="name" defaultValue={org.name} required maxLength={100} />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="edit-slug">{t("admin.orgs.address")}</Label>
-            <Input id="edit-slug" name="slug" defaultValue={org.slug} required pattern="[a-z0-9][a-z0-9\-]{1,38}[a-z0-9]" />
-          </div>
-          <Button type="submit" className="justify-self-start">
-            {t("common.save")}
-          </Button>
-        </form>
-      </section>
-
-      <section className="grid gap-3">
-        <h3 className="font-medium">{t("admin.orgs.modules")}</h3>
-        <ul className="grid divide-y rounded-lg border">
-          {modules.map((m) => {
-            const on = enabled.has(m.key)
-            const extra = on ? [] : missingModules(m.key, enabled)
-            return (
-              <li key={m.key} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
-                <span className="min-w-0">
-                  <span className="flex items-center gap-2">
-                    {t.dynamic(`modules.${m.key}.name`)}
-                    {on && <Badge>{t("modules.on")}</Badge>}
-                  </span>
-                  {extra.length > 0 && (
-                    <span className="text-xs text-muted-foreground">
-                      {t("admin.orgs.alsoNeeds", { list: t.list(extra.map((k) => t.dynamic(`modules.${k}.name`))) })}
-                    </span>
-                  )}
-                </span>
-                <form action={on ? disableModule.bind(null, org.id, m.key) : enableModule.bind(null, org.id, m.key)}>
-                  <Button type="submit" variant={on ? "outline" : "default"} size="sm">
-                    {on ? t("modules.turnOff") : t("modules.turnOn")}
-                  </Button>
-                </form>
-              </li>
-            )
-          })}
-        </ul>
-      </section>
-
-      <section className="grid gap-3">
-        <h3 className="font-medium">{t("admin.orgs.members")}</h3>
-        {members?.length ? (
-          <ul className="grid divide-y rounded-lg border">
-            {members.map((m) => {
-              const p = profile.get(m.user_id)
-              return (
-                <li key={m.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
-                  <span className="min-w-0">
-                    <span className="block truncate">{p?.full_name || p?.email}</span>
-                    <span className="text-xs text-muted-foreground">{t.pick(m.roles?.name)}</span>
-                  </span>
-                  <form action={removeMember.bind(null, org.id, m.id)}>
-                    <Button type="submit" variant="ghost" size="sm">
-                      {t("members.remove")}
-                    </Button>
-                  </form>
-                </li>
-              )
+      {org.deleted_at ? (
+        <>
+          <p className="rounded-lg border bg-muted px-3 py-2 text-sm">
+            {t("admin.trash.deletedOn", {
+              date: t.date(org.deleted_at),
+              purge: t.date(new Date(new Date(org.deleted_at).getTime() + 30 * 86_400_000)),
             })}
-          </ul>
-        ) : (
-          <p className="text-sm text-muted-foreground">{t("admin.orgs.noMembers")}</p>
-        )}
-        <form action={addMember.bind(null, org.id)} className="grid gap-2 rounded-lg border p-3">
-          <Label htmlFor="add-email">{t("admin.orgs.addMember")}</Label>
-          <Input id="add-email" name="email" type="email" required placeholder={t("members.email")} />
-          <div className="flex gap-2">
-            <NativeSelect name="role_id" aria-label={t("members.role")} className="flex-1">
-              {roles?.map((r) => (
-                <NativeSelectOption key={r.id} value={r.id}>
-                  {t.pick(r.name)}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-            <Button type="submit">{t("admin.orgs.add")}</Button>
+          </p>
+          <form action={restoreOrg.bind(null, org.id)}>
+            <Button type="submit">{t("admin.trash.restore")}</Button>
+          </form>
+          <section className="grid gap-3 rounded-lg border border-destructive/30 p-3">
+            <h3 className="font-medium text-destructive">{t("admin.dangerZone")}</h3>
+            <form action={deleteOrg.bind(null, org.id)} className="grid gap-3">
+              <label className="flex items-start gap-2 text-sm">
+                <Checkbox name="confirm" value="yes" className="mt-0.5" />
+                {t("admin.orgs.deleteConfirm")}
+              </label>
+              <Button type="submit" variant="destructive" className="justify-self-start">
+                {t("admin.trash.deleteNow")}
+              </Button>
+            </form>
+          </section>
+        </>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-2">
+            <form action={openOrg.bind(null, org.id)}>
+              <Button type="submit" variant="outline" className="w-full">
+                {t("admin.orgs.open")}
+              </Button>
+            </form>
+            <Button render={<Link href={`/admin/activity?org=${org.id}`} />} nativeButton={false} variant="outline">
+              {t("admin.activity.title")}
+            </Button>
           </div>
-        </form>
-      </section>
 
-      <section className="grid gap-3 rounded-lg border border-destructive/30 p-3">
-        <h3 className="font-medium text-destructive">{t("admin.dangerZone")}</h3>
-        <form action={deleteOrg.bind(null, org.id)} className="grid gap-3">
-          <label className="flex items-start gap-2 text-sm">
-            <Checkbox name="confirm" value="yes" className="mt-0.5" />
-            {t("admin.orgs.deleteConfirm")}
-          </label>
-          <Button type="submit" variant="destructive" className="justify-self-start">
-            {t("admin.orgs.delete")}
-          </Button>
-        </form>
-      </section>
+          <section className="grid gap-3">
+            <h3 className="font-medium">{t("admin.orgs.details")}</h3>
+            <form action={updateOrg.bind(null, org.id)} className="grid gap-3">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-name">{t("admin.orgs.name")}</Label>
+                <Input id="edit-name" name="name" defaultValue={org.name} required maxLength={100} />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-slug">{t("admin.orgs.address")}</Label>
+                <Input id="edit-slug" name="slug" defaultValue={org.slug} required pattern="[a-z0-9][a-z0-9\-]{1,38}[a-z0-9]" />
+              </div>
+              <Button type="submit" className="justify-self-start">
+                {t("common.save")}
+              </Button>
+            </form>
+          </section>
+
+          <section className="grid gap-3">
+            <h3 className="font-medium">{t("admin.orgs.modules")}</h3>
+            <ul className="grid divide-y rounded-lg border">
+              {modules.map((m) => {
+                const on = enabled.has(m.key)
+                const extra = on ? [] : missingModules(m.key, enabled)
+                return (
+                  <li key={m.key} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+                    <span className="min-w-0">
+                      <span className="flex items-center gap-2">
+                        {t.dynamic(`modules.${m.key}.name`)}
+                        {on && <Badge>{t("modules.on")}</Badge>}
+                      </span>
+                      {extra.length > 0 && (
+                        <span className="text-xs text-muted-foreground">
+                          {t("admin.orgs.alsoNeeds", { list: t.list(extra.map((k) => t.dynamic(`modules.${k}.name`))) })}
+                        </span>
+                      )}
+                    </span>
+                    <form action={on ? disableModule.bind(null, org.id, m.key) : enableModule.bind(null, org.id, m.key)}>
+                      <Button type="submit" variant={on ? "outline" : "default"} size="sm">
+                        {on ? t("modules.turnOff") : t("modules.turnOn")}
+                      </Button>
+                    </form>
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+
+          <section className="grid gap-3">
+            <h3 className="font-medium">{t("admin.orgs.members")}</h3>
+            {members?.length ? (
+              <ul className="grid divide-y rounded-lg border">
+                {members.map((m) => {
+                  const p = profile.get(m.user_id)
+                  return (
+                    <li key={m.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+                      <span className="min-w-0">
+                        <span className="block truncate">{p?.full_name || p?.email}</span>
+                        <span className="text-xs text-muted-foreground">{t.pick(m.roles?.name)}</span>
+                      </span>
+                      <form action={removeMember.bind(null, org.id, m.id)}>
+                        <Button type="submit" variant="ghost" size="sm">
+                          {t("members.remove")}
+                        </Button>
+                      </form>
+                    </li>
+                  )
+                })}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">{t("admin.orgs.noMembers")}</p>
+            )}
+            <form action={addMember.bind(null, org.id)} className="grid gap-2 rounded-lg border p-3">
+              <Label htmlFor="add-email">{t("admin.orgs.addMember")}</Label>
+              <Input id="add-email" name="email" type="email" required placeholder={t("members.email")} />
+              <div className="flex gap-2">
+                <NativeSelect name="role_id" aria-label={t("members.role")} className="flex-1">
+                  {roles?.map((r) => (
+                    <NativeSelectOption key={r.id} value={r.id}>
+                      {t.pick(r.name)}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+                <Button type="submit">{t("admin.orgs.add")}</Button>
+              </div>
+            </form>
+          </section>
+
+          <form action={trashOrg.bind(null, org.id)}>
+            <Button type="submit" variant="destructive" size="sm">
+              {t("admin.trash.moveToTrash")}
+            </Button>
+          </form>
+        </>
+      )}
     </UrlSheet>
   )
 }

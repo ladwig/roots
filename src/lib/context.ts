@@ -34,24 +34,25 @@ export const getContext = cache(async () => {
 
   const { data: memberships } = await supabase
     .from("org_members")
-    .select("org_id, orgs(id, name, slug), roles(name, is_owner, permissions)")
+    .select("org_id, orgs(id, name, slug, deleted_at), roles(name, is_owner, permissions)")
     .eq("user_id", userId)
     .order("created_at")
-  const orgs: Org[] = memberships?.map((m) => m.orgs!) ?? []
+  const live = memberships?.filter((m) => m.orgs && !m.orgs.deleted_at) // deleted orgs: hidden, or in the trash for admins
+  const orgs: Org[] = live?.map((m) => ({ id: m.orgs!.id, name: m.orgs!.name, slug: m.orgs!.slug })) ?? []
   const active = (await cookies()).get(ACTIVE_ORG_COOKIE)?.value
 
   const t = await getT()
   const toRole = (r: { name: unknown; is_owner: boolean; permissions: string[] } | null | undefined): Role | undefined =>
     r ? { ...r, name: t.pick(r.name) } : undefined
 
-  let current = memberships?.find((m) => m.org_id === active)
-  let org = current?.orgs ?? undefined
+  let current = live?.find((m) => m.org_id === active)
+  let org: Org | undefined = current ? orgs.find((o) => o.id === current!.org_id) : undefined
   let role = toRole(current?.roles)
   let viaPlatform = false
 
   // Platform admins can open any org; they act with full rights there.
   if (!current && active && isPlatformAdmin) {
-    const { data } = await supabase.from("orgs").select("id, name, slug").eq("id", active).maybeSingle()
+    const { data } = await supabase.from("orgs").select("id, name, slug").eq("id", active).is("deleted_at", null).maybeSingle()
     if (data) {
       org = data
       role = { name: t("admin.roleName"), is_owner: true, permissions: [] }
@@ -60,8 +61,8 @@ export const getContext = cache(async () => {
     }
   }
   if (!org) {
-    current = memberships?.[0]
-    org = current?.orgs ?? undefined
+    current = live?.[0]
+    org = orgs[0]
     role = toRole(current?.roles)
   }
   if (!org || !role) redirect(isPlatformAdmin ? "/admin" : "/onboarding")

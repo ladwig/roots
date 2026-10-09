@@ -77,6 +77,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 | Money (orders, payments, refunds, invoices) | **Never deleted**: change status instead (cancelled, refunded) |
 | User accounts / personal data on request | Hard delete (GDPR); anonymise references where history must stay |
 
+How: `select public.enable_soft_delete('public.<table>', 'org_id', '<module>.manage', 30)` in the migration. Delete/restore only via `rpc("soft_delete" | "restore_deleted", { p_table, p_id })` (permission checked in the DB); the cron purges. Trash views filter `.not("deleted_at", "is", null)`, normal lists `.is("deleted_at", null)` (RLS already hides deleted rows from people who can't see the trash).
+
 Soft-delete side effects to handle every time:
 - Unique values only count among live rows: partial unique indexes `… where deleted_at is null` (re-creating something with the same email/name must work).
 - Exception: identifiers others rely on (an org's address/subdomain) stay reserved until the row is purged, so restoring can't collide.

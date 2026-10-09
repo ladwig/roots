@@ -343,7 +343,7 @@
       "details": "Details",
       "delete": "Organisation löschen",
       "deleteConfirm": "Ich verstehe, dass alle Daten dieser Organisation gelöscht werden.",
-      "deleted": "Organisation gelöscht.",
+      "deleted": "Endgültig gelöscht.",
       "addMember": "Mitglied hinzufügen",
       "add": "Hinzufügen",
       "added": "Mitglied hinzugefügt.",
@@ -351,7 +351,10 @@
       "memberRemoved": "Mitglied entfernt.",
       "noMembers": "Noch keine Mitglieder.",
       "modules": "Module",
-      "alsoNeeds": "Wird mit aktiviert: {list}"
+      "alsoNeeds": "Wird mit aktiviert: {list}",
+      "active": "Aktiv",
+      "trashed": "In den Papierkorb verschoben.",
+      "restored": "Wiederhergestellt."
     },
     "users": {
       "title": "Benutzer",
@@ -391,6 +394,15 @@
     "activity": {
       "title": "Aktivität",
       "filteredBy": "Gefiltert auf {org}."
+    },
+    "trash": {
+      "title": "Papierkorb",
+      "hint": "Gelöschte Organisationen bleiben {days} Tage hier und können wiederhergestellt werden. Danach werden sie mit allen Daten entfernt; ihre Adresse ist bis dahin reserviert.",
+      "deletedAt": "Gelöscht am",
+      "deletedOn": "Gelöscht am {date}. Wird am {purge} endgültig entfernt.",
+      "restore": "Wiederherstellen",
+      "deleteNow": "Jetzt endgültig löschen",
+      "moveToTrash": "In den Papierkorb"
     }
   },
   "account": {

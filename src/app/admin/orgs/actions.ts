@@ -79,11 +79,30 @@ export async function openOrg(orgId: string) {
   redirect("/")
 }
 
+// To the trash (restorable for 30 days, then purged with all its data).
+export async function trashOrg(orgId: string) {
+  const { supabase } = await requirePlatformAdmin()
+  const t = await getT()
+  const { error } = await supabase.rpc("soft_delete", { p_table: "public.orgs", p_id: orgId })
+  if (error) back(`${PATH}?edit=${orgId}`, { error: dbError(t, error) })
+  back(PATH, { ok: t("admin.orgs.trashed") })
+}
+
+export async function restoreOrg(orgId: string) {
+  const { supabase } = await requirePlatformAdmin()
+  const t = await getT()
+  const { error } = await supabase.rpc("restore_deleted", { p_table: "public.orgs", p_id: orgId })
+  if (error) back(`${PATH}?trash=1&edit=${orgId}`, { error: dbError(t, error) })
+  back(`${PATH}?edit=${orgId}`, { ok: t("admin.orgs.restored") })
+}
+
+// Permanently, from the trash only.
 export async function deleteOrg(orgId: string, formData: FormData) {
   const { supabase } = await requirePlatformAdmin()
   const t = await getT()
-  if (formData.get("confirm") !== "yes") back(`${PATH}?edit=${orgId}`, { error: t("admin.orgs.deleteConfirm") })
-  const { error, count } = await supabase.from("orgs").delete({ count: "exact" }).eq("id", orgId)
-  if (error || !count) back(`${PATH}?edit=${orgId}`, { error: error ? dbError(t, error) : t("errors.not_allowed") })
-  back(PATH, { ok: t("admin.orgs.deleted") })
+  const retry = `${PATH}?trash=1&edit=${orgId}`
+  if (formData.get("confirm") !== "yes") back(retry, { error: t("admin.orgs.deleteConfirm") })
+  const { error, count } = await supabase.from("orgs").delete({ count: "exact" }).eq("id", orgId).not("deleted_at", "is", null)
+  if (error || !count) back(retry, { error: error ? dbError(t, error) : t("errors.not_allowed") })
+  back(`${PATH}?trash=1`, { ok: t("admin.orgs.deleted") })
 }

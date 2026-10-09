@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { pollTelegram } from "@/integrations/telegram"
 import { deliverDue } from "@/events/worker"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 // Called every minute (vercel.json cron, or `npm run worker` locally). Protected by CRON_SECRET.
 export async function GET(request: Request) {
@@ -13,5 +14,7 @@ export async function GET(request: Request) {
     sent += n
     if (n === 0) break
   }
-  return NextResponse.json({ sent })
+  // Empty the trash (soft-deleted rows past their retention).
+  const { data: purged } = await createAdminClient().rpc("purge_deleted")
+  return NextResponse.json({ sent, purged })
 }
