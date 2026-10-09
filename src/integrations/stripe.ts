@@ -47,10 +47,10 @@ export async function stripeFor(orgId: string) {
   if (config.via === "key") {
     const key = (await getSecret(orgId, "stripe"))?.secretKey
     if (!key) throw new Error("payments.notConnected")
-    return { client: keyClient(key), options: {} as Stripe.RequestOptions, direct: true }
+    return { client: keyClient(key), options: {} as Stripe.RequestOptions, direct: true, test: key.includes("_test_") }
   }
   if (!config.accountId) throw new Error("payments.notConnected")
-  return { client: stripe(), options: { stripeAccount: config.accountId } as Stripe.RequestOptions, direct: false }
+  return { client: stripe(), options: { stripeAccount: config.accountId } as Stripe.RequestOptions, direct: false, test: false }
 }
 
 export const stripeIntegration: Integration = {
