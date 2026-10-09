@@ -164,7 +164,7 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
                     defaultValue={f.secret ? undefined : String((current?.config as Record<string, unknown> | undefined)?.[f.key] ?? "")}
                     required={f.secret && !current?.secret_id}
                   />
-                  {t.has(help) && <p className="text-xs text-muted-foreground">{t.dynamic(help)}</p>}
+                  {t.has(help) && <p className="text-xs whitespace-pre-line text-muted-foreground">{t.dynamic(help)}</p>}
                 </div>
               )
             })}

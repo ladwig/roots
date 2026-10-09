@@ -257,7 +257,7 @@
         "secretKey": "Secret Key oder Restricted Key"
       },
       "help": {
-        "secretKey": "Aus deinem Stripe-Dashboard (Entwickler → API-Schlüssel). Am besten ein Restricted Key (rk_…) mit Schreibrechten für Checkout Sessions, Refunds und Webhook Endpoints. Wir legen damit automatisch einen Webhook in deinem Konto an."
+        "secretKey": "Stripe-Dashboard → Entwickler → API-Schlüssel → „Eingeschränkten Schlüssel erstellen“ (rk_…). Diese Rechte setzen:\n• Checkout Sessions: Schreiben\n• Refunds: Schreiben\n• Webhook Endpoints: Schreiben\n• Accounts: Lesen (optional, nur für den Kontonamen)\nAlles andere: Keine. Den Webhook legen wir automatisch an."
       },
       "invalidKey": "Das ist kein Stripe-Schlüssel (beginnt mit rk_ oder sk_).",
       "keyNoAccess": "Stripe hat den Schlüssel abgelehnt oder ihm fehlen Rechte. Nötig: Schreibrechte für Checkout Sessions, Refunds und Webhook Endpoints.",
