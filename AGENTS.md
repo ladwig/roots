@@ -59,6 +59,25 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Icons: `lucide-react` only.
 - Every UI must work in light + dark and at 400px width. Accessible basics: labels on inputs, focus rings intact, real `<button>`/`<a>`.
 
+## Data lifecycle rules (every new table / feature)
+**Audit (always):** every org-scoped table gets the audit columns + `enable_audit()`. The change log is the history; never write audit data by hand, never put secrets in audited columns.
+
+**Events (when something meaningful happens):** if an org would want to be told about it (sale, sign-up, booking, cancellation…), emit a named event (`<module>.<thing>`, past tense: `ticket.sold`, `contact.created`) via a DB trigger or `emit_event()`, register it in `src/events/registry.ts` with `events.types/messages` texts, and call `deliverSoon()` after the action. Events are facts; never rely on them for the change itself.
+
+**Deleting, by kind of data:**
+| Kind | Rule |
+|---|---|
+| Business objects people manage (contacts, events, tickets, pages, … and orgs) | **Soft delete**: `deleted_at`, hidden by RLS, restorable from a trash view, purged after 30 days |
+| Links and technical rows (members, invites, subscriptions, deliveries, settings) | Hard delete; the change log keeps a copy |
+| Money (orders, payments, refunds, invoices) | **Never deleted**: change status instead (cancelled, refunded) |
+| User accounts / personal data on request | Hard delete (GDPR); anonymise references where history must stay |
+
+Soft-delete side effects to handle every time:
+- Unique values only count among live rows: partial unique indexes `… where deleted_at is null` (re-creating something with the same email/name must work).
+- Exception: identifiers others rely on (an org's address/subdomain) stay reserved until the row is purged, so restoring can't collide.
+- Normal queries never see deleted rows (RLS), only trash views and restore actions do.
+- Deleting a parent soft-deletes nothing implicitly: decide per relation (usually children stay and disappear with the parent's visibility).
+
 ## Translations (German first)
 - No hardcoded UI text. Every string lives in `src/i18n/messages/de.json` (source of truth) and `en.json`. The build fails if `en.json` is missing a key.
 - Server: `const t = await getT()` (`@/i18n/server`). Client: `const t = useT()` (`@/i18n/client`). `t("members.invite")`, `t("roles.memberCount", { count })` (plural groups `one`/`other`), `t.list([...])`, `t.date(value)`.
