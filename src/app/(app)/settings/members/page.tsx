@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { NativeSelectOption } from "@/components/ui/native-select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
 import { param } from "@/lib/url"
 import { changeRole, removeMember, revokeInvite } from "./actions"
@@ -14,12 +15,13 @@ import { InviteForm } from "./invite-form"
 export default async function MembersSettings({ searchParams }: PageProps<"/settings/members">) {
   const ctx = await getContext()
   const sp = await searchParams
+  const t = await getT()
   const canManage = ctx.can("org.members.manage")
   const db = ctx.supabase
 
   const [{ data: members }, { data: roles }, { data: invites }] = await Promise.all([
     db.from("org_members").select("id, user_id, role_id").eq("org_id", ctx.org.id).order("created_at"),
-    db.from("roles").select("id, name, is_owner").eq("org_id", ctx.org.id).order("name"),
+    db.from("roles").select("id, name, is_owner, permissions").eq("org_id", ctx.org.id).order("name"),
     canManage
       ? db.from("invites").select("id, email, role_id, expires_at").eq("org_id", ctx.org.id).is("accepted_at", null)
       : Promise.resolve({ data: [] }),
@@ -32,6 +34,8 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
   const roleName = new Map(roles?.map((r) => [r.id, r.name]))
   // Only owners can hand out the owner role.
   const assignable = roles?.filter((r) => ctx.role.is_owner || !r.is_owner) ?? []
+  // New people default to the role with the fewest permissions.
+  const defaultRole = assignable.filter((r) => !r.is_owner).sort((a, b) => a.permissions.length - b.permissions.length)[0]
 
   return (
     <div className="grid gap-6">
@@ -39,10 +43,10 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
 
       <section className="grid gap-3">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="font-medium">Members</h2>
+          <h2 className="font-medium">{t("members.heading")}</h2>
           {canManage && (
             <Button render={<Link href="?new=invite" scroll={false} />} nativeButton={false} size="sm">
-              Invite
+              {t("members.invite")}
             </Button>
           )}
         </div>
@@ -50,8 +54,8 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Person</TableHead>
-                <TableHead>Role</TableHead>
+                <TableHead>{t("members.person")}</TableHead>
+                <TableHead>{t("members.role")}</TableHead>
                 <TableHead className="w-0" />
               </TableRow>
             </TableHeader>
@@ -69,7 +73,7 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
                       {canManage ? (
                         <form action={changeRole}>
                           <input type="hidden" name="member_id" value={m.id} />
-                          <SubmitOnChangeSelect name="role_id" defaultValue={m.role_id} aria-label="Role" size="sm">
+                          <SubmitOnChangeSelect name="role_id" defaultValue={m.role_id} aria-label={t("members.role")} size="sm">
                             {(assignable.some((r) => r.id === m.role_id) ? assignable : roles ?? []).map((r) => (
                               <NativeSelectOption key={r.id} value={r.id}>
                                 {r.name}
@@ -85,7 +89,7 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
                       {(canManage || isMe) && (
                         <form action={removeMember.bind(null, m.id)}>
                           <Button type="submit" variant="ghost" size="sm">
-                            {isMe ? "Leave" : "Remove"}
+                            {isMe ? t("members.leave") : t("members.remove")}
                           </Button>
                         </form>
                       )}
@@ -100,7 +104,7 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
 
       {canManage && !!invites?.length && (
         <section className="grid gap-3">
-          <h2 className="font-medium">Open invites</h2>
+          <h2 className="font-medium">{t("members.openInvites")}</h2>
           <ul className="grid gap-2">
             {invites.map((i) => (
               <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2">
@@ -108,11 +112,11 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
                 <span className="flex items-center gap-2">
                   <Badge variant="secondary">{roleName.get(i.role_id)}</Badge>
                   <span className="text-xs text-muted-foreground">
-                    expires {new Date(i.expires_at).toLocaleDateString("en-GB")}
+                    {t("members.expires", { date: t.date(i.expires_at) })}
                   </span>
                   <form action={revokeInvite.bind(null, i.id)}>
                     <Button type="submit" variant="ghost" size="sm">
-                      Revoke
+                      {t("members.revoke")}
                     </Button>
                   </form>
                 </span>
@@ -123,8 +127,8 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
       )}
 
       {canManage && param(sp, "new") === "invite" && (
-        <UrlDialog params={["new"]} title="Invite someone" description="They'll join with the role you pick.">
-          <InviteForm roles={assignable} />
+        <UrlDialog params={["new"]} title={t("members.dialogTitle")} description={t("members.dialogDescription")}>
+          <InviteForm roles={assignable} defaultRoleId={defaultRole?.id} />
         </UrlDialog>
       )}
     </div>

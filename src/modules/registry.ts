@@ -1,99 +1,42 @@
 // Module definitions. The DB only stores which org has which module on (org_modules);
-// everything else about a module lives here. Permission keys must start with the module key ("events.manage"),
-// so a role can grant a whole module with "events.*".
+// everything else about a module lives here. Names, descriptions and permission labels are in
+// src/i18n/messages (modules.<key>.name / .description, permissions.<permission>).
+// Permission keys start with the module key ("events.manage"), so a role can grant a whole module with "events.*".
 // ponytail: one file while modules are just definitions; move each to src/modules/<key>/ once it has code.
 
-export type Permission = { key: string; label: string }
-export type NavItem = { href: string; label: string; permission?: string }
+export type NavItem = { href: string; label: string; permission?: string } // label = message key
 export type ModuleDef = {
   key: string
-  name: string
-  description: string
   requires?: { modules?: string[]; integrations?: string[] }
-  permissions: Permission[]
+  permissions: string[]
   nav?: NavItem[]
 }
 
 // Always on, can't be disabled.
 export const core: ModuleDef = {
   key: "org",
-  name: "Organisation",
-  description: "Settings, members, roles, modules, integrations and activity.",
   permissions: [
-    { key: "org.settings.manage", label: "Edit organisation settings" },
-    { key: "org.members.manage", label: "Invite and manage members" },
-    { key: "org.roles.manage", label: "Create and edit roles" },
-    { key: "org.modules.manage", label: "Turn modules on and off" },
-    { key: "org.integrations.manage", label: "Connect integrations" },
-    { key: "org.audit.view", label: "View the activity log" },
+    "org.settings.manage",
+    "org.members.manage",
+    "org.roles.manage",
+    "org.modules.manage",
+    "org.integrations.manage",
+    "org.audit.view",
   ],
 }
 
 export const modules: ModuleDef[] = [
-  {
-    key: "crm",
-    name: "CRM",
-    description: "Tags, notes and history for your contacts.",
-    permissions: [
-      { key: "crm.view", label: "View contacts" },
-      { key: "crm.manage", label: "Edit contacts" },
-    ],
-  },
-  {
-    key: "payments",
-    name: "Payments",
-    description: "Take payments and refunds through your own Stripe account.",
-    requires: { integrations: ["stripe"] },
-    permissions: [
-      { key: "payments.view", label: "View orders and payments" },
-      { key: "payments.refund", label: "Issue refunds" },
-    ],
-  },
-  {
-    key: "events",
-    name: "Events",
-    description: "Plan events with dates, venues and lineups.",
-    permissions: [
-      { key: "events.view", label: "View events" },
-      { key: "events.manage", label: "Create and edit events" },
-    ],
-  },
+  { key: "crm", permissions: ["crm.view", "crm.manage"] },
+  { key: "payments", requires: { integrations: ["stripe"] }, permissions: ["payments.view", "payments.refund"] },
+  { key: "events", permissions: ["events.view", "events.manage"] },
   {
     key: "tickets",
-    name: "Ticketing",
-    description: "Sell tickets with tiers, group deals and a door scanner.",
     requires: { modules: ["events", "payments"] },
-    permissions: [
-      { key: "tickets.view", label: "View ticket sales" },
-      { key: "tickets.manage", label: "Set up tickets and prices" },
-      { key: "tickets.scan", label: "Scan tickets at the door" },
-    ],
+    permissions: ["tickets.view", "tickets.manage", "tickets.scan"],
   },
-  {
-    key: "guestlists",
-    name: "Guest lists",
-    description: "Guest and artist lists with links promoters fill in themselves.",
-    requires: { modules: ["events"] },
-    permissions: [
-      { key: "guestlists.view", label: "View guest lists" },
-      { key: "guestlists.manage", label: "Manage guest lists and links" },
-    ],
-  },
-  {
-    key: "shifts",
-    name: "Shift planning",
-    description: "Plan shifts and let members sign up and swap.",
-    permissions: [
-      { key: "shifts.view", label: "View shifts" },
-      { key: "shifts.manage", label: "Plan shifts" },
-    ],
-  },
-  {
-    key: "sites",
-    name: "Public site",
-    description: "Pages on your own subdomain, built from blocks.",
-    permissions: [{ key: "sites.manage", label: "Edit public pages" }],
-  },
+  { key: "guestlists", requires: { modules: ["events"] }, permissions: ["guestlists.view", "guestlists.manage"] },
+  { key: "shifts", permissions: ["shifts.view", "shifts.manage"] },
+  { key: "sites", permissions: ["sites.manage"] },
 ]
 
 export const getModule = (key: string) => modules.find((m) => m.key === key)

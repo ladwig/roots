@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { getT } from "@/i18n/server"
+import type { T } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { param } from "@/lib/url"
 import { core, modules, type ModuleDef } from "@/modules/registry"
@@ -15,6 +17,7 @@ type Role = { id: string; name: string; permissions: string[]; is_owner: boolean
 
 export default async function RolesSettings({ searchParams }: PageProps<"/settings/roles">) {
   const ctx = await requirePerm("org.roles.manage")
+  const t = await getT()
   const sp = await searchParams
   const { data: roles } = await ctx.supabase
     .from("roles")
@@ -33,9 +36,9 @@ export default async function RolesSettings({ searchParams }: PageProps<"/settin
     <div className="grid gap-4">
       <Notice error={!editing && !creating ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">A role is a set of things people are allowed to do.</p>
+        <p className="text-sm text-muted-foreground">{t("roles.intro")}</p>
         <Button render={<Link href="?new=role" scroll={false} />} nativeButton={false} size="sm">
-          New role
+          {t("roles.new")}
         </Button>
       </div>
       <ul className="grid gap-2">
@@ -44,14 +47,14 @@ export default async function RolesSettings({ searchParams }: PageProps<"/settin
             <div className="min-w-0">
               <p className="font-medium">{r.name}</p>
               <p className="text-sm text-muted-foreground">
-                {summary(r)} · {memberCount(r.id)} {memberCount(r.id) === 1 ? "member" : "members"}
+                {summary(t, r)} · {t("roles.memberCount", { count: memberCount(r.id) })}
               </p>
             </div>
             {r.is_owner ? (
-              <Badge variant="secondary">Can&apos;t be changed</Badge>
+              <Badge variant="secondary">{t("roles.locked")}</Badge>
             ) : (
               <Button render={<Link href={`?edit=${r.id}`} scroll={false} />} nativeButton={false} variant="outline" size="sm">
-                Edit
+                {t("roles.edit")}
               </Button>
             )}
           </li>
@@ -59,24 +62,24 @@ export default async function RolesSettings({ searchParams }: PageProps<"/settin
       </ul>
 
       {(editing || creating) && (
-        <UrlDialog params={["edit", "new"]} title={editing ? `Edit ${editing.name}` : "New role"}>
-          <RoleForm role={editing} groups={groups} error={param(sp, "error")} />
+        <UrlDialog params={["edit", "new"]} title={editing ? t("roles.editTitle", { name: editing.name }) : t("roles.new")}>
+          <RoleForm t={t} role={editing} groups={groups} error={param(sp, "error")} />
         </UrlDialog>
       )}
     </div>
   )
 }
 
-function summary(r: Role) {
-  if (r.is_owner) return "Everything, including owners"
-  if (r.permissions.includes("*")) return "Full access"
-  if (!r.permissions.length) return "View only"
-  return `${r.permissions.length} ${r.permissions.length === 1 ? "permission" : "permissions"}`
+function summary(t: T, r: Role) {
+  if (r.is_owner) return t("roles.summaryOwner")
+  if (r.permissions.includes("*")) return t("roles.summaryFull")
+  if (!r.permissions.length) return t("roles.summaryViewOnly")
+  return t("roles.permissionCount", { count: r.permissions.length })
 }
 
-function RoleForm({ role, groups, error }: { role?: Role; groups: ModuleDef[]; error?: string }) {
+function RoleForm({ t, role, groups, error }: { t: T; role?: Role; groups: ModuleDef[]; error?: string }) {
   const has = new Set(role?.permissions ?? [])
-  const shown = new Set(groups.flatMap((g) => g.permissions.map((p) => p.key)).concat("*"))
+  const shown = new Set(groups.flatMap((g) => g.permissions).concat("*"))
   // Keep permissions of modules that are currently off, so saving doesn't silently drop them.
   const hidden = [...has].filter((p) => !shown.has(p))
 
@@ -84,24 +87,26 @@ function RoleForm({ role, groups, error }: { role?: Role; groups: ModuleDef[]; e
     <form action={saveRole.bind(null, role?.id ?? null)} className="grid gap-4">
       <Notice error={error} />
       <div className="grid gap-2">
-        <Label htmlFor="role-name">Name</Label>
+        <Label htmlFor="role-name">{t("roles.name")}</Label>
         <Input id="role-name" name="name" defaultValue={role?.name} required maxLength={50} />
       </div>
       <div className="grid max-h-[50vh] gap-4 overflow-y-auto pr-1">
         <label className="flex items-start gap-2 text-sm">
           <Checkbox name="permissions" value="*" defaultChecked={has.has("*")} className="mt-0.5" />
           <span>
-            <span className="font-medium">Full access</span>
-            <span className="block text-muted-foreground">Everything except managing owners.</span>
+            <span className="font-medium">{t("roles.fullAccess")}</span>
+            <span className="block text-muted-foreground">{t("roles.fullAccessHelp")}</span>
           </span>
         </label>
         {groups.map((g) => (
           <fieldset key={g.key} className="grid gap-2">
-            <legend className="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">{g.name}</legend>
+            <legend className="mb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              {t.dynamic(`modules.${g.key}.name`)}
+            </legend>
             {g.permissions.map((p) => (
-              <label key={p.key} className="flex items-center gap-2 text-sm">
-                <Checkbox name="permissions" value={p.key} defaultChecked={has.has(p.key)} />
-                {p.label}
+              <label key={p} className="flex items-center gap-2 text-sm">
+                <Checkbox name="permissions" value={p} defaultChecked={has.has(p)} />
+                {t.dynamic(`permissions.${p}`)}
               </label>
             ))}
           </fieldset>
@@ -111,10 +116,10 @@ function RoleForm({ role, groups, error }: { role?: Role; groups: ModuleDef[]; e
         ))}
       </div>
       <div className="flex flex-wrap justify-between gap-2">
-        <Button type="submit">Save role</Button>
+        <Button type="submit">{t("roles.save")}</Button>
         {role && (
           <Button type="submit" variant="destructive" formAction={deleteRole.bind(null, role.id)} formNoValidate>
-            Delete role
+            {t("roles.delete")}
           </Button>
         )}
       </div>

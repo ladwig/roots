@@ -1,26 +1,28 @@
 import { NavLink } from "@/components/nav-link"
+import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
 
 const tabs = [
-  { href: "/settings/general", label: "General" },
-  { href: "/settings/members", label: "Members" },
-  { href: "/settings/roles", label: "Roles", permission: "org.roles.manage" },
-  { href: "/settings/modules", label: "Modules" },
-  { href: "/settings/integrations", label: "Integrations", permission: "org.integrations.manage" },
-  { href: "/settings/activity", label: "Activity", permission: "org.audit.view" },
+  { key: "general" },
+  { key: "members" },
+  { key: "roles", permission: "org.roles.manage" },
+  { key: "modules" },
+  { key: "integrations", permission: "org.integrations.manage" },
+  { key: "activity", permission: "org.audit.view" },
 ]
 
 export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getContext()
+  const t = await getT()
   return (
     <div className="mx-auto grid max-w-4xl gap-6">
-      <h1 className="font-heading text-2xl font-semibold">Settings</h1>
-      <nav aria-label="Settings" className="-mx-1 flex gap-1 overflow-x-auto border-b px-1 pb-2">
+      <h1 className="font-heading text-2xl font-semibold">{t("settings.title")}</h1>
+      <nav aria-label={t("settings.nav")} className="-mx-1 flex gap-1 overflow-x-auto border-b px-1 pb-2">
         {tabs
-          .filter((t) => !t.permission || ctx.can(t.permission))
-          .map((t) => (
-            <NavLink key={t.href} href={t.href}>
-              {t.label}
+          .filter((tab) => !tab.permission || ctx.can(tab.permission))
+          .map((tab) => (
+            <NavLink key={tab.key} href={`/settings/${tab.key}`}>
+              {t.dynamic(`settings.tabs.${tab.key}`)}
             </NavLink>
           ))}
       </nav>

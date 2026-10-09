@@ -1,0 +1,273 @@
+{
+  "meta": {
+    "description": "Run your club, business or events in one place."
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "language": "Language"
+  },
+  "auth": {
+    "title": "Sign in to Roots",
+    "subtitle": "Use your password, or get a sign-in link by email.",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signUp": "Create account",
+    "magicLink": "Email me a link",
+    "signOut": "Sign out",
+    "passwordTooShort": "Use at least 8 characters for your password.",
+    "confirmEmail": "Check {email} for a link to confirm your account.",
+    "magicLinkSent": "We sent a sign-in link to {email}.",
+    "enterEmail": "Enter your email address first.",
+    "linkInvalid": "This link is invalid or has expired."
+  },
+  "onboarding": {
+    "title": "Create an organisation",
+    "subtitle": "Your club, business or event series. You can invite others next.",
+    "name": "Name",
+    "namePlaceholder": "Musterstadt Arts Club",
+    "address": "Address",
+    "addressPlaceholder": "artsclub",
+    "addressHelp": "Used for your public pages. Lowercase letters, numbers and dashes.",
+    "submit": "Create organisation",
+    "nameRequired": "Give your organisation a name.",
+    "addressInvalid": "The address needs 3–40 characters: lowercase letters, numbers and dashes.",
+    "addressTaken": "That address is already taken."
+  },
+  "invite": {
+    "invalidTitle": "Invite not valid",
+    "invalidBody": "This invite was already used or has expired. Ask the person who invited you for a new link.",
+    "joinTitle": "Join {org}",
+    "invitedAs": "You're invited as {role}. The invite was sent to {email}.",
+    "accept": "Accept invite",
+    "signedInAs": "Signed in as {email}",
+    "signInFirst": "Sign in or create an account"
+  },
+  "site": {
+    "comingSoon": "This organisation's public pages will live here."
+  },
+  "shell": {
+    "home": "Home",
+    "settings": "Settings",
+    "current": "Current",
+    "newOrg": "New organisation",
+    "mainNav": "Main"
+  },
+  "home": {
+    "role": "You're signed in as {role}.",
+    "modules": "Modules",
+    "noModules": "No modules on yet.",
+    "chooseModules": "Choose what this organisation needs"
+  },
+  "settings": {
+    "title": "Settings",
+    "nav": "Settings",
+    "tabs": {
+      "general": "General",
+      "members": "Members",
+      "roles": "Roles",
+      "modules": "Modules",
+      "integrations": "Integrations",
+      "activity": "Activity"
+    }
+  },
+  "general": {
+    "name": "Name",
+    "publicAddress": "Public address",
+    "saved": "Saved.",
+    "nameRequired": "The name can't be empty."
+  },
+  "members": {
+    "heading": "Members",
+    "invite": "Invite",
+    "person": "Person",
+    "role": "Role",
+    "leave": "Leave",
+    "remove": "Remove",
+    "openInvites": "Open invites",
+    "expires": "expires {date}",
+    "revoke": "Revoke",
+    "dialogTitle": "Invite someone",
+    "dialogDescription": "They'll join with the role you pick.",
+    "roleChanged": "Role changed.",
+    "removed": "Member removed.",
+    "inviteRevoked": "Invite revoked.",
+    "email": "Email",
+    "createLink": "Create invite link",
+    "sendLink": "Send this link to {email}. It works once and expires in 7 days.",
+    "inviteLink": "Invite link",
+    "copy": "Copy link",
+    "copied": "Copied",
+    "invalidEmail": "Enter a valid email address.",
+    "cantInviteRole": "You can't invite with this role."
+  },
+  "roles": {
+    "intro": "A role is a set of things people are allowed to do.",
+    "new": "New role",
+    "locked": "Can't be changed",
+    "edit": "Edit",
+    "editTitle": "Edit {name}",
+    "summaryOwner": "Everything, including owners",
+    "summaryFull": "Full access",
+    "summaryViewOnly": "View only",
+    "permissionCount": {
+      "one": "{count} permission",
+      "other": "{count} permissions"
+    },
+    "memberCount": {
+      "one": "{count} member",
+      "other": "{count} members"
+    },
+    "name": "Name",
+    "fullAccess": "Full access",
+    "fullAccessHelp": "Everything except managing owners.",
+    "save": "Save role",
+    "delete": "Delete role",
+    "nameRequired": "Give the role a name.",
+    "nameTaken": "A role with this name already exists.",
+    "saved": "Role saved.",
+    "deleted": "Role deleted.",
+    "inUse": "Members still have this role. Give them another role first.",
+    "defaults": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "member": "Member",
+      "doorStaff": "Door staff"
+    }
+  },
+  "modules": {
+    "on": "On",
+    "turnOn": "Turn on",
+    "turnOff": "Turn off",
+    "needs": "Needs {list}",
+    "connection": "{name} connection",
+    "confirmTitle": "Turn on {name}?",
+    "confirmBody": "{name} needs {list}. They will be turned on too.",
+    "turnOnAll": "Turn on all",
+    "turnedOn": "{list} turned on.",
+    "turnedOff": "{name} turned off. Its data is kept.",
+    "turnOffFirst": "Turn off {list} first. It needs {name}.",
+    "org": {
+      "name": "Organisation",
+      "description": "Settings, members, roles, modules, integrations and activity."
+    },
+    "crm": {
+      "name": "CRM",
+      "description": "Tags, notes and history for your contacts."
+    },
+    "payments": {
+      "name": "Payments",
+      "description": "Take payments and refunds through your own Stripe account."
+    },
+    "events": {
+      "name": "Events",
+      "description": "Plan events with dates, venues and lineups."
+    },
+    "tickets": {
+      "name": "Ticketing",
+      "description": "Sell tickets with tiers, group deals and a door scanner."
+    },
+    "guestlists": {
+      "name": "Guest lists",
+      "description": "Guest and artist lists with links promoters fill in themselves."
+    },
+    "shifts": {
+      "name": "Shift planning",
+      "description": "Plan shifts and let members sign up and swap."
+    },
+    "sites": {
+      "name": "Public site",
+      "description": "Pages on your own subdomain, built from blocks."
+    }
+  },
+  "permissions": {
+    "org.settings.manage": "Edit organisation settings",
+    "org.members.manage": "Invite and manage members",
+    "org.roles.manage": "Create and edit roles",
+    "org.modules.manage": "Turn modules on and off",
+    "org.integrations.manage": "Connect integrations",
+    "org.audit.view": "View the activity log",
+    "crm.view": "View contacts",
+    "crm.manage": "Edit contacts",
+    "payments.view": "View orders and payments",
+    "payments.refund": "Issue refunds",
+    "events.view": "View events",
+    "events.manage": "Create and edit events",
+    "tickets.view": "View ticket sales",
+    "tickets.manage": "Set up tickets and prices",
+    "tickets.scan": "Scan tickets at the door",
+    "guestlists.view": "View guest lists",
+    "guestlists.manage": "Manage guest lists and links",
+    "shifts.view": "View shifts",
+    "shifts.manage": "Plan shifts",
+    "sites.manage": "Edit public pages"
+  },
+  "integrations": {
+    "connect": "Connect",
+    "reconnect": "Reconnect",
+    "edit": "Edit",
+    "disconnect": "Disconnect",
+    "connectTitle": "Connect {name}",
+    "secretSaved": "Saved. Leave empty to keep it.",
+    "connected": "{name} connected.",
+    "disconnected": "{name} disconnected.",
+    "credentialsFailed": "Those credentials didn't work.",
+    "connectFailed": "The connection could not be completed. Please try again.",
+    "status": {
+      "connected": "connected",
+      "error": "error",
+      "revoked": "revoked"
+    },
+    "stripe": {
+      "description": "Payments through your own Stripe account."
+    },
+    "resend": {
+      "description": "Send emails from your own domain.",
+      "fields": {
+        "apiKey": "API key",
+        "from": "Sender"
+      },
+      "invalidKey": "Resend rejected this API key."
+    }
+  },
+  "activity": {
+    "filter": "Filter by area",
+    "all": "All",
+    "empty": "Nothing here yet.",
+    "created": "created",
+    "changed": "changed",
+    "deleted": "deleted",
+    "system": "System",
+    "newer": "Newer",
+    "older": "Older",
+    "tables": {
+      "orgs": "Organisation",
+      "roles": "Roles",
+      "org_members": "Members",
+      "invites": "Invites",
+      "org_modules": "Modules",
+      "org_integrations": "Integrations"
+    }
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "not_allowed": "You don't have permission to do that.",
+    "not_signed_in": "Please sign in first.",
+    "owner_only": "Only owners can change who is an owner.",
+    "last_owner": "An organisation needs at least one owner.",
+    "invite_invalid": "This invite is invalid or has expired.",
+    "invite_wrong_email": "This invite was sent to {detail}. Sign in with that email to accept it.",
+    "unknown_module": "Unknown module.",
+    "unknown_integration": "Unknown integration.",
+    "auth": {
+      "invalid_credentials": "Wrong email or password.",
+      "email_not_confirmed": "Confirm your email address first.",
+      "user_already_exists": "There's already an account for this email. Sign in instead.",
+      "weak_password": "This password is too weak.",
+      "over_email_send_rate_limit": "Too many emails. Please wait a moment.",
+      "generic": "Signing in didn't work. Please try again."
+    }
+  }
+}

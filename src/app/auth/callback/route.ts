@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { getT } from "@/i18n/server"
 import { createClient } from "@/lib/supabase/server"
 import { safeNext } from "@/lib/url"
 
@@ -12,5 +13,6 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) return NextResponse.redirect(new URL(next, url.origin))
   }
-  return NextResponse.redirect(new URL("/login?error=This+link+is+invalid+or+has+expired.", url.origin))
+  const t = await getT()
+  return NextResponse.redirect(new URL(`/login?${new URLSearchParams({ error: t("auth.linkInvalid") })}`, url.origin))
 }

@@ -1,6 +1,8 @@
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { getSession } from "@/lib/context"
+import { getT } from "@/i18n/server"
+import { dbError } from "@/i18n/translate"
 import { APP_URL } from "@/lib/url"
 import { getIntegration } from "@/integrations/registry"
 
@@ -17,9 +19,10 @@ export async function GET(request: Request, { params }: RouteContext<"/api/integ
   const integration = getIntegration(provider)
   const session = await getSession()
   const code = url.searchParams.get("code")
+  const t = await getT()
 
   if (!integration?.oauth || !session || !code || !state || state !== url.searchParams.get("state") || cookieProvider !== provider)
-    return done({ error: "The connection could not be completed. Please try again." })
+    return done({ error: t("integrations.connectFailed") })
 
   try {
     const conn = await integration.oauth.exchange(code, `${APP_URL}/api/integrations/${provider}/callback`)
@@ -30,9 +33,10 @@ export async function GET(request: Request, { params }: RouteContext<"/api/integ
       p_secret: conn.secret ? JSON.stringify(conn.secret) : undefined,
       p_expires_at: conn.expiresAt,
     })
-    if (error) throw error
+    if (error) return done({ error: dbError(t, error) })
   } catch (e) {
-    return done({ error: e instanceof Error ? e.message : "The connection failed." })
+    console.error(e)
+    return done({ error: t("integrations.connectFailed") })
   }
-  return done({ ok: `${integration.name} connected.` })
+  return done({ ok: t("integrations.connected", { name: integration.name }) })
 }

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param } from "@/lib/url"
 import { getIntegration, integrations } from "@/integrations/registry"
@@ -12,10 +13,11 @@ import { connectIntegration, disconnectIntegration } from "./actions"
 
 export default async function IntegrationsSettings({ searchParams }: PageProps<"/settings/integrations">) {
   const ctx = await requirePerm("org.integrations.manage")
+  const t = await getT()
   const sp = await searchParams
   const { data: rows } = await ctx.supabase
     .from("org_integrations")
-    .select("provider, status, config, last_error, updated_at, secret_id")
+    .select("provider, status, config, last_error, secret_id")
     .eq("org_id", ctx.org.id)
   const connected = new Map(rows?.map((r) => [r.provider, r]))
   const connecting = getIntegration(param(sp, "connect") ?? "")
@@ -32,25 +34,29 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="font-medium">{i.name}</p>
-                  <p className="text-sm text-muted-foreground">{i.description}</p>
+                  <p className="text-sm text-muted-foreground">{t.dynamic(`integrations.${i.key}.description`)}</p>
                 </div>
-                {row && <Badge variant={row.status === "connected" ? "default" : "destructive"}>{row.status}</Badge>}
+                {row && (
+                  <Badge variant={row.status === "connected" ? "default" : "destructive"}>
+                    {t.dynamic(`integrations.status.${row.status}`)}
+                  </Badge>
+                )}
               </div>
               {row?.last_error && <p className="text-xs text-destructive">{row.last_error}</p>}
               <div className="mt-auto flex gap-2">
                 {i.oauth ? (
                   <Button render={<a href={`/api/integrations/${i.key}/connect`} />} nativeButton={false} size="sm">
-                    {row ? "Reconnect" : "Connect"}
+                    {row ? t("integrations.reconnect") : t("integrations.connect")}
                   </Button>
                 ) : (
                   <Button render={<Link href={`?connect=${i.key}`} scroll={false} />} nativeButton={false} size="sm">
-                    {row ? "Edit" : "Connect"}
+                    {row ? t("integrations.edit") : t("integrations.connect")}
                   </Button>
                 )}
                 {row && (
                   <form action={disconnectIntegration.bind(null, i.key)}>
                     <Button type="submit" variant="outline" size="sm">
-                      Disconnect
+                      {t("integrations.disconnect")}
                     </Button>
                   </form>
                 )}
@@ -61,25 +67,32 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
       </ul>
 
       {connecting?.fields && (
-        <UrlDialog params={["connect"]} title={`Connect ${connecting.name}`} description={connecting.description}>
+        <UrlDialog
+          params={["connect"]}
+          title={t("integrations.connectTitle", { name: connecting.name })}
+          description={t.dynamic(`integrations.${connecting.key}.description`)}
+        >
           <form action={connectIntegration.bind(null, connecting.key)} className="grid gap-4">
             <Notice error={param(sp, "error")} />
-            {connecting.fields.map((f) => (
-              <div key={f.key} className="grid gap-2">
-                <Label htmlFor={`f-${f.key}`}>{f.label}</Label>
-                <Input
-                  id={`f-${f.key}`}
-                  name={f.key}
-                  type={f.secret ? "password" : "text"}
-                  autoComplete="off"
-                  placeholder={f.secret && current?.secret_id ? "Saved. Leave empty to keep it." : f.placeholder}
-                  defaultValue={f.secret ? undefined : (current?.config as Record<string, string> | undefined)?.[f.key]}
-                  required={f.secret && !current?.secret_id}
-                />
-                {f.help && <p className="text-xs text-muted-foreground">{f.help}</p>}
-              </div>
-            ))}
-            <Button type="submit">Save</Button>
+            {connecting.fields.map((f) => {
+              const help = `integrations.${connecting.key}.help.${f.key}`
+              return (
+                <div key={f.key} className="grid gap-2">
+                  <Label htmlFor={`f-${f.key}`}>{t.dynamic(`integrations.${connecting.key}.fields.${f.key}`)}</Label>
+                  <Input
+                    id={`f-${f.key}`}
+                    name={f.key}
+                    type={f.secret ? "password" : "text"}
+                    autoComplete="off"
+                    placeholder={f.secret && current?.secret_id ? t("integrations.secretSaved") : f.placeholder}
+                    defaultValue={f.secret ? undefined : (current?.config as Record<string, string> | undefined)?.[f.key]}
+                    required={f.secret && !current?.secret_id}
+                  />
+                  {t.has(help) && <p className="text-xs text-muted-foreground">{t.dynamic(help)}</p>}
+                </div>
+              )
+            })}
+            <Button type="submit">{t("common.save")}</Button>
           </form>
         </UrlDialog>
       )}

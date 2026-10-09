@@ -189,7 +189,7 @@ isOneToOne: false
 { Args: { "p_token": string }; Returns: string
                            },
 "create_org":
-{ Args: { "p_name": string,"p_slug": string }; Returns: string
+{ Args: { "p_name": string,"p_role_names"?: (string)[],"p_slug": string }; Returns: string
                            },
 "delete_integration":
 { Args: { "p_org": string,"p_provider": string }; Returns: undefined

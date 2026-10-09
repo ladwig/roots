@@ -52,6 +52,16 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Icons: `lucide-react` only.
 - Every UI must work in light + dark and at 400px width. Accessible basics: labels on inputs, focus rings intact, real `<button>`/`<a>`.
 
+## Translations (German first)
+- No hardcoded UI text. Every string lives in `src/i18n/messages/de.json` (source of truth) and `en.json`. The build fails if `en.json` is missing a key.
+- Server: `const t = await getT()` (`@/i18n/server`). Client: `const t = useT()` (`@/i18n/client`). `t("members.invite")`, `t("roles.memberCount", { count })` (plural groups `one`/`other`), `t.list([...])`, `t.date(value)`.
+- Keys built at runtime (module/permission names): `t.dynamic(`modules.${key}.name`)`.
+- Module texts: `modules.<key>.name/description`, permission labels: `permissions.<perm>`, integration texts: `integrations.<key>.*`.
+- Database functions raise short codes (`raise exception 'last_owner'`) → add `errors.<code>` to both files; show them with `dbError(t, error)`. Supabase auth errors: `authError(t, error)`.
+- Language = `locale` cookie → browser language → German. Public pages will later use the org's language.
+- Adding a language: add a JSON file and the code to `locales` in `src/i18n/config.ts`.
+- `npm test` runs `*.test.mjs` files (node --test).
+
 ## Two surfaces
 - **App** (`src/app/(app)/`, `app.roots.app`): logged-in back office. Everything through RLS + permissions.
 - **Public** (`src/app/(public)/[site]/`, `<org>.roots.app` + custom domains): outward-facing pages for anyone. Never expose unpublished data; public writes only via Server Actions that validate input + link tokens. Never import App-only code (admin queries, secret-key clients) into Public pages without a reason.

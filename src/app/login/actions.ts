@@ -1,6 +1,8 @@
 "use server"
 
 import { redirect } from "next/navigation"
+import { getT } from "@/i18n/server"
+import { authError } from "@/i18n/translate"
 import { createClient } from "@/lib/supabase/server"
 import { APP_URL, safeNext } from "@/lib/url"
 
@@ -21,27 +23,29 @@ export async function signIn(formData: FormData) {
   const { email, password, next } = read(formData)
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({ email, password })
-  if (error) redirect(loginUrl(next, { error: error.message }))
+  if (error) redirect(loginUrl(next, { error: authError(await getT(), error) }))
   redirect(next)
 }
 
 export async function signUp(formData: FormData) {
   const { email, password, next } = read(formData)
-  if (password.length < 8) redirect(loginUrl(next, { error: "Use at least 8 characters for your password." }))
+  const t = await getT()
+  if (password.length < 8) redirect(loginUrl(next, { error: t("auth.passwordTooShort") }))
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: callback(next) } })
-  if (error) redirect(loginUrl(next, { error: error.message }))
+  if (error) redirect(loginUrl(next, { error: authError(t, error) }))
   if (data.session) redirect(next)
-  redirect(loginUrl(next, { ok: `Check ${email} for a link to confirm your account.` }))
+  redirect(loginUrl(next, { ok: t("auth.confirmEmail", { email }) }))
 }
 
 export async function sendMagicLink(formData: FormData) {
   const { email, next } = read(formData)
-  if (!email.includes("@")) redirect(loginUrl(next, { error: "Enter your email address first." }))
+  const t = await getT()
+  if (!email.includes("@")) redirect(loginUrl(next, { error: t("auth.enterEmail") }))
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: callback(next) } })
-  if (error) redirect(loginUrl(next, { error: error.message }))
-  redirect(loginUrl(next, { ok: `We sent a sign-in link to ${email}.` }))
+  if (error) redirect(loginUrl(next, { error: authError(t, error) }))
+  redirect(loginUrl(next, { ok: t("auth.magicLinkSent", { email }) }))
 }
 
 export async function signOut() {

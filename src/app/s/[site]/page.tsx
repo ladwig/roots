@@ -1,11 +1,14 @@
 // Public surface (<org>.ROOT_DOMAIN, rewritten here by proxy.ts). Only published data belongs here.
-// ponytail: placeholder until the Public sites module (phase 4).
+// ponytail: placeholder until the Public sites module (phase 4). Public pages will use the org's language, not the visitor cookie.
+import { getT } from "@/i18n/server"
+
 export default async function PublicSite({ params }: PageProps<"/s/[site]">) {
   const { site } = await params
+  const t = await getT()
   return (
     <main className="mx-auto flex min-h-full max-w-xl flex-col justify-center gap-2 px-4 py-12">
       <h1 className="font-heading text-2xl font-semibold">{site}</h1>
-      <p className="text-muted-foreground">This organisation&apos;s public pages will live here.</p>
+      <p className="text-muted-foreground">{t("site.comingSoon")}</p>
     </main>
   )
 }

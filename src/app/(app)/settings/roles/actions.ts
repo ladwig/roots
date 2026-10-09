@@ -1,5 +1,7 @@
 "use server"
 
+import { getT } from "@/i18n/server"
+import { dbError } from "@/i18n/translate"
 import { getContext } from "@/lib/context"
 import { back } from "@/lib/url"
 
@@ -13,22 +15,24 @@ function read(formData: FormData) {
 
 export async function saveRole(roleId: string | null, formData: FormData) {
   const ctx = await getContext()
+  const t = await getT()
   const { name, permissions } = read(formData)
   const retry = roleId ? `${PATH}?edit=${roleId}` : `${PATH}?new=role`
-  if (!name) back(retry, { error: "Give the role a name." })
+  if (!name) back(retry, { error: t("roles.nameRequired") })
 
   const { error, count } = roleId
     ? await ctx.supabase.from("roles").update({ name, permissions }, { count: "exact" }).eq("id", roleId).eq("org_id", ctx.org.id)
     : await ctx.supabase.from("roles").insert({ org_id: ctx.org.id, name, permissions }, { count: "exact" })
-  if (error?.code === "23505") back(retry, { error: "A role with this name already exists." })
-  if (error || !count) back(retry, { error: error?.message ?? "You can't edit this role." })
-  back(PATH, { ok: "Role saved." })
+  if (error?.code === "23505") back(retry, { error: t("roles.nameTaken") })
+  if (error || !count) back(retry, { error: error ? dbError(t, error) : t("errors.not_allowed") })
+  back(PATH, { ok: t("roles.saved") })
 }
 
 export async function deleteRole(roleId: string) {
   const ctx = await getContext()
+  const t = await getT()
   const { error, count } = await ctx.supabase.from("roles").delete({ count: "exact" }).eq("id", roleId).eq("org_id", ctx.org.id)
-  if (error?.code === "23503") back(`${PATH}?edit=${roleId}`, { error: "Members still have this role. Give them another role first." })
-  if (error || !count) back(`${PATH}?edit=${roleId}`, { error: error?.message ?? "You can't delete this role." })
-  back(PATH, { ok: "Role deleted." })
+  if (error?.code === "23503") back(`${PATH}?edit=${roleId}`, { error: t("roles.inUse") })
+  if (error || !count) back(`${PATH}?edit=${roleId}`, { error: error ? dbError(t, error) : t("errors.not_allowed") })
+  back(PATH, { ok: t("roles.deleted") })
 }

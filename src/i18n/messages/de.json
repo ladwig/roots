@@ -1,0 +1,273 @@
+{
+  "meta": {
+    "description": "Verein, Betrieb oder Events an einem Ort organisieren."
+  },
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "language": "Sprache"
+  },
+  "auth": {
+    "title": "Bei Roots anmelden",
+    "subtitle": "Mit Passwort oder per Anmeldelink per E-Mail.",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "signIn": "Anmelden",
+    "signUp": "Konto erstellen",
+    "magicLink": "Link per E-Mail",
+    "signOut": "Abmelden",
+    "passwordTooShort": "Verwende mindestens 8 Zeichen für dein Passwort.",
+    "confirmEmail": "Wir haben dir einen Link an {email} geschickt. Bestätige damit dein Konto.",
+    "magicLinkSent": "Wir haben dir einen Anmeldelink an {email} geschickt.",
+    "enterEmail": "Gib zuerst deine E-Mail-Adresse ein.",
+    "linkInvalid": "Dieser Link ist ungültig oder abgelaufen."
+  },
+  "onboarding": {
+    "title": "Organisation anlegen",
+    "subtitle": "Dein Verein, dein Betrieb oder deine Eventreihe. Danach kannst du andere einladen.",
+    "name": "Name",
+    "namePlaceholder": "Kulturverein Musterstadt",
+    "address": "Adresse",
+    "addressPlaceholder": "kulturverein",
+    "addressHelp": "Für deine öffentlichen Seiten. Kleinbuchstaben, Zahlen und Bindestriche.",
+    "submit": "Organisation anlegen",
+    "nameRequired": "Gib deiner Organisation einen Namen.",
+    "addressInvalid": "Die Adresse braucht 3–40 Zeichen: Kleinbuchstaben, Zahlen und Bindestriche.",
+    "addressTaken": "Diese Adresse ist schon vergeben."
+  },
+  "invite": {
+    "invalidTitle": "Einladung ungültig",
+    "invalidBody": "Diese Einladung wurde schon benutzt oder ist abgelaufen. Bitte die Person, die dich eingeladen hat, um einen neuen Link.",
+    "joinTitle": "{org} beitreten",
+    "invitedAs": "Du bist als {role} eingeladen. Die Einladung ging an {email}.",
+    "accept": "Einladung annehmen",
+    "signedInAs": "Angemeldet als {email}",
+    "signInFirst": "Anmelden oder Konto erstellen"
+  },
+  "site": {
+    "comingSoon": "Hier entstehen die öffentlichen Seiten dieser Organisation."
+  },
+  "shell": {
+    "home": "Start",
+    "settings": "Einstellungen",
+    "current": "Aktuell",
+    "newOrg": "Neue Organisation",
+    "mainNav": "Hauptnavigation"
+  },
+  "home": {
+    "role": "Du bist angemeldet als {role}.",
+    "modules": "Module",
+    "noModules": "Noch keine Module aktiv.",
+    "chooseModules": "Wähle aus, was diese Organisation braucht"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "nav": "Einstellungen",
+    "tabs": {
+      "general": "Allgemein",
+      "members": "Mitglieder",
+      "roles": "Rollen",
+      "modules": "Module",
+      "integrations": "Integrationen",
+      "activity": "Aktivität"
+    }
+  },
+  "general": {
+    "name": "Name",
+    "publicAddress": "Öffentliche Adresse",
+    "saved": "Gespeichert.",
+    "nameRequired": "Der Name darf nicht leer sein."
+  },
+  "members": {
+    "heading": "Mitglieder",
+    "invite": "Einladen",
+    "person": "Person",
+    "role": "Rolle",
+    "leave": "Verlassen",
+    "remove": "Entfernen",
+    "openInvites": "Offene Einladungen",
+    "expires": "läuft am {date} ab",
+    "revoke": "Zurückziehen",
+    "dialogTitle": "Jemanden einladen",
+    "dialogDescription": "Die Person tritt mit der gewählten Rolle bei.",
+    "roleChanged": "Rolle geändert.",
+    "removed": "Mitglied entfernt.",
+    "inviteRevoked": "Einladung zurückgezogen.",
+    "email": "E-Mail",
+    "createLink": "Einladungslink erstellen",
+    "sendLink": "Schick diesen Link an {email}. Er funktioniert einmal und läuft in 7 Tagen ab.",
+    "inviteLink": "Einladungslink",
+    "copy": "Link kopieren",
+    "copied": "Kopiert",
+    "invalidEmail": "Gib eine gültige E-Mail-Adresse ein.",
+    "cantInviteRole": "Mit dieser Rolle kannst du nicht einladen."
+  },
+  "roles": {
+    "intro": "Eine Rolle legt fest, was Personen tun dürfen.",
+    "new": "Neue Rolle",
+    "locked": "Nicht änderbar",
+    "edit": "Bearbeiten",
+    "editTitle": "{name} bearbeiten",
+    "summaryOwner": "Alles, auch Inhaber verwalten",
+    "summaryFull": "Voller Zugriff",
+    "summaryViewOnly": "Nur ansehen",
+    "permissionCount": {
+      "one": "{count} Berechtigung",
+      "other": "{count} Berechtigungen"
+    },
+    "memberCount": {
+      "one": "{count} Mitglied",
+      "other": "{count} Mitglieder"
+    },
+    "name": "Name",
+    "fullAccess": "Voller Zugriff",
+    "fullAccessHelp": "Alles außer Inhaber verwalten.",
+    "save": "Rolle speichern",
+    "delete": "Rolle löschen",
+    "nameRequired": "Gib der Rolle einen Namen.",
+    "nameTaken": "Eine Rolle mit diesem Namen gibt es schon.",
+    "saved": "Rolle gespeichert.",
+    "deleted": "Rolle gelöscht.",
+    "inUse": "Mitglieder haben diese Rolle noch. Gib ihnen zuerst eine andere.",
+    "defaults": {
+      "owner": "Inhaber",
+      "admin": "Admin",
+      "member": "Mitglied",
+      "doorStaff": "Einlass"
+    }
+  },
+  "modules": {
+    "on": "Aktiv",
+    "turnOn": "Aktivieren",
+    "turnOff": "Deaktivieren",
+    "needs": "Braucht {list}",
+    "connection": "{name}-Verbindung",
+    "confirmTitle": "{name} aktivieren?",
+    "confirmBody": "{name} braucht {list}. Diese werden mit aktiviert.",
+    "turnOnAll": "Alle aktivieren",
+    "turnedOn": "{list} aktiviert.",
+    "turnedOff": "{name} deaktiviert. Die Daten bleiben erhalten.",
+    "turnOffFirst": "Deaktiviere zuerst {list}. Es braucht {name}.",
+    "org": {
+      "name": "Organisation",
+      "description": "Einstellungen, Mitglieder, Rollen, Module, Integrationen und Aktivität."
+    },
+    "crm": {
+      "name": "CRM",
+      "description": "Tags, Notizen und Verlauf zu deinen Kontakten."
+    },
+    "payments": {
+      "name": "Zahlungen",
+      "description": "Zahlungen und Erstattungen über dein eigenes Stripe-Konto."
+    },
+    "events": {
+      "name": "Events",
+      "description": "Events mit Datum, Ort und Line-up planen."
+    },
+    "tickets": {
+      "name": "Ticketing",
+      "description": "Tickets mit Preisstufen, Gruppenangeboten und Einlass-Scanner verkaufen."
+    },
+    "guestlists": {
+      "name": "Gästelisten",
+      "description": "Gäste- und Artistlisten mit Links, die Promoter selbst ausfüllen."
+    },
+    "shifts": {
+      "name": "Schichtplanung",
+      "description": "Schichten planen, Mitglieder tragen sich ein und tauschen."
+    },
+    "sites": {
+      "name": "Öffentliche Seite",
+      "description": "Seiten auf deiner eigenen Subdomain, aus Blöcken gebaut."
+    }
+  },
+  "permissions": {
+    "org.settings.manage": "Organisationseinstellungen bearbeiten",
+    "org.members.manage": "Mitglieder einladen und verwalten",
+    "org.roles.manage": "Rollen anlegen und bearbeiten",
+    "org.modules.manage": "Module aktivieren und deaktivieren",
+    "org.integrations.manage": "Integrationen verbinden",
+    "org.audit.view": "Aktivitätsprotokoll ansehen",
+    "crm.view": "Kontakte ansehen",
+    "crm.manage": "Kontakte bearbeiten",
+    "payments.view": "Bestellungen und Zahlungen ansehen",
+    "payments.refund": "Erstattungen auslösen",
+    "events.view": "Events ansehen",
+    "events.manage": "Events anlegen und bearbeiten",
+    "tickets.view": "Ticketverkäufe ansehen",
+    "tickets.manage": "Tickets und Preise einrichten",
+    "tickets.scan": "Tickets am Einlass scannen",
+    "guestlists.view": "Gästelisten ansehen",
+    "guestlists.manage": "Gästelisten und Links verwalten",
+    "shifts.view": "Schichten ansehen",
+    "shifts.manage": "Schichten planen",
+    "sites.manage": "Öffentliche Seiten bearbeiten"
+  },
+  "integrations": {
+    "connect": "Verbinden",
+    "reconnect": "Neu verbinden",
+    "edit": "Bearbeiten",
+    "disconnect": "Trennen",
+    "connectTitle": "{name} verbinden",
+    "secretSaved": "Gespeichert. Leer lassen, um es zu behalten.",
+    "connected": "{name} verbunden.",
+    "disconnected": "{name} getrennt.",
+    "credentialsFailed": "Diese Zugangsdaten haben nicht funktioniert.",
+    "connectFailed": "Die Verbindung konnte nicht hergestellt werden. Bitte versuch es noch einmal.",
+    "status": {
+      "connected": "verbunden",
+      "error": "Fehler",
+      "revoked": "widerrufen"
+    },
+    "stripe": {
+      "description": "Zahlungen über dein eigenes Stripe-Konto."
+    },
+    "resend": {
+      "description": "E-Mails von deiner eigenen Domain senden.",
+      "fields": {
+        "apiKey": "API-Schlüssel",
+        "from": "Absender"
+      },
+      "invalidKey": "Resend hat diesen API-Schlüssel abgelehnt."
+    }
+  },
+  "activity": {
+    "filter": "Nach Bereich filtern",
+    "all": "Alle",
+    "empty": "Noch nichts passiert.",
+    "created": "angelegt",
+    "changed": "geändert",
+    "deleted": "gelöscht",
+    "system": "System",
+    "newer": "Neuer",
+    "older": "Älter",
+    "tables": {
+      "orgs": "Organisation",
+      "roles": "Rollen",
+      "org_members": "Mitglieder",
+      "invites": "Einladungen",
+      "org_modules": "Module",
+      "org_integrations": "Integrationen"
+    }
+  },
+  "errors": {
+    "generic": "Etwas ist schiefgelaufen. Bitte versuch es noch einmal.",
+    "not_allowed": "Dafür hast du keine Berechtigung.",
+    "not_signed_in": "Bitte melde dich zuerst an.",
+    "owner_only": "Nur Inhaber können ändern, wer Inhaber ist.",
+    "last_owner": "Eine Organisation braucht mindestens einen Inhaber.",
+    "invite_invalid": "Diese Einladung ist ungültig oder abgelaufen.",
+    "invite_wrong_email": "Diese Einladung ging an {detail}. Melde dich mit dieser E-Mail an, um sie anzunehmen.",
+    "unknown_module": "Unbekanntes Modul.",
+    "unknown_integration": "Unbekannte Integration.",
+    "auth": {
+      "invalid_credentials": "E-Mail oder Passwort stimmt nicht.",
+      "email_not_confirmed": "Bestätige zuerst deine E-Mail-Adresse.",
+      "user_already_exists": "Für diese E-Mail gibt es schon ein Konto. Melde dich an.",
+      "weak_password": "Dieses Passwort ist zu schwach.",
+      "over_email_send_rate_limit": "Zu viele E-Mails. Bitte warte kurz.",
+      "generic": "Die Anmeldung hat nicht geklappt. Bitte versuch es noch einmal."
+    }
+  }
+}
