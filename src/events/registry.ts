@@ -24,6 +24,7 @@ export const eventTypes: EventType[] = [
   { key: "event.published", module: "events" },
   { key: "event.updated", module: "events" },
   { key: "event.cancelled", module: "events" },
+  { key: "contact.created", module: "crm" },
   { key: "org.created", module: "platform", audience: { platform: true, defaults: ["in_app", "email"] }, href: (p) => `/admin/orgs?edit=${p.org_id}` },
 ]
 

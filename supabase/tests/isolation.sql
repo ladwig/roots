@@ -281,6 +281,46 @@ begin
   select count(*) into n from public.events where org_id = org_a;            assert n = 0, 'module off hides public events';
   reset role;
 
+  -- CRM: A (owner) manages contacts + notes; B and C (no crm.view) see nothing; anon nothing
+  insert into public.org_modules (org_id, module_key) values (org_a, 'crm');
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  insert into public.contacts (org_id, first_name, email, tags) values (org_a, 'Max', 'max@x.de', '{vip}'), (org_a, 'Erika', 'erika@x.de', '{}');
+  select count(*) into n from public.contacts where org_id = org_a and tags @> '{vip}'; assert n = 1, 'tag filter';
+  begin
+    insert into public.contacts (org_id, email) values (org_a, 'max@x.de');
+    assert false, 'contact email must be unique per org';
+  exception when unique_violation then null; end;
+  begin
+    insert into public.contacts (org_id, phone) values (org_a, '123');
+    assert false, 'contact needs a name, company or email';
+  exception when check_violation then null; end;
+  insert into public.contact_notes (org_id, contact_id, body) select org_a, id, 'Hallo' from public.contacts where email = 'max@x.de';
+  perform public.soft_delete('public.contacts', (select id from public.contacts where email = 'erika@x.de'));
+  insert into public.contacts (org_id, email) values (org_a, 'erika@x.de'); -- deleted email reusable
+  reset role;
+  select count(*) into n from public.hub_events where org_id = org_a and type = 'contact.created'; assert n = 3, 'contacts emit contact.created';
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.contacts where org_id = org_a;          assert n = 0, 'B sees contacts of A';
+  select count(*) into n from public.contact_notes where org_id = org_a;     assert n = 0, 'B sees notes of A';
+  begin
+    insert into public.contacts (org_id, email) values (org_a, 'b@x.de');
+    assert false, 'B must not create contacts in A';
+  exception when insufficient_privilege then null; end;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.contacts where org_id = org_a;          assert n = 0, 'Member without crm.view sees contacts';
+  reset role;
+  perform set_config('request.jwt.claims', '{}', true);
+  set local role anon;
+  begin
+    perform 1 from public.contacts limit 1;
+    assert false, 'anon must not read contacts';
+  exception when insufficient_privilege then null; end;
+  reset role;
+
   -- x-org-id header: C is now in A and B, but with the header only sees the active org
   perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
   set local role authenticated;

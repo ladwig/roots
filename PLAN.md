@@ -98,8 +98,9 @@ Modules contribute to both: e.g. Events = event management in the App + event pa
 - Fee pass-through: optionally gross the price up so the buyer pays the fee.
 - Later: invoices (German-compliant numbering and PDF), SEPA, payouts overview.
 
-### Contacts / CRM
-- Contacts, tags, notes, activity timeline (from `audit_log` plus module events), CSV import/export.
+### Contacts / CRM ✅ (v1)
+- Done: `/contacts` with name/company/email/phone/address/birthday, tags (text array, chip filter), notes + timeline in the drawer, server-side search, unique email per org, trash/restore, `contact.created` event.
+- Next: CSV import/export (generic), timeline entries from other modules (tickets, guest lists, emails) via a definer function, custom fields if needed.
 - Later: segments, newsletter (Resend).
 
 ### Events

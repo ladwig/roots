@@ -306,7 +306,9 @@
       "platform_admins": "Superadmins",
       "event_subscriptions": "Notifications",
       "pay_orders": "Orders",
-      "events": "Events"
+      "events": "Events",
+      "contacts": "Contacts",
+      "contact_notes": "Contact notes"
     }
   },
   "errors": {
@@ -336,7 +338,10 @@
     "slug_taken": "This slug is already taken.",
     "invalid_time": "Please enter a valid date and time.",
     "end_before_start": "The end must be after the start.",
-    "invalid_input": "Please check your input."
+    "invalid_input": "Please check your input.",
+    "invalid_email": "Please enter a valid email address.",
+    "email_taken": "There is already a contact with this email address.",
+    "contact_needs_name": "Please enter at least a name, company or email."
   },
   "admin": {
     "title": "Platform",
@@ -565,7 +570,8 @@
       "org.created": "New organisation",
       "event.published": "Event published",
       "event.updated": "Event changed (time/place)",
-      "event.cancelled": "Event cancelled"
+      "event.cancelled": "Event cancelled",
+      "contact.created": "Contact created"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -578,7 +584,8 @@
       "org.created": "🌱 New organisation: {name}",
       "event.published": "📅 New event: {title}, {when}",
       "event.updated": "🕒 Changed: {title}, now {when}",
-      "event.cancelled": "❌ Cancelled: {title} ({when})"
+      "event.cancelled": "❌ Cancelled: {title} ({when})",
+      "contact.created": "👤 New contact: {name}"
     }
   },
   "inbox": {
@@ -648,5 +655,49 @@
     "restored": "Restored.",
     "deletedOn": "Deleted on {date}, removed for good on {purge}.",
     "readOnly": "You can view events but not edit them."
+  },
+  "contacts": {
+    "nav": "Contacts",
+    "title": "Contacts",
+    "new": "New contact",
+    "empty": "No contacts yet.",
+    "emptyTrash": "The trash is empty.",
+    "noMatch": "No contacts found.",
+    "all": "All",
+    "trash": "Trash",
+    "trashHint": "Deleted contacts are removed for good after {days} days.",
+    "name": "Name",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "company": "Company / club",
+    "email": "Email",
+    "phone": "Phone",
+    "street": "Street and no.",
+    "postalCode": "Postcode",
+    "city": "City",
+    "country": "Country",
+    "birthday": "Birthday",
+    "tags": "Tags",
+    "tagsHelp": "Separate with commas, e.g. member, VIP",
+    "address": "Address",
+    "created": "Contact created.",
+    "saved": "Saved.",
+    "toTrash": "Move to trash",
+    "trashed": "Moved to trash.",
+    "restore": "Restore",
+    "restored": "Restored.",
+    "deletedOn": "Deleted on {date}, removed for good on {purge}.",
+    "readOnly": "You can view contacts but not edit them.",
+    "timeline": "Timeline",
+    "notePlaceholder": "Add a note…",
+    "addNote": "Save note",
+    "noteAdded": "Note saved.",
+    "deleteNote": "Delete note",
+    "noteDeleted": "Note deleted.",
+    "createdBy": "Created by {who}",
+    "createdEntry": "Contact created",
+    "updatedEntry": "Last changed",
+    "someone": "someone",
+    "details": "Details"
   }
 }

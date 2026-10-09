@@ -306,7 +306,9 @@
       "platform_admins": "Superadmins",
       "event_subscriptions": "Benachrichtigungen",
       "pay_orders": "Bestellungen",
-      "events": "Events"
+      "events": "Events",
+      "contacts": "Kontakte",
+      "contact_notes": "Kontakt-Notizen"
     }
   },
   "errors": {
@@ -336,7 +338,10 @@
     "slug_taken": "Dieser Slug ist schon vergeben.",
     "invalid_time": "Bitte gib ein gültiges Datum mit Uhrzeit an.",
     "end_before_start": "Das Ende muss nach dem Beginn liegen.",
-    "invalid_input": "Bitte prüfe deine Eingaben."
+    "invalid_input": "Bitte prüfe deine Eingaben.",
+    "invalid_email": "Bitte eine gültige E-Mail-Adresse angeben.",
+    "email_taken": "Es gibt schon einen Kontakt mit dieser E-Mail-Adresse.",
+    "contact_needs_name": "Bitte mindestens Name, Firma oder E-Mail angeben."
   },
   "admin": {
     "title": "Plattform",
@@ -565,7 +570,8 @@
       "org.created": "Neue Organisation",
       "event.published": "Event veröffentlicht",
       "event.updated": "Event geändert (Zeit/Ort)",
-      "event.cancelled": "Event abgesagt"
+      "event.cancelled": "Event abgesagt",
+      "contact.created": "Kontakt angelegt"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -578,7 +584,8 @@
       "org.created": "🌱 Neue Organisation: {name}",
       "event.published": "📅 Neues Event: {title}, {when}",
       "event.updated": "🕒 Geändert: {title}, jetzt {when}",
-      "event.cancelled": "❌ Abgesagt: {title} ({when})"
+      "event.cancelled": "❌ Abgesagt: {title} ({when})",
+      "contact.created": "👤 Neuer Kontakt: {name}"
     }
   },
   "inbox": {
@@ -648,5 +655,49 @@
     "restored": "Wiederhergestellt.",
     "deletedOn": "Gelöscht am {date}, wird am {purge} endgültig entfernt.",
     "readOnly": "Du kannst Events ansehen, aber nicht bearbeiten."
+  },
+  "contacts": {
+    "nav": "Kontakte",
+    "title": "Kontakte",
+    "new": "Neuer Kontakt",
+    "empty": "Noch keine Kontakte.",
+    "emptyTrash": "Der Papierkorb ist leer.",
+    "noMatch": "Keine Kontakte gefunden.",
+    "all": "Alle",
+    "trash": "Papierkorb",
+    "trashHint": "Gelöschte Kontakte werden nach {days} Tagen endgültig entfernt.",
+    "name": "Name",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "company": "Firma / Verein",
+    "email": "E-Mail",
+    "phone": "Telefon",
+    "street": "Straße und Nr.",
+    "postalCode": "PLZ",
+    "city": "Ort",
+    "country": "Land",
+    "birthday": "Geburtstag",
+    "tags": "Tags",
+    "tagsHelp": "Mit Komma trennen, z. B. Mitglied, VIP",
+    "address": "Adresse",
+    "created": "Kontakt angelegt.",
+    "saved": "Gespeichert.",
+    "toTrash": "In den Papierkorb",
+    "trashed": "In den Papierkorb verschoben.",
+    "restore": "Wiederherstellen",
+    "restored": "Wiederhergestellt.",
+    "deletedOn": "Gelöscht am {date}, wird am {purge} endgültig entfernt.",
+    "readOnly": "Du kannst Kontakte ansehen, aber nicht bearbeiten.",
+    "timeline": "Verlauf",
+    "notePlaceholder": "Notiz hinzufügen…",
+    "addNote": "Notiz speichern",
+    "noteAdded": "Notiz gespeichert.",
+    "deleteNote": "Notiz löschen",
+    "noteDeleted": "Notiz gelöscht.",
+    "createdBy": "Angelegt von {who}",
+    "createdEntry": "Kontakt angelegt",
+    "updatedEntry": "Zuletzt geändert",
+    "someone": "jemandem",
+    "details": "Details"
   }
 }
