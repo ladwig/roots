@@ -234,7 +234,13 @@
       "pending": "Einrichtung offen"
     },
     "stripe": {
-      "description": "Zahlungen über dein eigenes Stripe-Konto annehmen. Stripe führt dich durch die Einrichtung."
+      "description": "Zahlungen über dein eigenes Stripe-Konto annehmen. Stripe führt dich durch die Einrichtung.",
+      "modes": {
+        "existing": "Bestehendes Stripe-Konto verbinden",
+        "new": "Neues Stripe-Konto einrichten"
+      },
+      "oauthNotConfigured": "Das Verbinden bestehender Stripe-Konten ist noch nicht eingerichtet (STRIPE_CLIENT_ID fehlt).",
+      "oauthDenied": "Die Verbindung mit Stripe wurde abgebrochen."
     },
     "resend": {
       "description": "E-Mails von deiner eigenen Domain senden.",

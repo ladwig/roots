@@ -4,29 +4,54 @@ import { stripe } from "@/lib/stripe"
 import { markExpired, markFailed, markPaid, markRefunded } from "@/payments/server"
 import type { Integration } from "./registry"
 
-// Stripe Connect, SaaS setup (Stripe's recommendation for platforms like ours):
-// Accounts v2 with the full Stripe Dashboard, Stripe-hosted onboarding, direct charges.
-// The org is merchant of record and pays Stripe's fees; roots takes an application fee.
-const ACCOUNT = {
+// Stripe Connect. Two ways for an org to link Stripe:
+// - "existing": Connect OAuth. The org signs in to its own Stripe account and authorises roots (keeps its
+//   account, history and payouts). Needs STRIPE_CLIENT_ID and the callback URL registered under Connect → OAuth.
+// - "new": Accounts v2 with Stripe-hosted onboarding (full Stripe Dashboard, Stripe's recommended path).
+// Both end as a connected account we charge on directly (org = merchant of record, roots takes an application fee).
+const NEW_ACCOUNT = {
   dashboard: "full",
   defaults: { responsibilities: { fees_collector: "stripe", losses_collector: "stripe" } },
   configuration: { merchant: { capabilities: { card_payments: { requested: true } } } },
 } as const
 
+/** Can this connected account take card payments right now? */
 export async function stripeAccountReady(accountId: string) {
-  const account = await stripe().v2.core.accounts.retrieve(accountId, { include: ["configuration.merchant"] })
-  return account.configuration?.merchant?.capabilities?.card_payments?.status === "active"
+  try {
+    const account = await stripe().v2.core.accounts.retrieve(accountId, { include: ["configuration.merchant"] })
+    return account.configuration?.merchant?.capabilities?.card_payments?.status === "active"
+  } catch {
+    // Accounts linked via OAuth may not be readable through v2: fall back to the v1 capability.
+    const account = await stripe().accounts.retrieve(accountId)
+    return account.capabilities?.card_payments === "active"
+  }
 }
 
 export const stripeIntegration: Integration = {
   key: "stripe",
   name: "Stripe",
   connect: {
-    async start({ orgName, email, callbackUrl, existing }) {
-      let accountId = existing?.accountId
+    modes: ["existing", "new"],
+    async start({ mode, state, orgName, email, callbackUrl, existing }) {
+      if (mode === "existing") {
+        const clientId = process.env.STRIPE_CLIENT_ID
+        if (!clientId) throw new Error("integrations.stripe.oauthNotConfigured")
+        const url = stripe().oauth.authorizeUrl({
+          response_type: "code",
+          client_id: clientId,
+          scope: "read_write",
+          redirect_uri: callbackUrl,
+          state,
+          stripe_user: { email, business_name: orgName, country: "DE" },
+        })
+        return { url }
+      }
+
+      // "new" (also used to continue an unfinished onboarding)
+      let accountId = existing?.via === "onboarding" ? existing.accountId : undefined
       if (!accountId) {
         const account = await stripe().v2.core.accounts.create({
-          ...ACCOUNT,
+          ...NEW_ACCOUNT,
           display_name: orgName,
           contact_email: email,
           identity: { country: "de" },
@@ -40,19 +65,35 @@ export const stripeIntegration: Integration = {
           type: "account_onboarding",
           account_onboarding: {
             configurations: ["merchant"],
-            refresh_url: callbackUrl.replace(/\/callback\?.*$/, "/connect"),
-            return_url: callbackUrl,
+            refresh_url: callbackUrl.replace(/\/callback$/, "/connect?mode=new"),
+            return_url: `${callbackUrl}?state=${state}`,
           },
         },
       })
-      return { url: link.url, connection: { config: { accountId }, status: "pending" } }
+      return { url: link.url, connection: { config: { accountId, via: "onboarding" }, status: "pending" } }
     },
-    async finish({ existing }) {
+
+    async finish({ params, existing }) {
+      if (params.has("error")) throw new Error("integrations.stripe.oauthDenied") // org cancelled at Stripe
+      const code = params.get("code")
+      if (code) {
+        const token = await stripe().oauth.token({ grant_type: "authorization_code", code })
+        const accountId = token.stripe_user_id
+        if (!accountId) throw new Error("integrations.connectFailed")
+        return { config: { accountId, via: "oauth" }, status: (await stripeAccountReady(accountId)) ? "connected" : "pending" }
+      }
       const accountId = existing?.accountId
       if (!accountId) throw new Error("integrations.connectFailed")
-      return { config: { accountId }, status: (await stripeAccountReady(accountId)) ? "connected" : "pending" }
+      return { config: { accountId, via: existing.via ?? "onboarding" }, status: (await stripeAccountReady(accountId)) ? "connected" : "pending" }
     },
   },
+
+  // Linked via OAuth: revoke roots' access at Stripe. Accounts created via onboarding stay with the org.
+  async disconnect(config) {
+    if (config.via === "oauth" && config.accountId && process.env.STRIPE_CLIENT_ID)
+      await stripe().oauth.deauthorize({ client_id: process.env.STRIPE_CLIENT_ID, stripe_user_id: config.accountId })
+  },
+
   webhook: {
     // One Connect webhook endpoint (events on connected accounts), signed with STRIPE_WEBHOOK_SECRET.
     async verify(req, body) {
@@ -89,6 +130,16 @@ export const stripeIntegration: Integration = {
           const charge = event.data.object
           const pi = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id
           if (pi) await markRefunded("stripe", pi, charge.amount_refunded)
+          return
+        }
+        case "account.application.deauthorized": {
+          // The org removed roots in its Stripe Dashboard.
+          if (event.account)
+            await createAdminClient()
+              .from("org_integrations")
+              .update({ status: "revoked", last_error: null })
+              .eq("provider", "stripe")
+              .eq("config->>accountId", event.account)
           return
         }
       }

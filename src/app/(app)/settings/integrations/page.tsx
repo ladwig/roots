@@ -43,11 +43,25 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
                 )}
               </div>
               {row?.last_error && <p className="text-xs text-destructive">{row.last_error}</p>}
-              <div className="mt-auto flex gap-2">
+              <div className="mt-auto flex flex-wrap gap-2">
                 {i.connect ? (
-                  <Button render={<a href={`/api/integrations/${i.key}/connect`} />} nativeButton={false} size="sm">
-                    {row?.status === "pending" ? t("integrations.continueSetup") : row ? t("integrations.reconnect") : t("integrations.connect")}
-                  </Button>
+                  row?.status === "connected" ? null : row?.status === "pending" && (row.config as Record<string, string>)?.via === "onboarding" ? (
+                    <Button render={<a href={`/api/integrations/${i.key}/connect?mode=new`} />} nativeButton={false} size="sm">
+                      {t("integrations.continueSetup")}
+                    </Button>
+                  ) : (
+                    (i.connect.modes ?? ["default"]).map((mode, n) => (
+                      <Button
+                        key={mode}
+                        render={<a href={`/api/integrations/${i.key}/connect?mode=${mode}`} />}
+                        nativeButton={false}
+                        size="sm"
+                        variant={n === 0 ? "default" : "outline"}
+                      >
+                        {t.has(`integrations.${i.key}.modes.${mode}`) ? t.dynamic(`integrations.${i.key}.modes.${mode}`) : t("integrations.connect")}
+                      </Button>
+                    ))
+                  )
                 ) : (
                   <Button render={<Link href={`?connect=${i.key}`} scroll={false} />} nativeButton={false} size="sm">
                     {row ? t("integrations.edit") : t("integrations.connect")}

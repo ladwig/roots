@@ -7,21 +7,25 @@ import { getIntegration } from "@/integrations/registry"
 
 // Start of a redirect connection (OAuth / hosted onboarding): remember state + org in a short-lived cookie,
 // let the provider prepare (e.g. create the Stripe account), then send the user there.
-export async function GET(_: Request, { params }: RouteContext<"/api/integrations/[provider]/connect">) {
+export async function GET(request: Request, { params }: RouteContext<"/api/integrations/[provider]/connect">) {
   const { provider } = await params
   const integration = getIntegration(provider)
   const ctx = await getContext()
   if (!integration?.connect || !ctx.can("org.integrations.manage")) return new NextResponse("Not found", { status: 404 })
   const t = await getT()
+  const modes = integration.connect.modes ?? ["default"]
+  const requested = new URL(request.url).searchParams.get("mode") ?? ""
+  const mode = modes.includes(requested) ? requested : modes[0]
 
   const state = randomBytes(24).toString("base64url")
-  const callbackUrl = `${APP_URL}/api/integrations/${provider}/callback?state=${state}`
   const { data: row } = await ctx.supabase.from("org_integrations").select("config").eq("org_id", ctx.org.id).eq("provider", provider).maybeSingle()
   try {
     const { url, connection } = await integration.connect.start({
+      mode,
+      state,
       orgName: ctx.org.name,
       email: ctx.email,
-      callbackUrl,
+      callbackUrl: `${APP_URL}/api/integrations/${provider}/callback`,
       existing: row?.config as Record<string, string> | undefined,
     })
     if (connection) {

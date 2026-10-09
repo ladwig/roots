@@ -234,7 +234,13 @@
       "pending": "setup open"
     },
     "stripe": {
-      "description": "Take payments through your own Stripe account. Stripe guides you through the setup."
+      "description": "Take payments through your own Stripe account. Stripe guides you through the setup.",
+      "modes": {
+        "existing": "Connect existing Stripe account",
+        "new": "Set up new Stripe account"
+      },
+      "oauthNotConfigured": "Connecting existing Stripe accounts isn't set up yet (STRIPE_CLIENT_ID is missing).",
+      "oauthDenied": "The connection with Stripe was cancelled."
     },
     "resend": {
       "description": "Send emails from your own domain.",

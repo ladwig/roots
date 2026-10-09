@@ -48,6 +48,15 @@ export async function connectIntegration(provider: string, formData: FormData) {
 export async function disconnectIntegration(provider: string) {
   const ctx = await getContext()
   const t = await getT()
+  const integration = getIntegration(provider)
+  if (integration?.disconnect) {
+    const { data: row } = await ctx.supabase.from("org_integrations").select("config").eq("org_id", ctx.org.id).eq("provider", provider).maybeSingle()
+    try {
+      if (row) await integration.disconnect(row.config as Record<string, string>)
+    } catch (e) {
+      console.error(e) // e.g. already revoked at the provider: remove our side anyway
+    }
+  }
   const { error } = await ctx.supabase.rpc("delete_integration", { p_org: ctx.org.id, p_provider: provider })
   if (error) back(PATH, { error: dbError(t, error) })
   back(PATH, { ok: t("integrations.disconnected", { name: getIntegration(provider)?.name ?? provider }) })

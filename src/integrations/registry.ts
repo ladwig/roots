@@ -20,16 +20,27 @@ export type Integration = {
   /** API-key style: fields asked in the connect dialog. */
   fields?: Field[]
   /**
-   * Redirect style (OAuth, hosted onboarding): /api/integrations/[provider]/connect calls `start`, sends the user to
-   * the returned URL, and the provider sends them back to `callbackUrl` (which carries `state`), where `finish` runs.
+   * Redirect style (OAuth, hosted onboarding): /api/integrations/[provider]/connect?mode=… calls `start`, sends the
+   * user to the returned URL, and the provider sends them back to `callbackUrl` with `state`, where `finish` runs.
+   * `modes` = the ways to connect (one button each, texts in integrations.<key>.modes.<mode>); first = default.
    */
   connect?: {
-    start(c: { orgName: string; email: string; callbackUrl: string; existing?: Record<string, string> }): Promise<{
+    modes?: string[]
+    start(c: {
+      mode: string
+      state: string
+      orgName: string
+      email: string
+      callbackUrl: string // without query; providers append `state` where they need to
+      existing?: Record<string, string>
+    }): Promise<{
       url: string
       connection?: Connection // saved before redirecting (e.g. a created account id, status pending)
     }>
     finish(c: { params: URLSearchParams; callbackUrl: string; existing?: Record<string, string> }): Promise<Connection>
   }
+  /** Called before the connection is removed (e.g. revoke access at the provider). */
+  disconnect?(config: Record<string, string>): Promise<void>
   /** Throws an Error whose message is a message key (or plain text) if the credentials don't work. */
   test?(secret: Secret, config: Record<string, string>): Promise<void>
   /** Handled by /api/webhooks/[provider]: verify → store in integration_events (deduped) → handle. */

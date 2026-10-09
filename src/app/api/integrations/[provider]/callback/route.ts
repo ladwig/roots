@@ -29,7 +29,7 @@ export async function GET(request: Request, { params }: RouteContext<"/api/integ
   try {
     const conn = await integration.connect.finish({
       params: url.searchParams,
-      callbackUrl: `${APP_URL}/api/integrations/${provider}/callback?state=${state}`,
+      callbackUrl: `${APP_URL}/api/integrations/${provider}/callback`,
       existing: row?.config as Record<string, string> | undefined,
     })
     const { error } = await db.rpc("save_integration", {
@@ -46,6 +46,7 @@ export async function GET(request: Request, { params }: RouteContext<"/api/integ
       : done({ ok: t("integrations.connected", { name: integration.name }) })
   } catch (e) {
     console.error(e)
-    return done({ error: t("integrations.connectFailed") })
+    const key = e instanceof Error ? e.message : ""
+    return done({ error: t.has(key) ? t.dynamic(key) : t("integrations.connectFailed") })
   }
 }
