@@ -60,7 +60,17 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Radius via `rounded-md/lg/xl` (derived from `--radius`). Spacing on Tailwind scale.
 - Compose from `src/components/ui/*`; app-level components go in `src/components/`. Use `cn()` from `@/lib/utils` for class merging.
 - Icons: `lucide-react` only.
-- Every UI must work in light + dark and at 400px width. Accessible basics: labels on inputs, focus rings intact, real `<button>`/`<a>`.
+- Accessible basics: labels on inputs, focus rings intact, real `<button>`/`<a>`.
+
+### One style guide, every device
+Every screen works on phone (from 360px), tablet (iPad, `md` = 768px+) and desktop, in light + dark. Same components, same tokens; only the arrangement changes.
+- Mobile-first classes: base = phone, add `sm:` / `md:` / `lg:` for wider. No fixed widths that can overflow; text truncates or wraps.
+- Signed-in areas use `<AppShell>` (`src/components/app-shell.tsx`, App + `/admin`): shadcn sidebar = drawer on phones, collapsible to icons (with tooltips) from `md`. Nav items need a lucide icon (`icon` in the module registry).
+- Lists: `<DataTable>` shows cards on phones (first column = title, others label/value) and a table from `md`. Keep the first column meaningful.
+- Drawers (`<UrlSheet>`) are full-width on phones. Forms stack on phones: `grid gap-4 sm:grid-cols-2`.
+- Toolbars and page headers wrap: `flex flex-wrap items-center gap-3`.
+- Icon-only buttons get a `<Tooltip>` and an `aria-label`. Touch targets at least `size-8`.
+- Check new screens at 375px, 768px and 1280px before committing.
 
 ## Data lifecycle rules (every new table / feature)
 **Audit (always):** every org-scoped table gets the audit columns + `enable_audit()`. The change log is the history; never write audit data by hand, never put secrets in audited columns. Only platform admins read it (`/admin/activity`); add new tables' labels under `activity.tables`.

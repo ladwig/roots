@@ -1,43 +1,42 @@
 import Link from "next/link"
-import { signOut } from "@/app/login/actions"
-import { NavLink } from "@/components/nav-link"
-import { Button } from "@/components/ui/button"
-import { LocaleSwitcher } from "@/i18n/client"
+import { ActivityIcon, ArrowLeftIcon, BuildingIcon, ShieldIcon, UsersIcon } from "lucide-react"
+import { AppShell } from "@/components/app-shell"
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
 import { getT } from "@/i18n/server"
 import { requirePlatformAdmin } from "@/lib/context"
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await requirePlatformAdmin()
   const t = await getT()
+  const { data: me } = await session.supabase.from("profiles").select("full_name, avatar_path").eq("id", session.userId).maybeSingle()
   return (
-    <div className="flex min-h-full flex-col md:flex-row">
-      <aside className="flex flex-col gap-3 border-b bg-sidebar p-3 text-sidebar-foreground md:sticky md:top-0 md:h-dvh md:w-60 md:border-r md:border-b-0">
-        <p className="px-2.5 py-1 font-heading font-semibold">{t("admin.title")}</p>
-        <nav aria-label={t("admin.nav")} className="-mx-1 flex gap-1 overflow-x-auto px-1 md:flex-col md:overflow-visible">
-          <NavLink href="/admin/orgs">{t("admin.orgs.title")}</NavLink>
-          <NavLink href="/admin/users">{t("admin.users.title")}</NavLink>
-          <NavLink href="/admin/roles">{t("admin.roles.title")}</NavLink>
-          <NavLink href="/admin/activity">{t("admin.activity.title")}</NavLink>
-        </nav>
-        <div className="hidden gap-2 md:mt-auto md:grid">
-          <Button render={<Link href="/" />} nativeButton={false} variant="outline" size="sm">
-            {t("admin.backToApp")}
-          </Button>
-          <LocaleSwitcher />
-          <form action={signOut} className="flex items-center justify-between gap-2">
-            <Link href="/account" className="truncate text-xs text-muted-foreground underline-offset-4 hover:underline" title={t("account.link")}>
-              {session.email}
-            </Link>
-            <Button type="submit" variant="ghost" size="sm">
-              {t("auth.signOut")}
-            </Button>
-          </form>
-        </div>
-      </aside>
-      <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">
-        <div className="mx-auto grid max-w-5xl gap-6">{children}</div>
-      </main>
-    </div>
+    <AppShell
+      header={
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton tooltip={t("admin.backToApp")} render={<Link href="/" />}>
+              <ArrowLeftIcon />
+              <span>{t("admin.backToApp")}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      }
+      groups={[
+        {
+          label: t("admin.title"),
+          items: [
+            { href: "/admin/orgs", label: t("admin.orgs.title"), icon: <BuildingIcon /> },
+            { href: "/admin/users", label: t("admin.users.title"), icon: <UsersIcon /> },
+            { href: "/admin/roles", label: t("admin.roles.title"), icon: <ShieldIcon /> },
+            { href: "/admin/activity", label: t("admin.activity.title"), icon: <ActivityIcon /> },
+          ],
+        },
+      ]}
+      me={{ name: me?.full_name || session.email, email: session.email, avatar: me?.avatar_path ?? null }}
+      title={t("admin.title")}
+    >
+      <div className="mx-auto grid max-w-5xl gap-6">{children}</div>
+    </AppShell>
   )
 }
 

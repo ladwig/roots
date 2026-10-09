@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation"
 import { useTransition } from "react"
 import { CheckIcon, ChevronsUpDownIcon, LanguagesIcon, LogOutIcon, UserIcon } from "lucide-react"
 import { signOut } from "@/app/login/actions"
-import { OrgSwitcher } from "@/components/org-switcher"
 import { Picture } from "@/components/picture"
 import {
   DropdownMenu,
@@ -35,18 +34,16 @@ import { useT } from "@/i18n/client"
 import { localeNames, locales } from "@/i18n/config"
 
 export type SidebarLink = { href: string; label: string; icon: React.ReactNode; count?: number }
-type Org = { id: string; name: string; logo_path?: string | null }
+export type Me = { name: string; email: string; avatar: string | null }
 
 export function AppSidebar({
-  orgs,
-  org,
+  header,
   groups,
   me,
 }: {
-  orgs: Org[]
-  org: Org
+  header: React.ReactNode
   groups: { label?: string; items: SidebarLink[] }[]
-  me: { name: string; email: string; avatar: string | null }
+  me: Me
 }) {
   const t = useT()
   const pathname = usePathname()
@@ -55,9 +52,7 @@ export function AppSidebar({
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader>
-        <OrgSwitcher orgs={orgs} current={org} />
-      </SidebarHeader>
+      <SidebarHeader>{header}</SidebarHeader>
       <SidebarContent>
         {groups.map((g, i) => (
           <SidebarGroup key={i}>
@@ -88,7 +83,7 @@ export function AppSidebar({
   )
 }
 
-function UserMenu({ me }: { me: { name: string; email: string; avatar: string | null } }) {
+function UserMenu({ me }: { me: Me }) {
   const t = useT()
   const router = useRouter()
   const [pending, start] = useTransition()
