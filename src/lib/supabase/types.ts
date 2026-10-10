@@ -25,6 +25,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"artists": {
+                  Row: {
+                    "contact_id": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"id": string,"links": (string)[],"name": string,"notes": string | null,"org_id": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"id"?: string,"links"?: (string)[],"name": string,"notes"?: string | null,"org_id": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"id"?: string,"links"?: (string)[],"name"?: string,"notes"?: string | null,"org_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "artists_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "artists_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"audit_log": {
                   Row: {
                     "action": string,"actor_id": string | null,"at": string,"id": number,"new": Json | null,"old": Json | null,"org_id": string | null,"row_id": string,"table_name": string
@@ -195,6 +221,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"event_slots": {
+                  Row: {
+                    "artist_id": string | null,"created_at": string,"created_by": string | null,"ends_at": string | null,"event_id": string,"id": string,"notes": string | null,"org_id": string,"public": boolean,"stage": string | null,"starts_at": string,"title": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "artist_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"ends_at"?: string | null,"event_id": string,"id"?: string,"notes"?: string | null,"org_id": string,"public"?: boolean,"stage"?: string | null,"starts_at": string,"title"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "artist_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"ends_at"?: string | null,"event_id"?: string,"id"?: string,"notes"?: string | null,"org_id"?: string,"public"?: boolean,"stage"?: string | null,"starts_at"?: string,"title"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "event_slots_artist_id_fkey"
+      columns: ["artist_id"]
+isOneToOne: false
+      referencedRelation: "artists"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "event_slots_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "event_slots_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"event_subscriptions": {
                   Row: {
                     "active": boolean,"channel": string,"config": NonNullable<Json>,"created_at": string,"created_by": string | null,"event_types": (string)[],"id": string,"name": string,"org_id": string,"secret_id": string | null,"updated_at": string,"updated_by": string | null
@@ -232,6 +290,108 @@ isOneToOne: false
       columns: ["org_id"]
 isOneToOne: false
       referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"guest_checkins": {
+                  Row: {
+                    "checked_in_at": string,"checked_in_by": string | null,"created_at": string,"created_by": string | null,"entry_id": string,"event_id": string,"id": string,"org_id": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "checked_in_at"?: string,"checked_in_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"entry_id": string,"event_id": string,"id"?: string,"org_id": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "checked_in_at"?: string,"checked_in_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"entry_id"?: string,"event_id"?: string,"id"?: string,"org_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "guest_checkins_entry_id_fkey"
+      columns: ["entry_id"]
+isOneToOne: false
+      referencedRelation: "guest_entries"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "guest_checkins_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "guest_checkins_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"guest_entries": {
+                  Row: {
+                    "added_via": string,"created_at": string,"created_by": string | null,"email": string | null,"id": string,"list_id": string,"name": string,"note": string | null,"org_id": string,"submitted_by": string | null,"ticket_id": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "added_via"?: string,"created_at"?: string,"created_by"?: string | null,"email"?: string | null,"id"?: string,"list_id": string,"name": string,"note"?: string | null,"org_id": string,"submitted_by"?: string | null,"ticket_id"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "added_via"?: string,"created_at"?: string,"created_by"?: string | null,"email"?: string | null,"id"?: string,"list_id"?: string,"name"?: string,"note"?: string | null,"org_id"?: string,"submitted_by"?: string | null,"ticket_id"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "guest_entries_list_id_fkey"
+      columns: ["list_id"]
+isOneToOne: false
+      referencedRelation: "guest_lists"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "guest_entries_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "guest_entries_ticket_id_fkey"
+      columns: ["ticket_id"]
+isOneToOne: false
+      referencedRelation: "tickets"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"guest_lists": {
+                  Row: {
+                    "artist_id": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"door_price": number,"event_id": string | null,"id": string,"link_closes_at": string | null,"link_enabled": boolean,"link_token": string | null,"name": string,"notes": string | null,"org_id": string,"per_submission": number,"quota": number | null,"ticket_type_id": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "artist_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"door_price"?: number,"event_id"?: string | null,"id"?: string,"link_closes_at"?: string | null,"link_enabled"?: boolean,"link_token"?: string | null,"name": string,"notes"?: string | null,"org_id": string,"per_submission"?: number,"quota"?: number | null,"ticket_type_id"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "artist_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"door_price"?: number,"event_id"?: string | null,"id"?: string,"link_closes_at"?: string | null,"link_enabled"?: boolean,"link_token"?: string | null,"name"?: string,"notes"?: string | null,"org_id"?: string,"per_submission"?: number,"quota"?: number | null,"ticket_type_id"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "guest_lists_artist_id_fkey"
+      columns: ["artist_id"]
+isOneToOne: false
+      referencedRelation: "artists"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "guest_lists_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "guest_lists_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "guest_lists_ticket_type_id_fkey"
+      columns: ["ticket_type_id"]
+isOneToOne: false
+      referencedRelation: "ticket_types"
       referencedColumns: ["id"]
     }
                   ]
@@ -780,6 +940,9 @@ isOneToOne: false
               "key_id": string,"modules": (string)[],"org_id": string,"permissions": (string)[]
             }[]
                            },
+"artist_visible":
+{ Args: { "p_artist": string }; Returns: boolean
+                           },
 "can_see_deleted":
 { Args: { "p_org": string,"p_table": unknown }; Returns: boolean
                            },
@@ -815,6 +978,9 @@ isOneToOne: false
 "enable_soft_delete":
 { Args: { "p_org_column"?: string,"p_perm"?: string,"p_purge_days"?: number,"p_table": unknown }; Returns: undefined
                            },
+"event_visible":
+{ Args: { "p_event": string }; Returns: boolean
+                           },
 "events_public":
 { Args: { "p_org": string }; Returns: boolean
                            },
@@ -829,6 +995,33 @@ isOneToOne: false
                            },
 "get_subscription_secret":
 { Args: { "p_subscription": string }; Returns: string
+                           },
+"guest_link_add":
+{ Args: { "p_email"?: string,"p_names": (string)[],"p_submitted_by": string,"p_token": string }; Returns: {
+              "added_via": string,
+"created_at": string,
+"created_by": string | null,
+"email": string | null,
+"id": string,
+"list_id": string,
+"name": string,
+"note": string | null,
+"org_id": string,
+"submitted_by": string | null,
+"ticket_id": string | null,
+"updated_at": string,
+"updated_by": string | null
+            }[]
+                          SetofOptions: {
+        from: "*"
+        to: "guest_entries"
+        isOneToOne: false
+        isSetofReturn: true
+      } },
+"guest_link_info":
+{ Args: { "p_token": string }; Returns: {
+              "event_title": string,"list_id": string,"list_name": string,"open": boolean,"org_name": string,"per_submission": number,"remaining": number,"starts_at": string
+            }[]
                            },
 "has_perm":
 { Args: { "p_org": string,"p_perm": string }; Returns: boolean

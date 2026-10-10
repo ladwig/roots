@@ -4,7 +4,7 @@
 // Permission keys start with the module key ("events.manage"), so a role can grant a whole module with "events.*".
 // ponytail: one file while modules are just definitions; move each to src/modules/<key>/ once it has code.
 
-import { CalendarDaysIcon, ContactIcon, CreditCardIcon, FileTextIcon, ScanLineIcon, type LucideIcon } from "lucide-react"
+import { CalendarDaysIcon, ContactIcon, CreditCardIcon, FileTextIcon, ListChecksIcon, ScanLineIcon, type LucideIcon } from "lucide-react"
 
 export type NavItem = { href: string; label: string; icon: LucideIcon; permission?: string } // label = message key
 export type ModuleDef = {
@@ -39,7 +39,15 @@ export const modules: ModuleDef[] = [
     permissions: ["tickets.view", "tickets.manage", "tickets.scan"],
     nav: [{ href: "/scan", label: "tickets.scanNav", icon: ScanLineIcon, permission: "tickets.scan" }],
   },
-  { key: "guestlists", requires: { modules: ["events"] }, permissions: ["guestlists.view", "guestlists.manage"] },
+  {
+    key: "guestlists",
+    requires: { modules: ["events"] },
+    permissions: ["guestlists.view", "guestlists.manage", "guestlists.checkin"],
+    nav: [
+      { href: "/guestlists", label: "guestlists.nav", icon: ListChecksIcon, permission: "guestlists.view" },
+      { href: "/scan", label: "tickets.scanNav", icon: ScanLineIcon, permission: "guestlists.checkin" },
+    ],
+  },
   { key: "invoices", permissions: ["invoices.view", "invoices.manage"], nav: [{ href: "/invoices", label: "invoices.nav", icon: FileTextIcon, permission: "invoices.view" }] },
   { key: "shifts", permissions: ["shifts.view", "shifts.manage"] },
   { key: "sites", permissions: ["sites.manage"] },

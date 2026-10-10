@@ -99,9 +99,12 @@ export function DataTable<R>({
 }
 
 // GET form: ?q=… (resets paging).
-export function SearchBox({ q, label }: { q?: string; label: string }) {
+export function SearchBox({ q, label, keep }: { q?: string; label: string; keep?: Record<string, string> }) {
   return (
     <form role="search" className="w-full sm:max-w-xs">
+      {Object.entries(keep ?? {}).map(([k, v]) => (
+        <input key={k} type="hidden" name={k} value={v} />
+      ))}
       <Input type="search" name="q" defaultValue={q} placeholder={label} aria-label={label} />
     </form>
   )

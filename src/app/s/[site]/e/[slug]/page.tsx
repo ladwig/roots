@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { getT } from "@/i18n/server"
 import { imageUrl } from "@/lib/images"
+import { createPublicClient } from "@/lib/supabase/server"
 import { getSite } from "../../data"
 import { TicketShop } from "./shop"
 
@@ -47,6 +48,7 @@ export default async function PublicEvent({ params, searchParams }: PageProps<"/
         )}
       </header>
       {e.description && <p className="whitespace-pre-line">{e.description}</p>}
+      <Timetable eventId={e.id} />
       {e.status === "published" && <TicketShop site={site} slug={slug} eventId={e.id} max={e.max_tickets_per_order} code={code} />}
     </main>
   )
@@ -54,3 +56,39 @@ export default async function PublicEvent({ params, searchParams }: PageProps<"/
 
 // Reads session/URL at request time; no static shell needed yet (see AGENTS.md › Cache Components).
 export const instant = false
+
+// Public timetable (only slots marked public; times in Berlin time).
+async function Timetable({ eventId }: { eventId: string }) {
+  const db = createPublicClient()
+  const { data: slots } = await db.from("event_slots").select("id, title, stage, starts_at, ends_at, artists(name)").eq("event_id", eventId).order("starts_at")
+  if (!slots?.length) return null
+  const t = await getT()
+  const stages = [...new Set(slots.map((s) => s.stage ?? ""))]
+  return (
+    <section aria-labelledby="timetable" className="grid gap-3">
+      <h2 id="timetable" className="font-heading text-xl font-semibold">
+        {t("lineup.timetable")}
+      </h2>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {stages.map((stage) => (
+          <div key={stage} className="grid gap-1">
+            {stage && <h3 className="text-sm font-medium text-muted-foreground">{stage}</h3>}
+            <ol className="grid gap-1">
+              {slots
+                .filter((s) => (s.stage ?? "") === stage)
+                .map((s) => (
+                  <li key={s.id} className="flex gap-3 text-sm">
+                    <span className="w-24 shrink-0 tabular-nums text-muted-foreground">
+                      {t.date(s.starts_at, { hour: "2-digit", minute: "2-digit" })}
+                      {s.ends_at && `–${t.date(s.ends_at, { hour: "2-digit", minute: "2-digit" })}`}
+                    </span>
+                    <span className="font-medium">{s.artists?.name ?? s.title}</span>
+                  </li>
+                ))}
+            </ol>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}

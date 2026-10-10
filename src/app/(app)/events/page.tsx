@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ExternalLinkIcon, TicketIcon } from "lucide-react"
+import { ExternalLinkIcon, ListChecksIcon, MicVocalIcon, TicketIcon } from "lucide-react"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { ImageForm } from "@/components/image-form"
 import { Notice } from "@/components/notice"
@@ -141,7 +141,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
           <EventForm t={t} action={createEvent} />
         </UrlSheet>
       )}
-      {editing && <EditEvent t={t} ev={editing} sp={sp} canManage={canManage} orgSlug={ctx.org.slug} tickets={ctx.modules.has("tickets") && ctx.can("tickets.view")} />}
+      {editing && <EditEvent t={t} ev={editing} sp={sp} canManage={canManage} orgSlug={ctx.org.slug} tickets={ctx.modules.has("tickets") && ctx.can("tickets.view")} guestlists={ctx.modules.has("guestlists") && ctx.can("guestlists.view")} />}
     </div>
   )
 }
@@ -216,7 +216,7 @@ function EventForm({ t, action, ev, disabled }: { t: T; action: (fd: FormData) =
   )
 }
 
-function EditEvent({ t, ev, sp, canManage, orgSlug, tickets }: { t: T; ev: Ev; sp: SearchParams; canManage: boolean; orgSlug: string; tickets: boolean }) {
+function EditEvent({ t, ev, sp, canManage, orgSlug, tickets, guestlists }: { t: T; ev: Ev; sp: SearchParams; canManage: boolean; orgSlug: string; tickets: boolean; guestlists: boolean }) {
   const publicHref = siteUrl(orgSlug, `/e/${ev.slug}`)
   return (
     <UrlSheet params={["edit"]} title={ev.title} description={t.date(ev.starts_at, { dateStyle: "full", timeStyle: "short" })}>
@@ -251,11 +251,21 @@ function EditEvent({ t, ev, sp, canManage, orgSlug, tickets }: { t: T; ev: Ev; s
               </a>
             )}
           </div>
-          {tickets && (
-            <Button render={<Link href={`/events/${ev.id}/tickets`} />} nativeButton={false} size="sm" variant="outline" className="justify-self-start">
-              <TicketIcon /> {t("tickets.manage")}
+          <div className="flex flex-wrap gap-2">
+            <Button render={<Link href={`/events/${ev.id}/lineup`} />} nativeButton={false} size="sm" variant="outline">
+              <MicVocalIcon /> {t("lineup.title")}
             </Button>
-          )}
+            {tickets && (
+              <Button render={<Link href={`/events/${ev.id}/tickets`} />} nativeButton={false} size="sm" variant="outline">
+                <TicketIcon /> {t("tickets.manage")}
+              </Button>
+            )}
+            {guestlists && (
+              <Button render={<Link href={`/guestlists?event=${ev.id}`} />} nativeButton={false} size="sm" variant="outline">
+                <ListChecksIcon /> {t("guestlists.title")}
+              </Button>
+            )}
+          </div>
           {canManage ? (
             <div className="flex flex-wrap gap-2">
               {ev.status !== "published" && (

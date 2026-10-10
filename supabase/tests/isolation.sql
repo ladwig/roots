@@ -498,6 +498,43 @@ begin
   select count(*) into n from public.org_billing where org_id = org_a;        assert n = 0, 'B sees billing of A';
   reset role;
 
+  -- Lineup + guest lists
+  insert into public.org_modules (org_id, module_key) values (org_a, 'guestlists');
+  insert into public.org_modules (org_id, module_key) values (org_a, 'events') on conflict do nothing;
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  declare v_ev uuid := (select id from public.events where org_id = org_a and slug = 'live'); v_art uuid; v_list uuid;
+  begin
+    insert into public.artists (org_id, name) values (org_a, 'DJ Test') returning id into v_art;
+    insert into public.event_slots (org_id, event_id, artist_id, stage, starts_at) values (org_a, v_ev, v_art, 'Main', now() + interval '7 days');
+    insert into public.guest_lists (org_id, event_id, artist_id, name, quota, per_submission, link_token, link_enabled)
+      values (org_a, v_ev, v_art, 'DJ Test +', 2, 2, 'abcdefghijklmnopqrstuvwx', true) returning id into v_list;
+    reset role;
+    set local role service_role;
+    perform public.guest_link_add('abcdefghijklmnopqrstuvwx', 'DJ Test', array['Anna', 'Ben']);
+    begin
+      perform public.guest_link_add('abcdefghijklmnopqrstuvwx', 'DJ Test', array['Cara']);
+      assert false, 'guest list quota';
+    exception when raise_exception then null; end;
+    reset role;
+    select count(*) into n from public.hub_events where org_id = org_a and type = 'guestlist.signed_up'; assert n = 1, 'one sign-up event per submission';
+    perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.guest_entries where org_id = org_a;     assert n = 0, 'B sees guest entries of A';
+    select count(*) into n from public.artists where org_id = org_a;           assert n = 0, 'B sees artists of A';
+    reset role;
+    perform set_config('request.jwt.claims', '{}', true);
+    set local role anon;
+    select count(*) into n from public.event_slots where event_id = v_ev;     assert n = 1, 'anon sees the public timetable';
+    select count(*) into n from public.artists where id = v_art;              assert n = 1, 'anon sees lineup artists';
+    select remaining into n from public.guest_link_info('abcdefghijklmnopqrstuvwx'); assert n = 0, 'link shows remaining, no names';
+    begin
+      perform 1 from public.guest_entries limit 1;
+      assert false, 'anon must not read guest entries';
+    exception when insufficient_privilege then null; end;
+    reset role;
+  end;
+
   -- x-org-id header: C is now in A and B, but with the header only sees the active org
   perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
   set local role authenticated;

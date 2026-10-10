@@ -232,7 +232,8 @@
     "shifts.manage": "Schichten planen",
     "sites.manage": "Öffentliche Seiten bearbeiten",
     "invoices.view": "Angebote & Rechnungen ansehen",
-    "invoices.manage": "Angebote & Rechnungen erstellen und ausstellen"
+    "invoices.manage": "Angebote & Rechnungen erstellen und ausstellen",
+    "guestlists.checkin": "Gäste am Einlass einchecken"
   },
   "integrations": {
     "connect": "Verbinden",
@@ -341,7 +342,12 @@
       "documents": "Angebote & Rechnungen",
       "document_items": "Positionen",
       "org_billing": "Rechnungsangaben",
-      "number_ranges": "Nummernkreise"
+      "number_ranges": "Nummernkreise",
+      "artists": "Artists",
+      "event_slots": "Timetable",
+      "guest_lists": "Gästelisten",
+      "guest_entries": "Gästelisten-Einträge",
+      "guest_checkins": "Gäste-Check-ins"
     }
   },
   "errors": {
@@ -392,7 +398,9 @@
     "recipient_missing": "Bitte Name und Anschrift des Empfängers angeben.",
     "items_missing": "Bitte mindestens eine Position anlegen.",
     "service_date_missing": "Bitte das Leistungsdatum angeben.",
-    "use_cancellation": "Rechnungen werden über eine Stornorechnung storniert."
+    "use_cancellation": "Rechnungen werden über eine Stornorechnung storniert.",
+    "link_closed": "Diese Gästeliste ist geschlossen.",
+    "list_full": "Die Liste ist voll."
   },
   "admin": {
     "title": "Plattform",
@@ -636,7 +644,8 @@
       "invoice.paid": "Rechnung bezahlt",
       "quote.issued": "Angebot ausgestellt",
       "quote.accepted": "Angebot angenommen",
-      "invoice.cancelled": "Rechnung storniert"
+      "invoice.cancelled": "Rechnung storniert",
+      "guestlist.signed_up": "Eintrag auf Gästeliste"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -657,7 +666,8 @@
       "invoice.paid": "✅ Rechnung {number} bezahlt ({amount})",
       "quote.issued": "📄 Angebot {number} an {name}: {amount}",
       "quote.accepted": "🤝 Angebot {number} angenommen ({amount})",
-      "invoice.cancelled": "↩️ Storno {number} an {name}: {amount}"
+      "invoice.cancelled": "↩️ Storno {number} an {name}: {amount}",
+      "guestlist.signed_up": "📝 {name} hat {count} Namen auf „{list}“ eingetragen"
     }
   },
   "inbox": {
@@ -1243,5 +1253,144 @@
     "cancelsInvoice": "Storno zu Rechnung",
     "cancels": "Storniert die Rechnung →",
     "cancelled": "Stornorechnung erstellt."
+  },
+  "guestlists": {
+    "nav": "Gästelisten",
+    "title": "Gästelisten",
+    "new": "Neue Gästeliste",
+    "empty": "Noch keine Gästelisten.",
+    "event": "Event",
+    "allUpcoming": "Dauerhafte + kommende Events",
+    "filter": "Anzeigen",
+    "name": "Name",
+    "namePlaceholder": "z. B. Allgemein, DJ Foo +, Crew",
+    "permanent": "dauerhaft",
+    "permanentOption": "Dauerhaft (gilt bei jedem Event)",
+    "permanentHint": "Dauerhafte Liste – gilt bei jedem Event",
+    "entries": "Einträge",
+    "doorPrice": "Abendkasse",
+    "doorPriceEur": "Preis an der Tür in € (0 = frei)",
+    "free": "frei",
+    "atDoor": "{price} an der Tür",
+    "quota": "Max. Einträge",
+    "perSubmission": "Namen pro Link-Eintrag",
+    "artist": "Artist",
+    "closesAt": "Link schließt am (optional)",
+    "ticketType": "Mit Ticket verknüpfen (optional)",
+    "noTickets": "Keine Tickets",
+    "ticketHint": "Jeder Eintrag bekommt ein kostenloses Ticket dieser Art (QR, zählt aufs Kontingent). Namen ändern = gleiches Ticket, neuer Name; Eintrag löschen = Ticket ungültig.",
+    "notes": "Notiz (intern)",
+    "link": "Link",
+    "linkOn": "Link aktiv",
+    "linkOff": "Link aus",
+    "saved": "Gespeichert.",
+    "trashed": "In den Papierkorb verschoben.",
+    "trash": "Liste in den Papierkorb",
+    "settings": "Einstellungen",
+    "withTickets": "mit Tickets",
+    "publicLink": "Öffentlicher Link",
+    "linkHint": {
+      "one": "Wer den Link hat, kann sich und 0 weitere Personen eintragen (max. 1 Name pro Eintrag).",
+      "other": "Wer den Link hat, kann sich und Freunde eintragen (max. {count} Namen pro Eintrag). Andere Namen auf der Liste sieht niemand."
+    },
+    "linkAction": {
+      "on": "Link aktivieren",
+      "off": "Link deaktivieren",
+      "renew": "Neuen Link erzeugen"
+    },
+    "link_on": "Link aktiviert.",
+    "link_off": "Link deaktiviert.",
+    "link_renew": "Neuer Link erzeugt – der alte funktioniert nicht mehr.",
+    "addNames": "Namen hinzufügen (einer pro Zeile, optional „Name, E-Mail“)",
+    "namesPlaceholder": "Anna Muster\nBen Beispiel, ben@example.de",
+    "add": "Hinzufügen",
+    "noNames": "Bitte mindestens einen Namen eintragen.",
+    "added": {
+      "one": "1 Name hinzugefügt.",
+      "other": "{count} Namen hinzugefügt."
+    },
+    "full": "Die Liste ist voll.",
+    "closed": "Diese Gästeliste ist geschlossen.",
+    "entriesTitle": {
+      "one": "1 Eintrag",
+      "other": "{count} Einträge"
+    },
+    "noEntries": "Noch niemand auf der Liste.",
+    "guest": "Gast",
+    "via": "Eingetragen",
+    "viaLink": "per Link von {name}",
+    "viaApp": "im Dashboard",
+    "ticket": "Ticket",
+    "checkedIn": "Drin",
+    "remove": "Entfernen",
+    "removed": "Entfernt.",
+    "yourName": "Dein Name",
+    "yourEmail": "Deine E-Mail (optional)",
+    "whoComes": {
+      "one": "Wer kommt? (1 Name)",
+      "other": "Wer kommt? (bis zu {count} Namen)"
+    },
+    "guestN": "Name {n}",
+    "left": {
+      "one": "Noch 1 Platz frei.",
+      "other": "Noch {count} Plätze frei."
+    },
+    "submit": "Eintragen",
+    "byMissing": "Bitte gib deinen Namen an.",
+    "thanks": {
+      "one": "Danke! 1 Name steht auf der Liste.",
+      "other": "Danke! {count} Namen stehen auf der Liste."
+    }
+  },
+  "lineup": {
+    "title": "Lineup & Timetable",
+    "newSlot": "Neuer Slot",
+    "empty": "Noch kein Lineup.",
+    "time": "Zeit",
+    "act": "Act",
+    "stage": "Bühne / Floor",
+    "internal": "intern",
+    "editArtist": "Artist bearbeiten",
+    "guestList": "Gästeliste für Artist",
+    "deleteSlot": "Slot löschen",
+    "artist": "Artist",
+    "orNewArtist": "…oder neuer Artist",
+    "newArtistPlaceholder": "Name",
+    "slotTitle": "Titel (statt/zusätzlich zum Artist)",
+    "slotTitlePlaceholder": "z. B. Einlass, Live, b2b",
+    "start": "Beginn",
+    "end": "Ende (optional)",
+    "publicLabel": "Im öffentlichen Timetable zeigen",
+    "notes": "Interne Notiz",
+    "notesPlaceholder": "Gage, Rider, Hotel, Ansprechpartner…",
+    "artistName": "Name",
+    "description": "Beschreibung (öffentlich)",
+    "links": "Links (einer pro Zeile)",
+    "saved": "Gespeichert.",
+    "deleted": "Slot gelöscht.",
+    "needArtistOrTitle": "Bitte einen Artist wählen oder einen Titel eingeben.",
+    "timetable": "Timetable"
+  },
+  "door": {
+    "tabs": "Einlass-Ansichten",
+    "tab": {
+      "scan": "Scannen",
+      "guests": "Gäste",
+      "tickets": "Tickets"
+    },
+    "searchGuests": "Name suchen…",
+    "searchTickets": "Name oder Code suchen…",
+    "guestCount": "{in} von {total} drin",
+    "lists": "Listen",
+    "allLists": "Alle Listen",
+    "list": "Liste",
+    "noGuests": "Keine Gäste gefunden.",
+    "noTickets": "Keine Tickets gefunden.",
+    "checkIn": "Einlass",
+    "checkedIn": "{name} ist drin.",
+    "already": "Schon eingecheckt.",
+    "undo": "Rückgängig",
+    "undone": "Check-in zurückgenommen.",
+    "inSince": "drin seit {time}"
   }
 }

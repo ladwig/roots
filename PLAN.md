@@ -115,10 +115,7 @@ Modules contribute to both: e.g. Events = event management in the App + event pa
   - Tickets get a random code from an alphabet without look-alike characters, a QR code (generated on our own server), a PDF and an email.
   - Scanner page needs the `tickets.scan` permission, works offline with a sync queue, and refuses unpaid tickets.
   - Names on tickets: a setting per event (off / optional / required), asked at checkout per ticket.
-- **Guest & artist lists**
-  - Lists per event; each list gives out links (label, quota, revocable).
-  - The link opens a page where a promoter or artist adds their friends by name and optional email. Each guest becomes a 0€ ticket.
-  - A link is a random token stored hashed in the database, and the database is the source of truth for whether it's revoked and how much of its quota is used.
+- **Guest lists** ✅ v1: permanent org lists + any number per event (general, per artist, crew), door price, quota, magic link (names per submission, deadline), optional ticket link (entry = free ticket; replace = same ticket, new name; remove = void), door tab with search/filter/check-in. **Lineup** ✅: artists, timetable slots per event (stage, times), public timetable, one-click artist guest list.
 - **Public pages**
   - Served on the Public surface (`clubname.roots.app`, wildcard domain on Vercel). Custom domains later.
   - Basic builder: a page is an ordered list of typed **blocks** (hero, text, image, lineup, ticket shop, FAQ) edited as a form. No drag-and-drop canvas.
@@ -127,9 +124,52 @@ Modules contribute to both: e.g. Events = event management in the App + event pa
 - Org legal/tax/bank data, Kleinunternehmer (§ 19 UStG), number ranges (format + start + yearly reset), quote/invoice builder (free-text items, system units, 19/7/0 %), issue = number + freeze, quote → invoice, paid, storno, 3 print templates (browser PDF).
 - Next: Stornorechnung (negative invoice) instead of status only, send by email with PDF (server renderer), Stripe payment link on invoices, E-Rechnung (XRechnung/ZUGFeRD; issuing mandatory for most businesses from 2027/2028), reminders (Mahnungen), API endpoints.
 
-### Shift planning (generic)
-- Shifts and roles per event, or standalone. Members sign up, staff can swap shifts, availability tracking.
-- Works without Events, so a Verein can use it for its bar or training schedule.
+### Shift planning & team (planned, not built)
+
+**Use cases it must cover**
+| Who | Situation | Needs |
+|---|---|---|
+| Club with own venue | Club nights, employees (Minijob, Teilzeit, Aushilfe) | Staff per event *and per position* (Bar 1, Bar 2, Door, Cloakroom, Security, Tech, Cleaning); target hours per person; Minijob limit |
+| Promoter without venue | Events at external locations, freelance crew | Positions per event (runner, artist care, box office), crew lists, no fixed hours |
+| Café / bar open daily | Opening hours, not events | Recurring shifts per weekday from templates, target hours, swaps |
+| Venue open once a week / irregularly | A few fixed days | Same as café, sparse calendar |
+| Verein | Volunteers for the Vereinsfest, bar duty, training | Open shifts people sign up for themselves, no hours, no contracts |
+
+**Building blocks**
+- **Team (staff)**: people who work shifts. Either an org member (has a login) or a person without a login (linked to a CRM contact, reached via a personal magic link). Per person: employment type (employee, Minijob, freelancer, volunteer), target / max hours per month, optional hourly rate, positions they can do (qualifications), colour, active.
+- **Locations**: places (own club, external venue, café). Shared with Events later (event → location).
+- **Positions (stations)**: Bar 1, Door, Cloakroom… optionally per location, with a default need (e.g. Door = 2) and required qualification.
+- **Shifts**: position + time range + needed count, belonging to **an event** (club night, festival) **or a location day** (café Tuesday). Draft → published.
+- **Assignments**: person ↔ shift, status (assigned, requested, confirmed, declined, swap offered), actual start/end for hours.
+- **Templates**: "Club night" = Bar 1 2× 22–02, Door 2× 22–05, … applied to an event in one click; weekday templates for a location ("Mon–Fri 8–16 and 12–20") generate shifts for a date range.
+- **Availability**: people mark days/times as unavailable or preferred; planners see it while assigning.
+- **Open shifts & swaps**: published shifts with free spots can be taken by qualified staff (self-service); a person can offer a shift, someone else takes it, the planner optionally approves.
+- **Time tracking**: clock in/out (app or door device) or confirm planned times; hours per person and month vs. target.
+
+**Views**
+- Week / month calendar (rows = positions or people), drag to assign
+- Event staffing board: every position, needed vs. assigned, gaps highlighted
+- Per person: my shifts, availability, hours this month, swaps
+- Coverage: needed vs. assigned per day / position (traffic lights)
+- Hours report per month (CSV for payroll / tax advisor)
+
+**Rules and warnings (DE)**, shown as warnings, not hard blocks: Arbeitszeitgesetz (max. 10 h/day, 11 h rest), Minijob earnings limit per month (hours × rate), double bookings, missing qualification. Minijob working time must be recorded (§ 17 MiLoG), which the time tracking covers.
+
+**Connections to other modules**
+- Events: shifts per event; applying a template when an event is created; event page shows staffing status
+- Guest lists: shift crew of an event can get an automatic crew list (door knows who works)
+- Door / tickets: door staff on shift get door access for that event
+- CRM: staff without login are contacts; timeline shows shifts
+- Event hub: `shift.published`, `shift.assigned`, `shift.swap_requested`, `shift.open` → inbox, email, Telegram (e.g. team group gets "2 bar shifts open on Saturday")
+- Invoices: freelancer hours → (later) credit notes / invoices; payroll export
+- API: shifts and hours for external payroll tools; iCal feed per person
+
+**Permissions**: `shifts.view` (see the plan), `shifts.manage` (plan, assign, templates, hours), `shifts.self` (see own shifts, availability, take open shifts, swap). People without login: magic link per person with the same self-service.
+
+**Phases**
+1. Team, locations, positions, shifts (event or location day) with needed count, assign, publish + notify, event staffing board, week calendar, per-person view (login or magic link), availability.
+2. Templates + recurring shifts, open shifts + swaps, coverage view, time tracking + monthly hours + CSV, warnings.
+3. iCal per person, suggestions ("who's free and qualified"), payroll/export integrations, freelancer billing.
 
 ---
 

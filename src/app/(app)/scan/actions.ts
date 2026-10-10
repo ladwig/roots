@@ -1,7 +1,9 @@
 "use server"
 
 import { getT } from "@/i18n/server"
+import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
+import { back } from "@/lib/url"
 
 export type ScanResult = { result: "ok" | "used" | "invalid" | "error"; holder?: string | null; type?: string | null; at?: string | null; message?: string }
 
@@ -47,4 +49,30 @@ export async function syncCheckIns(eventId: string, codes: string[]): Promise<{ 
     else conflicts.push(code)
   }
   return { synced, conflicts }
+}
+
+// Door lists (forms on the Gäste/Tickets tabs): check in a guest-list entry, or a ticket by code.
+export async function guestCheckIn(fd: FormData) {
+  const ctx = await requirePerm("guestlists.checkin")
+  const t = await getT()
+  const event = String(fd.get("event") ?? "")
+  const entry = String(fd.get("entry") ?? "")
+  const here = `/scan?${new URLSearchParams({ event, tab: "guests", q: String(fd.get("q") ?? ""), list: String(fd.get("list") ?? "") })}`
+  if (fd.get("undo") === "1") {
+    const { error } = await ctx.supabase.from("guest_checkins").delete().eq("entry_id", entry).eq("event_id", event).eq("org_id", ctx.org.id)
+    if (error) back(here, { error: dbError(t, error) })
+    back(here, { ok: t("door.undone") })
+  }
+  const { error } = await ctx.supabase.from("guest_checkins").insert({ org_id: ctx.org.id, entry_id: entry, event_id: event })
+  if (error) back(here, { error: error.code === "23505" ? t("door.already") : dbError(t, error) })
+  back(here, { ok: t("door.checkedIn", { name: String(fd.get("name") ?? "") }) })
+}
+
+export async function ticketDoorCheckIn(fd: FormData) {
+  const event = String(fd.get("event") ?? "")
+  const here = `/scan?${new URLSearchParams({ event, tab: "tickets", q: String(fd.get("q") ?? "") })}`
+  const t = await getT()
+  const r = await checkIn(event, String(fd.get("code") ?? ""))
+  if (r.result === "ok") back(here, { ok: t("door.checkedIn", { name: r.holder ?? String(fd.get("code")) }) })
+  back(here, { error: r.message ?? t.dynamic(`tickets.scanResult.${r.result}`) })
 }

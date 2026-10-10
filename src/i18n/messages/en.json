@@ -232,7 +232,8 @@
     "shifts.manage": "Plan shifts",
     "sites.manage": "Edit public pages",
     "invoices.view": "View quotes & invoices",
-    "invoices.manage": "Create and issue quotes & invoices"
+    "invoices.manage": "Create and issue quotes & invoices",
+    "guestlists.checkin": "Check in guests at the door"
   },
   "integrations": {
     "connect": "Connect",
@@ -341,7 +342,12 @@
       "documents": "Quotes & invoices",
       "document_items": "Items",
       "org_billing": "Billing details",
-      "number_ranges": "Number ranges"
+      "number_ranges": "Number ranges",
+      "artists": "Artists",
+      "event_slots": "Timetable",
+      "guest_lists": "Guest lists",
+      "guest_entries": "Guest list entries",
+      "guest_checkins": "Guest check-ins"
     }
   },
   "errors": {
@@ -392,7 +398,9 @@
     "recipient_missing": "Please enter the recipient's name and address.",
     "items_missing": "Please add at least one item.",
     "service_date_missing": "Please enter the service date.",
-    "use_cancellation": "Invoices are cancelled with a cancellation invoice."
+    "use_cancellation": "Invoices are cancelled with a cancellation invoice.",
+    "link_closed": "This guest list is closed.",
+    "list_full": "The list is full."
   },
   "admin": {
     "title": "Platform",
@@ -636,7 +644,8 @@
       "invoice.paid": "Invoice paid",
       "quote.issued": "Quote issued",
       "quote.accepted": "Quote accepted",
-      "invoice.cancelled": "Invoice cancelled"
+      "invoice.cancelled": "Invoice cancelled",
+      "guestlist.signed_up": "Guest list sign-up"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -657,7 +666,8 @@
       "invoice.paid": "✅ Invoice {number} paid ({amount})",
       "quote.issued": "📄 Quote {number} to {name}: {amount}",
       "quote.accepted": "🤝 Quote {number} accepted ({amount})",
-      "invoice.cancelled": "↩️ Cancellation {number} to {name}: {amount}"
+      "invoice.cancelled": "↩️ Cancellation {number} to {name}: {amount}",
+      "guestlist.signed_up": "📝 {name} added {count} names to “{list}”"
     }
   },
   "inbox": {
@@ -1243,5 +1253,144 @@
     "cancelsInvoice": "Cancels invoice",
     "cancels": "Cancels invoice →",
     "cancelled": "Cancellation invoice created."
+  },
+  "guestlists": {
+    "nav": "Guest lists",
+    "title": "Guest lists",
+    "new": "New guest list",
+    "empty": "No guest lists yet.",
+    "event": "Event",
+    "allUpcoming": "Permanent + upcoming events",
+    "filter": "Show",
+    "name": "Name",
+    "namePlaceholder": "e.g. General, DJ Foo +, Crew",
+    "permanent": "permanent",
+    "permanentOption": "Permanent (valid at every event)",
+    "permanentHint": "Permanent list – valid at every event",
+    "entries": "Entries",
+    "doorPrice": "At the door",
+    "doorPriceEur": "Price at the door in € (0 = free)",
+    "free": "free",
+    "atDoor": "{price} at the door",
+    "quota": "Max. entries",
+    "perSubmission": "Names per link entry",
+    "artist": "Artist",
+    "closesAt": "Link closes at (optional)",
+    "ticketType": "Link to tickets (optional)",
+    "noTickets": "No tickets",
+    "ticketHint": "Every entry gets a free ticket of this type (QR, counts against the quota). Renaming = same ticket, new name; removing the entry voids the ticket.",
+    "notes": "Note (internal)",
+    "link": "Link",
+    "linkOn": "Link on",
+    "linkOff": "Link off",
+    "saved": "Saved.",
+    "trashed": "Moved to trash.",
+    "trash": "Move list to trash",
+    "settings": "Settings",
+    "withTickets": "with tickets",
+    "publicLink": "Public link",
+    "linkHint": {
+      "one": "Anyone with the link can add a name (max. 1 per entry).",
+      "other": "Anyone with the link can add themselves and friends (max. {count} names per entry). Nobody sees the other names."
+    },
+    "linkAction": {
+      "on": "Turn link on",
+      "off": "Turn link off",
+      "renew": "Create new link"
+    },
+    "link_on": "Link turned on.",
+    "link_off": "Link turned off.",
+    "link_renew": "New link created – the old one no longer works.",
+    "addNames": "Add names (one per line, optional “Name, email”)",
+    "namesPlaceholder": "Anna Muster\nBen Example, ben@example.com",
+    "add": "Add",
+    "noNames": "Please enter at least one name.",
+    "added": {
+      "one": "1 name added.",
+      "other": "{count} names added."
+    },
+    "full": "The list is full.",
+    "closed": "This guest list is closed.",
+    "entriesTitle": {
+      "one": "1 entry",
+      "other": "{count} entries"
+    },
+    "noEntries": "Nobody on the list yet.",
+    "guest": "Guest",
+    "via": "Added",
+    "viaLink": "via link by {name}",
+    "viaApp": "in the dashboard",
+    "ticket": "Ticket",
+    "checkedIn": "In",
+    "remove": "Remove",
+    "removed": "Removed.",
+    "yourName": "Your name",
+    "yourEmail": "Your email (optional)",
+    "whoComes": {
+      "one": "Who's coming? (1 name)",
+      "other": "Who's coming? (up to {count} names)"
+    },
+    "guestN": "Name {n}",
+    "left": {
+      "one": "1 spot left.",
+      "other": "{count} spots left."
+    },
+    "submit": "Sign up",
+    "byMissing": "Please enter your name.",
+    "thanks": {
+      "one": "Thanks! 1 name is on the list.",
+      "other": "Thanks! {count} names are on the list."
+    }
+  },
+  "lineup": {
+    "title": "Lineup & timetable",
+    "newSlot": "New slot",
+    "empty": "No lineup yet.",
+    "time": "Time",
+    "act": "Act",
+    "stage": "Stage / floor",
+    "internal": "internal",
+    "editArtist": "Edit artist",
+    "guestList": "Guest list for artist",
+    "deleteSlot": "Delete slot",
+    "artist": "Artist",
+    "orNewArtist": "…or new artist",
+    "newArtistPlaceholder": "Name",
+    "slotTitle": "Title (instead of / besides the artist)",
+    "slotTitlePlaceholder": "e.g. Doors, Live, b2b",
+    "start": "Start",
+    "end": "End (optional)",
+    "publicLabel": "Show in the public timetable",
+    "notes": "Internal note",
+    "notesPlaceholder": "Fee, rider, hotel, contact…",
+    "artistName": "Name",
+    "description": "Description (public)",
+    "links": "Links (one per line)",
+    "saved": "Saved.",
+    "deleted": "Slot deleted.",
+    "needArtistOrTitle": "Please pick an artist or enter a title.",
+    "timetable": "Timetable"
+  },
+  "door": {
+    "tabs": "Door views",
+    "tab": {
+      "scan": "Scan",
+      "guests": "Guests",
+      "tickets": "Tickets"
+    },
+    "searchGuests": "Search name…",
+    "searchTickets": "Search name or code…",
+    "guestCount": "{in} of {total} in",
+    "lists": "Lists",
+    "allLists": "All lists",
+    "list": "List",
+    "noGuests": "No guests found.",
+    "noTickets": "No tickets found.",
+    "checkIn": "Let in",
+    "checkedIn": "{name} is in.",
+    "already": "Already checked in.",
+    "undo": "Undo",
+    "undone": "Check-in undone.",
+    "inSince": "in since {time}"
   }
 }
