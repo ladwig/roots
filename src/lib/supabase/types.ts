@@ -275,17 +275,23 @@ isOneToOne: false
                   ]
                 },"events": {
                   Row: {
-                    "capacity": number | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"ends_at": string | null,"id": string,"image_path": string | null,"max_tickets_per_order": number,"org_id": string,"published_at": string | null,"slug": string,"starts_at": string,"status": string,"ticket_names": string,"title": string,"updated_at": string,"updated_by": string | null,"venue_address": string | null,"venue_name": string | null
+                    "capacity": number | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"ends_at": string | null,"id": string,"image_path": string | null,"location_id": string | null,"max_tickets_per_order": number,"org_id": string,"published_at": string | null,"slug": string,"starts_at": string,"status": string,"ticket_names": string,"title": string,"updated_at": string,"updated_by": string | null,"venue_address": string | null,"venue_name": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "capacity"?: number | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"ends_at"?: string | null,"id"?: string,"image_path"?: string | null,"max_tickets_per_order"?: number,"org_id": string,"published_at"?: string | null,"slug": string,"starts_at": string,"status"?: string,"ticket_names"?: string,"title": string,"updated_at"?: string,"updated_by"?: string | null,"venue_address"?: string | null,"venue_name"?: string | null
+                    "capacity"?: number | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"ends_at"?: string | null,"id"?: string,"image_path"?: string | null,"location_id"?: string | null,"max_tickets_per_order"?: number,"org_id": string,"published_at"?: string | null,"slug": string,"starts_at": string,"status"?: string,"ticket_names"?: string,"title": string,"updated_at"?: string,"updated_by"?: string | null,"venue_address"?: string | null,"venue_name"?: string | null
                   }
                   Update: {
-                    "capacity"?: number | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"ends_at"?: string | null,"id"?: string,"image_path"?: string | null,"max_tickets_per_order"?: number,"org_id"?: string,"published_at"?: string | null,"slug"?: string,"starts_at"?: string,"status"?: string,"ticket_names"?: string,"title"?: string,"updated_at"?: string,"updated_by"?: string | null,"venue_address"?: string | null,"venue_name"?: string | null
+                    "capacity"?: number | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"ends_at"?: string | null,"id"?: string,"image_path"?: string | null,"location_id"?: string | null,"max_tickets_per_order"?: number,"org_id"?: string,"published_at"?: string | null,"slug"?: string,"starts_at"?: string,"status"?: string,"ticket_names"?: string,"title"?: string,"updated_at"?: string,"updated_by"?: string | null,"venue_address"?: string | null,"venue_name"?: string | null
                   }
                   Relationships: [
                     {
+      foreignKeyName: "events_location_id_fkey"
+      columns: ["location_id"]
+isOneToOne: false
+      referencedRelation: "locations"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "events_org_id_fkey1"
       columns: ["org_id"]
 isOneToOne: false
@@ -458,6 +464,26 @@ isOneToOne: false
       columns: ["role_id"]
 isOneToOne: false
       referencedRelation: "roles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"locations": {
+                  Row: {
+                    "address": string | null,"created_at": string,"created_by": string | null,"id": string,"name": string,"notes": string | null,"org_id": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "address"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"name": string,"notes"?: string | null,"org_id": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "address"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"name"?: string,"notes"?: string | null,"org_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "locations_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
       referencedColumns: ["id"]
     }
                   ]
@@ -733,6 +759,32 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"positions": {
+                  Row: {
+                    "color": string | null,"created_at": string,"created_by": string | null,"id": string,"location_id": string | null,"name": string,"needed": number,"org_id": string,"position": number,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "color"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"location_id"?: string | null,"name": string,"needed"?: number,"org_id": string,"position"?: number,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "color"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"location_id"?: string | null,"name"?: string,"needed"?: number,"org_id"?: string,"position"?: number,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "positions_location_id_fkey"
+      columns: ["location_id"]
+isOneToOne: false
+      referencedRelation: "locations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "positions_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"profiles": {
                   Row: {
                     "avatar_path": string | null,"created_at": string,"email": string,"full_name": string | null,"id": string,"locale": string | null
@@ -767,6 +819,114 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"shift_assignments": {
+                  Row: {
+                    "checked_in_at": string | null,"checked_out_at": string | null,"created_at": string,"created_by": string | null,"id": string,"org_id": string,"shift_id": string,"staff_id": string,"status": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "checked_in_at"?: string | null,"checked_out_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id": string,"shift_id": string,"staff_id": string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "checked_in_at"?: string | null,"checked_out_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id"?: string,"shift_id"?: string,"staff_id"?: string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "shift_assignments_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "shift_assignments_shift_id_fkey"
+      columns: ["shift_id"]
+isOneToOne: false
+      referencedRelation: "shifts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "shift_assignments_staff_id_fkey"
+      columns: ["staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"shift_series": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"default_staff": (string)[],"end_date": string | null,"end_time": string,"every_weeks": number,"generated_until": string | null,"id": string,"location_id": string | null,"name": string | null,"needed": number,"org_id": string,"position_id": string | null,"start_date": string,"start_time": string,"updated_at": string,"updated_by": string | null,"weekdays": (number)[]
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"default_staff"?: (string)[],"end_date"?: string | null,"end_time": string,"every_weeks"?: number,"generated_until"?: string | null,"id"?: string,"location_id"?: string | null,"name"?: string | null,"needed"?: number,"org_id": string,"position_id"?: string | null,"start_date": string,"start_time": string,"updated_at"?: string,"updated_by"?: string | null,"weekdays": (number)[]
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"default_staff"?: (string)[],"end_date"?: string | null,"end_time"?: string,"every_weeks"?: number,"generated_until"?: string | null,"id"?: string,"location_id"?: string | null,"name"?: string | null,"needed"?: number,"org_id"?: string,"position_id"?: string | null,"start_date"?: string,"start_time"?: string,"updated_at"?: string,"updated_by"?: string | null,"weekdays"?: (number)[]
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "shift_series_location_id_fkey"
+      columns: ["location_id"]
+isOneToOne: false
+      referencedRelation: "locations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "shift_series_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "shift_series_position_id_fkey"
+      columns: ["position_id"]
+isOneToOne: false
+      referencedRelation: "positions"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"shifts": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"ends_at": string,"event_id": string | null,"id": string,"location_id": string | null,"needed": number,"notes": string | null,"open": boolean,"org_id": string,"position_id": string | null,"series_id": string | null,"starts_at": string,"title": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"ends_at": string,"event_id"?: string | null,"id"?: string,"location_id"?: string | null,"needed"?: number,"notes"?: string | null,"open"?: boolean,"org_id": string,"position_id"?: string | null,"series_id"?: string | null,"starts_at": string,"title"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"ends_at"?: string,"event_id"?: string | null,"id"?: string,"location_id"?: string | null,"needed"?: number,"notes"?: string | null,"open"?: boolean,"org_id"?: string,"position_id"?: string | null,"series_id"?: string | null,"starts_at"?: string,"title"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "shifts_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "shifts_location_id_fkey"
+      columns: ["location_id"]
+isOneToOne: false
+      referencedRelation: "locations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "shifts_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "shifts_position_id_fkey"
+      columns: ["position_id"]
+isOneToOne: false
+      referencedRelation: "positions"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "shifts_series_id_fkey"
+      columns: ["series_id"]
+isOneToOne: false
+      referencedRelation: "shift_series"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"soft_delete_tables": {
                   Row: {
                     "org_column": string,"perm": string | null,"purge_days": number,"table_name": unknown
@@ -780,6 +940,32 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"staff": {
+                  Row: {
+                    "active": boolean,"color": string | null,"contact_id": string | null,"created_at": string,"created_by": string | null,"email": string | null,"id": string,"link_token": string | null,"name": string,"org_id": string,"phone": string | null,"position_ids": (string)[],"role_label": string | null,"target_hours": number | null,"updated_at": string,"updated_by": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"color"?: string | null,"contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"email"?: string | null,"id"?: string,"link_token"?: string | null,"name": string,"org_id": string,"phone"?: string | null,"position_ids"?: (string)[],"role_label"?: string | null,"target_hours"?: number | null,"updated_at"?: string,"updated_by"?: string | null,"user_id": string
+                  }
+                  Update: {
+                    "active"?: boolean,"color"?: string | null,"contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"email"?: string | null,"id"?: string,"link_token"?: string | null,"name"?: string,"org_id"?: string,"phone"?: string | null,"position_ids"?: (string)[],"role_label"?: string | null,"target_hours"?: number | null,"updated_at"?: string,"updated_by"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "staff_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "staff_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"ticket_codes": {
                   Row: {
@@ -1049,6 +1235,9 @@ isOneToOne: false
 "module_enabled":
 { Args: { "p_key": string,"p_org": string }; Returns: boolean
                            },
+"my_staff_id":
+{ Args: { "p_org": string }; Returns: string
+                           },
 "org_alive":
 { Args: { "p_org": string }; Returns: boolean
                            },
@@ -1103,6 +1292,9 @@ isOneToOne: false
                            },
 "shares_org":
 { Args: { "p_user": string }; Returns: boolean
+                           },
+"shift_self":
+{ Args: { "p_action": string,"p_shift": string,"p_token"?: string }; Returns: string
                            },
 "soft_delete":
 { Args: { "p_id": string,"p_table": unknown }; Returns: boolean

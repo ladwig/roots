@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored third-party components (ReUI registry), updated via the shadcn CLI, not edited by hand.
+    "src/components/reui/**",
   ]),
 ]);
 

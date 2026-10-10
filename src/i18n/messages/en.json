@@ -91,7 +91,8 @@
       "notifications": "Notifications",
       "profile": "Profile",
       "fields": "Fields",
-      "api": "API"
+      "api": "API",
+      "locations": "Locations"
     }
   },
   "general": {
@@ -233,7 +234,8 @@
     "sites.manage": "Edit public pages",
     "invoices.view": "View quotes & invoices",
     "invoices.manage": "Create and issue quotes & invoices",
-    "guestlists.checkin": "Check in guests at the door"
+    "guestlists.checkin": "Check in guests at the door",
+    "shifts.self": "See own shifts, apply, check in"
   },
   "integrations": {
     "connect": "Connect",
@@ -347,7 +349,13 @@
       "event_slots": "Timetable",
       "guest_lists": "Guest lists",
       "guest_entries": "Guest list entries",
-      "guest_checkins": "Guest check-ins"
+      "guest_checkins": "Guest check-ins",
+      "locations": "Locations",
+      "staff": "Team",
+      "positions": "Positions",
+      "shift_series": "Recurring shifts",
+      "shifts": "Shifts",
+      "shift_assignments": "Shift assignments"
     }
   },
   "errors": {
@@ -400,7 +408,11 @@
     "service_date_missing": "Please enter the service date.",
     "use_cancellation": "Invoices are cancelled with a cancellation invoice.",
     "link_closed": "This guest list is closed.",
-    "list_full": "The list is full."
+    "list_full": "The list is full.",
+    "shift_closed": "This shift isn't open (any more).",
+    "not_qualified": "You're not set up for this position.",
+    "not_now": "Check-in only works shortly before until shortly after the shift.",
+    "not_assigned": "You're not assigned to this shift."
   },
   "admin": {
     "title": "Platform",
@@ -645,7 +657,8 @@
       "quote.issued": "Quote issued",
       "quote.accepted": "Quote accepted",
       "invoice.cancelled": "Invoice cancelled",
-      "guestlist.signed_up": "Guest list sign-up"
+      "guestlist.signed_up": "Guest list sign-up",
+      "shift.applied": "Shift application"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -667,7 +680,8 @@
       "quote.issued": "📄 Quote {number} to {name}: {amount}",
       "quote.accepted": "🤝 Quote {number} accepted ({amount})",
       "invoice.cancelled": "↩️ Cancellation {number} to {name}: {amount}",
-      "guestlist.signed_up": "📝 {name} added {count} names to “{list}”"
+      "guestlist.signed_up": "📝 {name} added {count} names to “{list}”",
+      "shift.applied": "🙋 {name} wants the shift on {when}"
     }
   },
   "inbox": {
@@ -1392,5 +1406,140 @@
     "undo": "Undo",
     "undone": "Check-in undone.",
     "inSince": "in since {time}"
+  },
+  "shifts": {
+    "nav": "Shifts",
+    "navMe": "My shifts",
+    "title": "Shift plan",
+    "tabs": {
+      "plan": "Plan",
+      "team": "Team",
+      "setup": "Setup",
+      "hours": "Hours",
+      "me": "My shifts"
+    },
+    "newShift": "New shift",
+    "prevWeek": "Previous week",
+    "nextWeek": "Next week",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "event": "Event",
+    "allWeek": "Whole week (all)",
+    "location": "Location",
+    "allLocations": "All locations",
+    "anyLocation": "Any location",
+    "show": "Show",
+    "coverage": "{filled} of {needed} spots filled",
+    "noShifts": "No shifts.",
+    "applicants": {
+      "one": "1 application",
+      "other": "{count} applications"
+    },
+    "deleteShift": "Delete shift",
+    "position": "Position",
+    "titleLabel": "Label",
+    "titlePlaceholder": "e.g. Setup, Bar",
+    "start": "Start",
+    "end": "End",
+    "needed": "Needed",
+    "openLabel": "Open: team can apply",
+    "notes": "Note",
+    "needTitle": "Please pick a position or enter a label.",
+    "saved": "Saved.",
+    "deleted": "Deleted.",
+    "people": "Staffed {count} / {needed}",
+    "applied": "applied",
+    "approve": "Accept",
+    "checkIn": "Check in",
+    "checkOut": "Check out",
+    "remove": "Remove",
+    "addPerson": "Assign person",
+    "notQualified": "not set up for this position",
+    "done": {
+      "assign": "Assigned.",
+      "remove": "Removed.",
+      "check_in": "Checked in.",
+      "check_out": "Checked out."
+    },
+    "newStaff": "New person",
+    "noStaff": "Nobody in the team yet.",
+    "name": "Name",
+    "inactive": "inactive",
+    "roleLabel": "Type",
+    "rolePlaceholder": "e.g. mini job, temp, volunteer",
+    "positions": "Positions",
+    "anyPosition": "all",
+    "targetHours": "Target hours/month",
+    "member": "Member",
+    "canDo": "Can do these positions",
+    "canDoHint": "Nothing selected = all positions.",
+    "activeLabel": "Active",
+    "memberTaken": "This member is already in the team.",
+    "positionsTitle": "Positions",
+    "positionsHint": "Stations like bar 1, door, cloakroom – with the usual number of people.",
+    "positionPlaceholder": "e.g. Bar 1",
+    "addPosition": "Add position",
+    "locationsHint": "Locations (club, café, external venues) are set up in the settings.",
+    "locationsLink": "Manage locations",
+    "seriesTitle": "Recurring shifts",
+    "newSeries": "New recurring shift",
+    "seriesHint": "E.g. every Saturday bar, every 2nd Thursday door, Mon–Fri café 8–16. Shifts are created 8 weeks ahead, fixed people assigned right away.",
+    "noSeries": "No recurring shifts yet.",
+    "rhythm": "Rhythm",
+    "weekly": "every week",
+    "everyN": {
+      "one": "every week",
+      "other": "every {count} weeks"
+    },
+    "fixedPeople": "Fixed people",
+    "seriesNamePlaceholder": "e.g. Café early shift",
+    "weekdays": "Weekdays",
+    "every": "Repeat",
+    "from": "From",
+    "until": "Until (earlier = next day)",
+    "startDate": "From",
+    "endDate": "Until (optional)",
+    "fixedHint": "Assigned to every shift of this series.",
+    "generateHint": "Saving recreates the future shifts of this series.",
+    "deleteSeries": "Delete series and future shifts",
+    "generated": {
+      "one": "Saved, 1 shift created.",
+      "other": "Saved, {count} shifts created."
+    },
+    "hoursHint": "Planned = assigned shifts. Worked = from check-in to check-out (without check-out until the shift's end).",
+    "shiftCount": "Shifts",
+    "planned": "Planned",
+    "worked": "Worked",
+    "balance": "Balance",
+    "myShifts": "My shifts",
+    "noOwn": "No shifts right now.",
+    "openShifts": "Open shifts",
+    "noOpen": "No open shifts.",
+    "free": {
+      "one": "1 spot free",
+      "other": "{count} spots free"
+    },
+    "apply": "Apply",
+    "withdraw": "Withdraw",
+    "confirmed": "assigned",
+    "selfHours": "Worked this month: {hours} h",
+    "selfTarget": "Target: {hours} h",
+    "notInTeam": "You're not in this shift plan's team yet.",
+    "self": {
+      "apply": "Applied – you'll be notified once you're assigned.",
+      "withdraw": "Application withdrawn.",
+      "check_in": "Checked in. Have a good shift!",
+      "check_out": "Checked out. Thanks!"
+    },
+    "pickMember": "Pick a member…",
+    "memberHint": "The team consists of organisation members (name and email from their profile). Invite new people under Settings → Members first."
+  },
+  "locations": {
+    "title": "Location",
+    "intro": "Your organisation's locations – own club, café, external venues. Events and shifts can be assigned to a location.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Club, Café, Hall 3",
+    "address": "Address",
+    "add": "Add location"
   }
 }

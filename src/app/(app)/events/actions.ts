@@ -44,6 +44,7 @@ function readEvent(fd: FormData) {
       title,
       starts_at: starts.toISOString(),
       ends_at: ends?.toISOString() ?? null,
+      location_id: /^[0-9a-f-]{36}$/.test(String(fd.get("location") ?? "")) ? String(fd.get("location")) : null,
       venue_name: text(fd, "venue_name")?.slice(0, 200) ?? null,
       venue_address: text(fd, "venue_address")?.slice(0, 500) ?? null,
       description: text(fd, "description")?.slice(0, 20000) ?? null,

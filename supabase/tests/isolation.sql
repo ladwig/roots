@@ -535,6 +535,33 @@ begin
     reset role;
   end;
 
+  -- Shifts: a team member applies, can't check in before assignment; B sees nothing
+  insert into public.org_modules (org_id, module_key) values (org_a, 'shifts');
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  declare v_staff uuid; v_shift uuid; v_res text;
+  begin
+    insert into public.staff (org_id, user_id, name) values (org_a, a, 'Owner A') returning id into v_staff;
+    insert into public.shifts (org_id, title, starts_at, ends_at) values (org_a, 'Bar', now() + interval '1 hour', now() + interval '5 hours') returning id into v_shift;
+    v_res := public.shift_self('apply', v_shift);                               assert v_res = 'applied', 'member applies';
+    begin
+      perform public.shift_self('check_in', v_shift);
+      assert false, 'check-in needs an assignment';
+    exception when raise_exception then null; end;
+    update public.shift_assignments set status = 'assigned' where shift_id = v_shift;
+    v_res := public.shift_self('check_in', v_shift);                            assert v_res = 'checked_in', 'check-in';
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.staff where org_id = org_a;              assert n = 0, 'B sees staff of A';
+    select count(*) into n from public.shifts where org_id = org_a;             assert n = 0, 'B sees shifts of A';
+    begin
+      perform public.shift_self('apply', v_shift, null);
+      assert false, 'B must not apply in A';
+    exception when raise_exception then null; end;
+    reset role;
+  end;
+
   -- x-org-id header: C is now in A and B, but with the header only sees the active org
   perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
   set local role authenticated;

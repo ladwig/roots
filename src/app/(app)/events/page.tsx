@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ExternalLinkIcon, ListChecksIcon, MicVocalIcon, TicketIcon } from "lucide-react"
+import { CalendarClockIcon, ExternalLinkIcon, ListChecksIcon, MicVocalIcon, TicketIcon } from "lucide-react"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { ImageForm } from "@/components/image-form"
 import { Notice } from "@/components/notice"
@@ -9,10 +9,11 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Separator } from "@/components/ui/separator"
 import { getT } from "@/i18n/server"
 import type { T } from "@/i18n/translate"
-import { requirePerm } from "@/lib/context"
+import { getContext, requirePerm } from "@/lib/context"
 import { toLocalInput } from "@/lib/time"
 import { pageParam, param, siteUrl, withParams, type SearchParams } from "@/lib/url"
 import type { Tables } from "@/lib/supabase/types"
@@ -141,7 +142,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
           <EventForm t={t} action={createEvent} />
         </UrlSheet>
       )}
-      {editing && <EditEvent t={t} ev={editing} sp={sp} canManage={canManage} orgSlug={ctx.org.slug} tickets={ctx.modules.has("tickets") && ctx.can("tickets.view")} guestlists={ctx.modules.has("guestlists") && ctx.can("guestlists.view")} />}
+      {editing && <EditEvent t={t} ev={editing} sp={sp} canManage={canManage} orgSlug={ctx.org.slug} tickets={ctx.modules.has("tickets") && ctx.can("tickets.view")} guestlists={ctx.modules.has("guestlists") && ctx.can("guestlists.view")} shifts={ctx.modules.has("shifts") && ctx.can("shifts.view")} />}
     </div>
   )
 }
@@ -151,7 +152,9 @@ function StatusBadge({ t, status }: { t: T; status: string }) {
   return <Badge variant={variant}>{t.dynamic(`eventsPage.statuses.${status}`)}</Badge>
 }
 
-function EventForm({ t, action, ev, disabled }: { t: T; action: (fd: FormData) => Promise<void>; ev?: Ev; disabled?: boolean }) {
+async function EventForm({ t, action, ev, disabled }: { t: T; action: (fd: FormData) => Promise<void>; ev?: Ev; disabled?: boolean }) {
+  const ctx = await getContext()
+  const { data: locations } = await ctx.supabase.from("locations").select("id, name").eq("org_id", ctx.org.id).order("name")
   return (
     <form action={action} className="grid gap-4">
       {ev && <input type="hidden" name="id" value={ev.id} />}
@@ -176,6 +179,19 @@ function EventForm({ t, action, ev, disabled }: { t: T; action: (fd: FormData) =
             <Input id="ev-ends" name="ends_at" type="datetime-local" defaultValue={ev?.ends_at ? toLocalInput(ev.ends_at) : undefined} />
           </div>
         </div>
+        {(locations?.length ?? 0) > 0 && (
+          <div className="grid gap-2">
+            <Label htmlFor="ev-location">{t("locations.title")}</Label>
+            <NativeSelect id="ev-location" name="location" defaultValue={ev?.location_id ?? ""} className="w-full">
+              <NativeSelectOption value="">–</NativeSelectOption>
+              {locations?.map((l) => (
+                <NativeSelectOption key={l.id} value={l.id}>
+                  {l.name}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </div>
+        )}
         <div className="grid gap-2">
           <Label htmlFor="ev-venue">{t("eventsPage.venueName")}</Label>
           <Input id="ev-venue" name="venue_name" defaultValue={ev?.venue_name ?? ""} maxLength={200} />
@@ -216,7 +232,7 @@ function EventForm({ t, action, ev, disabled }: { t: T; action: (fd: FormData) =
   )
 }
 
-function EditEvent({ t, ev, sp, canManage, orgSlug, tickets, guestlists }: { t: T; ev: Ev; sp: SearchParams; canManage: boolean; orgSlug: string; tickets: boolean; guestlists: boolean }) {
+function EditEvent({ t, ev, sp, canManage, orgSlug, tickets, guestlists, shifts }: { t: T; ev: Ev; sp: SearchParams; canManage: boolean; orgSlug: string; tickets: boolean; guestlists: boolean; shifts: boolean }) {
   const publicHref = siteUrl(orgSlug, `/e/${ev.slug}`)
   return (
     <UrlSheet params={["edit"]} title={ev.title} description={t.date(ev.starts_at, { dateStyle: "full", timeStyle: "short" })}>
@@ -258,6 +274,11 @@ function EditEvent({ t, ev, sp, canManage, orgSlug, tickets, guestlists }: { t: 
             {tickets && (
               <Button render={<Link href={`/events/${ev.id}/tickets`} />} nativeButton={false} size="sm" variant="outline">
                 <TicketIcon /> {t("tickets.manage")}
+              </Button>
+            )}
+            {shifts && (
+              <Button render={<Link href={`/shifts?event=${ev.id}`} />} nativeButton={false} size="sm" variant="outline">
+                <CalendarClockIcon /> {t("shifts.title")}
               </Button>
             )}
             {guestlists && (

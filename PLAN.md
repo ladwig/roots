@@ -124,7 +124,10 @@ Modules contribute to both: e.g. Events = event management in the App + event pa
 - Org legal/tax/bank data, Kleinunternehmer (§ 19 UStG), number ranges (format + start + yearly reset), quote/invoice builder (free-text items, system units, 19/7/0 %), issue = number + freeze, quote → invoice, paid, storno, 3 print templates (browser PDF).
 - Next: Stornorechnung (negative invoice) instead of status only, send by email with PDF (server renderer), Stripe payment link on invoices, E-Rechnung (XRechnung/ZUGFeRD; issuing mandatory for most businesses from 2027/2028), reminders (Mahnungen), API endpoints.
 
-### Shift planning & team (planned, not built)
+### Shift planning & team ✅ v1 (phase 1 + recurring series)
+- Built: locations (core, Settings → Orte, also on events), positions, team = org members (role, target hours, positions), shifts per event or location, needed count, open shifts + applications, assign/approve, recurring series (weekdays, every N weeks, fixed people, generated 8 weeks ahead by the worker), check-in/out → hours per month vs target, "Meine Schichten", calendar (week/day/month/list/per person, drag to move). No legal warnings (decided). Next: swaps, coverage view, iCal, crew guest list, templates per event type.
+
+#### Original plan
 
 **Use cases it must cover**
 | Who | Situation | Needs |

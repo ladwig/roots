@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { generateAllSeries } from "@/shifts/server"
 import { pollTelegram } from "@/integrations/telegram"
 import { deliverDue } from "@/events/worker"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -14,6 +15,7 @@ export async function GET(request: Request) {
     sent += n
     if (n === 0) break
   }
+  await generateAllSeries().catch(console.error) // recurring shifts stay 8 weeks ahead
   // Empty the trash (soft-deleted rows past their retention).
   const { data: purged } = await createAdminClient().rpc("purge_deleted")
   return NextResponse.json({ sent, purged })

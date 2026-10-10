@@ -32,6 +32,7 @@ export const eventTypes: EventType[] = [
   { key: "quote.issued", module: "invoices" },
   { key: "quote.accepted", module: "invoices", audience: { permission: "invoices.view", defaults: ["in_app"] }, href: (p) => `/invoices/${p.document_id}` },
   { key: "guestlist.signed_up", module: "guestlists", audience: { permission: "guestlists.view", defaults: ["in_app"] }, href: (p) => `/guestlists/${p.list_id}` },
+  { key: "shift.applied", module: "shifts", audience: { permission: "shifts.manage", defaults: ["in_app"] }, href: (p) => `/shifts?shift=${p.shift_id}` },
   { key: "tickets.sold", module: "tickets", audience: { permission: "tickets.view", defaults: ["in_app"] }, href: (p) => `/events/${p.event_id}/tickets` },
   { key: "org.created", module: "platform", audience: { platform: true, defaults: ["in_app", "email"] }, href: (p) => `/admin/orgs?edit=${p.org_id}` },
 ]

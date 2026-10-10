@@ -91,7 +91,8 @@
       "notifications": "Benachrichtigungen",
       "profile": "Profil",
       "fields": "Felder",
-      "api": "API"
+      "api": "API",
+      "locations": "Orte"
     }
   },
   "general": {
@@ -233,7 +234,8 @@
     "sites.manage": "Öffentliche Seiten bearbeiten",
     "invoices.view": "Angebote & Rechnungen ansehen",
     "invoices.manage": "Angebote & Rechnungen erstellen und ausstellen",
-    "guestlists.checkin": "Gäste am Einlass einchecken"
+    "guestlists.checkin": "Gäste am Einlass einchecken",
+    "shifts.self": "Eigene Schichten sehen, bewerben, einchecken"
   },
   "integrations": {
     "connect": "Verbinden",
@@ -347,7 +349,13 @@
       "event_slots": "Timetable",
       "guest_lists": "Gästelisten",
       "guest_entries": "Gästelisten-Einträge",
-      "guest_checkins": "Gäste-Check-ins"
+      "guest_checkins": "Gäste-Check-ins",
+      "locations": "Orte",
+      "staff": "Team",
+      "positions": "Positionen",
+      "shift_series": "Wiederkehrende Schichten",
+      "shifts": "Schichten",
+      "shift_assignments": "Schicht-Einteilungen"
     }
   },
   "errors": {
@@ -400,7 +408,11 @@
     "service_date_missing": "Bitte das Leistungsdatum angeben.",
     "use_cancellation": "Rechnungen werden über eine Stornorechnung storniert.",
     "link_closed": "Diese Gästeliste ist geschlossen.",
-    "list_full": "Die Liste ist voll."
+    "list_full": "Die Liste ist voll.",
+    "shift_closed": "Diese Schicht ist nicht (mehr) offen.",
+    "not_qualified": "Für diese Position bist du nicht eingetragen.",
+    "not_now": "Einchecken geht nur kurz vor bis kurz nach der Schicht.",
+    "not_assigned": "Du bist für diese Schicht nicht eingeteilt."
   },
   "admin": {
     "title": "Plattform",
@@ -645,7 +657,8 @@
       "quote.issued": "Angebot ausgestellt",
       "quote.accepted": "Angebot angenommen",
       "invoice.cancelled": "Rechnung storniert",
-      "guestlist.signed_up": "Eintrag auf Gästeliste"
+      "guestlist.signed_up": "Eintrag auf Gästeliste",
+      "shift.applied": "Bewerbung auf Schicht"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -667,7 +680,8 @@
       "quote.issued": "📄 Angebot {number} an {name}: {amount}",
       "quote.accepted": "🤝 Angebot {number} angenommen ({amount})",
       "invoice.cancelled": "↩️ Storno {number} an {name}: {amount}",
-      "guestlist.signed_up": "📝 {name} hat {count} Namen auf „{list}“ eingetragen"
+      "guestlist.signed_up": "📝 {name} hat {count} Namen auf „{list}“ eingetragen",
+      "shift.applied": "🙋 {name} möchte die Schicht am {when}"
     }
   },
   "inbox": {
@@ -1392,5 +1406,140 @@
     "undo": "Rückgängig",
     "undone": "Check-in zurückgenommen.",
     "inSince": "drin seit {time}"
+  },
+  "shifts": {
+    "nav": "Schichten",
+    "navMe": "Meine Schichten",
+    "title": "Schichtplan",
+    "tabs": {
+      "plan": "Plan",
+      "team": "Team",
+      "setup": "Einrichtung",
+      "hours": "Stunden",
+      "me": "Meine Schichten"
+    },
+    "newShift": "Neue Schicht",
+    "prevWeek": "Vorherige Woche",
+    "nextWeek": "Nächste Woche",
+    "prevMonth": "Vorheriger Monat",
+    "nextMonth": "Nächster Monat",
+    "event": "Event",
+    "allWeek": "Ganze Woche (alle)",
+    "location": "Ort",
+    "allLocations": "Alle Orte",
+    "anyLocation": "Jeder Ort",
+    "show": "Anzeigen",
+    "coverage": "{filled} von {needed} Plätzen besetzt",
+    "noShifts": "Keine Schichten.",
+    "applicants": {
+      "one": "1 Bewerbung",
+      "other": "{count} Bewerbungen"
+    },
+    "deleteShift": "Schicht löschen",
+    "position": "Position",
+    "titleLabel": "Bezeichnung",
+    "titlePlaceholder": "z. B. Aufbau, Theke",
+    "start": "Beginn",
+    "end": "Ende",
+    "needed": "Benötigt",
+    "openLabel": "Offen: Team kann sich bewerben",
+    "notes": "Notiz",
+    "needTitle": "Bitte eine Position wählen oder eine Bezeichnung eingeben.",
+    "saved": "Gespeichert.",
+    "deleted": "Gelöscht.",
+    "people": "Besetzung {count} / {needed}",
+    "applied": "beworben",
+    "approve": "Annehmen",
+    "checkIn": "Einchecken",
+    "checkOut": "Auschecken",
+    "remove": "Entfernen",
+    "addPerson": "Person einteilen",
+    "notQualified": "nicht eingetragen für diese Position",
+    "done": {
+      "assign": "Eingeteilt.",
+      "remove": "Entfernt.",
+      "check_in": "Eingecheckt.",
+      "check_out": "Ausgecheckt."
+    },
+    "newStaff": "Neue Person",
+    "noStaff": "Noch niemand im Team.",
+    "name": "Name",
+    "inactive": "inaktiv",
+    "roleLabel": "Art",
+    "rolePlaceholder": "z. B. Minijob, Aushilfe, Ehrenamt",
+    "positions": "Positionen",
+    "anyPosition": "alle",
+    "targetHours": "Soll-Stunden/Monat",
+    "member": "Mitglied",
+    "canDo": "Kann diese Positionen",
+    "canDoHint": "Nichts ausgewählt = alle Positionen.",
+    "activeLabel": "Aktiv",
+    "memberTaken": "Dieses Mitglied ist schon im Team.",
+    "positionsTitle": "Positionen",
+    "positionsHint": "Stationen wie Bar 1, Tür, Garderobe – mit der üblichen Anzahl Leute.",
+    "positionPlaceholder": "z. B. Bar 1",
+    "addPosition": "Position hinzufügen",
+    "locationsHint": "Orte (Club, Café, externe Locations) legst du in den Einstellungen an.",
+    "locationsLink": "Orte verwalten",
+    "seriesTitle": "Wiederkehrende Schichten",
+    "newSeries": "Neue wiederkehrende Schicht",
+    "seriesHint": "Z. B. jeden Samstag Bar, jeden 2. Donnerstag Tür, Mo–Fr Café 8–16 Uhr. Schichten werden 8 Wochen im Voraus angelegt, feste Personen gleich eingeteilt.",
+    "noSeries": "Noch keine wiederkehrenden Schichten.",
+    "rhythm": "Rhythmus",
+    "weekly": "jede Woche",
+    "everyN": {
+      "one": "jede Woche",
+      "other": "alle {count} Wochen"
+    },
+    "fixedPeople": "Feste Personen",
+    "seriesNamePlaceholder": "z. B. Café Frühschicht",
+    "weekdays": "Wochentage",
+    "every": "Wiederholung",
+    "from": "Von",
+    "until": "Bis (früher = am nächsten Tag)",
+    "startDate": "Ab",
+    "endDate": "Bis (optional)",
+    "fixedHint": "Werden in jede Schicht dieser Serie eingeteilt.",
+    "generateHint": "Beim Speichern werden zukünftige Schichten dieser Serie neu angelegt.",
+    "deleteSeries": "Serie und zukünftige Schichten löschen",
+    "generated": {
+      "one": "Gespeichert, 1 Schicht angelegt.",
+      "other": "Gespeichert, {count} Schichten angelegt."
+    },
+    "hoursHint": "Geplant = eingeteilte Schichten. Gearbeitet = vom Einchecken bis Auschecken (ohne Auschecken bis Schichtende).",
+    "shiftCount": "Schichten",
+    "planned": "Geplant",
+    "worked": "Gearbeitet",
+    "balance": "Saldo",
+    "myShifts": "Meine Schichten",
+    "noOwn": "Gerade keine Schichten.",
+    "openShifts": "Offene Schichten",
+    "noOpen": "Keine offenen Schichten.",
+    "free": {
+      "one": "1 Platz frei",
+      "other": "{count} Plätze frei"
+    },
+    "apply": "Bewerben",
+    "withdraw": "Zurückziehen",
+    "confirmed": "eingeteilt",
+    "selfHours": "Diesen Monat gearbeitet: {hours} h",
+    "selfTarget": "Soll: {hours} h",
+    "notInTeam": "Du bist noch nicht im Team dieses Schichtplans.",
+    "self": {
+      "apply": "Beworben – du wirst benachrichtigt, wenn du eingeteilt bist.",
+      "withdraw": "Bewerbung zurückgezogen.",
+      "check_in": "Eingecheckt. Gute Schicht!",
+      "check_out": "Ausgecheckt. Danke!"
+    },
+    "pickMember": "Mitglied wählen…",
+    "memberHint": "Im Team ist, wer Mitglied der Organisation ist (Name und E-Mail aus dem Profil). Neue Leute vorher unter Einstellungen → Mitglieder einladen."
+  },
+  "locations": {
+    "title": "Ort",
+    "intro": "Orte deiner Organisation – eigener Club, Café, externe Locations. Events und Schichten können einem Ort zugeordnet werden.",
+    "name": "Name",
+    "namePlaceholder": "z. B. Club, Café, Halle 3",
+    "address": "Adresse",
+    "add": "Ort hinzufügen"
   }
 }
