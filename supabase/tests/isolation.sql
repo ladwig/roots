@@ -481,8 +481,15 @@ begin
       select count(*) into n from public.documents where id = v_doc; assert n = 1, 'issued documents are never deleted';
     end;
     update public.documents set status = 'paid' where id = v_doc;
+    begin
+      update public.documents set status = 'cancelled' where id = v_doc;
+      assert false, 'cancel only via Stornorechnung';
+    exception when raise_exception then null; end;
     select count(*) into n from public.documents where id = v_doc and paid_at is not null; assert n = 1, 'paid sets paid_at';
     select count(*) into n from public.hub_events where org_id = org_a and type in ('invoice.issued', 'invoice.paid'); assert n = 2, 'invoice events';
+    perform public.cancel_invoice(v_doc);
+    select count(*) into n from public.documents where source_id = v_doc and kind = 'cancellation' and number like 'ST-%'; assert n = 1, 'Stornorechnung with own number, negative';
+    select count(*) into n from public.documents where id = v_doc and status = 'cancelled'; assert n = 1, 'invoice cancelled';
   end;
   reset role;
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);

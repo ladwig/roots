@@ -160,7 +160,7 @@ export async function issueDocument(fd: FormData) {
   back(here, { ok: t("invoices.issued", { number: String(number) }) })
 }
 
-const STATUS = ["sent", "paid", "accepted", "declined", "cancelled"] as const
+const STATUS = ["sent", "paid", "accepted", "declined"] as const
 export async function setDocumentStatus(fd: FormData) {
   const { ctx, t } = await manager()
   const id = String(fd.get("id") ?? "")
@@ -214,6 +214,16 @@ export async function copyDocument(fd: FormData) {
   if (items.length) await ctx.supabase.from("document_items").insert(items)
   if (as === "invoice" && src.kind === "quote" && src.status === "sent") await ctx.supabase.from("documents").update({ status: "accepted" }).eq("id", src.id)
   redirect(`${PATH}/${copy.id}`)
+}
+
+// Storno: creates the Stornorechnung (own number, negative amounts) and marks the invoice cancelled.
+export async function cancelInvoice(fd: FormData) {
+  const { ctx, t } = await manager()
+  const id = String(fd.get("id") ?? "")
+  const { data: stornoId, error } = await ctx.supabase.rpc("cancel_invoice", { p_id: id })
+  if (error) back(`${PATH}/${id}`, { error: dbError(t, error) })
+  deliverSoon()
+  back(`${PATH}/${stornoId}`, { ok: t("invoices.cancelled") })
 }
 
 export async function deleteDraft(fd: FormData) {

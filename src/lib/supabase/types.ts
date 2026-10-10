@@ -786,6 +786,9 @@ isOneToOne: false
 "can_write_image":
 { Args: { "p_name": string }; Returns: boolean
                            },
+"cancel_invoice":
+{ Args: { "p_id": string }; Returns: string
+                           },
 "check_in_ticket":
 { Args: { "p_code": string,"p_event": string }; Returns: {
               "checked_in_at": string,"holder_name": string,"result": string,"type_name": string

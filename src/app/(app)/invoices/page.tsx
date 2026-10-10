@@ -11,7 +11,7 @@ import { requirePerm } from "@/lib/context"
 import { pageParam, param, withParams } from "@/lib/url"
 import { createDocument } from "./actions"
 
-const KINDS = ["invoice", "quote"] as const
+const KINDS = ["invoice", "quote", "cancellation"] as const
 const STATUSES = ["draft", "sent", "paid", "accepted", "declined", "cancelled"] as const
 
 export default async function InvoicesPage({ searchParams }: PageProps<"/invoices">) {

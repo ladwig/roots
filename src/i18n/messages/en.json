@@ -391,7 +391,8 @@
     "tax_id_missing": "Invoices must show the tax number or VAT ID (invoice settings).",
     "recipient_missing": "Please enter the recipient's name and address.",
     "items_missing": "Please add at least one item.",
-    "service_date_missing": "Please enter the service date."
+    "service_date_missing": "Please enter the service date.",
+    "use_cancellation": "Invoices are cancelled with a cancellation invoice."
   },
   "admin": {
     "title": "Platform",
@@ -634,7 +635,8 @@
       "invoice.issued": "Invoice issued",
       "invoice.paid": "Invoice paid",
       "quote.issued": "Quote issued",
-      "quote.accepted": "Quote accepted"
+      "quote.accepted": "Quote accepted",
+      "invoice.cancelled": "Invoice cancelled"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -654,7 +656,8 @@
       "invoice.issued": "🧾 Invoice {number} to {name}: {amount}",
       "invoice.paid": "✅ Invoice {number} paid ({amount})",
       "quote.issued": "📄 Quote {number} to {name}: {amount}",
-      "quote.accepted": "🤝 Quote {number} accepted ({amount})"
+      "quote.accepted": "🤝 Quote {number} accepted ({amount})",
+      "invoice.cancelled": "↩️ Cancellation {number} to {name}: {amount}"
     }
   },
   "inbox": {
@@ -1047,7 +1050,8 @@
     "allStatus": "All statuses",
     "kinds": {
       "invoice": "Invoice",
-      "quote": "Quote"
+      "quote": "Quote",
+      "cancellation": "Cancellation"
     },
     "filters": {
       "draft": "Draft",
@@ -1073,6 +1077,14 @@
         "declined": "Declined",
         "paid": "–",
         "cancelled": "–"
+      },
+      "cancellation": {
+        "draft": "Draft",
+        "sent": "Issued",
+        "paid": "–",
+        "cancelled": "–",
+        "accepted": "–",
+        "declined": "–"
       }
     },
     "empty": "No quotes or invoices yet.",
@@ -1149,13 +1161,12 @@
     "toInvoice": "Turn into invoice",
     "duplicate": "Duplicate",
     "cancel": "Cancel",
-    "cancelHint": "The invoice keeps its number and is marked as cancelled. For a correction, issue a new invoice afterwards.",
+    "cancelHint": "Creates a cancellation invoice with its own number and negative amounts; the invoice is marked cancelled. For a correction, issue a new invoice afterwards.",
     "statusDone": {
       "sent": "Status changed.",
       "paid": "Marked as paid.",
       "accepted": "Quote accepted.",
-      "declined": "Quote declined.",
-      "cancelled": "Invoice cancelled."
+      "declined": "Quote declined."
     },
     "smallBusinessNote": "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.",
     "payUntil": "Please transfer the amount by {date}.",
@@ -1218,6 +1229,19 @@
       "page": "page(s)",
       "word": "word(s)",
       "license": "licence(s)"
-    }
+    },
+    "docTitles": {
+      "invoice": "Invoice",
+      "quote": "Quote",
+      "cancellation": "Cancellation invoice"
+    },
+    "docNumbers": {
+      "invoice": "Invoice no.",
+      "quote": "Quote no.",
+      "cancellation": "Cancellation no."
+    },
+    "cancelsInvoice": "Cancels invoice",
+    "cancels": "Cancels invoice →",
+    "cancelled": "Cancellation invoice created."
   }
 }

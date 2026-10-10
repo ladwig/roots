@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param } from "@/lib/url"
-import { copyDocument, deleteDraft, setDocumentStatus } from "../actions"
+import { cancelInvoice, copyDocument, deleteDraft, setDocumentStatus } from "../actions"
 import { DocumentEditor, type EditorContact } from "./editor"
 
 export default async function DocumentPage({ params, searchParams }: PageProps<"/invoices/[id]">) {
@@ -20,7 +20,11 @@ export default async function DocumentPage({ params, searchParams }: PageProps<"
   const canManage = ctx.can("invoices.manage")
   const [{ data: doc }, { data: billing }, { data: contacts }] = await Promise.all([
     ctx.supabase.from("documents").select("*, document_items(*)").eq("id", id).eq("org_id", ctx.org.id).maybeSingle(),
-    ctx.supabase.from("org_billing").select("legal_name, street, city, tax_number, vat_id, tax_mode").eq("org_id", ctx.org.id).maybeSingle(),
+    ctx.supabase
+      .from("org_billing")
+      .select("legal_name, street, city, tax_number, vat_id, tax_mode")
+      .eq("org_id", ctx.org.id)
+      .maybeSingle(),
     ctx.modules.has("crm") && ctx.can("crm.view")
       ? ctx.supabase
           .from("contacts")
@@ -42,7 +46,8 @@ export default async function DocumentPage({ params, searchParams }: PageProps<"
     address: [c.company ? person(c) : "", c.street ?? "", [c.postal_code, c.city].filter(Boolean).join(" ")].filter(Boolean).join("\n"),
     email: c.email,
   }))
-  const billingMissing = !billing?.legal_name || !billing.street || !billing.city || (doc.kind === "invoice" && !billing.tax_number && !billing.vat_id)
+  const billingMissing =
+    !billing?.legal_name || !billing.street || !billing.city || (doc.kind === "invoice" && !billing.tax_number && !billing.vat_id)
   const status = (s: string, label: string, variant: "default" | "outline" | "destructive" = "outline") => (
     <form action={setDocumentStatus}>
       <input type="hidden" name="id" value={doc.id} />
@@ -56,25 +61,41 @@ export default async function DocumentPage({ params, searchParams }: PageProps<"
   return (
     <div className="grid max-w-5xl gap-6">
       <div className="grid gap-1">
-        <Link href={`/invoices?kind=${doc.kind}`} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          href={`/invoices?kind=${doc.kind}`}
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeftIcon className="size-4" /> {t("invoices.title")}
         </Link>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="font-heading text-2xl font-semibold">
-            {t(doc.kind === "quote" ? "invoices.quoteTitle" : "invoices.invoiceTitle")} {doc.number ?? ""}
+            {t.dynamic(`invoices.docTitles.${doc.kind}`)} {doc.number ?? ""}
           </h1>
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={doc.status === "paid" || doc.status === "accepted" ? "default" : doc.status === "cancelled" || doc.status === "declined" ? "destructive" : "outline"}>
+            <Badge
+              variant={
+                doc.status === "paid" || doc.status === "accepted"
+                  ? "default"
+                  : doc.status === "cancelled" || doc.status === "declined"
+                    ? "destructive"
+                    : "outline"
+              }
+            >
               {t.dynamic(`invoices.statuses.${doc.kind}.${doc.status}`)}
             </Badge>
-            <Button render={<a href={`/print/documents/${doc.id}`} target="_blank" rel="noreferrer" />} nativeButton={false} size="sm" variant="outline">
+            <Button
+              render={<a href={`/print/documents/${doc.id}`} target="_blank" rel="noreferrer" />}
+              nativeButton={false}
+              size="sm"
+              variant="outline"
+            >
               <PrinterIcon /> {t("invoices.pdf")}
             </Button>
           </div>
         </div>
         {doc.source_id && (
           <Link href={`/invoices/${doc.source_id}`} className="text-sm text-muted-foreground underline underline-offset-4">
-            {t("invoices.fromSource")}
+            {t(doc.kind === "cancellation" ? "invoices.cancels" : "invoices.fromSource")}
           </Link>
         )}
       </div>
@@ -150,15 +171,22 @@ export default async function DocumentPage({ params, searchParams }: PageProps<"
                   </SubmitButton>
                 </form>
               )}
-              <form action={copyDocument}>
-                <input type="hidden" name="id" value={doc.id} />
-                <SubmitButton size="sm" variant="outline">
-                  <CopyIcon /> {t("invoices.duplicate")}
-                </SubmitButton>
-              </form>
+              {doc.kind !== "cancellation" && (
+                <form action={copyDocument}>
+                  <input type="hidden" name="id" value={doc.id} />
+                  <SubmitButton size="sm" variant="outline">
+                    <CopyIcon /> {t("invoices.duplicate")}
+                  </SubmitButton>
+                </form>
+              )}
               {doc.kind === "invoice" && (doc.status === "sent" || doc.status === "paid") && (
                 <div className="grid gap-1 rounded-lg border border-destructive/30 p-2">
-                  {status("cancelled", t("invoices.cancel"), "destructive")}
+                  <form action={cancelInvoice}>
+                    <input type="hidden" name="id" value={doc.id} />
+                    <SubmitButton size="sm" variant="destructive">
+                      {t("invoices.cancel")}
+                    </SubmitButton>
+                  </form>
                   <p className="max-w-xs text-xs text-muted-foreground">{t("invoices.cancelHint")}</p>
                 </div>
               )}

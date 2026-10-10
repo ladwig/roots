@@ -391,7 +391,8 @@
     "tax_id_missing": "Auf Rechnungen muss die Steuernummer oder die USt-IdNr. stehen (Rechnungs-Einstellungen).",
     "recipient_missing": "Bitte Name und Anschrift des Empfängers angeben.",
     "items_missing": "Bitte mindestens eine Position anlegen.",
-    "service_date_missing": "Bitte das Leistungsdatum angeben."
+    "service_date_missing": "Bitte das Leistungsdatum angeben.",
+    "use_cancellation": "Rechnungen werden über eine Stornorechnung storniert."
   },
   "admin": {
     "title": "Plattform",
@@ -634,7 +635,8 @@
       "invoice.issued": "Rechnung ausgestellt",
       "invoice.paid": "Rechnung bezahlt",
       "quote.issued": "Angebot ausgestellt",
-      "quote.accepted": "Angebot angenommen"
+      "quote.accepted": "Angebot angenommen",
+      "invoice.cancelled": "Rechnung storniert"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -654,7 +656,8 @@
       "invoice.issued": "🧾 Rechnung {number} an {name}: {amount}",
       "invoice.paid": "✅ Rechnung {number} bezahlt ({amount})",
       "quote.issued": "📄 Angebot {number} an {name}: {amount}",
-      "quote.accepted": "🤝 Angebot {number} angenommen ({amount})"
+      "quote.accepted": "🤝 Angebot {number} angenommen ({amount})",
+      "invoice.cancelled": "↩️ Storno {number} an {name}: {amount}"
     }
   },
   "inbox": {
@@ -1047,7 +1050,8 @@
     "allStatus": "Alle Status",
     "kinds": {
       "invoice": "Rechnung",
-      "quote": "Angebot"
+      "quote": "Angebot",
+      "cancellation": "Storno"
     },
     "filters": {
       "draft": "Entwurf",
@@ -1073,6 +1077,14 @@
         "declined": "Abgelehnt",
         "paid": "–",
         "cancelled": "–"
+      },
+      "cancellation": {
+        "draft": "Entwurf",
+        "sent": "Ausgestellt",
+        "paid": "–",
+        "cancelled": "–",
+        "accepted": "–",
+        "declined": "–"
       }
     },
     "empty": "Noch keine Angebote oder Rechnungen.",
@@ -1149,13 +1161,12 @@
     "toInvoice": "In Rechnung umwandeln",
     "duplicate": "Duplizieren",
     "cancel": "Stornieren",
-    "cancelHint": "Die Rechnung bleibt mit Nummer erhalten und wird als storniert markiert. Für eine Korrektur stellst du danach eine neue Rechnung aus.",
+    "cancelHint": "Erstellt eine Stornorechnung mit eigener Nummer und negativen Beträgen; die Rechnung wird als storniert markiert. Für eine Korrektur danach eine neue Rechnung ausstellen.",
     "statusDone": {
       "sent": "Status geändert.",
       "paid": "Als bezahlt markiert.",
       "accepted": "Angebot angenommen.",
-      "declined": "Angebot abgelehnt.",
-      "cancelled": "Rechnung storniert."
+      "declined": "Angebot abgelehnt."
     },
     "smallBusinessNote": "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.",
     "payUntil": "Bitte überweise den Betrag bis zum {date}.",
@@ -1218,6 +1229,19 @@
       "page": "Seite(n)",
       "word": "Wort/Wörter",
       "license": "Lizenz(en)"
-    }
+    },
+    "docTitles": {
+      "invoice": "Rechnung",
+      "quote": "Angebot",
+      "cancellation": "Stornorechnung"
+    },
+    "docNumbers": {
+      "invoice": "Rechnungsnr.",
+      "quote": "Angebotsnr.",
+      "cancellation": "Stornonr."
+    },
+    "cancelsInvoice": "Storno zu Rechnung",
+    "cancels": "Storniert die Rechnung →",
+    "cancelled": "Stornorechnung erstellt."
   }
 }
