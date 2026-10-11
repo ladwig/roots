@@ -6,6 +6,7 @@ import { getSession } from "@/lib/context"
 import { createClient } from "@/lib/supabase/server"
 import { param } from "@/lib/url"
 import { acceptInvite } from "./actions"
+import { SubmitButton } from "@/components/submit-button"
 
 export default async function InvitePage({ params, searchParams }: PageProps<"/invite/[token]">) {
   const { token } = await params
@@ -28,13 +29,13 @@ export default async function InvitePage({ params, searchParams }: PageProps<"/i
           <div className="space-y-1">
             <h1 className="font-heading text-2xl font-semibold">{t("invite.joinTitle", { org: invite.org_name })}</h1>
             <p className="text-sm text-muted-foreground">
-              {t("invite.invitedAs", { role: invite.role_name, email: invite.email })}
+              {t("invite.invitedAs", { role: t.pick(invite.role_name), email: invite.email })}
             </p>
           </div>
           <Notice error={param(sp, "error")} />
           {session ? (
             <form action={acceptInvite.bind(null, token)} className="grid gap-2">
-              <Button type="submit">{t("invite.accept")}</Button>
+              <SubmitButton>{t("invite.accept")}</SubmitButton>
               <p className="text-xs text-muted-foreground">{t("invite.signedInAs", { email: session.email })}</p>
             </form>
           ) : (

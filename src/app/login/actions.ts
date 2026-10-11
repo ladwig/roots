@@ -1,6 +1,7 @@
 "use server"
 
 import { redirect } from "next/navigation"
+import { adoptProfileLocale } from "@/i18n/actions"
 import { getT } from "@/i18n/server"
 import { authError } from "@/i18n/translate"
 import { createClient } from "@/lib/supabase/server"
@@ -24,6 +25,7 @@ export async function signIn(formData: FormData) {
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({ email, password })
   if (error) redirect(loginUrl(next, { error: authError(await getT(), error) }))
+  await adoptProfileLocale()
   redirect(next)
 }
 
@@ -52,4 +54,14 @@ export async function signOut() {
   const supabase = await createClient()
   await supabase.auth.signOut()
   redirect("/login")
+}
+
+export async function sendPasswordReset(formData: FormData) {
+  const { email } = read(formData)
+  const t = await getT()
+  const supabase = await createClient()
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: callback("/account?reset=1") })
+  if (error && error.code !== "user_not_found") redirect(`/forgot?${new URLSearchParams({ error: authError(t, error) })}`)
+  // Same answer whether or not the account exists, so the form can't be used to probe for emails.
+  redirect(`/forgot?${new URLSearchParams({ ok: t("auth.resetSent", { email }) })}`)
 }

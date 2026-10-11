@@ -5,8 +5,8 @@ import { createT } from "./translate"
 
 export const LOCALE_COOKIE = "locale"
 
-// Cookie (user's choice) → browser language → German.
-// ponytail: cookie only; store on the profile once we send emails in the user's language.
+// Cookie (choice on this device) → browser language → German. The choice is also saved on the profile
+// (profiles.locale) for emails and new devices; the profile is read at sign-in time, not on every request.
 export const getLocale = cache(async (): Promise<Locale> => {
   const chosen = (await cookies()).get(LOCALE_COOKIE)?.value
   if (isLocale(chosen)) return chosen

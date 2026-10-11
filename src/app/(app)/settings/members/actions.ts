@@ -4,6 +4,7 @@ import { createHash, randomBytes } from "node:crypto"
 import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { deliverSoon } from "@/events/worker"
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { ACTIVE_ORG_COOKIE, getContext } from "@/lib/context"
@@ -34,6 +35,7 @@ export async function removeMember(memberId: string) {
     .select("user_id")
     .maybeSingle()
   if (error || !data) back(PATH, { error: error ? dbError(t, error) : t("errors.not_allowed") })
+  deliverSoon()
   if (data.user_id === ctx.userId) {
     ;(await cookies()).delete(ACTIVE_ORG_COOKIE)
     redirect("/")
@@ -59,6 +61,7 @@ export async function createInvite(_: InviteState, formData: FormData): Promise<
   if (error) return { error: error.code === "42501" ? t("members.cantInviteRole") : dbError(t, error) }
 
   revalidatePath(PATH)
+  deliverSoon()
   // ponytail: link is shown to copy; send it by email once a platform mail provider is set up.
   return { link: `${APP_URL}/invite/${token}`, email }
 }

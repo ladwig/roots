@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation"
 import { Notice } from "@/components/notice"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
 import { getSession } from "@/lib/context"
 import { param, ROOT_DOMAIN } from "@/lib/url"
 import { createOrg } from "./actions"
+import { SubmitButton } from "@/components/submit-button"
 
 export default async function OnboardingPage({ searchParams }: PageProps<"/onboarding">) {
   if (!(await getSession())) redirect("/login?next=/onboarding")
@@ -33,7 +33,7 @@ export default async function OnboardingPage({ searchParams }: PageProps<"/onboa
           </div>
           <p className="text-xs text-muted-foreground">{t("onboarding.addressHelp")}</p>
         </div>
-        <Button type="submit">{t("onboarding.submit")}</Button>
+        <SubmitButton>{t("onboarding.submit")}</SubmitButton>
       </form>
     </main>
   )

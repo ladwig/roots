@@ -1,8 +1,7 @@
-import { signOut } from "@/app/login/actions"
-import { NavLink } from "@/components/nav-link"
+import { HouseIcon, InboxIcon, SettingsIcon, ShieldIcon } from "lucide-react"
+import { AppShell } from "@/components/app-shell"
+import type { SidebarLink } from "@/components/app-sidebar"
 import { OrgSwitcher } from "@/components/org-switcher"
-import { Button } from "@/components/ui/button"
-import { LocaleSwitcher } from "@/i18n/client"
 import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
 import { modules } from "@/modules/registry"
@@ -10,41 +9,45 @@ import { modules } from "@/modules/registry"
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getContext()
   const t = await getT()
-  const nav = [
-    { href: "/", label: t("shell.home") },
-    ...modules
-      .filter((m) => ctx.modules.has(m.key))
-      .flatMap((m) => m.nav ?? [])
-      .filter((n) => !n.permission || ctx.can(n.permission))
-      .map((n) => ({ href: n.href, label: t.dynamic(n.label) })),
-    { href: "/settings", label: t("shell.settings") },
+  const [{ count: unread }, { data: me }] = await Promise.all([
+    ctx.supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", ctx.userId).is("read_at", null),
+    ctx.supabase.from("profiles").select("full_name, avatar_path").eq("id", ctx.userId).maybeSingle(),
+  ])
+  const moduleLinks: SidebarLink[] = modules
+    .filter((m) => ctx.modules.has(m.key))
+    .flatMap((m) => m.nav ?? [])
+    .filter((n) => !n.permission || ctx.can(n.permission))
+    .filter((n, i, all) => all.findIndex((x) => x.href === n.href) === i) // e.g. the door belongs to tickets and guest lists
+    .map((n) => ({ href: n.href, label: t.dynamic(n.label), icon: <n.icon /> }))
+  const groups = [
+    {
+      items: [
+        { href: "/", label: t("shell.home"), icon: <HouseIcon /> },
+        { href: "/notifications", label: t("inbox.title"), icon: <InboxIcon />, count: unread ?? 0 },
+      ],
+    },
+    ...(moduleLinks.length ? [{ label: t("home.modules"), items: moduleLinks }] : []),
+    {
+      label: t("shell.org"),
+      items: [
+        { href: "/settings", label: t("shell.settings"), icon: <SettingsIcon /> },
+        ...(ctx.isPlatformAdmin ? [{ href: "/admin", label: t("admin.link"), icon: <ShieldIcon /> }] : []),
+      ],
+    },
   ]
 
   return (
-    <div className="flex min-h-full flex-col md:flex-row">
-      <aside className="flex flex-col gap-3 border-b bg-sidebar p-3 text-sidebar-foreground md:sticky md:top-0 md:h-dvh md:w-60 md:border-r md:border-b-0">
-        <OrgSwitcher orgs={ctx.orgs} current={ctx.org} />
-        <nav aria-label={t("shell.mainNav")} className="-mx-1 flex gap-1 overflow-x-auto px-1 md:flex-col md:overflow-visible">
-          {nav.map((n) => (
-            <NavLink key={n.href} href={n.href}>
-              {n.label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="hidden gap-2 md:mt-auto md:grid">
-          <LocaleSwitcher />
-          <form action={signOut} className="flex items-center justify-between gap-2">
-            <span className="truncate text-xs text-muted-foreground" title={ctx.email}>
-              {ctx.email}
-            </span>
-            <Button type="submit" variant="ghost" size="sm">
-              {t("auth.signOut")}
-            </Button>
-          </form>
-        </div>
-      </aside>
-      <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
-    </div>
+    <AppShell
+      header={<OrgSwitcher orgs={ctx.orgs} current={ctx.org} />}
+      groups={groups}
+      me={{ name: me?.full_name || ctx.email, email: ctx.email, avatar: me?.avatar_path ?? null }}
+      title={ctx.org.name}
+    >
+      {ctx.viaPlatform && (
+        <p className="mb-6 max-w-4xl rounded-lg border bg-muted px-3 py-2 text-sm">{t("admin.banner", { org: ctx.org.name })}</p>
+      )}
+      {children}
+    </AppShell>
   )
 }
 

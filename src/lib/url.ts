@@ -21,3 +21,24 @@ export function back(path: string, result: { error?: string; ok?: string }): nev
   for (const [k, v] of Object.entries(result)) if (v) url.searchParams.set(k, v)
   redirect(url.pathname + url.search)
 }
+
+// Current search params with changes applied (undefined removes a key), as "?…" for links.
+export function withParams(sp: SearchParams, changes: Record<string, string | undefined>) {
+  const next = new URLSearchParams()
+  for (const [k, v] of Object.entries(sp)) if (typeof v === "string" && !["error", "ok"].includes(k)) next.set(k, v)
+  for (const [k, v] of Object.entries(changes)) {
+    if (v === undefined) next.delete(k)
+    else next.set(k, v)
+  }
+  return next.size ? `?${next}` : "?"
+}
+
+export const pageParam = (sp: SearchParams) => Math.max(1, Number(param(sp, "page")) || 1)
+
+// Public pages live on <slug>.ROOT_DOMAIN. Hosts without wildcard subdomains (*.vercel.app) use paths instead:
+// APP_URL/s/<slug>/… (the /s/[site] routes are reachable directly too).
+export const SITE_PATHS = ROOT_DOMAIN.endsWith(".vercel.app")
+export const siteUrl = (orgSlug: string, path = "") =>
+  SITE_PATHS ? `${APP_URL}/s/${orgSlug}${path}` : `${new URL(APP_URL).protocol}//${orgSlug}.${ROOT_DOMAIN}${path}`
+// Links between public pages of one org (relative on its subdomain, /s/<slug>/… in path mode).
+export const sitePath = (orgSlug: string, path = "/") => (SITE_PATHS ? `/s/${orgSlug}${path === "/" ? "" : path}` : path)

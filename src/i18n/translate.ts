@@ -1,3 +1,4 @@
+import { TIME_ZONE } from "../lib/time.ts"
 // Pure translation core (no Next/React imports) so it runs on server, client and in `node --test`.
 import type { Locale, Messages } from "./config"
 
@@ -19,6 +20,12 @@ export type T = {
   has(key: string): boolean
   list(items: string[]): string
   date(value: string | Date, options?: Intl.DateTimeFormatOptions): string
+  /** Amount in cents as money, e.g. money(1250, "eur") → "12,50 €". */
+  money(cents: number, currency?: string): string
+  /** Plain number in the locale, e.g. number(1.5) → "1,5". */
+  number(value: number, options?: Intl.NumberFormatOptions): string
+  /** Stored multi-language value ({"de": "…", "en": "…"}) in the current language, falling back to German. */
+  pick(value: unknown): string
   locale: Locale
 }
 
@@ -53,7 +60,15 @@ export function createT(locale: Locale, dict: Messages): T {
   t.dynamic = translate
   t.has = (key) => lookup(dict, key.split(".")) !== undefined
   t.list = (items) => new Intl.ListFormat(intl[locale], { type: "conjunction" }).format(items)
-  t.date = (value, options = { dateStyle: "medium" }) => new Date(value).toLocaleString(intl[locale], options)
+  t.date = (value, options = { dateStyle: "medium" }) => new Date(value).toLocaleString(intl[locale], { timeZone: TIME_ZONE, ...options })
+  t.money = (cents, currency = "eur") =>
+    new Intl.NumberFormat(intl[locale], { style: "currency", currency: currency.toUpperCase() }).format(cents / 100)
+  t.number = (value, options) => new Intl.NumberFormat(intl[locale], { maximumFractionDigits: 3, ...options }).format(value)
+  t.pick = (value) => {
+    if (typeof value === "string") return value
+    const v = (value ?? {}) as Record<string, unknown>
+    return String(v[locale] ?? v.de ?? Object.values(v)[0] ?? "")
+  }
   t.locale = locale
   return t
 }

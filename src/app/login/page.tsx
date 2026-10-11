@@ -1,11 +1,12 @@
+import Link from "next/link"
 import { Notice } from "@/components/notice"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LocaleSwitcher } from "@/i18n/client"
 import { getT } from "@/i18n/server"
 import { param, safeNext } from "@/lib/url"
 import { sendMagicLink, signIn, signUp } from "./actions"
+import { SubmitButton } from "@/components/submit-button"
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const sp = await searchParams
@@ -26,17 +27,22 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
           <Input id="email" name="email" type="email" autoComplete="email" required />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="password">{t("auth.password")}</Label>
+          <div className="flex items-baseline justify-between gap-2">
+            <Label htmlFor="password">{t("auth.password")}</Label>
+            <Link href="/forgot" className="text-xs text-muted-foreground underline underline-offset-4">
+              {t("auth.forgot")}
+            </Link>
+          </div>
           <Input id="password" name="password" type="password" autoComplete="current-password" />
         </div>
-        <Button type="submit">{t("auth.signIn")}</Button>
+        <SubmitButton>{t("auth.signIn")}</SubmitButton>
         <div className="grid grid-cols-2 gap-2">
-          <Button type="submit" variant="outline" formAction={signUp}>
+          <SubmitButton variant="outline" formAction={signUp}>
             {t("auth.signUp")}
-          </Button>
-          <Button type="submit" variant="outline" formAction={sendMagicLink} formNoValidate>
+          </SubmitButton>
+          <SubmitButton variant="outline" formAction={sendMagicLink} formNoValidate>
             {t("auth.magicLink")}
-          </Button>
+          </SubmitButton>
         </div>
       </form>
       <LocaleSwitcher className="justify-self-center" />

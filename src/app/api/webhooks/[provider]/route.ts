@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { deliverSoon } from "@/events/worker"
 import { getIntegration } from "@/integrations/registry"
 
 // Single webhook entry: verify → store once in integration_events → handle → mark processed.
@@ -40,6 +41,7 @@ export async function POST(request: Request, { params }: RouteContext<"/api/webh
   try {
     await webhook.handle(event)
     await db.from("integration_events").update({ processed_at: new Date().toISOString(), error: null }).eq("id", row.id)
+    deliverSoon() // e.g. order.paid → org notifications
     return NextResponse.json({ ok: true })
   } catch (e) {
     await db

@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
 import { modules } from "@/modules/registry"
@@ -9,7 +8,7 @@ export default async function HomePage() {
   const enabled = modules.filter((m) => ctx.modules.has(m.key))
 
   return (
-    <div className="mx-auto grid max-w-3xl gap-6">
+    <div className="grid max-w-3xl gap-6">
       <div className="space-y-1">
         <h1 className="font-heading text-2xl font-semibold">{ctx.org.name}</h1>
         <p className="text-sm text-muted-foreground">{t("home.role", { role: ctx.role.name })}</p>
@@ -26,14 +25,7 @@ export default async function HomePage() {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            {t("home.noModules")}{" "}
-            {ctx.can("org.modules.manage") && (
-              <Link href="/settings/modules" className="text-foreground underline underline-offset-4">
-                {t("home.chooseModules")}
-              </Link>
-            )}
-          </p>
+          <p className="text-sm text-muted-foreground">{t("home.noModules")}</p>
         )}
       </section>
     </div>
