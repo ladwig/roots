@@ -1,4 +1,6 @@
-# Roots — Plan
+# Roots — Plan (v2 draft)
+
+> **Status: outdated draft, not binding.** Written against an older state of `main` (`2a250be`, before payments, ticketing, guest lists, invoices, shifts, event hub and soft delete). Many points are already built or decided differently; it needs a rework against `plan-v1.md` and the current code before it can replace it.
 
 Modular SaaS for small organisations (German Vereine, small businesses, event promoters).
 Each org turns on the modules it needs. Every module works alone, and modules link up when they're used together.
