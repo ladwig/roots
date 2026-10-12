@@ -299,6 +299,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"files": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"entity": string | null,"entity_id": string | null,"folder": string | null,"id": string,"meta": NonNullable<Json>,"mime": string,"name": string,"org_id": string,"path": string,"size": number,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"entity"?: string | null,"entity_id"?: string | null,"folder"?: string | null,"id"?: string,"meta"?: NonNullable<Json>,"mime"?: string,"name": string,"org_id": string,"path": string,"size"?: number,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"entity"?: string | null,"entity_id"?: string | null,"folder"?: string | null,"id"?: string,"meta"?: NonNullable<Json>,"mime"?: string,"name"?: string,"org_id"?: string,"path"?: string,"size"?: number,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "files_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"guest_checkins": {
                   Row: {
                     "checked_in_at": string,"checked_in_by": string | null,"created_at": string,"created_by": string | null,"entry_id": string,"event_id": string,"id": string,"org_id": string,"updated_at": string,"updated_by": string | null
@@ -1169,6 +1189,9 @@ isOneToOne: false
                            },
 "events_public":
 { Args: { "p_org": string }; Returns: boolean
+                           },
+"file_org":
+{ Args: { "p_name": string }; Returns: string
                            },
 "finish_event_delivery":
 { Args: { "p_error"?: string,"p_id": number,"p_ok": boolean }; Returns: undefined

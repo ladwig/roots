@@ -1,4 +1,4 @@
-import { HouseIcon, InboxIcon, SettingsIcon, ShieldIcon } from "lucide-react"
+import { FolderIcon, HouseIcon, InboxIcon, SettingsIcon, ShieldIcon } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
 import type { SidebarLink } from "@/components/app-sidebar"
 import { OrgSwitcher } from "@/components/org-switcher"
@@ -30,6 +30,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     {
       label: t("shell.org"),
       items: [
+        ...(ctx.can("org.files.view") ? [{ href: "/files", label: t("files.title"), icon: <FolderIcon /> }] : []),
         { href: "/settings", label: t("shell.settings"), icon: <SettingsIcon /> },
         ...(ctx.isPlatformAdmin ? [{ href: "/admin", label: t("admin.link"), icon: <ShieldIcon /> }] : []),
       ],

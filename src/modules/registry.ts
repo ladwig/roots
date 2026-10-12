@@ -21,6 +21,8 @@ export const core: ModuleDef = {
     "org.settings.manage",
     "org.members.manage",
     "org.integrations.manage",
+    "org.files.view",
+    "org.files.manage",
   ],
 }
 

@@ -235,7 +235,9 @@
     "invoices.view": "Angebote & Rechnungen ansehen",
     "invoices.manage": "Angebote & Rechnungen erstellen und ausstellen",
     "guestlists.checkin": "Gäste am Einlass einchecken",
-    "shifts.self": "Eigene Schichten sehen, bewerben, einchecken"
+    "shifts.self": "Eigene Schichten sehen, bewerben, einchecken",
+    "org.files.view": "Dateien ansehen",
+    "org.files.manage": "Dateien hochladen und verwalten"
   },
   "integrations": {
     "connect": "Verbinden",
@@ -369,7 +371,8 @@
       "positions": "Positionen",
       "shift_series": "Wiederkehrende Schichten",
       "shifts": "Schichten",
-      "shift_assignments": "Schicht-Einteilungen"
+      "shift_assignments": "Schicht-Einteilungen",
+      "files": "Dateien"
     }
   },
   "errors": {
@@ -1555,5 +1558,42 @@
     "namePlaceholder": "z. B. Club, Café, Halle 3",
     "address": "Adresse",
     "add": "Ort hinzufügen"
+  },
+  "files": {
+    "title": "Dateien",
+    "upload": "Hochladen",
+    "uploading": "Lädt hoch…",
+    "uploaded": {
+      "one": "Datei hochgeladen.",
+      "other": "{count} Dateien hochgeladen."
+    },
+    "uploadFailed": "„{name}“ konnte nicht hochgeladen werden.",
+    "tooLarge": "„{name}“ ist größer als 25 MB.",
+    "none": "Noch keine Dateien.",
+    "download": "Herunterladen",
+    "open": "Öffnen",
+    "openRecord": "Zu {record}",
+    "remove": "In den Papierkorb",
+    "trashed": "Datei in den Papierkorb verschoben.",
+    "restore": "Wiederherstellen",
+    "restored": "Datei wiederhergestellt.",
+    "save": "Speichern",
+    "saved": "Gespeichert.",
+    "nameRequired": "Der Name darf nicht leer sein.",
+    "name": "Name",
+    "folder": "Ordner",
+    "size": "Größe",
+    "added": "Hinzugefügt",
+    "all": "Alle",
+    "trash": "Papierkorb",
+    "trashHint": "Dateien im Papierkorb werden nach {days} Tagen endgültig gelöscht.",
+    "empty": "Noch keine Dateien. Lade welche hoch oder hänge sie an Kontakte an.",
+    "emptyTrash": "Der Papierkorb ist leer.",
+    "noMatch": "Keine Dateien gefunden.",
+    "entities": {
+      "contacts": "Kontakt",
+      "events": "Veranstaltung",
+      "invoices": "Beleg"
+    }
   }
 }

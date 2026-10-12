@@ -235,7 +235,9 @@
     "invoices.view": "View quotes & invoices",
     "invoices.manage": "Create and issue quotes & invoices",
     "guestlists.checkin": "Check in guests at the door",
-    "shifts.self": "See own shifts, apply, check in"
+    "shifts.self": "See own shifts, apply, check in",
+    "org.files.view": "View files",
+    "org.files.manage": "Upload and manage files"
   },
   "integrations": {
     "connect": "Connect",
@@ -369,7 +371,8 @@
       "positions": "Positions",
       "shift_series": "Recurring shifts",
       "shifts": "Shifts",
-      "shift_assignments": "Shift assignments"
+      "shift_assignments": "Shift assignments",
+      "files": "Files"
     }
   },
   "errors": {
@@ -1555,5 +1558,42 @@
     "namePlaceholder": "e.g. Club, Café, Hall 3",
     "address": "Address",
     "add": "Add location"
+  },
+  "files": {
+    "title": "Files",
+    "upload": "Upload",
+    "uploading": "Uploading…",
+    "uploaded": {
+      "one": "File uploaded.",
+      "other": "{count} files uploaded."
+    },
+    "uploadFailed": "“{name}” could not be uploaded.",
+    "tooLarge": "“{name}” is larger than 25 MB.",
+    "none": "No files yet.",
+    "download": "Download",
+    "open": "Open",
+    "openRecord": "Go to {record}",
+    "remove": "Move to trash",
+    "trashed": "File moved to the trash.",
+    "restore": "Restore",
+    "restored": "File restored.",
+    "save": "Save",
+    "saved": "Saved.",
+    "nameRequired": "The name can't be empty.",
+    "name": "Name",
+    "folder": "Folder",
+    "size": "Size",
+    "added": "Added",
+    "all": "All",
+    "trash": "Trash",
+    "trashHint": "Files in the trash are deleted for good after {days} days.",
+    "empty": "No files yet. Upload some or attach them to contacts.",
+    "emptyTrash": "The trash is empty.",
+    "noMatch": "No files found.",
+    "entities": {
+      "contacts": "contact",
+      "events": "event",
+      "invoices": "document"
+    }
   }
 }

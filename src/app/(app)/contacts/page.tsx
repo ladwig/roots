@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { MailIcon, PhoneIcon, Trash2Icon, UploadIcon } from "lucide-react"
 import { CustomFieldInputs } from "@/components/custom-field-inputs"
+import { FileList } from "@/components/file-list"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { UrlSheet } from "@/components/url-sheet"
@@ -266,6 +267,8 @@ async function EditContact({ t, ctx, c, sp, canManage, defs }: { t: T; ctx: Ctx;
           )}
           {!canManage && <p className="text-sm text-muted-foreground">{t("contacts.readOnly")}</p>}
           <ContactForm t={t} action={updateContact} c={c} disabled={!canManage} defs={defs} />
+          <Separator />
+          <FileList ctx={ctx} entity="contacts" entityId={c.id} back={`/contacts?edit=${c.id}`} />
           <Separator />
           <section className="grid gap-3" aria-labelledby="c-timeline">
             <h3 id="c-timeline" className="font-medium">

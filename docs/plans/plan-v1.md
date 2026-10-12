@@ -193,7 +193,45 @@ Modules contribute to both: e.g. Events = event management in the App + event pa
 - **CSV import (generic)** ✅ contacts; next modules reuse `<CsvImport>` with their own fields + validator. Same declaration later drives CSV export.
 - **Event reach without APIs**: schema.org `Event` JSON-LD on public event pages (Google events), `.ics` per event + calendar feed per org, share links. Resident Advisor and Facebook have no public create-event API (manual submit / copy-paste text); Eventbrite has one (later integration if wanted).
 
-Later: billing roots' own plans per org, German invoices, memberships (Vereinsverwaltung), custom domains.
+### Next: files, members, forms, portal (decided 2026-10-12)
+Order: 7 → 8 → 9 → 10 → 11. Each builds on the one before.
+
+| Phase | Scope | Done when |
+|---|---|---|
+| **7 — Files** (core, every org) | Private `files` bucket, `files` table, upload/list components for any record, Files page, browser image compression, server PDFs | A contact gets a PDF attached; an image upload arrives compressed; an issued invoice can be downloaded as PDF |
+| **8 — Members** (module `members`, Vereine) | Membership types, memberships on contacts, member numbers, SEPA mandates, dues run → `pain.008` | Treasurer exports a SEPA file for this quarter's dues |
+| **9 — Forms** (module `forms`) | Form builder over platform fields, fixed module forms + org forms, public `/f/<slug>`, submissions with a purpose | Public membership application creates a pending membership |
+| **10 — Portal** (core) | Magic-link login per org for contacts (no roots account), module sections | A member sees their membership and cancels; a buyer sees their tickets |
+| **11 — Donation receipts** | Donations + Zuwendungsbestätigung via the document builder | Yearly receipt printed for a donor |
+
+**7 — Files**
+- Supabase Storage, private bucket `files`, paths `orgs/<org>/<uuid>.<ext>`. Reads only via short signed URLs (`/files/<id>` redirects). Not Vercel Blob: one system, permissions in the DB like everything else.
+- `files` table: `name, path, mime, size, entity, entity_id, folder, meta jsonb`, audit + soft delete (trash, purge after 30 days). `entity` + `entity_id` attach a file to any record (contact, event, membership, invoice…); `folder` is free text for the Files page.
+- Permissions (core): `org.files.view`, `org.files.manage`.
+- Upload goes from the browser straight to Storage (no 4.5 MB function body limit), then a server action registers the row. Images are resized (max 2000 px) and re-encoded as WebP in the browser before upload when that makes them smaller.
+- `<FileUpload>` + `<FileList entity id>` drop into any record's page; `/files` lists everything.
+- Server PDFs: headless Chrome on Vercel (`puppeteer-core` + `@sparticuz/chromium`) renders the existing `/print/documents/[id]` page, so there is one template set. Issued documents get stored as files.
+
+**8 — Members**
+- A person stays a contact. A membership is a period on a contact, like a subscription: `contact_id, type_id, number, starts_on, ends_on, mandate…`. Active = started and not ended (computed, no status column). Leaving = set `ends_on` (notice period from the type). Rejoining = new row, history stays.
+- `membership_types`: name, fee (cents), interval (month / quarter / year), notice period.
+- Member numbers gap-free per org (like `number_ranges`).
+- SEPA mandates: IBAN, mandate reference, signed date (IBAN in a normal column; it is not a secret, but stays out of public views). Dues run per period → `pain.008` XML for online banking. roots moves no money.
+- Custom fields stay for extras (size, licence number…).
+
+**9 — Forms**
+- A form = ordered fields taken from the platform (contact fields, custom fields, membership fields) + content blocks (text, consent checkbox, SEPA mandate).
+- Fixed forms defined by modules (e.g. membership application) and org-made forms. Each form has a purpose that decides what a submission does (create/update contact, apply for membership, …).
+- Public at `/s/<org>/f/<slug>` (English paths), texts set by the org.
+
+**10 — Portal**
+- Contact enters email → magic link → session for that org only (own token table + cookie, no Supabase auth user).
+- Modules add sections: membership (data, type, next due date, cancel), tickets (orders, PDFs), later more.
+- Ticket links from emails keep working without login.
+
+**11 — Donation receipts**: record donations, generate the official Zuwendungsbestätigung with the document builder (single + yearly). Matching bank payments comes with a bank integration later.
+
+Later: billing roots' own plans per org, custom domains.
 
 ## Open questions
 1. **Domain**: `roots.app` / `roots.de` / …? This sets the subdomain scheme.

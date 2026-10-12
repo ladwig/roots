@@ -562,6 +562,24 @@ begin
     reset role;
   end;
 
+  -- Files: A (owner) registers files in A only, with paths under its own folder; B sees nothing
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  insert into public.files (org_id, name, path, entity, entity_id) values (org_a, 'a.pdf', 'orgs/' || org_a || '/f1.pdf', 'contacts', gen_random_uuid());
+  begin
+    insert into public.files (org_id, name, path) values (org_a, 'x.pdf', 'orgs/' || org_b || '/f2.pdf');
+    assert false, 'file path must be in the own org folder';
+  exception when check_violation then null; end;
+  begin
+    insert into public.files (org_id, name, path) values (org_b, 'x.pdf', 'orgs/' || org_b || '/f3.pdf');
+    assert false, 'A must not add files to B';
+  exception when insufficient_privilege then null; end;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.files where org_id = org_a;              assert n = 0, 'B sees files of A';
+  reset role;
+
   -- x-org-id header: C is now in A and B, but with the header only sees the active org
   perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
   set local role authenticated;
