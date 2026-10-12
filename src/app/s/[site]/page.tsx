@@ -1,24 +1,15 @@
 // Public surface (<org>.ROOT_DOMAIN, rewritten here by proxy.ts). Only published data belongs here.
-// Without a published website (module sites) the org's address shows a plain list of upcoming events.
-// ponytail: public pages will use the org's language, not the visitor cookie.
+// ponytail: plain list of upcoming events; public pages will use the org's language, not the visitor cookie.
 import Link from "next/link"
 import { sitePath } from "@/lib/url"
 import { notFound } from "next/navigation"
 import { Picture } from "@/components/picture"
 import { Badge } from "@/components/ui/badge"
 import { getT } from "@/i18n/server"
-import { PublicSitePage, publicSiteMetadata } from "@/sites/public"
 import { getSite } from "./data"
-
-export async function generateMetadata({ params }: PageProps<"/s/[site]">) {
-  return publicSiteMetadata((await params).site, "")
-}
 
 export default async function PublicSite({ params }: PageProps<"/s/[site]">) {
   const { site } = await params
-  // Website module with a published home page → that; otherwise the simple list of upcoming events.
-  const page = await PublicSitePage({ site, slug: "" })
-  if (page) return page
   const s = await getSite(site)
   if (!s) notFound()
   const t = await getT()

@@ -656,31 +656,6 @@ begin
     reset role;
   end;
 
-  -- Website: drafts never public, published pages only via public_site(), B sees nothing
-  insert into public.org_modules (org_id, module_key) values (org_a, 'sites') on conflict do nothing;
-  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
-  set local role authenticated;
-  insert into public.sites (org_id, theme) values (org_a, '{"preset":"nacht"}') on conflict (org_id) do update set theme = excluded.theme;
-  insert into public.site_pages (org_id, slug, title, draft) values (org_a, '', 'Start', '{"content":[{"type":"Text","props":{"id":"x","richtext":"<p>geheim</p>"}}],"root":{"props":{}}}');
-  reset role;
-  perform set_config('request.jwt.claims', '{}', true);
-  set local role anon;
-  assert public.public_site(org_a, '') is null, 'unpublished page must not be public';
-  begin
-    perform 1 from public.site_pages limit 1;
-    assert false, 'anon must not read site pages directly';
-  exception when insufficient_privilege then null; end;
-  reset role;
-  update public.site_pages set published = '{"content":[],"root":{"props":{}}}', published_at = now() where org_id = org_a and slug = '';
-  set local role anon;
-  assert public.public_site(org_a, '')->'page'->>'title' = 'Start', 'published page is public';
-  assert position('geheim' in public.public_site(org_a, '')::text) = 0, 'draft content never leaves via public_site';
-  reset role;
-  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
-  set local role authenticated;
-  select count(*) into n from public.site_pages where org_id = org_a;       assert n = 0, 'B sees site pages of A';
-  reset role;
-
   -- Letter templates: own ones are org-private, roots defaults (org_id null) visible to all and read-only
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   set local role authenticated;

@@ -1279,46 +1279,6 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"site_pages": {
-                  Row: {
-                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"draft": NonNullable<Json>,"id": string,"in_nav": boolean,"org_id": string,"position": number,"published": Json | null,"published_at": string | null,"slug": string,"title": string,"updated_at": string,"updated_by": string | null
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"draft"?: NonNullable<Json>,"id"?: string,"in_nav"?: boolean,"org_id": string,"position"?: number,"published"?: Json | null,"published_at"?: string | null,"slug"?: string,"title": string,"updated_at"?: string,"updated_by"?: string | null
-                  }
-                  Update: {
-                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"draft"?: NonNullable<Json>,"id"?: string,"in_nav"?: boolean,"org_id"?: string,"position"?: number,"published"?: Json | null,"published_at"?: string | null,"slug"?: string,"title"?: string,"updated_at"?: string,"updated_by"?: string | null
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "site_pages_org_id_fkey"
-      columns: ["org_id"]
-isOneToOne: false
-      referencedRelation: "orgs"
-      referencedColumns: ["id"]
-    }
-                  ]
-                },"sites": {
-                  Row: {
-                    "created_at": string,"created_by": string | null,"id": string,"org_id": string,"settings": NonNullable<Json>,"theme": NonNullable<Json>,"updated_at": string,"updated_by": string | null
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id": string,"settings"?: NonNullable<Json>,"theme"?: NonNullable<Json>,"updated_at"?: string,"updated_by"?: string | null
-                  }
-                  Update: {
-                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id"?: string,"settings"?: NonNullable<Json>,"theme"?: NonNullable<Json>,"updated_at"?: string,"updated_by"?: string | null
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "sites_org_id_fkey"
-      columns: ["org_id"]
-isOneToOne: true
-      referencedRelation: "orgs"
-      referencedColumns: ["id"]
-    }
-                  ]
                 },"soft_delete_tables": {
                   Row: {
                     "org_column": string,"perm": string | null,"purge_days": number,"table_name": unknown
@@ -1676,12 +1636,6 @@ isOneToOne: false
                            },
 "public_form":
 { Args: { "p_org": string,"p_slug": string }; Returns: Json
-                           },
-"public_site":
-{ Args: { "p_org": string,"p_slug"?: string }; Returns: Json
-                           },
-"public_site_extras":
-{ Args: { "p_org": string }; Returns: Json
                            },
 "purge_deleted":
 { Args: Record<PropertyKey, never>; Returns: number
