@@ -2102,7 +2102,9 @@
       "pricing": "Preise",
       "faq": "Fragen",
       "login": "Anmelden",
-      "start": "Kostenlos starten"
+      "start": "Kostenlos starten",
+      "menu": "Menü",
+      "close": "Menü schließen"
     },
     "hero": {
       "eyebrow": "Für Vereine, Kollektive und Veranstalter:innen",
@@ -2323,7 +2325,9 @@
       "product": "Produkt",
       "account": "Konto",
       "grassroots": "Grassroots – wie die Bewegung. © roots, Berlin",
-      "paintings": "Gemälde (gemeinfrei):"
+      "paintings": "Gemälde (gemeinfrei):",
+      "imprint": "Impressum",
+      "privacy": "Datenschutz"
     },
     "values": {
       "label": "Warum roots",

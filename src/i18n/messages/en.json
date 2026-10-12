@@ -2102,7 +2102,9 @@
       "pricing": "Pricing",
       "faq": "FAQ",
       "login": "Log in",
-      "start": "Start for free"
+      "start": "Start for free",
+      "menu": "Menu",
+      "close": "Close menu"
     },
     "hero": {
       "eyebrow": "For clubs, collectives and promoters",
@@ -2323,7 +2325,9 @@
       "product": "Product",
       "account": "Account",
       "grassroots": "Grassroots – like the movement. © roots, Berlin",
-      "paintings": "Paintings (public domain):"
+      "paintings": "Paintings (public domain):",
+      "imprint": "Imprint",
+      "privacy": "Privacy"
     },
     "values": {
       "label": "Why roots",
