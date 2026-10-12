@@ -7,6 +7,7 @@ import { buyTickets } from "@/tickets/server"
 import { getSite } from "../../../data"
 
 const UUID = /^[0-9a-f-]{36}$/
+const BUYER_ERRORS = ["tickets.soldOut", "tickets.notOnSale", "tickets.priceChanged"]
 
 // Public: anyone may buy. Everything is validated here and again in reserve_tickets().
 export async function buy(fd: FormData) {
@@ -55,8 +56,10 @@ export async function buy(fd: FormData) {
       cancelUrl: siteUrl(site, `/e/${slug}`),
     })
   } catch (e) {
+    // Buyers only see what they can act on; setup problems (payment provider not ready …) are the org's.
     const key = e instanceof Error ? e.message : ""
-    back(here, { error: t.has(key) ? t.dynamic(key) : t("shop.failed") })
+    if (!BUYER_ERRORS.includes(key)) console.error("checkout", site, slug, key)
+    back(here, { error: BUYER_ERRORS.includes(key) ? t.dynamic(key) : t("shop.unavailable") })
   }
   redirect(url)
 }

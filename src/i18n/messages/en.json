@@ -1122,7 +1122,8 @@
     "signupCheckout": "Register",
     "signup": "Register now",
     "seatN": "Spot {n}",
-    "signupHint": "You get your registration with a QR code for entry on the next page and by email."
+    "signupHint": "You get your registration with a QR code for entry on the next page and by email.",
+    "unavailable": "Ticket sales aren't possible right now. Please try again later or contact the organiser."
   },
   "api": {
     "intro": "API keys let your own tools, scripts or apps access your organisation's data. Each key can only do what you tick and can be revoked any time.",
@@ -2629,7 +2630,8 @@
       "Space": "Spacing",
       "Events": "Upcoming events",
       "Form": "Form",
-      "Portal": "Member area"
+      "Portal": "Member area",
+      "Tickets": "Tickets / registration"
     },
     "fields": {
       "title": "Title",
@@ -2659,7 +2661,8 @@
       "mapLink": "Open map",
       "size": "Size",
       "limit": "Count",
-      "form": "Form"
+      "form": "Form",
+      "event": "Event"
     },
     "options": {
       "style": {
@@ -2701,6 +2704,14 @@
       "eventsLayout": {
         "list": "List",
         "cards": "Cards"
+      },
+      "formDisplay": {
+        "card": "Card with link",
+        "full": "Whole form"
+      },
+      "portalDisplay": {
+        "card": "Card with link",
+        "login": "Sign-in right here"
       }
     },
     "defaults": {
@@ -2740,6 +2751,10 @@
     "isLive": "Live",
     "nothingToPublish": "No changes compared to the published page.",
     "reallyTrash": "Really delete?",
-    "designHint": "Changes show in the preview right away. Save applies them to the whole website."
+    "designHint": "Changes show in the preview right away. Save applies them to the whole website.",
+    "pickEvent": "Pick an event (right).",
+    "previewForm": "On the website, the fillable form appears here.",
+    "previewTickets": "On the website, the ticket selection for “{event}” appears here.",
+    "previewPortal": "On the website, the member-area sign-in appears here."
   }
 }

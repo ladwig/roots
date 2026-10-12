@@ -4,6 +4,7 @@ import { getT } from "@/i18n/server"
 import { sitePath } from "@/lib/url"
 import { getSite } from "@/app/s/[site]/data"
 import { cachedSiteData, cachedSitePage } from "@/lib/public-cache"
+import { siteEmbeds } from "./embeds"
 import { SitePage } from "./render"
 import { imprintHtml, privacyHtml, siteMeta } from "./server"
 
@@ -40,7 +41,9 @@ const publishedPage = cache(async (site: string, slug: string) => {
 /** A published page (slug '' = home) or the generated Impressum / Datenschutz, without the frame (the layout adds it). */
 export async function PublicSitePage({ site, slug, legal }: { site: string; slug: string; legal?: "imprint" | "privacy" }) {
   const found = await publishedPage(site, legal ? "" : slug)
-  if (!found || (!legal && !found.page)) return null
+  // Live site without a published home page: a default home from the same blocks (never the plain fallback list).
+  const home = !legal && !slug && found && !found.page
+  if (!found || (!legal && !found.page && !home)) return null
   const { live } = found
   const t = live.t
   const data = legal
@@ -54,10 +57,18 @@ export async function PublicSitePage({ site, slug, legal }: { site: string; slug
           },
         ],
       }
-    : found.page!.data
+    : home
+      ? {
+          root: { props: {} },
+          content: [
+            { type: "Hero", props: { id: "h", title: live.meta.orgName, text: "", image: "", layout: "plain", buttons: [] } },
+            { type: "Events", props: { id: "e", title: t("sites.defaults.eventsTitle"), limit: 12, layout: "cards" } },
+          ],
+        }
+      : found.page!.data
   return (
     <main>
-      <SitePage data={data} meta={live.meta} t={t} />
+      <SitePage data={data} meta={{ ...live.meta, embed: siteEmbeds(site, live.s.org) }} t={t} />
     </main>
   )
 }

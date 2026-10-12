@@ -1122,7 +1122,8 @@
     "signupCheckout": "Anmelden",
     "signup": "Verbindlich anmelden",
     "seatN": "Platz {n}",
-    "signupHint": "Deine Anmeldung mit QR-Code für den Einlass bekommst du direkt auf der nächsten Seite und per E-Mail."
+    "signupHint": "Deine Anmeldung mit QR-Code für den Einlass bekommst du direkt auf der nächsten Seite und per E-Mail.",
+    "unavailable": "Der Ticketverkauf ist gerade nicht möglich. Bitte versuche es später noch einmal oder melde dich beim Veranstalter."
   },
   "api": {
     "intro": "Mit API-Schlüsseln greifen eigene Tools, Skripte oder Apps auf die Daten deiner Organisation zu. Jeder Schlüssel darf nur, was du ankreuzt, und lässt sich jederzeit widerrufen.",
@@ -2629,7 +2630,8 @@
       "Space": "Abstand",
       "Events": "Nächste Events",
       "Form": "Formular",
-      "Portal": "Mitgliederbereich"
+      "Portal": "Mitgliederbereich",
+      "Tickets": "Tickets / Anmeldung"
     },
     "fields": {
       "title": "Titel",
@@ -2659,7 +2661,8 @@
       "mapLink": "Karte öffnen",
       "size": "Größe",
       "limit": "Anzahl",
-      "form": "Formular"
+      "form": "Formular",
+      "event": "Event"
     },
     "options": {
       "style": {
@@ -2701,6 +2704,14 @@
       "eventsLayout": {
         "list": "Liste",
         "cards": "Karten"
+      },
+      "formDisplay": {
+        "card": "Karte mit Link",
+        "full": "Ganzes Formular"
+      },
+      "portalDisplay": {
+        "card": "Karte mit Link",
+        "login": "Anmeldung direkt"
       }
     },
     "defaults": {
@@ -2740,6 +2751,10 @@
     "isLive": "Ist online",
     "nothingToPublish": "Keine Änderungen gegenüber der veröffentlichten Seite.",
     "reallyTrash": "Wirklich löschen?",
-    "designHint": "Änderungen siehst du sofort in der Vorschau. Speichern übernimmt sie für die ganze Website."
+    "designHint": "Änderungen siehst du sofort in der Vorschau. Speichern übernimmt sie für die ganze Website.",
+    "pickEvent": "Event auswählen (rechts).",
+    "previewForm": "Hier erscheint auf der Website das ausfüllbare Formular.",
+    "previewTickets": "Hier erscheint auf der Website die Ticketauswahl für „{event}“.",
+    "previewPortal": "Hier erscheint auf der Website die Anmeldung zum Mitgliederbereich."
   }
 }

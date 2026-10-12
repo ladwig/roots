@@ -24,6 +24,9 @@ export type SiteMeta = {
   locale: string
   year: number // footer ©; from the cached site data (no clock reads while rendering)
   labels: { imprint: string; privacy: string; more: string; noEvents: string; poweredBy: string }
+  // Public site only: the real module UI (the same components the event/form/portal pages use) for blocks that
+  // show it directly. Missing in the editor → the blocks show a preview instead.
+  embed?: { form?: (slug: string) => React.ReactNode; tickets?: (eventSlug: string) => React.ReactNode; portal?: () => React.ReactNode }
 }
 
 // Site-relative links ("/kontakt") work on the subdomain and under /s/<org> in dev.
@@ -56,6 +59,10 @@ const Img = ({ path, alt, className }: { path?: string; alt?: string; className?
     </div>
   )
 const meta = (p: { puck: { metadata: unknown } }) => p.puck.metadata as SiteMeta
+// Editor stand-in for module UI that only renders on the public site.
+const Preview = ({ label }: { label: string }) => (
+  <div className="grid min-h-24 place-items-center rounded-[var(--s-radius)] border-2 border-dashed border-[var(--s-line)] p-4 text-center text-sm text-[var(--s-muted)]">{label}</div>
+)
 
 type Btn = { label: string; href: string; style?: string }
 type Props = {
@@ -71,8 +78,9 @@ type Props = {
   Contact: { title: string; address: string; email: string; phone: string; hours: string; href: string }
   Space: { size: string }
   Events: { title: string; limit: number; layout: string }
-  Form: { form: string; button: string }
-  Portal: { title: string; text: string; button: string }
+  Form: { form: string; display: string; button: string }
+  Tickets: { event: string; title: string }
+  Portal: { title: string; text: string; display: string; button: string }
 }
 
 // The app's shadcn tokens mapped to the site theme, so module pages (event, form, checkout, portal) inside the
@@ -162,7 +170,7 @@ export function siteConfig(t: T): Config<{ components: Props; root: { title?: st
     categories: {
       layout: { title: t("sites.categories.layout"), components: ["Columns", "Space"] },
       content: { title: t("sites.categories.content"), components: ["Hero", "Heading", "Text", "Image", "Buttons", "Cards", "Stats", "Faq", "Contact"] },
-      modules: { title: t("sites.categories.modules"), components: ["Events", "Form", "Portal"] },
+      modules: { title: t("sites.categories.modules"), components: ["Events", "Tickets", "Form", "Portal"] },
     },
     root: {
       // Published pages get the frame from the public layout (src/app/s/[site]/layout.tsx); the editor draws it here.
@@ -484,23 +492,37 @@ export function siteConfig(t: T): Config<{ components: Props; root: { title?: st
       Form: {
         label: t("sites.blocks.Form"),
         // Options come from the editor's metadata (the org's published forms), see resolveFields.
-        fields: { form: { type: "select", label: L("form"), options: [] }, button: { type: "text", label: L("label") } },
+        fields: {
+          form: { type: "select", label: L("form"), options: [] },
+          display: { type: "radio", label: L("layout"), options: opt("formDisplay", ["card", "full"]) },
+          button: { type: "text", label: L("label") },
+        },
         resolveFields: (_data, { fields, metadata }) => ({
           ...fields,
           form: { type: "select", label: L("form"), options: [{ value: "", label: "–" }, ...((metadata as SiteMeta).forms ?? []).map((f) => ({ value: f.slug, label: f.title }))] },
         }),
-        defaultProps: { form: "", button: t("sites.defaults.formButton") },
+        defaultProps: { form: "", display: "full", button: t("sites.defaults.formButton") },
         render: (p) => {
           const m = meta(p)
           const f = m.forms.find((x) => x.slug === p.form)
           if (!f) return <div className={`${wrap} py-6 text-sm text-[var(--s-muted)]`}>{p.puck.isEditing ? t("sites.pickForm") : null}</div>
+          const head = (
+            <div className="grid gap-2">
+              <h2 className="text-2xl font-semibold">{f.title}</h2>
+              {f.intro && <p className="max-w-[60ch] whitespace-pre-line text-[var(--s-muted)]">{f.intro}</p>}
+            </div>
+          )
+          if (p.display === "full")
+            return (
+              <section className={`${wrap} grid max-w-3xl gap-6 py-8`}>
+                {head}
+                {m.embed?.form?.(f.slug) ?? <Preview label={t("sites.previewForm")} />}
+              </section>
+            )
           return (
             <section className={`${wrap} py-8`}>
               <div className="grid gap-4 rounded-[var(--s-radius)] bg-[var(--s-card)] p-[clamp(20px,4vw,40px)] md:grid-cols-[1fr_auto] md:items-center">
-                <div className="grid gap-2">
-                  <h2 className="text-2xl font-semibold">{f.title}</h2>
-                  {f.intro && <p className="max-w-[60ch] whitespace-pre-line text-[var(--s-muted)]">{f.intro}</p>}
-                </div>
+                {head}
                 <a {...go(`/f/${f.slug}`, m)} className={btn("solid")}>
                   {p.button || m.labels.more}
                 </a>
@@ -509,23 +531,62 @@ export function siteConfig(t: T): Config<{ components: Props; root: { title?: st
           )
         },
       },
+      Tickets: {
+        label: t("sites.blocks.Tickets"),
+        // Options: the upcoming published events (editor metadata).
+        fields: { event: { type: "select", label: L("event"), options: [] }, title: { type: "text", label: L("title") } },
+        resolveFields: (_data, { fields, metadata }) => ({
+          ...fields,
+          event: { type: "select", label: L("event"), options: [{ value: "", label: "–" }, ...((metadata as SiteMeta).events ?? []).map((e) => ({ value: e.slug, label: e.title }))] },
+        }),
+        defaultProps: { event: "", title: "" },
+        render: (p) => {
+          const m = meta(p)
+          const e = m.events.find((x) => x.slug === p.event)
+          if (!e) return <div className={`${wrap} py-6 text-sm text-[var(--s-muted)]`}>{p.puck.isEditing ? t("sites.pickEvent") : null}</div>
+          return (
+            <section className={`${wrap} grid max-w-3xl gap-4 py-8`}>
+              {p.title && <h2 className="text-2xl font-semibold">{p.title}</h2>}
+              {m.embed?.tickets?.(e.slug) ?? <Preview label={t("sites.previewTickets", { event: e.title })} />}
+            </section>
+          )
+        },
+      },
       Portal: {
         label: t("sites.blocks.Portal"),
-        fields: { title: { type: "text", label: L("title") }, text: { type: "textarea", label: L("text") }, button: { type: "text", label: L("label") } },
-        defaultProps: { title: t("sites.defaults.portalTitle"), text: t("sites.defaults.portalText"), button: t("sites.defaults.portalButton") },
-        render: (p) => (
-          <section className={`${wrap} py-8`}>
-            <div className="grid gap-4 rounded-[var(--s-radius)] border border-[var(--s-line)] p-[clamp(20px,4vw,40px)] md:grid-cols-[1fr_auto] md:items-center">
-              <div className="grid gap-2">
-                <h2 className="text-2xl font-semibold">{p.title}</h2>
-                {p.text && <p className="max-w-[60ch] whitespace-pre-line text-[var(--s-muted)]">{p.text}</p>}
-              </div>
-              <a {...go("/portal", meta(p))} className={btn("outline")}>
-                {p.button}
-              </a>
+        fields: {
+          title: { type: "text", label: L("title") },
+          text: { type: "textarea", label: L("text") },
+          display: { type: "radio", label: L("layout"), options: opt("portalDisplay", ["card", "login"]) },
+          button: { type: "text", label: L("label") },
+        },
+        defaultProps: { title: t("sites.defaults.portalTitle"), text: t("sites.defaults.portalText"), display: "card", button: t("sites.defaults.portalButton") },
+        render: (p) => {
+          const m = meta(p)
+          const head = (
+            <div className="grid gap-2">
+              <h2 className="text-2xl font-semibold">{p.title}</h2>
+              {p.text && <p className="max-w-[60ch] whitespace-pre-line text-[var(--s-muted)]">{p.text}</p>}
             </div>
-          </section>
-        ),
+          )
+          if (p.display === "login")
+            return (
+              <section className={`${wrap} grid max-w-xl gap-5 py-8`}>
+                {head}
+                {m.embed?.portal?.() ?? <Preview label={t("sites.previewPortal")} />}
+              </section>
+            )
+          return (
+            <section className={`${wrap} py-8`}>
+              <div className="grid gap-4 rounded-[var(--s-radius)] border border-[var(--s-line)] p-[clamp(20px,4vw,40px)] md:grid-cols-[1fr_auto] md:items-center">
+                {head}
+                <a {...go("/portal", m)} className={btn("outline")}>
+                  {p.button}
+                </a>
+              </div>
+            </section>
+          )
+        },
       },
     },
   }
@@ -546,6 +607,7 @@ export function allowedBlocks(modules: string[]) {
     "Contact",
     "Space",
     ...(modules.includes("events") ? ["Events"] : []),
+    ...(modules.includes("tickets") ? ["Tickets"] : []),
     ...(modules.includes("forms") ? ["Form"] : []),
     ...(modules.includes("members") ? ["Portal"] : []),
   ]

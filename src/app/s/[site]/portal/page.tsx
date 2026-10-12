@@ -1,15 +1,14 @@
 import { notFound } from "next/navigation"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { param } from "@/lib/url"
 import { PORTAL_SECTIONS } from "@/portal/sections"
 import { getPortalContact } from "@/portal/session"
+import { PortalLoginForm } from "@/portal/login-form"
 import { getSite } from "../data"
-import { logout, requestLink } from "./actions"
+import { logout } from "./actions"
 
 // Customer portal of one org: email → magic link → the sections of the org's enabled modules (members, later tickets…).
 export default async function Portal({ params, searchParams }: PageProps<"/s/[site]/portal">) {
@@ -53,15 +52,7 @@ async function PortalBody({
         {param(sp, "sent") ? (
           <p className="rounded-lg border bg-muted px-4 py-3">{t("portal.linkSent")}</p>
         ) : (
-          <form action={requestLink} className="grid gap-4">
-            <input type="hidden" name="site" value={site} />
-            <p className="text-muted-foreground">{t("portal.intro")}</p>
-            <div className="grid gap-2">
-              <Label htmlFor="p-email">{t("portal.email")}</Label>
-              <Input id="p-email" name="email" type="email" required autoComplete="email" />
-            </div>
-            <SubmitButton className="justify-self-start">{t("portal.sendLink")}</SubmitButton>
-          </form>
+          <PortalLoginForm site={site} />
         )}
       </div>
     )
