@@ -217,6 +217,10 @@
     "members": {
       "name": "Mitglieder",
       "description": "Mitgliedschaften, Beiträge und SEPA-Lastschrift für Vereine."
+    },
+    "forms": {
+      "name": "Formulare",
+      "description": "Eigene Formulare und Mitgliedsanträge auf deiner Seite, Einsendungen landen im CRM."
     }
   },
   "permissions": {
@@ -244,7 +248,9 @@
     "org.files.view": "Dateien ansehen",
     "org.files.manage": "Dateien hochladen und verwalten",
     "members.view": "Mitglieder und Beiträge ansehen",
-    "members.manage": "Mitglieder und Beiträge verwalten"
+    "members.manage": "Mitglieder und Beiträge verwalten",
+    "forms.view": "Formulare und Einsendungen ansehen",
+    "forms.manage": "Formulare bauen und Einsendungen bearbeiten"
   },
   "integrations": {
     "connect": "Verbinden",
@@ -384,7 +390,9 @@
       "memberships": "Mitgliedschaften",
       "member_dues": "Mitgliedsbeiträge",
       "sepa_runs": "Lastschriftdateien",
-      "member_settings": "Mitglieder-Einstellungen"
+      "member_settings": "Mitglieder-Einstellungen",
+      "forms": "Formulare",
+      "form_submissions": "Formular-Einsendungen"
     }
   },
   "errors": {
@@ -443,7 +451,11 @@
     "not_now": "Einchecken geht nur kurz vor bis kurz nach der Schicht.",
     "not_assigned": "Du bist für diese Schicht nicht eingeteilt.",
     "contact_has_membership": "Der Kontakt hat eine Mitgliedschaft. Beende sie, statt den Kontakt zu löschen.",
-    "membership_has_dues": "Für die Mitgliedschaft gibt es Beiträge. Beende sie stattdessen."
+    "membership_has_dues": "Für die Mitgliedschaft gibt es Beiträge. Beende sie stattdessen.",
+    "invalid_iban": "Die IBAN ist ungültig.",
+    "invalid_bic": "Die BIC ist ungültig.",
+    "mandate_required": "Bitte erteile das Lastschriftmandat.",
+    "consent_required": "Bitte bestätige die Einwilligung."
   },
   "admin": {
     "title": "Plattform",
@@ -691,7 +703,8 @@
       "guestlist.signed_up": "Eintrag auf Gästeliste",
       "shift.applied": "Bewerbung auf Schicht",
       "membership.started": "Neues Mitglied",
-      "membership.ended": "Mitgliedschaft endet"
+      "membership.ended": "Mitgliedschaft endet",
+      "form.submitted": "Formular eingegangen"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -716,7 +729,8 @@
       "guestlist.signed_up": "📝 {name} hat {count} Namen auf „{list}“ eingetragen",
       "shift.applied": "🙋 {name} möchte die Schicht am {when}",
       "membership.started": "🎉 Neues Mitglied: {name} (Nr. {number})",
-      "membership.ended": "👋 Mitgliedschaft von {name} endet am {ends_on}"
+      "membership.ended": "👋 Mitgliedschaft von {name} endet am {ends_on}",
+      "form.submitted": "📝 Neue Einsendung „{form}“: {name}"
     }
   },
   "inbox": {
@@ -1785,5 +1799,98 @@
     "reminderTotal": "Gesamt: {total}",
     "reminderPay": "Bitte überweise den Betrag an {name}, IBAN {iban}, Verwendungszweck: Mitgliedsnr. {ref}. Falls du schon bezahlt hast, ignoriere diese Nachricht bitte.",
     "reminderBye": "Viele Grüße\n{org}"
+  },
+  "forms": {
+    "nav": "Formulare",
+    "title": "Formulare",
+    "new": "Neues Formular",
+    "create": "Anlegen",
+    "empty": "Noch keine Formulare.",
+    "formTitle": "Titel",
+    "titlePlaceholder": "z. B. Mitgliedsantrag",
+    "purpose": "Zweck",
+    "purposeHint": "Kontaktformular: Einsendungen werden direkt Kontakte. Mitgliedsantrag: Der Vorstand nimmt Anträge an oder lehnt sie ab.",
+    "purposes": {
+      "contact": "Kontaktformular",
+      "membership": "Mitgliedsantrag"
+    },
+    "status": "Status",
+    "statuses": {
+      "draft": "Entwurf",
+      "published": "Veröffentlicht",
+      "closed": "Geschlossen"
+    },
+    "newSubmissions": "Neue Einsendungen",
+    "titleRequired": "Titel und Slug dürfen nicht leer sein.",
+    "needsMembers": "Mitgliedsanträge brauchen das Modul Mitglieder.",
+    "created": "Formular angelegt.",
+    "saved": "Gespeichert.",
+    "trashed": "Formular in den Papierkorb verschoben.",
+    "defaultPrivacy": "Ich bin einverstanden, dass {org} meine Angaben zur Bearbeitung meiner Anfrage speichert. Hinweise zum Datenschutz habe ich gelesen.",
+    "defaultStatutes": "Ich erkenne die Satzung des Vereins an.",
+    "defaultSuccess": "Danke! Wir haben deine Angaben erhalten.",
+    "defaultSuccessMembership": "Danke für deinen Antrag! Wir melden uns, sobald der Vorstand ihn bearbeitet hat.",
+    "tabs": {
+      "builder": "Aufbau",
+      "submissions": "Einsendungen"
+    },
+    "openPublic": "Öffentliche Seite",
+    "settings": "Einstellungen",
+    "slug": "Slug",
+    "intro": "Einleitung",
+    "successText": "Text nach dem Absenden",
+    "tags": "Tags für Einsender:innen",
+    "tagsHelp": "Kommagetrennt. Werden dem Kontakt hinzugefügt (z. B. Newsletter, Interessent).",
+    "elements": "Felder und Inhalte",
+    "elementsHint": "Reihenfolge wie im Formular. Felder kommen aus deinen Kontaktfeldern (inkl. eigener Felder).",
+    "elementsHintMembership": "Reihenfolge wie im Formular. Mitgliedsart, Lastschriftmandat und Einwilligungen gehören zum Antrag.",
+    "kinds": {
+      "field": "Feld",
+      "text": "Text",
+      "consent": "Einwilligung",
+      "mandate": "Lastschrift"
+    },
+    "mandate": "SEPA-Lastschriftmandat",
+    "moveUp": "Nach oben",
+    "moveDown": "Nach unten",
+    "remove": "Entfernen",
+    "label": "Beschriftung (optional)",
+    "help": "Hinweis (optional)",
+    "consentText": "Text der Einwilligung",
+    "textBody": "Text",
+    "required": "Pflichtfeld",
+    "addElement": "Hinzufügen",
+    "add": "Hinzufügen",
+    "consent": "Ich stimme zu.",
+    "toTrash": "Formular in den Papierkorb",
+    "fields": {
+      "membershipType": "Mitgliedsart",
+      "startsOn": "Gewünschter Beginn"
+    },
+    "thanks": "Danke! Deine Angaben sind angekommen.",
+    "closed": "Dieses Formular ist nicht mehr verfügbar.",
+    "submit": "Absenden",
+    "feePer": "{fee} pro {interval}",
+    "entryFee": "Aufnahmegebühr {fee}",
+    "accountHolder": "Kontoinhaber:in (falls abweichend)",
+    "bicOptional": "BIC (optional)",
+    "mandateText": "Ich ermächtige {creditor} (Gläubiger-ID {id}), Zahlungen von meinem Konto mittels Lastschrift einzuziehen. Zugleich weise ich mein Kreditinstitut an, die von {creditor} auf mein Konto gezogenen Lastschriften einzulösen. Hinweis: Ich kann innerhalb von acht Wochen, beginnend mit dem Belastungsdatum, die Erstattung des belasteten Betrages verlangen. Es gelten dabei die mit meinem Kreditinstitut vereinbarten Bedingungen.",
+    "confirmSubject": "Eingang bestätigt: {form}",
+    "all": "Alle",
+    "subStatus": {
+      "new": "Neu",
+      "accepted": "Angenommen",
+      "rejected": "Abgelehnt"
+    },
+    "noSubmissions": "Noch keine Einsendungen.",
+    "person": "Person",
+    "received": "Eingegangen",
+    "openContact": "Zum Kontakt",
+    "openMembership": "Zur Mitgliedschaft",
+    "accept": "Annehmen",
+    "acceptMember": "Als Mitglied aufnehmen",
+    "reject": "Ablehnen",
+    "accepted": "Angenommen.",
+    "rejected": "Abgelehnt."
   }
 }

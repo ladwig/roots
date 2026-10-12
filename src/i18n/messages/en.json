@@ -217,6 +217,10 @@
     "members": {
       "name": "Members",
       "description": "Memberships, dues and SEPA direct debit for clubs."
+    },
+    "forms": {
+      "name": "Forms",
+      "description": "Your own forms and membership applications on your site; submissions land in the CRM."
     }
   },
   "permissions": {
@@ -244,7 +248,9 @@
     "org.files.view": "View files",
     "org.files.manage": "Upload and manage files",
     "members.view": "View members and dues",
-    "members.manage": "Manage members and dues"
+    "members.manage": "Manage members and dues",
+    "forms.view": "View forms and submissions",
+    "forms.manage": "Build forms and handle submissions"
   },
   "integrations": {
     "connect": "Connect",
@@ -384,7 +390,9 @@
       "memberships": "Memberships",
       "member_dues": "Member dues",
       "sepa_runs": "Direct debit files",
-      "member_settings": "Member settings"
+      "member_settings": "Member settings",
+      "forms": "Forms",
+      "form_submissions": "Form submissions"
     }
   },
   "errors": {
@@ -443,7 +451,11 @@
     "not_now": "Check-in only works shortly before until shortly after the shift.",
     "not_assigned": "You're not assigned to this shift.",
     "contact_has_membership": "This contact has a membership. End it instead of deleting the contact.",
-    "membership_has_dues": "This membership has dues. End it instead."
+    "membership_has_dues": "This membership has dues. End it instead.",
+    "invalid_iban": "The IBAN is invalid.",
+    "invalid_bic": "The BIC is invalid.",
+    "mandate_required": "Please grant the direct debit mandate.",
+    "consent_required": "Please confirm the consent."
   },
   "admin": {
     "title": "Platform",
@@ -691,7 +703,8 @@
       "guestlist.signed_up": "Guest list sign-up",
       "shift.applied": "Shift application",
       "membership.started": "New member",
-      "membership.ended": "Membership ends"
+      "membership.ended": "Membership ends",
+      "form.submitted": "Form submitted"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -716,7 +729,8 @@
       "guestlist.signed_up": "📝 {name} added {count} names to “{list}”",
       "shift.applied": "🙋 {name} wants the shift on {when}",
       "membership.started": "🎉 New member: {name} (no. {number})",
-      "membership.ended": "👋 Membership of {name} ends on {ends_on}"
+      "membership.ended": "👋 Membership of {name} ends on {ends_on}",
+      "form.submitted": "📝 New submission “{form}”: {name}"
     }
   },
   "inbox": {
@@ -1785,5 +1799,98 @@
     "reminderTotal": "Total: {total}",
     "reminderPay": "Please transfer the amount to {name}, IBAN {iban}, reference: member no. {ref}. If you have already paid, please ignore this message.",
     "reminderBye": "Best regards\n{org}"
+  },
+  "forms": {
+    "nav": "Forms",
+    "title": "Forms",
+    "new": "New form",
+    "create": "Create",
+    "empty": "No forms yet.",
+    "formTitle": "Title",
+    "titlePlaceholder": "e.g. Membership application",
+    "purpose": "Purpose",
+    "purposeHint": "Contact form: submissions become contacts right away. Membership application: the board accepts or rejects them.",
+    "purposes": {
+      "contact": "Contact form",
+      "membership": "Membership application"
+    },
+    "status": "Status",
+    "statuses": {
+      "draft": "Draft",
+      "published": "Published",
+      "closed": "Closed"
+    },
+    "newSubmissions": "New submissions",
+    "titleRequired": "Title and slug can't be empty.",
+    "needsMembers": "Membership applications need the Members module.",
+    "created": "Form created.",
+    "saved": "Saved.",
+    "trashed": "Form moved to the trash.",
+    "defaultPrivacy": "I agree that {org} stores my details to handle my request. I have read the privacy notice.",
+    "defaultStatutes": "I accept the club's statutes.",
+    "defaultSuccess": "Thank you! We received your details.",
+    "defaultSuccessMembership": "Thank you for your application! We'll get back to you once the board has reviewed it.",
+    "tabs": {
+      "builder": "Builder",
+      "submissions": "Submissions"
+    },
+    "openPublic": "Public page",
+    "settings": "Settings",
+    "slug": "Slug",
+    "intro": "Introduction",
+    "successText": "Text after submitting",
+    "tags": "Tags for submitters",
+    "tagsHelp": "Comma-separated. Added to the contact (e.g. newsletter, lead).",
+    "elements": "Fields and content",
+    "elementsHint": "Same order as in the form. Fields come from your contact fields (incl. custom fields).",
+    "elementsHintMembership": "Same order as in the form. Membership type, direct debit mandate and consents belong to the application.",
+    "kinds": {
+      "field": "Field",
+      "text": "Text",
+      "consent": "Consent",
+      "mandate": "Direct debit"
+    },
+    "mandate": "SEPA direct debit mandate",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "remove": "Remove",
+    "label": "Label (optional)",
+    "help": "Hint (optional)",
+    "consentText": "Consent text",
+    "textBody": "Text",
+    "required": "Required",
+    "addElement": "Add",
+    "add": "Add",
+    "consent": "I agree.",
+    "toTrash": "Move form to trash",
+    "fields": {
+      "membershipType": "Membership type",
+      "startsOn": "Preferred start"
+    },
+    "thanks": "Thank you! Your details arrived.",
+    "closed": "This form is no longer available.",
+    "submit": "Submit",
+    "feePer": "{fee} per {interval}",
+    "entryFee": "entry fee {fee}",
+    "accountHolder": "Account holder (if different)",
+    "bicOptional": "BIC (optional)",
+    "mandateText": "I authorise {creditor} (creditor ID {id}) to collect payments from my account by direct debit. At the same time I instruct my bank to honour the direct debits drawn by {creditor} on my account. Note: I can request a refund of the debited amount within eight weeks of the debit date. The conditions agreed with my bank apply.",
+    "confirmSubject": "Received: {form}",
+    "all": "All",
+    "subStatus": {
+      "new": "New",
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    },
+    "noSubmissions": "No submissions yet.",
+    "person": "Person",
+    "received": "Received",
+    "openContact": "Open contact",
+    "openMembership": "Open membership",
+    "accept": "Accept",
+    "acceptMember": "Accept as member",
+    "reject": "Reject",
+    "accepted": "Accepted.",
+    "rejected": "Rejected."
   }
 }

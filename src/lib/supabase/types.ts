@@ -319,6 +319,64 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"form_submissions": {
+                  Row: {
+                    "contact_id": string | null,"created_at": string,"created_by": string | null,"data": NonNullable<Json>,"email": string | null,"form_id": string,"id": string,"membership_id": string | null,"org_id": string,"status": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"data": NonNullable<Json>,"email"?: string | null,"form_id": string,"id"?: string,"membership_id"?: string | null,"org_id": string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"data"?: NonNullable<Json>,"email"?: string | null,"form_id"?: string,"id"?: string,"membership_id"?: string | null,"org_id"?: string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "form_submissions_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "form_submissions_form_id_fkey"
+      columns: ["form_id"]
+isOneToOne: false
+      referencedRelation: "forms"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "form_submissions_membership_id_fkey"
+      columns: ["membership_id"]
+isOneToOne: false
+      referencedRelation: "memberships"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "form_submissions_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"forms": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"elements": NonNullable<Json>,"id": string,"intro": string | null,"org_id": string,"purpose": string,"settings": NonNullable<Json>,"slug": string,"status": string,"success_text": string | null,"title": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"elements"?: NonNullable<Json>,"id"?: string,"intro"?: string | null,"org_id": string,"purpose"?: string,"settings"?: NonNullable<Json>,"slug": string,"status"?: string,"success_text"?: string | null,"title": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"elements"?: NonNullable<Json>,"id"?: string,"intro"?: string | null,"org_id"?: string,"purpose"?: string,"settings"?: NonNullable<Json>,"slug"?: string,"status"?: string,"success_text"?: string | null,"title"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "forms_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"guest_checkins": {
                   Row: {
                     "checked_in_at": string,"checked_in_by": string | null,"created_at": string,"created_by": string | null,"entry_id": string,"event_id": string,"id": string,"org_id": string,"updated_at": string,"updated_by": string | null
@@ -1387,6 +1445,9 @@ isOneToOne: false
                            },
 "org_alive":
 { Args: { "p_org": string }; Returns: boolean
+                           },
+"public_form":
+{ Args: { "p_org": string,"p_slug": string }; Returns: Json
                            },
 "purge_deleted":
 { Args: Record<PropertyKey, never>; Returns: number

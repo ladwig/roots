@@ -593,6 +593,26 @@ begin
   select count(*) into n from public.member_dues where org_id = org_a;       assert n = 0, 'B sees dues of A';
   reset role;
 
+  -- Forms: anon gets only published forms via public_form(); B sees nothing of A
+  insert into public.org_modules (org_id, module_key) values (org_a, 'forms');
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  insert into public.forms (org_id, title, slug, status) values (org_a, 'Antrag', 'antrag', 'draft'), (org_a, 'Kontakt', 'kontakt', 'published');
+  reset role;
+  perform set_config('request.jwt.claims', '{}', true);
+  set local role anon;
+  assert public.public_form(org_a, 'antrag') is null, 'draft form must not be public';
+  assert public.public_form(org_a, 'kontakt')->>'title' = 'Kontakt', 'published form is public';
+  begin
+    perform 1 from public.forms limit 1;
+    assert false, 'anon must not read forms directly';
+  exception when insufficient_privilege then null; end;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.forms where org_id = org_a;             assert n = 0, 'B sees forms of A';
+  reset role;
+
   -- Files: A (owner) registers files in A only, with paths under its own folder; B sees nothing
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   set local role authenticated;
