@@ -2470,5 +2470,13 @@
     "folder": "Letters",
     "defaultHint": "Default template from roots. Copy it to change it.",
     "placeholdersTitle": "Placeholders"
+  },
+  "search": {
+    "open": "Search",
+    "placeholder": "Contacts, events, invoices, pages …",
+    "pages": "Pages",
+    "empty": "Nothing found.",
+    "hint": "Type to find contacts, members, events, invoices, forms, files and pages.",
+    "loading": "Searching …"
   }
 }

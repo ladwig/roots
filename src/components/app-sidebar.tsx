@@ -6,6 +6,7 @@ import { appRoute } from "@/lib/url"
 import { useTransition } from "react"
 import { CheckIcon, ChevronsUpDownIcon, LanguagesIcon, LogOutIcon, UserIcon } from "lucide-react"
 import { signOut } from "@/app/login/actions"
+import { CommandSearch } from "@/components/command-search"
 import { Picture } from "@/components/picture"
 import {
   DropdownMenu,
@@ -41,10 +42,12 @@ export function AppSidebar({
   header,
   groups,
   me,
+  search,
 }: {
   header: React.ReactNode
   groups: { label?: string; items: SidebarLink[] }[]
   me: Me
+  search?: boolean
 }) {
   const t = useT()
   const pathname = appRoute(usePathname())
@@ -53,7 +56,10 @@ export function AppSidebar({
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader>{header}</SidebarHeader>
+      <SidebarHeader>
+        {header}
+        {search && <CommandSearch />}
+      </SidebarHeader>
       <SidebarContent>
         {groups.map((g, i) => (
           <SidebarGroup key={i}>

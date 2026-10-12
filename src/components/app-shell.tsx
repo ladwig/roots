@@ -9,19 +9,21 @@ export async function AppShell({
   groups,
   me,
   title,
+  search,
   children,
 }: {
   header: React.ReactNode
   groups: { label?: string; items: SidebarLink[] }[]
   me: Me
   title: string
+  search?: boolean // ⌘K search over the active org (App only)
   children: React.ReactNode
 }) {
   // Open/collapsed is remembered in the sidebar_state cookie (set by the shadcn sidebar).
   const open = (await cookies()).get("sidebar_state")?.value !== "false"
   return (
     <SidebarProvider defaultOpen={open}>
-      <AppSidebar header={header} groups={groups} me={me} />
+      <AppSidebar header={header} groups={groups} me={me} search={search} />
       <SidebarInset className="min-w-0">
         <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur">
           <SidebarTrigger className="-ml-1" />

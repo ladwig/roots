@@ -2470,5 +2470,13 @@
     "folder": "Briefe",
     "defaultHint": "Standardvorlage von roots. Zum Ändern kopieren.",
     "placeholdersTitle": "Platzhalter"
+  },
+  "search": {
+    "open": "Suchen",
+    "placeholder": "Kontakte, Events, Rechnungen, Seiten …",
+    "pages": "Seiten",
+    "empty": "Nichts gefunden.",
+    "hint": "Tippe, um Kontakte, Mitglieder, Events, Rechnungen, Formulare, Dateien und Seiten zu finden.",
+    "loading": "Suche …"
   }
 }

@@ -40,6 +40,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <AppShell
+      search
       header={<OrgSwitcher orgs={ctx.orgs} current={ctx.org} />}
       groups={groups}
       me={{ name: me?.full_name || ctx.email, email: ctx.email, avatar: me?.avatar_path ?? null }}
