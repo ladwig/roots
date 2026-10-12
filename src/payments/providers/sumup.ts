@@ -40,6 +40,11 @@ export const sumupProvider: PaymentProvider = {
     if (!checkout.hosted_checkout_url) throw new Error("payments.notReady")
     return { url: checkout.hosted_checkout_url, providerRef: checkout.id }
   },
+  // Backup for a lost notification: reconcileOrder() asks SumUp directly while the order is pending.
+  async checkoutStatus({ orgId, providerRef }) {
+    const c = await sumup<SumUpCheckout>(orgId, `/v0.1/checkouts/${encodeURIComponent(providerRef)}`)
+    return { paid: c.status === "PAID", providerPaymentRef: c.transaction_id }
+  },
   async refund({ orgId, providerPaymentRef, amount }) {
     await sumup(orgId, `/v0.1/me/refund/${encodeURIComponent(providerPaymentRef)}`, { method: "POST", body: { amount: amount / 100 } })
     return { providerRef: `sumup_refund_${providerPaymentRef}_${Date.now()}`, status: "succeeded" }
