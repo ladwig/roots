@@ -74,6 +74,27 @@ Public pages locally: `http://<org-slug>.localhost:3000` (or `/s/<org-slug>`). T
 | `npm run worker:schedule -- <url>` | Let Supabase pg_cron call the worker every minute (`off` to stop) |
 | `npm run admin:grant -- <email>` | Make a user a platform admin |
 
+### Payment providers
+
+**Stripe (platform, for Connect)**: in the Stripe dashboard (test mode first, then the same again in live mode):
+- Settings → Connect → Onboarding options → OAuth: enable OAuth, add the redirect URIs `<APP_URL>/api/integrations/stripe/callback` (production + `http://localhost:3000`), copy the client id (`ca_…`) → `STRIPE_CLIENT_ID`.
+- Developers → API keys → restricted key (`rk_…`) → `STRIPE_SECRET_KEY`. It needs **two** permission sets:
+
+  | Set | Permission | Level | Used for |
+  |---|---|---|---|
+  | Your account (platform) | Connect: Accounts | Write | OAuth code exchange, Accounts v2 (create/read connected accounts) |
+  | Your account (platform) | Account Links | Write | hosted onboarding for new accounts |
+  | Connected accounts | Checkout Sessions | Write | ticket checkouts on the org's account |
+  | Connected accounts | Charges and Refunds | Write | refunds |
+  | Connected accounts | Webhook Endpoints | Write | |
+
+  Check: `curl -u "$STRIPE_SECRET_KEY:" https://api.stripe.com/v1/accounts?limit=1` must not say "Permission denied".
+- Developers → Webhooks → endpoint `<APP_URL>/api/webhooks/stripe` listening to **connected accounts** (`checkout.session.*`, `charge.refunded`) → `STRIPE_WEBHOOK_SECRET`.
+
+**Stripe (an org's own key, no Connect)**: entered by the org in Settings → Integrations; the dialog lists the permissions (Checkout Sessions, Charges and Refunds, Webhook Endpoints: Write; Accounts: Read optional). roots registers the org's webhook endpoint itself.
+
+**SumUp**: developer.sumup.com → OAuth app (type Web), redirect URIs `<APP_URL>/api/integrations/sumup/callback` (production + localhost), no origin URL needed → `SUMUP_CLIENT_ID` / `SUMUP_CLIENT_SECRET`.
+
 ## Deployment
 
 - Vercel project `roots`, connected to this repo: every push to `main` deploys production.
