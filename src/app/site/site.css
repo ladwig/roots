@@ -33,6 +33,40 @@
   line-height: 0.98;
 }
 .site .serif em { font-style: italic; }
+/* Sans headlines (Swiss, tight); one italic serif word as accent */
+.site .display { font-weight: 400; letter-spacing: -0.035em; line-height: 1.02; }
+.site .fs-hero.display, .site .fs-h2.display { font-weight: 350; }
+.site .display em { font-family: var(--font-site-serif), Georgia, serif; font-style: italic; font-weight: 400; letter-spacing: -0.01em; }
+/* Small label in a thin box ("WARUM ROOTS") */
+.site .tag {
+  display: inline-block;
+  border: 1px solid var(--line);
+  padding: 5px 9px 4px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+/* Corner marks around a frame */
+.site .ticks { position: relative; }
+.site .ticks::before {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  pointer-events: none;
+  z-index: 5;
+  --t: rgb(25 24 19 / 0.45);
+  background:
+    linear-gradient(var(--t), var(--t)) top left / 9px 1px no-repeat,
+    linear-gradient(var(--t), var(--t)) top left / 1px 9px no-repeat,
+    linear-gradient(var(--t), var(--t)) top right / 9px 1px no-repeat,
+    linear-gradient(var(--t), var(--t)) top right / 1px 9px no-repeat,
+    linear-gradient(var(--t), var(--t)) bottom left / 9px 1px no-repeat,
+    linear-gradient(var(--t), var(--t)) bottom left / 1px 9px no-repeat,
+    linear-gradient(var(--t), var(--t)) bottom right / 9px 1px no-repeat,
+    linear-gradient(var(--t), var(--t)) bottom right / 1px 9px no-repeat;
+}
 .site .label {
   font-size: 11.5px;
   font-weight: 500;
@@ -55,14 +89,14 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  height: 48px;
-  padding: 0 20px;
-  border-radius: 6px;
+  height: 46px;
+  padding: 0 18px;
+  border-radius: 2px;
   background: var(--ink);
   color: var(--paper);
   font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   white-space: nowrap;
   transition: background 0.25s, transform 0.35s var(--ease);
@@ -75,8 +109,8 @@
 .site .link { text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 4px; transition: text-decoration-color 0.2s; }
 .site .link:hover { text-decoration-color: currentColor; }
 /* The pill set inside a big serif line ("Eine Software [ALLE MODULE ↗] für …") */
-.site .inline-pill { height: 0.82em; padding: 0 0.6em; font-size: 1em; vertical-align: 0.08em; letter-spacing: 0; border-radius: 0.12em; }
-.site .inline-pill > span { font-family: var(--font-site-text), system-ui, sans-serif; font-size: clamp(11px, 0.16em, 15px); letter-spacing: 0.1em; }
+.site .inline-pill { height: 0.82em; padding: 0 0.6em; font-size: 1em; vertical-align: 0.08em; letter-spacing: 0; border-radius: 0.04em; }
+.site .inline-pill > span { font-family: var(--font-site-text), system-ui, sans-serif; font-size: clamp(11px, 0.16em, 15px); letter-spacing: 0.14em; }
 
 /* ---- paintings ---- */
 .site .painting { position: relative; overflow: hidden; border-radius: 10px; background: #3a3222; isolation: isolate; }
@@ -103,6 +137,21 @@
   .site .reveal { animation: site-rise linear both; animation-timeline: view(); animation-range: entry 0% cover 22%; }
   .site .settle img { animation: site-settle linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
 }
+/* Nav: full width at the top, then shrinks to a framed bar at content width as you scroll. */
+.site .nav-bar { margin-inline: auto; max-width: 100%; padding-inline: var(--gutter); border: 1px solid transparent; border-radius: 3px; background: rgb(245 241 232 / 0.86); backdrop-filter: blur(12px); }
+@supports (animation-timeline: scroll()) {
+  .site .nav-bar { animation: site-nav linear both; animation-timeline: scroll(root); animation-range: 0 220px; }
+}
+@keyframes site-nav {
+  from { max-width: 100%; margin-top: 0; padding-inline: var(--gutter); background: rgb(245 241 232 / 0); border-color: transparent; }
+  to { max-width: min(1120px, calc(100% - 2 * var(--gutter))); margin-top: 10px; padding-inline: 18px; background: rgb(245 241 232 / 0.86); border-color: var(--line); }
+}
+/* Hero halftone: the dot version of the painting fades as you scroll and the colour painting comes through. */
+@supports (animation-timeline: view()) {
+  .site .hero-halftone { animation: site-fade-out linear both; animation-timeline: --hero; animation-range: contain 2% contain 32%; }
+}
+@keyframes site-fade-out { to { opacity: 0; } }
+
 /* Hero: the pinned painting stays, the laptop rises into the field, the copy steps back. Without support the
    laptop just sits low in the picture. */
 .site .hero-laptop { transform: translateY(58%); }

@@ -16,9 +16,10 @@ No "AI slop": no neon gradients, no glassy blobs, no emoji, no stock 3D. Real pa
 
 | Role | Font | Use |
 |---|---|---|
-| Display | **Instrument Serif** 400 (roman, italic for one word), tracking `-0.02em`, line-height `0.98` | Headlines, statements, big numbers |
-| Text | **Libre Franklin** 400/500/600, tracking `+0.012em` (small sizes `+0.02em`), line-height `1.6` | Body, nav, UI, buttons (Franklin Gothic lineage: editorial, not the default Inter look) |
-| Label | Libre Franklin 500, uppercase, tracking `0.12em`, 11–12 px | Eyebrows, section numbers, button labels |
+| Display | **Hanken Grotesk** 400 (light for big numbers), tracking `-0.035em`, line-height `1.02` | Headlines, statements, big numbers (Swiss, close to Helvetica Now) |
+| Accent | **Instrument Serif** italic | One word per headline, and the wordmark |
+| Text | **Hanken Grotesk** 400/500, tracking `+0.012em` (small sizes `+0.02em`), line-height `1.6` | Body, nav, UI, buttons (Franklin Gothic lineage: editorial, not the default Inter look) |
+| Label | Hanken Grotesk 500, uppercase, tracking `0.12em`, 11–12 px | Eyebrows, section numbers, button labels |
 
 Scale (fluid, `clamp`): `--fs-hero` 52→128 px · `--fs-h2` 40→88 px · `--fs-h3` 26→36 px · `--fs-lead` 18→21 px ·
 body 16 px · label 11.5 px. Headlines: sentence case, short, full stop allowed as a beat.
@@ -49,16 +50,19 @@ chosen focal point. Product mocks float *on* a painting as on a table. Credits l
 
 - **Full width** on desktop with generous side margins: gutter `clamp(20px, 7vw, 160px)`, no max width for sections and images; text columns stay ≤ `60ch`.
 - Section rhythm `clamp(96px, 12vw, 176px)`. Hairline (`1px --line`) between sections instead of colour blocks.
-- Radius: images and mocks `10px`, cards `14px`, buttons `6px`. Mature = small radii, **no pill buttons**.
+- Radius: almost square: buttons `2px`, frames `2px`, cards `0` with a hairline border. Corner marks (`.ticks`) on key frames.
 - 12-column grid; on phones one column, images full-bleed within the gutter.
 - **Use the space, don't stretch it**: a visual fills its box (compose several mocks, fan out documents, add a floating action) instead of one small element in a big empty panel. Narrow content (FAQ, statements) is centred in a column, not spread across the page.
 
 ## Components
 
-- **Hero**: the painting fills the first screen (pinned while you scroll), headline on the sky; scrolling brings the laptop up into the field while the copy steps back.
+- **Hero**: the painting fills the first screen inside the margins (pinned), first as a **halftone dot grid that builds up** (canvas, `_components/halftone.tsx`), light copy on a dark veil; scrolling fades the dots so the colour painting comes through, and the laptop rises into the field.
+- **Nav**: full width at the top, shrinks to a framed bar at content width as you scroll (scroll-driven CSS).
+- **Tag**: small uppercase label in a thin box above centred section headlines.
+- **Value cards**: hairline-bordered cards with thin line-art graphics (`_components/wireframes.tsx`), centred text.
 
 - **Nav**: paper background, serif wordmark "roots", small sans links, text link "Anmelden", black button CTA.
-- **Button**: black, 6 px corners, uppercase label + ↗ arrow; secondary = text link with underline. One primary per screen.
+- **Button**: black (or paper on dark), 2 px corners, uppercase label with wide tracking + ↗; secondary = text link with underline. One primary per screen.
 - **Inline button**: a big serif sentence with the CTA button set *inside* the line ("Eine Software [ALLE MODULE ↗] für
   eure ganze Arbeit.").
 - **Device mocks**: CSS-drawn browser / laptop / phone with a simplified, animated fake app (subtle loops).

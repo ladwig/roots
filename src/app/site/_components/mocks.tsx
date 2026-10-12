@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 const delay = (s: number) => ({ animationDelay: `${s}s` })
 
 function Badge({ children, tone = "moss" }: { children: React.ReactNode; tone?: "moss" | "lime" | "gray" | "pink" }) {
-  const tones = { moss: "bg-[#14532d]/10 text-[#14532d]", lime: "bg-[#dfe7c6] text-[#0c0d0b]", gray: "bg-black/5 text-black/55", pink: "bg-[#ff4fd8]/15 text-[#a3168a]" }
+  const tones = { moss: "bg-[#14532d]/10 text-[#14532d]", lime: "bg-[#dfe7c6] text-[#0c0d0b]", gray: "bg-black/5 text-black/55", pink: "bg-[#8a5a2b]/12 text-[#7a4a1d]" }
   return <span className={cn("inline-flex h-[1.6em] items-center rounded-full px-[0.7em] text-[0.82em] font-medium whitespace-nowrap", tones[tone])}>{children}</span>
 }
 

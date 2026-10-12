@@ -2285,7 +2285,8 @@
       "q5": {
         "q": "What will roots cost after the beta?",
         "a": "You pay per module you use. Prices are set before the beta ends, nobody is switched over without being asked."
-      }
+      },
+      "heading": "Frequently asked"
     },
     "final": {
       "before": "Start today.",
@@ -2297,6 +2298,22 @@
       "account": "Account",
       "grassroots": "Grassroots – like the movement. © roots, Berlin",
       "paintings": "Paintings (public domain):"
+    },
+    "values": {
+      "label": "Why roots",
+      "title": "One place for everything that carries your organisation.",
+      "c1": {
+        "title": "One place, not ten tools",
+        "text": "Members, money, events and communication share the same contacts. Nothing is maintained twice."
+      },
+      "c2": {
+        "title": "Grown from the ground up",
+        "text": "Built with boards, treasurers and venue operators – for people who do this next to everything else."
+      },
+      "c3": {
+        "title": "Everything connects",
+        "text": "A ticket purchase becomes a contact, an application a membership, a due a direct debit. Without lifting a finger."
+      }
     }
   }
 }

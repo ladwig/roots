@@ -1,12 +1,13 @@
 import type { Metadata } from "next"
-import { Instrument_Serif, Libre_Franklin } from "next/font/google"
+import { Hanken_Grotesk, Instrument_Serif } from "next/font/google"
 import { getT } from "@/i18n/server"
 import "./site.css"
 
 // The website's own look (docs/design/site.md): own fonts + tokens, scoped to .site, independent of the app theme.
+// Instrument Serif: only the wordmark and one italic accent word per headline.
 const serif = Instrument_Serif({ subsets: ["latin"], variable: "--font-site-serif", weight: "400", style: ["normal", "italic"] })
-// Libre Franklin (Franklin Gothic lineage): an editorial, slightly old-fashioned grotesk instead of the default Inter look.
-const text = Libre_Franklin({ subsets: ["latin"], variable: "--font-site-text" })
+// Hanken Grotesk: a calm Swiss grotesk (closest free relative of Helvetica Now), for headlines and text.
+const text = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-site-text" })
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT()
