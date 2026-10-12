@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { getT } from "@/i18n/server"
 import { sitePath } from "@/lib/url"
 import { getSite } from "@/app/s/[site]/data"
-import type { SiteMeta, TemplateKind } from "./blocks"
+import { templateStarter, type SiteMeta, type TemplateKind } from "./blocks"
 import { SitePage } from "./render"
 import { imprintHtml, privacyHtml, siteMeta } from "./server"
 
@@ -70,13 +70,13 @@ export async function publicSiteMetadata(site: string, slug: string): Promise<Me
 }
 
 /**
- * The org's own design for a module page (event / form / portal), rendered with the record + the real module UI;
- * null = no live site or no published template → the route shows roots' standard page.
+ * Module pages (event / form / portal) of an org with a live website: its own template if published, else the
+ * default template – always in the site's design. null = no live website → the route shows roots' standard page.
  */
 export async function TemplatePage({ site, kind, context, render }: { site: string; kind: TemplateKind; context?: SiteMeta["context"]; render: SiteMeta["render"] }) {
   const live = await liveSite(site)
-  const data = live?.home.templates?.[kind]
-  if (!live || !data) return null
+  if (!live) return null
+  const data = live.home.templates?.[kind] ?? templateStarter(kind)
   return (
     <main>
       <SitePage data={data} meta={{ ...live.meta, context, render }} t={live.t} />

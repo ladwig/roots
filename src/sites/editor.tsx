@@ -150,24 +150,18 @@ export function SiteEditor({
                       const tpl = pages.find((p) => p.kind === k)
                       return tpl ? (
                         <NativeSelectOption key={k} value={tpl.id}>
-                          {t.dynamic(`sites.templates.${k}`)} {tpl.published_at ? `(${t("sites.templateLive")})` : `(${t("sites.templates.standard")})`}
+                          {t.dynamic(`sites.templates.${k}`)}
                         </NativeSelectOption>
                       ) : (
                         <NativeSelectOption key={k} value={`tpl:${k}`}>
-                          {t("sites.templates.design", { name: t.dynamic(`sites.templates.${k}`) })}
+                          {t.dynamic(`sites.templates.${k}`)}
                         </NativeSelectOption>
                       )
                     })}
                   </NativeSelectOptGroup>
                 )}
               </NativeSelect>
-              {isTemplate ? (
-                live && (
-                  <Button size="sm" variant="outline" disabled={!!busy} onClick={() => run("page", () => unpublishSitePage(page.id), () => (setLive(null), router.refresh()))}>
-                    {t("sites.useStandard")}
-                  </Button>
-                )
-              ) : (
+              {!isTemplate && (
                 <Button size="sm" variant="outline" onClick={() => setDialog("page")}>
                   <FileCogIcon /> {t("sites.pageSettings")}
                 </Button>
@@ -186,7 +180,7 @@ export function SiteEditor({
               </Button>
               <Button size="sm" disabled={!!busy || !changedFromLive} onClick={() => save(true)} title={changedFromLive ? undefined : t("sites.nothingToPublish")}>
                 {busy === "publish" && <Loader2Icon className="animate-spin" />}
-                {live && !changedFromLive ? (isTemplate ? t("sites.templateLive") : t("sites.isLive")) : isTemplate && !live ? t("sites.useTemplate") : t("sites.publish")}
+                {live && !changedFromLive ? t("sites.isLive") : t("sites.publish")}
               </Button>
             </>
           ),

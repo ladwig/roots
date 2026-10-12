@@ -2752,13 +2752,8 @@
       "event": "Event page",
       "form": "Form page",
       "portal": "Member area",
-      "hint": "Applies to all pages of this kind. Published = your design, offline = roots' standard page.",
-      "design": "Design {name}",
-      "standard": "Standard"
+      "hint": "Applies to all pages of this kind on your website."
     },
-    "useTemplate": "Use your design",
-    "useStandard": "Back to the standard page",
-    "templateLive": "In use",
     "templatePreview": "Preview with: {name}",
     "noSample": "No data for the preview yet – the blocks show placeholders."
   }

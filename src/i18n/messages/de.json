@@ -2752,13 +2752,8 @@
       "event": "Event-Seite",
       "form": "Formular-Seite",
       "portal": "Mitgliederbereich",
-      "hint": "Gilt für alle Seiten dieser Art. Veröffentlicht = eure Gestaltung, offline = roots-Standardseite.",
-      "design": "{name} gestalten",
-      "standard": "Standard"
+      "hint": "Gilt für alle Seiten dieser Art auf eurer Website."
     },
-    "useTemplate": "Eure Gestaltung verwenden",
-    "useStandard": "Zur Standardseite zurück",
-    "templateLive": "Wird verwendet",
     "templatePreview": "Vorschau mit: {name}",
     "noSample": "Noch keine Daten für die Vorschau – die Bausteine zeigen Platzhalter."
   }
