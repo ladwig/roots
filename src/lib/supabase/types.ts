@@ -1019,6 +1019,32 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"portal_tokens": {
+                  Row: {
+                    "contact_id": string,"created_at": string,"expires_at": string,"id": string,"kind": string,"last_seen_at": string | null,"org_id": string,"token_hash": string,"used_at": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "contact_id": string,"created_at"?: string,"expires_at": string,"id"?: string,"kind": string,"last_seen_at"?: string | null,"org_id": string,"token_hash": string,"used_at"?: string | null
+                  }
+                  Update: {
+                    "contact_id"?: string,"created_at"?: string,"expires_at"?: string,"id"?: string,"kind"?: string,"last_seen_at"?: string | null,"org_id"?: string,"token_hash"?: string,"used_at"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "portal_tokens_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "portal_tokens_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"positions": {
                   Row: {
                     "color": string | null,"created_at": string,"created_by": string | null,"id": string,"location_id": string | null,"name": string,"needed": number,"org_id": string,"position": number,"updated_at": string,"updated_by": string | null
@@ -1550,6 +1576,9 @@ isOneToOne: false
 { Args: { "p_org": string,"p_slug": string }; Returns: Json
                            },
 "purge_deleted":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"purge_portal_tokens":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
 "request_org":

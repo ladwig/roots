@@ -714,7 +714,8 @@
       "membership.started": "New member",
       "membership.ended": "Membership ends",
       "form.submitted": "Form submitted",
-      "memberships.imported": "Members imported"
+      "memberships.imported": "Members imported",
+      "membership.self_updated": "Member changed their details"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -741,7 +742,8 @@
       "membership.started": "🎉 New member: {name} (no. {number})",
       "membership.ended": "👋 Membership of {name} ends on {ends_on}",
       "form.submitted": "📝 New submission “{form}”: {name}",
-      "memberships.imported": "📥 {count} members imported"
+      "memberships.imported": "📥 {count} members imported",
+      "membership.self_updated": "✏️ {name} changed their {what} in the member area"
     }
   },
   "inbox": {
@@ -1821,7 +1823,8 @@
     "importHint": "CSV from Excel or your old club software: one row per person with membership type, start date, number and optionally bank details. Membership types must be named exactly as set up here ({types}). Existing contacts are recognised by email. No entry fees are created.",
     "importNeedsType": "Map a column to the membership type (there are several types).",
     "importNumber": "Member number (old)",
-    "paidOn": "Paid on"
+    "paidOn": "Paid on",
+    "reminderPortal": "See your dues and details anytime in the member area: {url}"
   },
   "forms": {
     "nav": "Forms",
@@ -2045,5 +2048,40 @@
     "placeholder": "Insert placeholder",
     "undo": "Undo",
     "redo": "Redo"
+  },
+  "portal": {
+    "title": "Member area",
+    "intro": "Enter your email address. We'll send you a link to sign in – no password needed.",
+    "email": "Email address",
+    "sendLink": "Send link",
+    "linkSent": "If we know your address, a sign-in link is on its way. It's valid for 30 minutes.",
+    "signInNow": "Sign in now",
+    "linkInvalid": "The link has expired or was already used. Just request a new one.",
+    "signInFirst": "Please sign in first.",
+    "hello": "Hello {name}",
+    "signOut": "Sign out",
+    "nothing": "There's nothing here for you right now.",
+    "mailSubject": "Your sign-in link for {org}",
+    "mailHello": "Hello {name},",
+    "mailIntro": "here's your link to the member area of {org}:",
+    "mailButton": "Sign in",
+    "mailNote": "The link is valid for 30 minutes. If you didn't request it, you can ignore this email.",
+    "membership": "My membership",
+    "number": "Member number",
+    "payment": "Payment",
+    "debitFrom": "Direct debit from {iban}",
+    "noDebit": "Bank transfer",
+    "dues": "Dues",
+    "myData": "My details",
+    "bank": "Change bank details",
+    "saveBank": "Grant new mandate",
+    "saved": "Saved. The board has been notified.",
+    "cancelHint": "If you cancel today, your membership ends on {date} at the earliest.",
+    "cancelConfirm": "Yes, I want to cancel my membership.",
+    "confirmCancel": "Please confirm the cancellation.",
+    "cancelled": "Cancelled. Your membership ends on {date}.",
+    "whatAddress": "contact details",
+    "whatBank": "bank details",
+    "portalLink": "Member area for your members: {url}"
   }
 }

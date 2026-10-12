@@ -4,7 +4,7 @@ import { deliverSoon } from "@/events/worker"
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
-import { back } from "@/lib/url"
+import { back, siteUrl } from "@/lib/url"
 import type { ImportOutcome } from "@/components/csv-import"
 import { MAX_IMPORT_ROWS } from "@/app/(app)/contacts/fields"
 import { loadFields } from "@/lib/custom-fields"
@@ -356,7 +356,7 @@ export async function sendReminders(fd: FormData) {
     const total = items.reduce((s, d) => s + d.amount_cents, 0)
     const lines = items.map((d) => `• ${d.description} (${t.date(d.due_on)}): ${t.money(d.amount_cents)}`)
     const pay = settings?.iban ? t("membership.reminderPay", { name: settings.creditor_name ?? ctx.org.name, iban: settings.iban, ref: items[0].memberships!.member_no ?? "" }) : ""
-    const text = [t("membership.reminderHello", { name }), "", t("membership.reminderIntro", { org: ctx.org.name }), "", ...lines, "", t("membership.reminderTotal", { total: t.money(total) }), pay, "", t("membership.reminderBye", { org: ctx.org.name })].filter((l, i, a) => l || a[i - 1]).join("\n")
+    const text = [t("membership.reminderHello", { name }), "", t("membership.reminderIntro", { org: ctx.org.name }), "", ...lines, "", t("membership.reminderTotal", { total: t.money(total) }), pay, t("membership.reminderPortal", { url: siteUrl(ctx.org.slug, "/portal") }), "", t("membership.reminderBye", { org: ctx.org.name })].filter((l, i, a) => l || a[i - 1]).join("\n")
     const html = text.split("\n").map((l) => (l ? `<p style="margin:0 0 4px">${l.replace(/[<>&]/g, (x) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[x]!)}</p>` : "<br>")).join("")
     if (await sendOrgEmail(ctx.org.id, { to: email, subject: t("membership.reminderSubject", { org: ctx.org.name }), text, html })) sent.push(...items.map((d) => d.id))
   }

@@ -10,7 +10,7 @@ import { getT } from "@/i18n/server"
 import type { T } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import type { Tables } from "@/lib/supabase/types"
-import { param } from "@/lib/url"
+import { param, siteUrl } from "@/lib/url"
 import { INTERVALS, type Interval } from "@/members/dues"
 import { deleteType, saveSettings, saveType } from "../actions"
 
@@ -26,7 +26,10 @@ export default async function MembersSetupPage({ searchParams }: PageProps<"/mem
 
   return (
     <>
-      <h1 className="font-heading text-2xl font-semibold">{t("membership.tabs.setup")}</h1>
+      <div className="grid gap-1">
+        <h1 className="font-heading text-2xl font-semibold">{t("membership.tabs.setup")}</h1>
+        <p className="text-sm break-all text-muted-foreground">{t("portal.portalLink", { url: siteUrl(ctx.org.slug, "/portal") })}</p>
+      </div>
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
 
       <section className="grid gap-3" aria-labelledby="types">

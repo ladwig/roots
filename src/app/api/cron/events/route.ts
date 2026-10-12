@@ -21,5 +21,6 @@ export async function GET(request: Request) {
   await generateAllSeries().catch(console.error) // recurring shifts stay 8 weeks ahead
   // Empty the trash (soft-deleted rows past their retention).
   const { data: purged } = await createAdminClient().rpc("purge_deleted")
+  await createAdminClient().rpc("purge_portal_tokens") // expired portal logins/sessions
   return NextResponse.json({ sent, emails, purged })
 }

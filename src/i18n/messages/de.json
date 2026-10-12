@@ -714,7 +714,8 @@
       "membership.started": "Neues Mitglied",
       "membership.ended": "Mitgliedschaft endet",
       "form.submitted": "Formular eingegangen",
-      "memberships.imported": "Mitglieder importiert"
+      "memberships.imported": "Mitglieder importiert",
+      "membership.self_updated": "Mitglied hat Daten geändert"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -741,7 +742,8 @@
       "membership.started": "🎉 Neues Mitglied: {name} (Nr. {number})",
       "membership.ended": "👋 Mitgliedschaft von {name} endet am {ends_on}",
       "form.submitted": "📝 Neue Einsendung „{form}“: {name}",
-      "memberships.imported": "📥 {count} Mitglieder importiert"
+      "memberships.imported": "📥 {count} Mitglieder importiert",
+      "membership.self_updated": "✏️ {name} hat {what} im Mitgliederbereich geändert"
     }
   },
   "inbox": {
@@ -1821,7 +1823,8 @@
     "importHint": "CSV aus Excel oder deiner alten Vereinssoftware: eine Zeile pro Person mit Mitgliedsart, Eintritt, Nummer und optional Bankdaten. Mitgliedsarten müssen genau so heißen wie hier angelegt ({types}). Bestehende Kontakte werden über die E-Mail erkannt. Aufnahmegebühren werden nicht erzeugt.",
     "importNeedsType": "Ordne eine Spalte der Mitgliedsart zu (es gibt mehrere Arten).",
     "importNumber": "Mitgliedsnummer (alt)",
-    "paidOn": "Bezahlt am"
+    "paidOn": "Bezahlt am",
+    "reminderPortal": "Deine Beiträge und Daten siehst du jederzeit im Mitgliederbereich: {url}"
   },
   "forms": {
     "nav": "Formulare",
@@ -2045,5 +2048,40 @@
     "placeholder": "Platzhalter einfügen",
     "undo": "Rückgängig",
     "redo": "Wiederholen"
+  },
+  "portal": {
+    "title": "Mitgliederbereich",
+    "intro": "Gib deine E-Mail-Adresse ein. Wir schicken dir einen Link, mit dem du dich anmeldest – ganz ohne Passwort.",
+    "email": "E-Mail-Adresse",
+    "sendLink": "Link zuschicken",
+    "linkSent": "Wenn wir deine Adresse kennen, ist ein Anmeldelink unterwegs. Er ist 30 Minuten gültig.",
+    "signInNow": "Jetzt anmelden",
+    "linkInvalid": "Der Link ist abgelaufen oder wurde schon benutzt. Fordere einfach einen neuen an.",
+    "signInFirst": "Bitte melde dich zuerst an.",
+    "hello": "Hallo {name}",
+    "signOut": "Abmelden",
+    "nothing": "Hier gibt es für dich gerade nichts zu sehen.",
+    "mailSubject": "Dein Anmeldelink für {org}",
+    "mailHello": "Hallo {name},",
+    "mailIntro": "hier ist dein Link für den Mitgliederbereich von {org}:",
+    "mailButton": "Anmelden",
+    "mailNote": "Der Link ist 30 Minuten gültig. Wenn du ihn nicht angefordert hast, kannst du diese E-Mail ignorieren.",
+    "membership": "Meine Mitgliedschaft",
+    "number": "Mitgliedsnummer",
+    "payment": "Zahlung",
+    "debitFrom": "Lastschrift von {iban}",
+    "noDebit": "Überweisung",
+    "dues": "Beiträge",
+    "myData": "Meine Daten",
+    "bank": "Bankverbindung ändern",
+    "saveBank": "Neues Mandat erteilen",
+    "saved": "Gespeichert. Der Vorstand wurde informiert.",
+    "cancelHint": "Bei Kündigung heute endet deine Mitgliedschaft frühestens am {date}.",
+    "cancelConfirm": "Ja, ich möchte meine Mitgliedschaft kündigen.",
+    "confirmCancel": "Bitte bestätige die Kündigung.",
+    "cancelled": "Gekündigt. Deine Mitgliedschaft endet am {date}.",
+    "whatAddress": "Kontaktdaten",
+    "whatBank": "Bankverbindung",
+    "portalLink": "Mitgliederbereich für deine Mitglieder: {url}"
   }
 }
