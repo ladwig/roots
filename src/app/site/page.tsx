@@ -1,256 +1,514 @@
-import { ArrowRightIcon, ArrowUpRightIcon } from "lucide-react"
-import { getT } from "@/i18n/server"
-import { DeviceBrowser, DeviceLaptop, DevicePhone } from "./_components/devices"
-import { FooterScene } from "./_components/footer-scene"
-import { DashboardMock, FormMailMock, InvoiceMock, MembersMock, ScannerMock, ShiftsMock } from "./_components/mocks"
+import Image from "next/image";
+import { ArrowUpRightIcon, PlusIcon } from "lucide-react";
+import { getT } from "@/i18n/server";
+import {
+  DeviceBrowser,
+  DeviceLaptop,
+  DevicePhone,
+} from "./_components/devices";
+import {
+  DashboardMock,
+  FormMailMock,
+  InvoiceMock,
+  MembersMock,
+  ScannerMock,
+  ShiftsMock,
+} from "./_components/mocks";
+import { PAINTINGS, type PaintingKey } from "./paintings";
 
 // Public website (landing). Look: docs/design/site.md. Served at "/" of the bare domain (see src/proxy.ts).
-const APP = "/app"
-const SIGNUP = "/login"
+const APP = "/app";
+const SIGNUP = "/login";
 
-/** A statement whose words light up one by one while it scrolls through (CSS scroll-driven, see site.css). */
-function Lit({ text, className, onCream }: { text: string; className?: string; onCream?: boolean }) {
-  const words = text.split(" ")
+function Pill({
+  href,
+  children,
+  light,
+  className,
+}: {
+  href: string;
+  children: React.ReactNode;
+  light?: boolean;
+  className?: string;
+}) {
   return (
-    <p className={`lit ${onCream ? "on-cream" : ""} ${className ?? ""}`}>
-      {words.map((w, i) => (
-        <span key={i} style={{ animationRange: `cover ${10 + (i / words.length) * 35}% cover ${16 + (i / words.length) * 35}%` }}>
-          {w}{" "}
-        </span>
-      ))}
-    </p>
-  )
+    <a
+      href={href}
+      className={`pill ${light ? "pill-light" : ""} ${className ?? ""}`}
+    >
+      <span>{children}</span>
+      <ArrowUpRightIcon className="size-4" strokeWidth={2} />
+    </a>
+  );
 }
 
-function Cta({ href, children, ghost }: { href: string; children: React.ReactNode; ghost?: boolean }) {
+/** A painting with a museum-style caption. */
+function Painting({
+  k,
+  className,
+  sizes,
+  priority,
+  children,
+  position,
+}: {
+  k: PaintingKey;
+  className?: string;
+  sizes: string;
+  priority?: boolean;
+  children?: React.ReactNode;
+  position?: string;
+}) {
+  const p = PAINTINGS[k];
   return (
-    <a href={href} className={`btn ${ghost ? "btn-ghost" : "btn-lime"}`}>
-      {children}
-      {!ghost && (
-        <span className="chip">
-          <ArrowRightIcon className="size-4" />
-        </span>
-      )}
-    </a>
-  )
+    <figure className="grid gap-3">
+      <div className={`painting settle ${className ?? ""}`}>
+        <Image
+          src={p.src}
+          alt={`${p.artist}, ${p.title}`}
+          fill
+          sizes={sizes}
+          priority={priority}
+          className="object-cover"
+          style={{ objectPosition: position ?? "50% 50%" }}
+        />
+        {children}
+      </div>
+      <figcaption className="soft text-[12px]">
+        {p.artist}, <em>{p.title}</em>, {p.year}
+      </figcaption>
+    </figure>
+  );
 }
 
 export default async function Landing() {
-  const t = await getT()
-  const features = [
-    { key: "members", mock: <DeviceBrowser url="app.roots.de/members"><MembersMock /></DeviceBrowser>, bg: "grad-sand" },
-    { key: "tickets", mock: <DevicePhone className="mx-auto w-[min(62%,280px)]"><ScannerMock /></DevicePhone>, bg: "grad-dusk" },
-    { key: "shifts", mock: <DeviceBrowser url="app.roots.de/shifts"><ShiftsMock /></DeviceBrowser>, bg: "grad-moss" },
-    { key: "forms", mock: <DeviceBrowser url="tsv-sued.roots.de/f/mitglied-werden"><FormMailMock /></DeviceBrowser>, bg: "grad-dusk" },
-    { key: "invoices", mock: <InvoiceMock />, bg: "grad-sand" },
-  ] as const
-  const modules = ["crm", "members", "events", "tickets", "guestlists", "shifts", "forms", "email", "invoices", "files", "portal", "api"] as const
+  const t = await getT();
+  const features: {
+    key: "members" | "tickets" | "shifts" | "forms" | "invoices";
+    mock?: React.ReactNode;
+    painting?: PaintingKey;
+  }[] = [
+    {
+      key: "members",
+      mock: (
+        <DeviceBrowser url="app.roots.de/members">
+          <MembersMock />
+        </DeviceBrowser>
+      ),
+    },
+    { key: "tickets", painting: "dance" },
+    {
+      key: "shifts",
+      mock: (
+        <DeviceBrowser url="app.roots.de/shifts">
+          <ShiftsMock />
+        </DeviceBrowser>
+      ),
+    },
+    {
+      key: "forms",
+      mock: (
+        <DeviceBrowser url="tsv-sued.roots.de/f/mitglied-werden">
+          <FormMailMock />
+        </DeviceBrowser>
+      ),
+    },
+    { key: "invoices", mock: <InvoiceMock /> },
+  ];
+  const modules = [
+    "crm",
+    "members",
+    "events",
+    "tickets",
+    "guestlists",
+    "shifts",
+    "forms",
+    "email",
+    "invoices",
+    "files",
+    "portal",
+    "api",
+  ] as const;
+  const audiences = ["a1", "a2", "a3", "a4", "a5", "a6"] as const;
+  const faqs = ["q1", "q2", "q3", "q4", "q5"] as const;
 
   return (
     <>
       {/* Everything above the footer scrolls over it (the footer is revealed underneath). */}
-      <div className="relative z-10 bg-[var(--ink)] shadow-[0_30px_60px_rgb(0_0_0/.5)]">
+      <div className="relative z-10 bg-[var(--paper)] shadow-[0_24px_48px_rgb(25_24_19/.18)]">
         {/* ---- nav ---- */}
-        <header className="fixed inset-x-0 top-0 z-50 px-[var(--gutter)] pt-4">
-          <nav className="mx-auto flex max-w-[1320px] items-center justify-between gap-3 rounded-full border border-white/10 bg-[rgb(12_13_11/.7)] py-2 pr-2 pl-5 backdrop-blur-md">
-            <a href="#top" className="display text-2xl">
-              roots<span className="text-[var(--lime)]">.</span>
+        <header className="sticky top-0 z-50 border-b border-[var(--line)] bg-[var(--paper)]/85 backdrop-blur-md">
+          <nav className="wrap flex h-16 items-center justify-between gap-4">
+            <a href="#top" className="serif text-[30px] leading-none">
+              roots
             </a>
-            <div className="hidden items-center gap-1 text-sm md:flex">
-              {(["product", "who", "pricing"] as const).map((k) => (
-                <a key={k} href={`#${k}`} className="rounded-full px-3.5 py-1.5 text-[var(--cream)]/75 transition hover:bg-white/10 hover:text-[var(--cream)]">
+            <div className="hidden items-center gap-7 text-[14px] md:flex">
+              {(["product", "modules", "pricing", "faq"] as const).map((k) => (
+                <a
+                  key={k}
+                  href={`#${k}`}
+                  className="soft transition-colors hover:text-[var(--ink)]"
+                >
                   {t(`landing.nav.${k}`)}
                 </a>
               ))}
             </div>
-            <div className="flex items-center gap-1">
-              <a href={APP} className="rounded-full px-3.5 py-1.5 text-sm text-[var(--cream)]/80 hover:text-[var(--cream)]">
+            <div className="flex items-center gap-5">
+              <a
+                href={APP}
+                className="soft text-[14px] hover:text-[var(--ink)] max-sm:hidden"
+              >
                 {t("landing.nav.login")}
               </a>
-              <a href={SIGNUP} className="rounded-full bg-[var(--lime)] px-4 py-2 text-sm font-medium text-[var(--ink)] transition hover:brightness-95">
+              <Pill href={SIGNUP} className="h-10 px-4">
                 {t("landing.nav.start")}
-              </a>
+              </Pill>
             </div>
           </nav>
         </header>
 
-        {/* ---- hero ---- */}
-        <section id="top" className="wrap pt-[clamp(130px,16vw,200px)]">
-          <p className="micro reveal mb-6 text-[var(--cream)]/55">{t("landing.hero.eyebrow")}</p>
-          <h1 className="display fs-h1 reveal max-w-[14ch]">
-            {t("landing.hero.title1")} <span className="accent text-[var(--lime)]">{t("landing.hero.accent")}</span> {t("landing.hero.title2")}
-          </h1>
-          <div className="mt-8 flex flex-wrap items-end justify-between gap-8">
-            <p className="fs-lead reveal max-w-[46ch] text-[var(--cream)]/70">{t("landing.hero.lead")}</p>
-            <div className="reveal flex flex-wrap gap-3">
-              <Cta href={SIGNUP}>{t("landing.hero.cta")}</Cta>
-              <Cta href="#product" ghost>
-                {t("landing.hero.secondary")}
-              </Cta>
-            </div>
-          </div>
-          <div className="grain grad-moss reveal relative mt-[clamp(48px,7vw,96px)] overflow-hidden rounded-[28px] px-[5%] pt-[6%] pb-0">
-            <div className="relative z-[2] mx-auto max-w-[1000px]">
-              <DeviceLaptop className="translate-y-[2%]">
-                <DashboardMock />
-              </DeviceLaptop>
-              <DevicePhone className="anim-float absolute right-[-3%] bottom-[-6%] w-[22%] min-w-[110px] max-sm:hidden">
-                <ScannerMock />
-              </DevicePhone>
+        {/* ---- hero: full-screen painting, text on it; scrolling brings the laptop up into the field ---- */}
+        <section id="top" className="hero wrap relative h-[190svh] pt-4">
+          <div className="sticky top-20 h-[calc(100svh-6rem)]">
+            <div className="painting h-full">
+              <Image
+                src={PAINTINGS.harvesters.src}
+                alt={`${PAINTINGS.harvesters.artist}, ${PAINTINGS.harvesters.title}`}
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover"
+                style={{ objectPosition: "50% 35%" }}
+              />
+              {/* paper veil from the left, where the copy sits, so the ink text reads on the busy field */}
+              <div className="absolute inset-0 z-[2] bg-[linear-gradient(90deg,rgb(245_241_232/.95)_0%,rgb(245_241_232/.8)_30%,rgb(245_241_232/.35)_52%,rgb(245_241_232/0)_70%)] max-sm:bg-[linear-gradient(180deg,rgb(245_241_232/.95)_0%,rgb(245_241_232/.7)_55%,rgb(245_241_232/0)_85%)]" />
+              <div className="hero-copy relative z-[3] px-[clamp(20px,4vw,64px)] pt-[clamp(32px,7vh,96px)]">
+                <p className="label mb-6 text-[var(--ink)]/70">
+                  {t("landing.hero.eyebrow")}
+                </p>
+                <h1 className="serif fs-hero max-w-[13ch]">
+                  {t("landing.hero.title1")} <em>{t("landing.hero.accent")}</em>{" "}
+                  {t("landing.hero.title2")}
+                </h1>
+                <p className="fs-lead mt-6 max-w-[46ch] text-[var(--ink)]/80">
+                  {t("landing.hero.lead")}
+                </p>
+                <div className="mt-8 flex flex-wrap items-center gap-6">
+                  <Pill href={SIGNUP}>{t("landing.hero.cta")}</Pill>
+                  <a href="#product" className="link text-[15px]">
+                    {t("landing.hero.secondary")}
+                  </a>
+                </div>
+              </div>
+              <div className="hero-laptop absolute inset-x-0 bottom-[-4%] z-[4] mx-auto w-[min(86%,980px)] sm:w-[min(62%,980px)]">
+                <DeviceLaptop>
+                  <DashboardMock />
+                </DeviceLaptop>
+              </div>
+              <p className="absolute right-5 bottom-4 z-[3] text-[12px] text-[var(--paper)]/80 max-sm:hidden">
+                {PAINTINGS.harvesters.artist},{" "}
+                <em>{PAINTINGS.harvesters.title}</em>,{" "}
+                {PAINTINGS.harvesters.year}
+              </p>
             </div>
           </div>
         </section>
 
-        {/* ---- module marquee ---- */}
-        <div className="mt-16 overflow-hidden border-y border-white/10 py-5">
-          <div className="anim-marquee flex w-max gap-10 whitespace-nowrap">
-            {[...modules, ...modules].map((m, i) => (
-              <span key={i} className="micro flex items-center gap-10 text-[var(--cream)]/50">
-                {t(`landing.modules.${m}`)} <span className="text-[var(--lime)]">✳</span>
-              </span>
-            ))}
+        {/* ---- made for ---- */}
+        <section className="wrap mt-[clamp(72px,9vw,128px)]">
+          <div className="rule grid gap-6 pt-8 md:grid-cols-[180px_1fr]">
+            <p className="label soft">{t("landing.audience.label")}</p>
+            <ul className="serif flex flex-wrap gap-x-8 gap-y-2 text-[clamp(24px,2.6vw,36px)]">
+              {audiences.map((a) => (
+                <li key={a}>{t(`landing.audience.${a}`)}</li>
+              ))}
+            </ul>
           </div>
-        </div>
+        </section>
 
-        {/* ---- statement ---- */}
-        <section className="wrap section">
-          <p className="micro mb-8 text-[var(--cream)]/45">{t("landing.statement.label")}</p>
-          <Lit text={t("landing.statement.text")} className="display fs-h2 max-w-[22ch]" />
+        {/* ---- statement with an inline pill ---- */}
+        <section className="wrap section text-center">
+          <p className="serif fs-h2 reveal mx-auto max-w-[18ch] leading-[1.05]">
+            {t("landing.statement.before")}{" "}
+            <a href="#modules" className="pill inline-pill">
+              <span>{t("landing.statement.pill")}</span>
+              <ArrowUpRightIcon
+                className="size-[0.32em] min-w-4"
+                strokeWidth={2}
+              />
+            </a>{" "}
+            {t("landing.statement.after")}
+          </p>
         </section>
 
         {/* ---- features ---- */}
-        <section id="product" className="bg-[var(--cream)] text-[var(--ink)]">
-          <div className="wrap section grid gap-[clamp(96px,12vw,160px)]">
-            <div>
-              <p className="micro mb-6 text-[var(--ink)]/50">{t("landing.product.label")}</p>
-              <h2 className="display fs-h2 reveal max-w-[15ch]">
-                {t("landing.product.title")} <span className="accent text-[var(--moss)]">{t("landing.product.accent")}</span>
+        <section
+          id="product"
+          className="wrap grid gap-[clamp(88px,11vw,160px)] pb-[clamp(96px,12vw,176px)]"
+        >
+          {features.map((f, i) => (
+            <article
+              key={f.key}
+              className="rule grid items-start gap-10 pt-10 md:grid-cols-12"
+            >
+              <div className="reveal md:col-span-4">
+                <p className="label soft mb-6">
+                  {String(i + 1).padStart(2, "0")} ·{" "}
+                  {t(`landing.features.${f.key}.label`)}
+                </p>
+                <h3 className="serif fs-h3 mb-5">
+                  {t(`landing.features.${f.key}.title`)}
+                </h3>
+                <p className="soft mb-7">
+                  {t(`landing.features.${f.key}.text`)}
+                </p>
+                <ul className="grid text-[15px]">
+                  {(["b1", "b2", "b3"] as const).map((b) => (
+                    <li key={b} className="rule py-2.5">
+                      {t(`landing.features.${f.key}.${b}`)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="reveal md:col-span-8">
+                {f.painting ? (
+                  <Painting
+                    k={f.painting}
+                    sizes="(min-width: 768px) 820px, 100vw"
+                    className="aspect-[4/3] md:aspect-[16/11]"
+                    position="40% 60%"
+                  >
+                    <div className="absolute top-[8%] right-[9%] z-[2] w-[min(28%,210px)]">
+                      <DevicePhone>
+                        <ScannerMock />
+                      </DevicePhone>
+                    </div>
+                  </Painting>
+                ) : (
+                  <div className="rounded-[10px] bg-[var(--paper-2)] p-[clamp(16px,3vw,44px)]">
+                    {f.mock}
+                  </div>
+                )}
+              </div>
+            </article>
+          ))}
+        </section>
+
+        {/* ---- manifesto ---- */}
+        <section className="bg-[var(--ink)] text-[var(--paper)]">
+          <div className="wrap section grid items-center gap-[clamp(40px,7vw,112px)] md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+            <figure className="reveal mx-auto grid w-full max-w-[460px] gap-3">
+              <div className="painting aspect-[1712/2200] rounded-[4px] ring-1 ring-white/10">
+                <Image
+                  src={PAINTINGS.turf.src}
+                  alt={`${PAINTINGS.turf.artist}, ${PAINTINGS.turf.title}`}
+                  fill
+                  sizes="460px"
+                  className="object-cover"
+                />
+              </div>
+              <figcaption className="text-[12px] text-[var(--paper)]/55">
+                {PAINTINGS.turf.artist}, <em>{PAINTINGS.turf.title}</em>,{" "}
+                {PAINTINGS.turf.year}
+              </figcaption>
+            </figure>
+            <div className="reveal">
+              <p className="label mb-8 text-[var(--paper)]/55">
+                {t("landing.manifesto.label")}
+              </p>
+              <h2 className="serif fs-h2 mb-8">
+                {t("landing.manifesto.title1")}{" "}
+                <em>{t("landing.manifesto.accent")}</em>
               </h2>
+              <div className="grid max-w-[52ch] gap-5 text-[17px] text-[var(--paper)]/75">
+                <p>{t("landing.manifesto.p1")}</p>
+                <p>{t("landing.manifesto.p2")}</p>
+              </div>
             </div>
-            {features.map((f, i) => (
-              <article key={f.key} className="grid items-center gap-10 md:grid-cols-12">
-                <div className={`reveal md:col-span-5 ${i % 2 ? "md:order-2 md:col-start-8" : ""}`}>
-                  <p className="micro mb-4 text-[var(--ink)]/45">
-                    0{i + 1} — {t(`landing.features.${f.key}.label`)}
-                  </p>
-                  <h3 className="display fs-h3 mb-4 !leading-[1.05]">{t(`landing.features.${f.key}.title`)}</h3>
-                  <p className="mb-6 max-w-[48ch] text-[var(--ink)]/70">{t(`landing.features.${f.key}.text`)}</p>
-                  <ul className="grid gap-2">
-                    {(["b1", "b2", "b3"] as const).map((b) => (
-                      <li key={b} className="flex items-start gap-3 border-t border-[var(--ink)]/10 pt-2 text-[15px]">
-                        <span className="mt-1.5 size-2 shrink-0 rounded-full bg-[var(--moss)]" />
-                        {t(`landing.features.${f.key}.${b}`)}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className={`grain ${f.bg} reveal overflow-hidden rounded-[28px] p-[clamp(20px,4vw,56px)] md:col-span-7 ${i % 2 ? "md:order-1 md:col-start-1" : ""}`}>
-                  <div className="relative z-[2]">{f.mock}</div>
-                </div>
-              </article>
-            ))}
           </div>
         </section>
 
-        {/* ---- who ---- */}
-        <section id="who" className="wrap section">
-          <p className="micro mb-6 text-[var(--cream)]/45">{t("landing.who.label")}</p>
-          <h2 className="display fs-h2 reveal mb-14 max-w-[16ch]">
-            {t("landing.who.title")} <span className="accent text-[var(--lime)]">{t("landing.who.accent")}</span>
-          </h2>
-          <div className="grid gap-4 md:grid-cols-3">
-            {(["clubs", "promoters", "small"] as const).map((k, i) => (
-              <div key={k} className="reveal flex min-h-[360px] flex-col justify-between rounded-[28px] bg-[var(--cream)] p-7 text-[var(--ink)]">
-                <div className="flex items-start justify-between">
-                  <span className="micro text-[var(--ink)]/45">0{i + 1}</span>
-                  <span className="text-3xl">{["🌱", "🎛️", "🧵"][i]}</span>
-                </div>
-                <div>
-                  <h3 className="display fs-h3 mb-3">{t(`landing.who.${k}.title`)}</h3>
-                  <p className="text-[15px] text-[var(--ink)]/70">{t(`landing.who.${k}.text`)}</p>
-                </div>
+        {/* ---- modules table ---- */}
+        <section id="modules" className="wrap section">
+          <div className="mb-14 grid gap-6 md:grid-cols-2 md:items-end">
+            <h2 className="serif fs-h2 reveal">
+              {t("landing.modulesSection.title")}
+            </h2>
+            <p className="reveal soft max-w-[44ch] md:justify-self-end">
+              {t("landing.modulesSection.text")}
+            </p>
+          </div>
+          <dl className="border-b border-[var(--line)]">
+            {modules.map((m, i) => (
+              <div
+                key={m}
+                className="reveal rule grid gap-2 py-5 sm:grid-cols-[64px_minmax(0,1fr)_minmax(0,1.4fr)] sm:items-baseline sm:gap-8"
+              >
+                <span className="label text-[var(--umber)]">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <dt className="serif text-[clamp(24px,2.4vw,32px)] leading-tight">
+                  {t(`landing.modules.${m}.name`)}
+                </dt>
+                <dd className="soft">{t(`landing.modules.${m}.text`)}</dd>
               </div>
             ))}
-          </div>
+          </dl>
         </section>
 
-        {/* ---- trust ---- */}
-        <section className="border-y border-white/10">
-          <div className="wrap grid gap-px py-2 sm:grid-cols-2 lg:grid-cols-4">
+        {/* ---- for clubs & promoters ---- */}
+        <section className="wrap pb-[clamp(96px,12vw,176px)]">
+          <Painting
+            k="galette"
+            sizes="(min-width: 1280px) 1280px, 100vw"
+            className="aspect-[4/5] sm:aspect-[16/8]"
+            position="50% 40%"
+          >
+            <div className="absolute inset-x-4 bottom-4 z-[2] max-w-[460px] rounded-[10px] bg-[var(--paper)] p-6 sm:inset-x-auto sm:bottom-8 sm:left-8 sm:p-8">
+              <p className="label soft mb-4">{t("landing.events.label")}</p>
+              <h3 className="serif fs-h3 mb-4">{t("landing.events.title")}</h3>
+              <p className="soft mb-6 text-[15px]">
+                {t("landing.events.text")}
+              </p>
+              <Pill href={SIGNUP}>{t("landing.hero.cta")}</Pill>
+            </div>
+          </Painting>
+        </section>
+
+        {/* ---- principles ---- */}
+        <section className="wrap pb-[clamp(96px,12vw,176px)]">
+          <div className="grid gap-x-10 sm:grid-cols-2 lg:grid-cols-4">
             {(["gdpr", "data", "easy", "berlin"] as const).map((k) => (
-              <div key={k} className="reveal py-8 pr-6">
-                <p className="display mb-2 text-xl">{t(`landing.trust.${k}.title`)}</p>
-                <p className="text-sm text-[var(--cream)]/60">{t(`landing.trust.${k}.text`)}</p>
+              <div key={k} className="reveal rule py-7">
+                <p className="serif mb-2 text-[26px] leading-tight">
+                  {t(`landing.trust.${k}.title`)}
+                </p>
+                <p className="soft text-[15px]">
+                  {t(`landing.trust.${k}.text`)}
+                </p>
               </div>
             ))}
           </div>
         </section>
 
         {/* ---- pricing ---- */}
-        <section id="pricing" className="wrap section">
-          <div className="grain grad-dusk overflow-hidden rounded-[28px] p-[clamp(28px,6vw,80px)]">
-            <div className="relative z-[2] grid items-end gap-10 md:grid-cols-[1.4fr_1fr]">
+        <section id="pricing" className="wrap pb-[clamp(96px,12vw,176px)]">
+          <div className="grid overflow-hidden rounded-[14px] border border-[var(--line)] md:grid-cols-[1.3fr_1fr]">
+            <div className="p-[clamp(28px,5vw,64px)]">
+              <p className="label soft mb-8">{t("landing.pricing.label")}</p>
+              <h2 className="serif fs-h2 mb-6">
+                {t("landing.pricing.title")}{" "}
+                <em>{t("landing.pricing.accent")}</em>
+              </h2>
+              <p className="fs-lead soft max-w-[42ch]">
+                {t("landing.pricing.text")}
+              </p>
+            </div>
+            <div className="flex flex-col justify-between gap-8 bg-[var(--paper-2)] p-[clamp(28px,5vw,64px)]">
               <div>
-                <p className="micro mb-6 text-white/60">{t("landing.pricing.label")}</p>
-                <h2 className="display fs-h2 mb-6 max-w-[14ch]">
-                  {t("landing.pricing.title")} <span className="accent">{t("landing.pricing.accent")}</span>
-                </h2>
-                <p className="fs-lead max-w-[44ch] text-white/75">{t("landing.pricing.text")}</p>
+                <p className="label soft">{t("landing.pricing.planLabel")}</p>
+                <p className="serif mt-3 text-[88px] leading-none">0 €</p>
+                <p className="soft mt-3 text-[15px]">
+                  {t("landing.pricing.planText")}
+                </p>
               </div>
-              <div className="rounded-[22px] bg-[var(--ink)]/70 p-7 backdrop-blur">
-                <p className="micro text-white/55">{t("landing.pricing.planLabel")}</p>
-                <p className="display my-3 text-6xl">0 €</p>
-                <p className="mb-6 text-sm text-white/65">{t("landing.pricing.planText")}</p>
-                <Cta href={SIGNUP}>{t("landing.hero.cta")}</Cta>
+              <ul className="grid text-[15px]">
+                {(["f1", "f2", "f3"] as const).map((f) => (
+                  <li key={f} className="rule py-2.5">
+                    {t(`landing.pricing.${f}`)}
+                  </li>
+                ))}
+              </ul>
+              <div>
+                <Pill href={SIGNUP}>{t("landing.hero.cta")}</Pill>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ---- final CTA ---- */}
-        <section className="wrap pb-[clamp(96px,12vw,180px)]">
-          <a href={SIGNUP} className="group block">
-            <p className="micro mb-4 text-[var(--cream)]/45">{t("landing.final.label")}</p>
-            <div className="display fs-giant flex flex-wrap items-end justify-between gap-x-8 leading-[0.85]">
-              <span>{t("landing.final.title")}</span>
-              <ArrowUpRightIcon className="size-[0.8em] text-[var(--pink)] transition-transform duration-500 group-hover:translate-x-3 group-hover:-translate-y-3" strokeWidth={1.6} />
+        {/* ---- FAQ (centered) ---- */}
+        <section id="faq" className="wrap pb-[clamp(96px,12vw,176px)]">
+          <div className="mx-auto max-w-[760px]">
+            <h2 className="serif fs-h2 mb-12 text-center">
+              {t("landing.faq.title")}
+            </h2>
+            <div className="border-b border-[var(--line)]">
+              {faqs.map((q) => (
+                <details key={q} className="rule py-5">
+                  <summary className="flex items-start justify-between gap-6 text-[18px]">
+                    {t(`landing.faq.${q}.q`)}
+                    <PlusIcon className="plus soft mt-1 size-5 shrink-0" />
+                  </summary>
+                  <p className="soft mt-3 max-w-[60ch]">
+                    {t(`landing.faq.${q}.a`)}
+                  </p>
+                </details>
+              ))}
             </div>
-          </a>
+          </div>
+        </section>
+
+        {/* ---- final CTA ---- */}
+        <section className="wrap text-center">
+          <p className="serif fs-h2 rule section leading-[1.05]">
+            {t("landing.final.before")}{" "}
+            <a href={SIGNUP} className="pill inline-pill">
+              <span>{t("landing.final.pill")}</span>
+              <ArrowUpRightIcon
+                className="size-[0.32em] min-w-4"
+                strokeWidth={2}
+              />
+            </a>
+          </p>
         </section>
       </div>
 
       {/* ---- footer, revealed underneath ---- */}
-      <footer className="sticky bottom-0 z-0 h-[min(100svh,880px)] overflow-hidden">
-        <FooterScene className="absolute inset-0 size-full" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[var(--ink)]/10 via-transparent to-[var(--ink)]/70" />
+      <footer className="sticky bottom-0 z-0 h-[min(100svh,860px)] overflow-hidden bg-[var(--ink)] text-[var(--paper)]">
+        <Image
+          src={PAINTINGS.pastoral.src}
+          alt={`${PAINTINGS.pastoral.artist}, ${PAINTINGS.pastoral.title}`}
+          fill
+          sizes="100vw"
+          className="object-cover opacity-90 [filter:saturate(.9)_contrast(1.03)]"
+          style={{ objectPosition: "50% 45%" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[var(--ink)]/55 via-[var(--ink)]/10 to-[var(--ink)]/80" />
         <div className="wrap relative flex h-full flex-col justify-between py-10">
-          <div className="flex flex-wrap justify-between gap-8 text-sm">
-            <p className="max-w-[34ch] text-[var(--cream)]/85">{t("landing.footer.claim")}</p>
-            <div className="flex gap-12">
-              <ul className="grid gap-1.5">
-                <li className="micro mb-1 text-[var(--cream)]/55">{t("landing.footer.product")}</li>
-                {(["product", "who", "pricing"] as const).map((k) => (
-                  <li key={k}>
-                    <a href={`#${k}`} className="hover:text-[var(--lime)]">
-                      {t(`landing.nav.${k}`)}
-                    </a>
-                  </li>
-                ))}
+          <div className="flex flex-wrap justify-between gap-10 text-[14px]">
+            <p className="max-w-[36ch] text-[var(--paper)]/85">
+              {t("landing.footer.claim")}
+            </p>
+            <div className="flex gap-14">
+              <ul className="grid content-start gap-2">
+                <li className="label mb-1 text-[var(--paper)]/55">
+                  {t("landing.footer.product")}
+                </li>
+                {(["product", "modules", "pricing", "faq"] as const).map(
+                  (k) => (
+                    <li key={k}>
+                      <a href={`#${k}`} className="hover:underline">
+                        {t(`landing.nav.${k}`)}
+                      </a>
+                    </li>
+                  ),
+                )}
               </ul>
-              <ul className="grid content-start gap-1.5">
-                <li className="micro mb-1 text-[var(--cream)]/55">{t("landing.footer.account")}</li>
+              <ul className="grid content-start gap-2">
+                <li className="label mb-1 text-[var(--paper)]/55">
+                  {t("landing.footer.account")}
+                </li>
                 <li>
-                  <a href={APP} className="hover:text-[var(--lime)]">
+                  <a href={APP} className="hover:underline">
                     {t("landing.nav.login")}
                   </a>
                 </li>
                 <li>
-                  <a href={SIGNUP} className="hover:text-[var(--lime)]">
+                  <a href={SIGNUP} className="hover:underline">
                     {t("landing.nav.start")}
                   </a>
                 </li>
                 <li>
-                  <a href="/api/docs" className="hover:text-[var(--lime)]">
+                  <a href="/api/docs" className="hover:underline">
                     API
                   </a>
                 </li>
@@ -258,16 +516,39 @@ export default async function Landing() {
             </div>
           </div>
           <div>
-            <p className="display text-[clamp(96px,26vw,380px)] leading-[0.78] tracking-[-0.06em]">
-              roots<span className="text-[var(--lime)]">.</span>
+            <p className="serif text-[clamp(110px,24vw,340px)] leading-[0.8]">
+              roots
             </p>
-            <p className="micro mt-4 flex flex-wrap justify-between gap-4 text-[var(--cream)]/60">
+            <div className="mt-6 flex flex-wrap justify-between gap-4 text-[12px] text-[var(--paper)]/60">
               <span>{t("landing.footer.grassroots")}</span>
-              <span>© roots · Berlin</span>
-            </p>
+              <span>
+                {t("landing.footer.paintings")}{" "}
+                {(
+                  [
+                    "harvesters",
+                    "dance",
+                    "turf",
+                    "galette",
+                    "pastoral",
+                  ] as const
+                ).map((k, i) => (
+                  <span key={k}>
+                    {i > 0 && " · "}
+                    <a
+                      href={PAINTINGS[k].source}
+                      className="hover:underline"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {PAINTINGS[k].artist}
+                    </a>
+                  </span>
+                ))}
+              </span>
+            </div>
           </div>
         </div>
       </footer>
     </>
-  )
+  );
 }

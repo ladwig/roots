@@ -2094,141 +2094,209 @@
   "landing": {
     "meta": {
       "title": "roots – Software für alle, die von unten etwas aufbauen",
-      "description": "Mitglieder, Tickets, Schichten, Rechnungen, Formulare und E-Mails für Vereine, Kollektive und Veranstalter:innen. Ein Ort statt zehn Tools."
+      "description": "Mitglieder, Beiträge, Tickets, Schichten, Rechnungen, Formulare und E-Mails für Vereine, Kollektive und Veranstalter:innen. Ein Ort statt zehn Tools."
     },
     "nav": {
       "product": "Produkt",
-      "who": "Für wen",
+      "modules": "Module",
       "pricing": "Preise",
+      "faq": "Fragen",
       "login": "Anmelden",
       "start": "Kostenlos starten"
     },
     "hero": {
-      "eyebrow": "Für Vereine, Kollektive & Veranstalter:innen",
+      "eyebrow": "Für Vereine, Kollektive und Veranstalter:innen",
       "title1": "Software für alle, die",
       "accent": "von unten",
       "title2": "etwas aufbauen.",
-      "lead": "Mitglieder, Tickets, Schichten, Rechnungen und E-Mails – an einem Ort. Damit eure Zeit wieder in das fließt, wofür ihr angefangen habt.",
+      "lead": "Mitglieder und Beiträge, Tickets und Einlass, Schichten, Rechnungen und E-Mails – an einem Ort, sauber gelöst. Damit eure Zeit wieder in die Sache fließt, nicht in die Verwaltung.",
       "cta": "Kostenlos starten",
-      "secondary": "So sieht's aus"
+      "secondary": "Produkt ansehen"
     },
-    "modules": {
-      "crm": "Kontakte",
-      "members": "Mitglieder",
-      "events": "Events",
-      "tickets": "Tickets",
-      "guestlists": "Gästelisten",
-      "shifts": "Schichten",
-      "forms": "Formulare",
-      "email": "E-Mail",
-      "invoices": "Rechnungen",
-      "files": "Dateien",
-      "portal": "Mitgliederbereich",
-      "api": "Offene API"
+    "audience": {
+      "label": "Gemacht für",
+      "a1": "Sportvereine",
+      "a2": "Kulturvereine",
+      "a3": "Clubs",
+      "a4": "Festivals",
+      "a5": "Kollektive",
+      "a6": "Initiativen"
     },
     "statement": {
-      "label": "Warum roots",
-      "text": "Grassroots heißt: Menschen organisieren sich selbst. Bisher mit fünf Tools, drei Excel-Tabellen und einem Ordner im Vereinsheim. Ab jetzt mit einem Ort, der mitwächst."
-    },
-    "product": {
-      "label": "Produkt",
-      "title": "Alles, was ihr täglich macht.",
-      "accent": "Nur einfacher."
+      "before": "Eine Software",
+      "pill": "Alle Module",
+      "after": "für die ganze Arbeit dahinter."
     },
     "features": {
       "members": {
         "label": "Mitglieder",
-        "title": "Mitglieder & Beiträge, ohne Kassenwart-Albtraum.",
-        "text": "Mitgliedsarten, Nummern, Ein- und Austritte, SEPA-Mandate. Beiträge entstehen von selbst, die Lastschriftdatei ist ein Klick.",
-        "b1": "Import aus Excel oder der alten Vereinssoftware",
-        "b2": "SEPA-Lastschrift für dein Online-Banking",
-        "b3": "Mitgliederbereich: Daten ändern, kündigen – ohne E-Mail-Pingpong"
+        "title": "Mitglieder und Beiträge, ohne Zettelwirtschaft.",
+        "text": "Mitgliedsarten, Nummern, Ein- und Austritte, SEPA-Mandate. Beiträge entstehen aus den Regeln, die Lastschriftdatei ist ein Klick.",
+        "b1": "Import aus Excel oder der bisherigen Vereinssoftware",
+        "b2": "SEPA-Lastschrift im Format eurer Bank",
+        "b3": "Mitgliederbereich für Adresse, Bankdaten und Kündigung"
       },
       "tickets": {
-        "label": "Tickets & Einlass",
-        "title": "Tickets verkaufen, Einlass in Sekunden.",
-        "text": "Ticketarten, Preisstufen, Rabattcodes. Bezahlt wird über dein eigenes Stripe- oder SumUp-Konto, gescannt mit jedem Handy.",
+        "label": "Tickets und Einlass",
+        "title": "Verkaufen, einlassen, abrechnen.",
+        "text": "Ticketarten, Preisstufen und Rabattcodes. Das Geld geht direkt auf euer Stripe- oder SumUp-Konto, der Einlass läuft über jedes Handy.",
         "b1": "QR-Tickets als PDF und per E-Mail",
-        "b2": "Scanner funktioniert auch offline",
+        "b2": "Scanner, der auch ohne Netz funktioniert",
         "b3": "Gästelisten und Artists am selben Einlass"
       },
       "shifts": {
         "label": "Schichten",
-        "title": "Schichtpläne, die sich fast selbst füllen.",
-        "text": "Plane Tresen, Einlass oder Training im Kalender. Dein Team trägt sich selbst ein, Stunden zählen von allein.",
-        "b1": "Ziehen, ablegen, fertig",
-        "b2": "Wiederkehrende Schichten, z. B. jeden zweiten Donnerstag",
+        "title": "Dienstpläne, die sich selbst füllen.",
+        "text": "Tresen, Einlass, Aufbau oder Training im Kalender planen. Das Team trägt sich ein, Stunden werden mitgezählt.",
+        "b1": "Planen per Ziehen und Ablegen",
+        "b2": "Wiederkehrende Schichten, etwa jeden zweiten Donnerstag",
         "b3": "Check-in und Stundenkonto"
       },
       "forms": {
-        "label": "Formulare & E-Mail",
-        "title": "Vom Antrag bis zur Willkommensmail.",
-        "text": "Baue Formulare aus deinen eigenen Feldern, nimm Anträge mit einem Klick an und schick Newsletter oder automatische E-Mails – über dein eigenes Postfach.",
+        "label": "Formulare und E-Mail",
+        "title": "Vom Antrag bis zur Begrüßung.",
+        "text": "Formulare aus euren eigenen Feldern, Anträge mit einem Klick annehmen, Newsletter und automatische E-Mails über euer eigenes Postfach.",
         "b1": "Mitgliedsantrag mit SEPA-Mandat",
-        "b2": "Newsletter an Tags oder alle Mitglieder",
-        "b3": "Automationen: Willkommen, Erinnerung, Serie"
+        "b2": "Newsletter an Gruppen oder alle Mitglieder",
+        "b3": "Automationen für Willkommen, Erinnerung und Serien"
       },
       "invoices": {
         "label": "Rechnungen",
-        "title": "Rechnungen, die das Finanzamt mag.",
-        "text": "Angebote und Rechnungen nach deutschen Regeln: lückenlose Nummern, Kleinunternehmer, Storno statt Löschen, PDF auf Knopfdruck.",
-        "b1": "Nummernkreise und Pflichtangaben",
-        "b2": "Angebot wird mit einem Klick zur Rechnung",
+        "title": "Rechnungen nach deutschen Regeln.",
+        "text": "Angebote und Rechnungen mit lückenlosen Nummern, Pflichtangaben und Kleinunternehmerregelung. Korrigiert wird per Storno, nicht per Löschen.",
+        "b1": "Nummernkreise pro Belegart",
+        "b2": "Aus dem Angebot wird mit einem Klick die Rechnung",
         "b3": "PDF, Druck und Export für die Buchhaltung"
       }
     },
-    "who": {
-      "label": "Für wen",
-      "title": "Gemacht für die, die",
-      "accent": "anpacken.",
-      "clubs": {
-        "title": "Vereine",
-        "text": "Sport, Kultur, Garten, Musik: Mitglieder, Beiträge, Schichten fürs Vereinsfest und der Newsletter an alle."
+    "manifesto": {
+      "label": "Warum roots",
+      "title1": "Grassroots heißt:",
+      "accent": "selbst organisiert.",
+      "p1": "Die meisten Vereine, Clubs und Initiativen werden von Menschen getragen, die das neben Beruf und Familie machen. Ihre Werkzeuge sind ein Ordner im Vereinsheim, drei Excel-Tabellen und fünf Abos, die nicht miteinander reden.",
+      "p2": "roots ist für sie gebaut: ein Ort für Mitglieder, Geld, Events und Kommunikation. Klar genug für den ehrenamtlichen Vorstand, gründlich genug für das Finanzamt."
+    },
+    "modulesSection": {
+      "title": "Alle Module",
+      "text": "Jede Organisation schaltet ein, was sie braucht. Alles arbeitet zusammen: ein Kontakt ist zugleich Mitglied, Ticketkäufer und Empfänger."
+    },
+    "modules": {
+      "crm": {
+        "name": "Kontakte",
+        "text": "Alle Menschen an einem Ort, mit Tags, eigenen Feldern, Notizen und Import."
       },
-      "promoters": {
-        "title": "Clubs & Veranstalter:innen",
-        "text": "Tickets, Gästelisten, Line-up, Timetable und Einlass – von der Ankündigung bis zur letzten Schicht."
+      "members": {
+        "name": "Mitglieder",
+        "text": "Mitgliedsarten, Nummern, Beiträge, SEPA-Lastschrift und Mahnungen."
       },
-      "small": {
-        "title": "Kollektive & kleine Betriebe",
-        "text": "Kontakte, Angebote, Rechnungen und Formulare für alle, die mehr machen als Verwaltung."
+      "events": {
+        "name": "Events",
+        "text": "Veranstaltungen mit eigener öffentlicher Seite, Line-up und Timetable."
+      },
+      "tickets": {
+        "name": "Tickets",
+        "text": "Verkauf über euer Zahlungskonto, QR-Tickets und Einlass per Handy."
+      },
+      "guestlists": {
+        "name": "Gästelisten",
+        "text": "Listen pro Event oder dauerhaft, mit Links für Promoter und Artists."
+      },
+      "shifts": {
+        "name": "Schichten",
+        "text": "Dienstpläne, Positionen, Orte, Selbsteintragung und Stundenkonto."
+      },
+      "forms": {
+        "name": "Formulare",
+        "text": "Eigene Formulare und Mitgliedsanträge, Einsendungen landen im CRM."
+      },
+      "email": {
+        "name": "E-Mail",
+        "text": "Newsletter, Automationen und Serien über euren eigenen Versand."
+      },
+      "invoices": {
+        "name": "Rechnungen",
+        "text": "Angebote, Rechnungen und Stornos nach deutschen Vorgaben."
+      },
+      "files": {
+        "name": "Dateien",
+        "text": "Dokumente an jedem Datensatz, privat gespeichert pro Organisation."
+      },
+      "portal": {
+        "name": "Mitgliederbereich",
+        "text": "Mitglieder sehen und ändern ihre Daten selbst, per Link statt Passwort."
+      },
+      "api": {
+        "name": "Offene API",
+        "text": "Schnittstelle und Export für alles, was ihr anbinden wollt."
       }
+    },
+    "events": {
+      "label": "Für Clubs und Veranstalter:innen",
+      "title": "Von der Ankündigung bis zur letzten Schicht.",
+      "text": "Tickets, Gästelisten, Line-up, Einlass und Dienstplan greifen ineinander. Wer an der Tür steht, sieht alles auf einem Handy."
     },
     "trust": {
       "gdpr": {
-        "title": "DSGVO, EU-Server",
-        "text": "Deine Daten liegen in Europa und bleiben deine."
+        "title": "DSGVO und EU-Server",
+        "text": "Eure Daten liegen in Europa und gehören euch."
       },
       "data": {
-        "title": "Keine Sackgasse",
+        "title": "Kein Lock-in",
         "text": "Export als Excel jederzeit, offene API für alles Weitere."
       },
       "easy": {
         "title": "Ohne Schulung",
-        "text": "Wer WhatsApp kann, kann roots. Am Handy wie am Laptop."
+        "text": "Klar aufgebaut, am Handy wie am Laptop."
       },
       "berlin": {
         "title": "Aus Berlin",
-        "text": "Gebaut mit Vereinen und Clubs, nicht für eine Konzernabteilung."
+        "text": "Gebaut zusammen mit Vereinen und Clubs."
       }
     },
     "pricing": {
       "label": "Preise",
       "title": "Kostenlos starten.",
       "accent": "Fair bleiben.",
-      "text": "Während der Beta ist roots kostenlos. Danach zahlt ihr pro Modul, das ihr wirklich nutzt – nicht pro Kopf und nicht pro Mitglied.",
+      "text": "Während der Beta ist roots kostenlos. Danach zahlt ihr pro Modul, das ihr nutzt – nicht pro Kopf und nicht pro Mitglied.",
       "planLabel": "Beta",
-      "planText": "Alle Module, keine Kreditkarte, jederzeit exportieren."
+      "planText": "Alle Module, ohne Kreditkarte.",
+      "f1": "Alle Module inklusive",
+      "f2": "Unbegrenzt Mitglieder und Kontakte",
+      "f3": "Export und API jederzeit"
+    },
+    "faq": {
+      "title": "Fragen",
+      "q1": {
+        "q": "Für wen ist roots gedacht?",
+        "a": "Für Vereine, Clubs, Festivals, Kollektive und kleine Organisationen, die Mitglieder, Events oder Geld verwalten und dafür bisher mehrere Tools brauchen."
+      },
+      "q2": {
+        "q": "Wo liegen unsere Daten?",
+        "a": "Auf Servern in der EU. Jede Organisation ist streng von anderen getrennt, und ihr könnt alles jederzeit exportieren."
+      },
+      "q3": {
+        "q": "Können wir aus Excel oder unserer alten Software umziehen?",
+        "a": "Ja. Kontakte und Mitglieder lassen sich per CSV importieren, inklusive Mitgliedsnummern und Bankdaten. Die Spalten ordnet roots selbst zu."
+      },
+      "q4": {
+        "q": "Wie kommt das Geld aus dem Ticketverkauf zu uns?",
+        "a": "Direkt auf euer eigenes Stripe- oder SumUp-Konto. roots hält kein Geld. Beiträge zieht ihr per SEPA-Datei über eure eigene Bank ein."
+      },
+      "q5": {
+        "q": "Was kostet roots nach der Beta?",
+        "a": "Ihr zahlt pro Modul, das ihr nutzt. Die Preise stehen vor dem Ende der Beta fest, niemand wird ungefragt umgestellt."
+      }
     },
     "final": {
-      "label": "Bereit?",
-      "title": "Leg los."
+      "before": "Fangt heute an.",
+      "pill": "Kostenlos starten"
     },
     "footer": {
-      "claim": "roots ist Software für die Basis: für alle, die sich selbst organisieren und etwas aufbauen – ehrenamtlich, gemeinsam, von unten.",
+      "claim": "roots ist Software für die Basis: für alle, die sich selbst organisieren und gemeinsam etwas aufbauen.",
       "product": "Produkt",
       "account": "Konto",
-      "grassroots": "Grassroots. Wie die Bewegung."
+      "grassroots": "Grassroots – wie die Bewegung. © roots, Berlin",
+      "paintings": "Gemälde (gemeinfrei):"
     }
   }
 }

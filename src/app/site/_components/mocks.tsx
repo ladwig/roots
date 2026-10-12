@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 const delay = (s: number) => ({ animationDelay: `${s}s` })
 
 function Badge({ children, tone = "moss" }: { children: React.ReactNode; tone?: "moss" | "lime" | "gray" | "pink" }) {
-  const tones = { moss: "bg-[#14532d]/10 text-[#14532d]", lime: "bg-[#d4f25c] text-[#0c0d0b]", gray: "bg-black/5 text-black/55", pink: "bg-[#ff4fd8]/15 text-[#a3168a]" }
+  const tones = { moss: "bg-[#14532d]/10 text-[#14532d]", lime: "bg-[#dfe7c6] text-[#0c0d0b]", gray: "bg-black/5 text-black/55", pink: "bg-[#ff4fd8]/15 text-[#a3168a]" }
   return <span className={cn("inline-flex h-[1.6em] items-center rounded-full px-[0.7em] text-[0.82em] font-medium whitespace-nowrap", tones[tone])}>{children}</span>
 }
 
@@ -35,9 +35,9 @@ export function DashboardMock() {
         <div className="flex items-center justify-between">
           <div>
             <div className="text-black/45">Montag, 12. Oktober</div>
-            <div className="text-[1.6em] font-semibold tracking-tight">Guten Morgen 👋</div>
+            <div className="text-[1.6em] font-semibold tracking-tight">Guten Morgen</div>
           </div>
-          <span className="rounded-full bg-[#d4f25c] px-[0.9em] py-[0.4em] font-medium">+ Neu</span>
+          <span className="rounded-full bg-[#dfe7c6] px-[0.9em] py-[0.4em] font-medium">+ Neu</span>
         </div>
         <div className="grid grid-cols-3 gap-[0.8em]">
           {[
@@ -111,10 +111,10 @@ export function ScannerMock() {
         <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_45%,#2a2a2a,#0b0b0b)]" />
         <div className="absolute top-[42%] left-1/2 aspect-square w-[64%] -translate-x-1/2 -translate-y-1/2">
           <QrCode />
-          <div className="anim-scan absolute inset-x-[-6%] top-0 h-[3px] rounded-full bg-[#d4f25c] shadow-[0_0_14px_#d4f25c]" />
+          <div className="anim-scan absolute inset-x-[-6%] top-0 h-[3px] rounded-full bg-[#dfe7c6] shadow-[0_0_14px_#b9cf86]" />
           <div className="pointer-events-none absolute -inset-[8%] rounded-2xl border-2 border-white/70 [mask:linear-gradient(#000_0_0)_padding-box_exclude,linear-gradient(#000_0_0)]" />
         </div>
-        <div className="anim-ok absolute inset-x-[0.8em] bottom-[0.8em] rounded-[1.1em] bg-[#d4f25c] p-[0.8em] text-[#0c0d0b]">
+        <div className="anim-ok absolute inset-x-[0.8em] bottom-[0.8em] rounded-[1.1em] bg-[#dfe7c6] p-[0.8em] text-[#0c0d0b]">
           <div className="text-[1.15em] font-semibold">✓ Gültig</div>
           <div className="text-[0.85em] opacity-75">Max Mustermann · Frühbucher</div>
         </div>
@@ -164,7 +164,7 @@ export function MembersMock() {
         ))}
       </div>
       <div className="anim-drop absolute right-[1.4em] bottom-[1.4em] flex items-center gap-[0.6em] rounded-[0.9em] bg-[#0c0d0b] px-[1em] py-[0.8em] text-white shadow-xl" style={delay(1)}>
-        <span className="grid size-[2em] place-items-center rounded-full bg-[#d4f25c] text-[#0c0d0b]">€</span>
+        <span className="grid size-[2em] place-items-center rounded-full bg-[#dfe7c6] text-[#0c0d0b]">€</span>
         <span>
           <span className="block font-medium">SEPA-Datei erstellt</span>
           <span className="text-white/60">212 Lastschriften · 9.540 €</span>
@@ -178,11 +178,11 @@ export function MembersMock() {
 export function ShiftsMock() {
   const days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
   const chips: [number, number, number, string, string][] = [
-    [4, 1, 2, "Tresen", "#d4f25c"],
-    [4, 3, 2, "Einlass", "#ffd3f4"],
+    [4, 1, 2, "Tresen", "#dfe7c6"],
+    [4, 3, 2, "Einlass", "#ecd9c6"],
     [5, 0, 2, "Aufbau", "#cfe6d6"],
-    [5, 2, 3, "Tresen", "#d4f25c"],
-    [5, 3, 2, "Garderobe", "#ffe0c2"],
+    [5, 2, 3, "Tresen", "#dfe7c6"],
+    [5, 3, 2, "Garderobe", "#e6dcc8"],
     [1, 2, 2, "Training", "#cfe6d6"],
   ]
   return (
@@ -242,57 +242,80 @@ export function FormMailMock() {
       </div>
       <div className="anim-drop rounded-[0.9em] bg-[#0c0d0b] p-[1em] text-white" style={delay(2.5)}>
         <div className="text-white/50">Automation · sofort</div>
-        <div className="mb-[0.6em] text-[1.2em] font-semibold">Willkommen, Paula! 🎉</div>
+        <div className="mb-[0.6em] text-[1.2em] font-semibold">Willkommen, Paula</div>
         <p className="text-white/70">Schön, dass du dabei bist. Deine Mitgliedsnummer ist M-0106. Im Mitgliederbereich siehst du jederzeit deine Daten.</p>
-        <div className="mt-[0.8em] inline-block rounded-full bg-[#d4f25c] px-[0.9em] py-[0.35em] text-[#0c0d0b]">Zum Mitgliederbereich</div>
+        <div className="mt-[0.8em] inline-block rounded-full bg-[#dfe7c6] px-[0.9em] py-[0.35em] text-[#0c0d0b]">Zum Mitgliederbereich</div>
       </div>
     </div>
   )
 }
 
-/** Invoice paper. */
-export function InvoiceMock() {
+/** One A4 sheet; text scales with the sheet's width (container units). */
+function Sheet({ kind, number, lines, total, stamp, className, style }: { kind: string; number: string; lines: [string, string][]; total: string; stamp?: string; className?: string; style?: React.CSSProperties }) {
   return (
-    <div className="relative mx-auto aspect-[1/1.41] w-full max-w-[340px] rounded-[6px] bg-white p-[8%] text-[10px] text-[#0c0d0b] shadow-[0_30px_60px_-25px_rgb(0_0_0/.5)]">
-      <div className="flex justify-between">
-        <span className="font-semibold">Kulturverein Süd e.V.</span>
-        <span className="size-6 rounded bg-[#14532d]" />
-      </div>
-      <div className="mt-[14%] text-black/50">Kulturverein Süd e.V. · Weg 1 · 50667 Köln</div>
-      <div className="mt-1 leading-tight">
-        Agentur Nordlicht GmbH
-        <br />
-        Hafenstraße 5, 20457 Hamburg
-      </div>
-      <div className="mt-[10%] text-[15px] font-semibold">Rechnung RE-2026-0042</div>
-      <div className="mt-3 grid gap-1">
-        {[
-          ["Raummiete Saal", "450,00 €"],
-          ["Technik & Betreuung", "280,00 €"],
-          ["Reinigung (pauschal)", "90,00 €"],
-        ].map(([a, b]) => (
-          <div key={a} className="flex justify-between border-b border-black/5 py-1">
-            <span>{a}</span>
-            <span>{b}</span>
+    <div className={cn("absolute aspect-[1/1.414] rounded-[4px] bg-white text-[#191813] shadow-[0_24px_50px_-20px_rgb(0_0_0/.45)] [container-type:inline-size]", className)} style={style}>
+      <div className="flex h-full flex-col p-[9cqi] text-[3.4cqi] leading-[1.45]">
+        <div className="flex items-start justify-between">
+          <span className="font-semibold">Kulturverein Süd e.V.</span>
+          <span className="size-[7cqi] rounded-[1cqi] bg-[#4d5a2c]" />
+        </div>
+        <div className="mt-[12cqi] text-[2.8cqi] text-black/45">Kulturverein Süd e.V. · Weg 1 · 50667 Köln</div>
+        <div className="mt-[1cqi]">Agentur Nordlicht GmbH<br />Hafenstraße 5, 20457 Hamburg</div>
+        <div className="mt-[9cqi] text-[5.6cqi] font-semibold tracking-tight">
+          {kind} {number}
+        </div>
+        <div className="mt-[4cqi] grid">
+          {lines.map(([a, b]) => (
+            <div key={a} className="flex justify-between gap-[3cqi] border-b border-black/[.06] py-[1.6cqi]">
+              <span className="truncate">{a}</span>
+              <span className="whitespace-nowrap tabular-nums">{b}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-[4cqi] ml-auto grid w-[55%] gap-[0.6cqi] whitespace-nowrap tabular-nums">
+          <div className="flex justify-between">
+            <span>Netto</span>
+            <span>{total}</span>
           </div>
-        ))}
+          <div className="flex justify-between text-black/55">
+            <span>USt 19 %</span>
+            <span>155,80 €</span>
+          </div>
+          <div className="flex justify-between font-semibold">
+            <span>Gesamt</span>
+            <span>975,80 €</span>
+          </div>
+        </div>
+        <div className="mt-auto text-[2.6cqi] text-black/40">IBAN DE02 1203 0000 0000 2020 51 · St.-Nr. 214/5678/0912</div>
       </div>
-      <div className="mt-3 ml-auto w-1/2 text-right">
-        <div className="flex justify-between">
-          <span>Netto</span>
-          <span>820,00 €</span>
+      {stamp && (
+        <div className="anim-drop absolute right-[10%] bottom-[16%] rotate-[-6deg] rounded-[1.4cqi] border-[0.5cqi] border-[#4d5a2c] px-[3cqi] py-[1cqi] text-[5cqi] font-bold tracking-wide text-[#4d5a2c] uppercase" style={delay(1.5)}>
+          {stamp}
         </div>
-        <div className="flex justify-between">
-          <span>USt 19 %</span>
-          <span>155,80 €</span>
-        </div>
-        <div className="flex justify-between font-semibold">
-          <span>Gesamt</span>
-          <span>975,80 €</span>
-        </div>
+      )}
+    </div>
+  )
+}
+
+/** Quote and invoice fanned out, with the action bar of the document editor. Fills a wide box. */
+export function InvoiceMock() {
+  const lines: [string, string][] = [
+    ["Raummiete Saal", "450,00 €"],
+    ["Technik & Betreuung", "280,00 €"],
+    ["Reinigung (pauschal)", "90,00 €"],
+  ]
+  return (
+    <div className="relative aspect-[16/11] w-full">
+      <Sheet kind="Angebot" number="AN-2026-0017" lines={lines} total="820,00 €" className="top-[8%] left-[10%] w-[38%] -rotate-[5deg] opacity-90" />
+      <Sheet kind="Rechnung" number="RE-2026-0042" lines={lines} total="820,00 €" stamp="Bezahlt" className="top-[3%] left-[38%] w-[40%] rotate-[2deg]" />
+      <div className="anim-drop absolute right-[4%] bottom-[6%] flex items-center gap-[0.8em] rounded-[8px] bg-[#191813] px-[1em] py-[0.7em] text-[clamp(9px,1vw,13px)] text-white shadow-xl" style={delay(0.6)}>
+        <span className="text-white/55">RE-2026-0042</span>
+        <span className="rounded-[5px] bg-white/10 px-[0.7em] py-[0.3em]">PDF herunterladen</span>
+        <span className="rounded-[5px] bg-[#dfe7c6] px-[0.7em] py-[0.3em] text-[#191813]">Als bezahlt markieren</span>
       </div>
-      <div className="anim-drop absolute top-[38%] right-[-8%] rotate-6 rounded-lg border-2 border-[#14532d] px-3 py-1 text-sm font-bold tracking-wide text-[#14532d] uppercase" style={delay(1.5)}>
-        Bezahlt
+      <div className="anim-drop absolute top-[10%] left-[2%] rounded-[8px] bg-white px-[1em] py-[0.7em] text-[clamp(9px,1vw,13px)] shadow-lg" style={delay(0.2)}>
+        <span className="text-black/45">Angebot angenommen</span>
+        <span className="block font-medium">→ Rechnung erstellt</span>
       </div>
     </div>
   )

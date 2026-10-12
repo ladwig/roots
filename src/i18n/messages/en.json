@@ -2094,110 +2094,151 @@
   "landing": {
     "meta": {
       "title": "roots – software for everyone building from the ground up",
-      "description": "Members, tickets, shifts, invoices, forms and email for clubs, collectives and promoters. One place instead of ten tools."
+      "description": "Members, dues, tickets, shifts, invoices, forms and email for clubs, collectives and promoters. One place instead of ten tools."
     },
     "nav": {
       "product": "Product",
-      "who": "Who it's for",
+      "modules": "Modules",
       "pricing": "Pricing",
+      "faq": "FAQ",
       "login": "Log in",
       "start": "Start for free"
     },
     "hero": {
-      "eyebrow": "For clubs, collectives & promoters",
+      "eyebrow": "For clubs, collectives and promoters",
       "title1": "Software for everyone building",
       "accent": "from the ground",
       "title2": "up.",
-      "lead": "Members, tickets, shifts, invoices and email – in one place. So your time goes back into what you started for.",
+      "lead": "Members and dues, tickets and door, shifts, invoices and email – in one place, done properly. So your time goes back into the cause, not the admin.",
       "cta": "Start for free",
-      "secondary": "See it"
+      "secondary": "See the product"
     },
-    "modules": {
-      "crm": "Contacts",
-      "members": "Members",
-      "events": "Events",
-      "tickets": "Tickets",
-      "guestlists": "Guest lists",
-      "shifts": "Shifts",
-      "forms": "Forms",
-      "email": "Email",
-      "invoices": "Invoices",
-      "files": "Files",
-      "portal": "Member area",
-      "api": "Open API"
+    "audience": {
+      "label": "Made for",
+      "a1": "Sports clubs",
+      "a2": "Cultural associations",
+      "a3": "Venues",
+      "a4": "Festivals",
+      "a5": "Collectives",
+      "a6": "Initiatives"
     },
     "statement": {
-      "label": "Why roots",
-      "text": "Grassroots means people organising themselves. Until now with five tools, three spreadsheets and a folder in the clubhouse. From now on with one place that grows with you."
-    },
-    "product": {
-      "label": "Product",
-      "title": "Everything you do every day.",
-      "accent": "Just simpler."
+      "before": "One software",
+      "pill": "All modules",
+      "after": "for all the work behind it."
     },
     "features": {
       "members": {
         "label": "Members",
-        "title": "Members & dues, without the treasurer's nightmare.",
-        "text": "Membership types, numbers, joining and leaving, SEPA mandates. Dues create themselves, the direct debit file is one click.",
-        "b1": "Import from Excel or your old club software",
-        "b2": "SEPA direct debit for your online banking",
-        "b3": "Member area: update details, cancel – no email ping-pong"
+        "title": "Members and dues, without the paperwork.",
+        "text": "Membership types, numbers, joining and leaving, SEPA mandates. Dues follow your rules, the direct debit file is one click.",
+        "b1": "Import from Excel or your previous club software",
+        "b2": "SEPA direct debit in your bank's format",
+        "b3": "Member area for address, bank details and cancellation"
       },
       "tickets": {
-        "label": "Tickets & door",
-        "title": "Sell tickets, check in within seconds.",
-        "text": "Ticket types, price tiers, promo codes. Payments go to your own Stripe or SumUp account, scanning works with any phone.",
+        "label": "Tickets and door",
+        "title": "Sell, check in, settle up.",
+        "text": "Ticket types, price tiers and promo codes. Money goes straight to your Stripe or SumUp account, the door runs on any phone.",
         "b1": "QR tickets as PDF and by email",
-        "b2": "The scanner also works offline",
+        "b2": "A scanner that works without signal",
         "b3": "Guest lists and artists at the same door"
       },
       "shifts": {
         "label": "Shifts",
-        "title": "Shift plans that almost fill themselves.",
-        "text": "Plan bar, door or training in the calendar. Your team signs up themselves, hours count on their own.",
-        "b1": "Drag, drop, done",
+        "title": "Rotas that fill themselves.",
+        "text": "Plan bar, door, setup or training in the calendar. The team signs up, hours are counted along the way.",
+        "b1": "Plan by drag and drop",
         "b2": "Recurring shifts, e.g. every second Thursday",
         "b3": "Check-in and hours account"
       },
       "forms": {
-        "label": "Forms & email",
-        "title": "From application to welcome email.",
-        "text": "Build forms from your own fields, accept applications in one click and send newsletters or automatic emails – from your own address.",
+        "label": "Forms and email",
+        "title": "From application to welcome.",
+        "text": "Forms from your own fields, accept applications in one click, newsletters and automatic emails from your own address.",
         "b1": "Membership application with SEPA mandate",
-        "b2": "Newsletters to tags or all members",
-        "b3": "Automations: welcome, reminder, sequence"
+        "b2": "Newsletters to groups or all members",
+        "b3": "Automations for welcome, reminders and sequences"
       },
       "invoices": {
         "label": "Invoices",
-        "title": "Invoices the tax office likes.",
-        "text": "Quotes and invoices by German rules: gap-free numbers, small business mode, cancel instead of delete, PDF at the push of a button.",
-        "b1": "Number ranges and required details",
+        "title": "Invoices by German rules.",
+        "text": "Quotes and invoices with gap-free numbers, required details and small business mode. Corrections by cancellation, never by deletion.",
+        "b1": "Number ranges per document type",
         "b2": "A quote becomes an invoice in one click",
         "b3": "PDF, print and export for accounting"
       }
     },
-    "who": {
-      "label": "Who it's for",
-      "title": "Made for the people who",
-      "accent": "get things done.",
-      "clubs": {
-        "title": "Clubs & associations",
-        "text": "Sports, culture, gardens, music: members, dues, shifts for the summer party and the newsletter to everyone."
+    "manifesto": {
+      "label": "Why roots",
+      "title1": "Grassroots means:",
+      "accent": "self-organised.",
+      "p1": "Most clubs, venues and initiatives are carried by people who do it next to work and family. Their tools are a folder in the clubhouse, three spreadsheets and five subscriptions that don't talk to each other.",
+      "p2": "roots is built for them: one place for members, money, events and communication. Clear enough for the volunteer board, thorough enough for the tax office."
+    },
+    "modulesSection": {
+      "title": "All modules",
+      "text": "Every organisation turns on what it needs. Everything works together: one contact is member, ticket buyer and recipient at once."
+    },
+    "modules": {
+      "crm": {
+        "name": "Contacts",
+        "text": "Everyone in one place, with tags, custom fields, notes and import."
       },
-      "promoters": {
-        "title": "Venues & promoters",
-        "text": "Tickets, guest lists, line-up, timetable and door – from the announcement to the last shift."
+      "members": {
+        "name": "Members",
+        "text": "Membership types, numbers, dues, SEPA direct debit and reminders."
       },
-      "small": {
-        "title": "Collectives & small businesses",
-        "text": "Contacts, quotes, invoices and forms for everyone who does more than admin."
+      "events": {
+        "name": "Events",
+        "text": "Events with their own public page, line-up and timetable."
+      },
+      "tickets": {
+        "name": "Tickets",
+        "text": "Sales through your payment account, QR tickets and phone check-in."
+      },
+      "guestlists": {
+        "name": "Guest lists",
+        "text": "Lists per event or permanent, with links for promoters and artists."
+      },
+      "shifts": {
+        "name": "Shifts",
+        "text": "Rotas, positions, locations, self sign-up and hours."
+      },
+      "forms": {
+        "name": "Forms",
+        "text": "Your own forms and membership applications, submissions land in the CRM."
+      },
+      "email": {
+        "name": "Email",
+        "text": "Newsletters, automations and sequences through your own sending."
+      },
+      "invoices": {
+        "name": "Invoices",
+        "text": "Quotes, invoices and cancellations by German rules."
+      },
+      "files": {
+        "name": "Files",
+        "text": "Documents on every record, stored privately per organisation."
+      },
+      "portal": {
+        "name": "Member area",
+        "text": "Members view and update their own details, by link instead of password."
+      },
+      "api": {
+        "name": "Open API",
+        "text": "An interface and exports for everything you want to connect."
       }
+    },
+    "events": {
+      "label": "For venues and promoters",
+      "title": "From announcement to the last shift.",
+      "text": "Tickets, guest lists, line-up, door and rota work together. Whoever is on the door sees everything on one phone."
     },
     "trust": {
       "gdpr": {
-        "title": "GDPR, EU servers",
-        "text": "Your data lives in Europe and stays yours."
+        "title": "GDPR and EU servers",
+        "text": "Your data lives in Europe and belongs to you."
       },
       "data": {
         "title": "No lock-in",
@@ -2205,30 +2246,57 @@
       },
       "easy": {
         "title": "No training",
-        "text": "If you can use WhatsApp, you can use roots. On phone and laptop."
+        "text": "Clearly structured, on phone and laptop."
       },
       "berlin": {
         "title": "From Berlin",
-        "text": "Built with clubs and associations, not for a corporate department."
+        "text": "Built together with clubs and associations."
       }
     },
     "pricing": {
       "label": "Pricing",
       "title": "Start for free.",
       "accent": "Stay fair.",
-      "text": "roots is free during the beta. After that you pay per module you actually use – not per seat and not per member.",
+      "text": "roots is free during the beta. After that you pay per module you use – not per seat and not per member.",
       "planLabel": "Beta",
-      "planText": "All modules, no credit card, export anytime."
+      "planText": "All modules, no credit card.",
+      "f1": "All modules included",
+      "f2": "Unlimited members and contacts",
+      "f3": "Export and API anytime"
+    },
+    "faq": {
+      "title": "FAQ",
+      "q1": {
+        "q": "Who is roots for?",
+        "a": "Clubs, venues, festivals, collectives and small organisations that manage members, events or money and need several tools for it today."
+      },
+      "q2": {
+        "q": "Where is our data?",
+        "a": "On servers in the EU. Every organisation is strictly separated from the others, and you can export everything anytime."
+      },
+      "q3": {
+        "q": "Can we move from Excel or our old software?",
+        "a": "Yes. Contacts and members can be imported via CSV, including member numbers and bank details. roots maps the columns for you."
+      },
+      "q4": {
+        "q": "How does ticket money reach us?",
+        "a": "Directly in your own Stripe or SumUp account. roots never holds money. Dues are collected through a SEPA file via your own bank."
+      },
+      "q5": {
+        "q": "What will roots cost after the beta?",
+        "a": "You pay per module you use. Prices are set before the beta ends, nobody is switched over without being asked."
+      }
     },
     "final": {
-      "label": "Ready?",
-      "title": "Let's go."
+      "before": "Start today.",
+      "pill": "Start for free"
     },
     "footer": {
-      "claim": "roots is software for the grassroots: for everyone who organises themselves and builds something – voluntarily, together, from the ground up.",
+      "claim": "roots is software for the grassroots: for everyone who organises themselves and builds something together.",
       "product": "Product",
       "account": "Account",
-      "grassroots": "Grassroots. Like the movement."
+      "grassroots": "Grassroots – like the movement. © roots, Berlin",
+      "paintings": "Paintings (public domain):"
     }
   }
 }

@@ -1,76 +1,76 @@
 # roots — Website design sheet (landing page)
 
 The marketing site has its **own look**, separate from the app (the app keeps `src/app/theme.css`).
-Everything here lives under `src/app/site/` and is scoped to `.site`, so nothing leaks into the app.
+Everything lives under `src/app/site/`, scoped to `.site`, so nothing leaks into the app.
 
-**Mood:** serious but playful. A YC-2026 SaaS that a Verein board member and a techno promoter both trust:
-big confident type, warm cream + deep ink, one electric accent, grainy gradients, real-looking product mocks that move.
-References (learned from, not copied): eduardbodak.com (type scale, scroll-lit words, mono labels, cards on black),
-getcasa.com (calm footer revealed under the page with an old-school image), understory.io (bold headlines,
-product mocks on textured gradients).
+## Idea
+
+**Warm but mature.** The calm confidence of a finance or legal SaaS (YC-style: lots of air, hairlines, quiet
+typography, one clear CTA) — warmed up by **old master paintings**. The name comes from *grassroots*: people
+organising themselves, from the ground up. The paintings carry that idea: Dürer's *Great Piece of Turf* (literally
+grass and roots), Bruegel's harvesters and dancers (people working and celebrating together), quiet landscapes.
+
+No "AI slop": no neon gradients, no glassy blobs, no emoji, no stock 3D. Real paintings, real typography, real UI.
 
 ## Type
 
 | Role | Font | Use |
 |---|---|---|
-| Display | **Inter Tight** 600–700, tracking `-0.045em`, line-height `0.92` | Headlines, giant words, numbers |
-| Accent | **Instrument Serif** italic 400 | One or two words per headline for warmth ("*endlich*", "*zusammen*") |
-| Body | **Inter** 400/500, line-height `1.55` | Paragraphs, buttons, nav |
-| Micro | **JetBrains Mono** 400, uppercase, tracking `0.08em`, 11–12 px | Labels, eyebrows, little tags ("01 — Mitglieder") |
+| Display | **Instrument Serif** 400 (roman, italic for one word), tracking `-0.02em`, line-height `0.98` | Headlines, statements, big numbers |
+| Text | **Libre Franklin** 400/500/600, tracking `+0.012em` (small sizes `+0.02em`), line-height `1.6` | Body, nav, UI, buttons (Franklin Gothic lineage: editorial, not the default Inter look) |
+| Label | Libre Franklin 500, uppercase, tracking `0.12em`, 11–12 px | Eyebrows, section numbers, button labels |
 
-Scale (fluid, `clamp`): `--fs-giant` 64→220 px · `--fs-h1` 44→112 px · `--fs-h2` 34→72 px · `--fs-h3` 22→32 px ·
-`--fs-lead` 18→22 px · `--fs-body` 16–17 px · `--fs-micro` 11–12 px.
-Headlines: max ~12 words, sentence case, no full stop except as a design beat ("Ein Ort.").
+Scale (fluid, `clamp`): `--fs-hero` 52→128 px · `--fs-h2` 40→88 px · `--fs-h3` 26→36 px · `--fs-lead` 18→21 px ·
+body 16 px · label 11.5 px. Headlines: sentence case, short, full stop allowed as a beat.
 
 ## Colour
 
+Paper and ink, with earth tones taken from the paintings. No bright accent.
+
 | Token | Value | Use |
 |---|---|---|
-| `--ink` | `#0c0d0b` | Dark sections, text on cream |
-| `--ink-2` | `#1a1c18` | Cards on ink |
-| `--cream` | `#f4efe6` | Light sections, text on ink |
-| `--cream-2` | `#e9e2d4` | Cards on cream, borders |
-| `--moss` | `#14532d` | Brand green (ties to the app) |
-| `--lime` | `#d4f25c` | The one loud accent: CTAs, highlights, live dots |
-| `--pink` | `#ff4fd8` | Sparingly (≤ 1 per screen): arrows, a sticker, a cursor |
-| `--muted` | `rgb(244 239 230 / .45)` on ink · `rgb(12 13 11 / .5)` on cream | Secondary text, unlit words |
+| `--paper` | `#f5f1e8` | Page background |
+| `--paper-2` | `#ece6d8` | Cards, table stripes |
+| `--ink` | `#191813` | Text, primary buttons, dark sections |
+| `--ink-soft` | `rgb(25 24 19 / .62)` | Secondary text |
+| `--line` | `rgb(25 24 19 / .14)` | Hairlines, borders |
+| `--olive` | `#4d5a2c` | Brand green (Dürer's grass), links, small highlights |
+| `--umber` | `#8a5a2b` | Rare warm detail (numbers, a dot) |
 
-Sections alternate **ink ↔ cream**; product mocks sit on **grain gradients** (moss → lime → cream, or ink → moss).
+Dark sections use `--ink` with `--paper` text. Never pure black or white.
 
-## Texture
+## Paintings (public domain, Wikimedia Commons)
 
-- **Grain**: an SVG `feTurbulence` noise as a data-URI overlay (`.grain::after`), `opacity .18–.3`, `mix-blend-mode: overlay`.
-  Every gradient panel gets it, flat surfaces don't.
-- **Gradients**: soft radial blobs (2–3 stops), never more than 3 colours, always with grain.
+Few and deliberate: **hero, one people/event moment, one manifesto, footer.** Not behind every card.
+Treatment: slight warm grade (`saturate(.92) contrast(1.03)`), fine grain overlay, `object-fit: cover` with a
+chosen focal point. Product mocks float *on* a painting as on a table. Credits listed in `src/app/site/paintings.ts`.
 
 ## Space & layout
 
-- Page gutter: `clamp(20px, 5vw, 80px)`; max content width `1320px`; text columns ≤ `62ch`.
-- Section rhythm: `padding-block: clamp(96px, 14vw, 200px)`. Big air is the point.
-- Radius: cards `28px`, mock frames `20px`, buttons/pills `999px`, chips `10px`.
-- Grid: 12 columns desktop, single column on phones; mocks bleed off the edge on desktop, stay inside on phones.
+- **Full width** on desktop with generous side margins: gutter `clamp(20px, 7vw, 160px)`, no max width for sections and images; text columns stay ≤ `60ch`.
+- Section rhythm `clamp(96px, 12vw, 176px)`. Hairline (`1px --line`) between sections instead of colour blocks.
+- Radius: images and mocks `10px`, cards `14px`, buttons `6px`. Mature = small radii, **no pill buttons**.
+- 12-column grid; on phones one column, images full-bleed within the gutter.
+- **Use the space, don't stretch it**: a visual fills its box (compose several mocks, fan out documents, add a floating action) instead of one small element in a big empty panel. Narrow content (FAQ, statements) is centred in a column, not spread across the page.
 
 ## Components
 
-- **Nav**: floating pill bar, chip-style links (active chip = cream on ink), CTA "Kostenlos starten" in lime.
-- **Buttons**: pill, 48 px tall; primary = lime on ink text; secondary = outline cream/ink. Arrow icon in a round chip.
-- **Device mocks** (`DeviceLaptop`, `DevicePhone`, `DeviceBrowser`): drawn in CSS, no screenshots. The app inside is
-  a *fake*, simplified UI built from divs, animated with CSS keyframes in short loops (6–10 s): counters tick,
-  rows slide in, a QR scan flashes green, a calendar chip drops in.
-- **Mono labels**: `01 — Mitglieder` above section titles.
-- **Feature cards**: cream cards on ink (or ink on cream), 28 px radius, one mock each.
-- **Footer**: sits *under* the page (sticky at the bottom, revealed as the last section scrolls away) with an
-  old-school, dithered landscape illustration and a giant "roots" wordmark.
+- **Hero**: the painting fills the first screen (pinned while you scroll), headline on the sky; scrolling brings the laptop up into the field while the copy steps back.
+
+- **Nav**: paper background, serif wordmark "roots", small sans links, text link "Anmelden", black button CTA.
+- **Button**: black, 6 px corners, uppercase label + ↗ arrow; secondary = text link with underline. One primary per screen.
+- **Inline button**: a big serif sentence with the CTA button set *inside* the line ("Eine Software [ALLE MODULE ↗] für
+  eure ganze Arbeit.").
+- **Device mocks**: CSS-drawn browser / laptop / phone with a simplified, animated fake app (subtle loops).
+- **Module table**: typographic table (hairlines, serif names, sans descriptions) instead of icon grids.
+- **FAQ**: native `<details>` with hairlines.
+- **Footer**: revealed underneath the page (sticky), full-bleed painting with a large serif wordmark.
 
 ## Motion
 
-- Native first: CSS keyframes + **scroll-driven animations** (`animation-timeline: view()`) for reveals and the
-  word-by-word lighting of statements. Browsers without support just show the final state.
-- Easing `cubic-bezier(.2,.7,.1,1)`; durations 400–900 ms for reveals; loops 6–10 s, `ease-in-out`.
-- Reveal = fade + 24 px rise; never animate layout, only `opacity`/`transform`/`clip-path`.
-- `prefers-reduced-motion: reduce` → no loops, no scroll effects, everything static and visible.
+Quiet. Fade + 16 px rise on enter (scroll-driven CSS, `animation-timeline: view()`), slow loops inside mocks,
+images scale from 1.06 → 1 as they enter. `prefers-reduced-motion` → nothing moves.
 
 ## Voice (German first)
 
-Du-Form, short sentences, concrete nouns (Mitglieder, Tickets, Schichten), no buzzwords. One joke per page, max.
-Promise less, show more: every claim sits next to a mock that proves it.
+Du-Form, calm, precise, a little dry. Short sentences. Facts over adjectives. No exclamation marks.
