@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Notice } from "@/components/notice"
 import { LocaleSwitcher } from "@/i18n/client"
+import { HalftoneGlint } from "@/app/site/_components/halftone"
 import { getT } from "@/i18n/server"
 import { param, safeNext } from "@/lib/url"
 import { SiteShell } from "@/app/site/_components/site-shell"
@@ -60,9 +61,10 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         </div>
         <LocaleSwitcher className="justify-self-start" />
       </main>
-      <aside className="painting relative hidden overflow-hidden min-h-dvh rounded-none lg:block">
+      <aside className="painting relative hidden overflow-hidden min-h-dvh rounded-none! lg:block">
         <Image src={art.src} alt={`${art.artist}, ${art.title}`} fill priority sizes="50vw" className="scale-[1.08] object-cover" style={{ objectPosition: "50% 60%" }} />
-        <p className="absolute right-6 bottom-5 z-[2] text-[12px] text-[var(--ink)]/70">
+        <HalftoneGlint src={art.src} y={0.6} className="absolute inset-0 z-[1] size-full scale-[1.08] [filter:drop-shadow(0_0_4px_rgb(255_244_214/.7))]" />
+        <p className="absolute right-6 bottom-5 z-[2] text-[12px] text-white [text-shadow:0_1px_3px_rgb(0_0_0/.45)]">
           {art.artist}, <em>{art.title}</em>, {art.year}
         </p>
       </aside>

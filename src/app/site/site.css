@@ -150,21 +150,20 @@
   .site .settle img { animation: site-settle linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
 }
 /* Nav: full width at the top, then shrinks to a framed bar at content width as you scroll. */
-.site .nav-bar { margin-inline: auto; max-width: 100%; padding-inline: var(--gutter); border: 1px solid transparent; border-radius: 3px; background: rgb(245 241 232 / 0.86); backdrop-filter: blur(12px); }
-@supports (animation-timeline: scroll()) {
-  .site .nav-bar { animation: site-nav linear both; animation-timeline: scroll(root); animation-range: 0 220px; }
+/* Nav + hero frame: full width at the top; once scrolled (data-scrolled from <ScrollFlag>) they ease in to the
+   content width. Time-based transitions, not scroll-linked, so a wheel tick never jumps. */
+.site .nav-bar {
+  margin-inline: auto; max-width: 100%; padding-inline: var(--gutter); border: 1px solid transparent; border-radius: 3px;
+  background: rgb(245 241 232 / 0); backdrop-filter: blur(12px);
+  transition: max-width .7s var(--ease), transform .7s var(--ease), padding .7s var(--ease), background-color .5s, border-color .5s, box-shadow .5s;
 }
-@keyframes site-nav {
-  from { max-width: 100%; transform: translateY(0); padding-inline: var(--gutter); background: rgb(245 241 232 / 0); border-color: transparent; box-shadow: none; }
-  to { max-width: min(1120px, calc(100% - 2 * var(--gutter))); transform: translateY(12px); padding-inline: 18px; background: rgb(245 241 232 / 0.9); border-color: var(--line); box-shadow: 0 8px 24px -12px rgb(25 24 19 / 0.25); }
+:root[data-scrolled] .site .nav-bar {
+  max-width: min(1120px, calc(100% - 2 * var(--gutter))); transform: translateY(12px); padding-inline: 18px;
+  background: rgb(245 241 232 / 0.9); border-color: var(--line); box-shadow: 0 8px 24px -12px rgb(25 24 19 / 0.25);
 }
 
-/* Hero frame: full width at first, moves in to the content margins as you scroll (like the nav). */
-.site .hero-frame { margin-inline: var(--gutter); border-radius: 2px; }
-@supports (animation-timeline: view()) {
-  .site .hero-frame { animation: site-hero-frame linear both; animation-timeline: --hero; animation-range: contain 0% contain 22%; }
-}
-@keyframes site-hero-frame { from { margin-inline: 0; border-radius: 0; } to { margin-inline: var(--gutter); border-radius: 2px; } }
+.site .hero-frame { clip-path: inset(0 0 round 0); transition: clip-path .8s var(--ease); }
+:root[data-scrolled] .site .hero-frame { clip-path: inset(0 var(--gutter) round 2px); }
 
 /* Hero: the pinned painting stays, the laptop rises into the field, the copy steps back. Without support the
    laptop just sits low in the picture. */

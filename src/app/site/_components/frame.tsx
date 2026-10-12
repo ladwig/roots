@@ -4,6 +4,7 @@ import { getT } from "@/i18n/server"
 import { PAINTINGS } from "../paintings"
 import { ProductMenu } from "./product-menu"
 import { Pill } from "./ui"
+import { ScrollFlag } from "./scroll-flag"
 
 export const APP = "/app"
 export const SIGNUP = "/login"
@@ -16,6 +17,7 @@ export async function SiteFrame({ children }: { children: React.ReactNode }) {
   const t = await getT()
   return (
     <>
+      <ScrollFlag />
       {/* Everything above the footer scrolls over it (the footer is revealed underneath). */}
       <div className="relative z-10 bg-[var(--paper)] shadow-[0_24px_48px_rgb(25_24_19/.18)]">
         <header className="sticky top-0 z-50">
