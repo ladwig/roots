@@ -10,6 +10,10 @@ import { themeVars, type Theme } from "./theme"
 
 export type SiteEvent = { slug: string; title: string; starts_at: string; venue_name: string | null; image_path: string | null }
 export type SiteForm = { slug: string; title: string; intro: string | null }
+export type SiteEventFull = SiteEvent & { ends_at: string | null; venue_address: string | null; description: string | null; status: string }
+export const TEMPLATE_KINDS = ["event", "form", "portal"] as const
+export type TemplateKind = (typeof TEMPLATE_KINDS)[number]
+export const TEMPLATE_MODULE: Record<TemplateKind, string> = { event: "events", form: "forms", portal: "members" } // template exists with its module
 export type SiteMeta = {
   orgId: string
   orgName: string
@@ -23,6 +27,10 @@ export type SiteMeta = {
   modules: string[]
   locale: string
   labels: { imprint: string; privacy: string; more: string; noEvents: string; poweredBy: string }
+  // Templates (event / form / portal page): the record the page is about, and – on the public site only – the real
+  // module UI as render functions (server components: ticket shop, timetable, form, portal). The editor shows previews.
+  context?: { event?: SiteEventFull; form?: { title: string; intro: string | null } }
+  render?: { ticketShop?: () => React.ReactNode; timetable?: () => React.ReactNode; form?: () => React.ReactNode; portal?: () => React.ReactNode }
 }
 
 // Site-relative links ("/kontakt") work on the subdomain and under /s/<org> in dev.
@@ -55,6 +63,12 @@ const Img = ({ path, alt, className }: { path?: string; alt?: string; className?
     </div>
   )
 const meta = (p: { puck: { metadata: unknown } }) => p.puck.metadata as SiteMeta
+// Stand-in for module UI in the editor (the real thing only renders on the public site).
+const Placeholder = ({ label }: { label: string }) => (
+  <div className={`${wrap} py-4`}>
+    <div className="grid min-h-28 place-items-center rounded-[var(--s-radius)] border-2 border-dashed border-[var(--s-line)] text-sm text-[var(--s-muted)]">{label}</div>
+  </div>
+)
 
 type Btn = { label: string; href: string; style?: string }
 type Props = {
@@ -72,6 +86,13 @@ type Props = {
   Events: { title: string; limit: number; layout: string }
   Form: { form: string; button: string }
   Portal: { title: string; text: string; button: string }
+  EventHeader: { layout: string }
+  EventText: Record<string, never>
+  EventTimetable: Record<string, never>
+  TicketShop: Record<string, never>
+  FormHeader: Record<string, never>
+  FormFields: Record<string, never>
+  PortalBox: Record<string, never>
 }
 
 // The app's shadcn tokens mapped to the site theme, so module pages (event, form, checkout, portal) inside the
@@ -162,6 +183,7 @@ export function siteConfig(t: T): Config<{ components: Props; root: { title?: st
       layout: { title: t("sites.categories.layout"), components: ["Columns", "Space"] },
       content: { title: t("sites.categories.content"), components: ["Hero", "Heading", "Text", "Image", "Buttons", "Cards", "Stats", "Faq", "Contact"] },
       modules: { title: t("sites.categories.modules"), components: ["Events", "Form", "Portal"] },
+      template: { title: t("sites.categories.template"), components: ["EventHeader", "EventText", "EventTimetable", "TicketShop", "FormHeader", "FormFields", "PortalBox"] },
     },
     root: {
       // Published pages get the frame from the public layout (src/app/s/[site]/layout.tsx); the editor draws it here.
@@ -526,26 +548,106 @@ export function siteConfig(t: T): Config<{ components: Props; root: { title?: st
           </section>
         ),
       },
+      EventHeader: {
+        label: t("sites.blocks.EventHeader"),
+        fields: { layout: { type: "radio", label: L("layout"), options: opt("eventLayout", ["top", "side", "plain"]) } },
+        defaultProps: { layout: "top" },
+        render: (p) => {
+          const m = meta(p)
+          const e = m.context?.event
+          if (!e) return <Placeholder label={t("sites.blocks.EventHeader")} />
+          const fmt = (v: string, o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat(m.locale, { ...o, timeZone: "Europe/Berlin" }).format(new Date(v))
+          const sameDay = e.ends_at && new Date(e.ends_at).getTime() - new Date(e.starts_at).getTime() < 86_400_000
+          const when = `${fmt(e.starts_at, { dateStyle: "full", timeStyle: "short" })}${e.ends_at ? ` – ${sameDay ? fmt(e.ends_at, { timeStyle: "short" }) : fmt(e.ends_at, { dateStyle: "full", timeStyle: "short" })}` : ""}`
+          const text = (
+            <div className="grid content-start gap-3">
+              {e.status === "cancelled" && <span className="justify-self-start rounded-[var(--s-radius)] bg-destructive px-2 py-0.5 text-sm text-white">{t("site.cancelled")}</span>}
+              <h1 className="text-[clamp(32px,5vw,56px)] leading-[1.05] font-semibold tracking-tight">{e.title}</h1>
+              <p className="text-lg text-[var(--s-muted)]">{when}</p>
+              {(e.venue_name || e.venue_address) && (
+                <p>
+                  {e.venue_name}
+                  {e.venue_address && <span className="block text-sm text-[var(--s-muted)]">{e.venue_address}</span>}
+                </p>
+              )}
+            </div>
+          )
+          const img = e.image_path && p.layout !== "plain" ? <Img path={e.image_path} className="aspect-video w-full rounded-[var(--s-radius)] object-cover" /> : null
+          return (
+            <section className={`${wrap} grid gap-8 py-[clamp(32px,6vw,72px)] ${p.layout === "side" && img ? "items-center md:grid-cols-2" : ""}`}>
+              {p.layout === "top" && img}
+              {text}
+              {p.layout === "side" && img}
+            </section>
+          )
+        },
+      },
+      EventText: {
+        label: t("sites.blocks.EventText"),
+        render: (p) => {
+          const e = meta(p).context?.event
+          return e?.description ? (
+            <div className={`${wrap} py-4`}>
+              <p className="max-w-[68ch] text-[17px] leading-relaxed whitespace-pre-line">{e.description}</p>
+            </div>
+          ) : p.puck.isEditing ? (
+            <Placeholder label={t("sites.blocks.EventText")} />
+          ) : (
+            <></>
+          )
+        },
+      },
+      EventTimetable: {
+        label: t("sites.blocks.EventTimetable"),
+        render: (p) => <div className={`${wrap} py-6`}>{meta(p).render?.timetable?.() ?? <Placeholder label={t("sites.blocks.EventTimetable")} />}</div>,
+      },
+      TicketShop: {
+        label: t("sites.blocks.TicketShop"),
+        render: (p) => <div className={`${wrap} py-6`}>{meta(p).render?.ticketShop?.() ?? <Placeholder label={t("sites.blocks.TicketShop")} />}</div>,
+      },
+      FormHeader: {
+        label: t("sites.blocks.FormHeader"),
+        render: (p) => {
+          const f = meta(p).context?.form
+          if (!f) return <Placeholder label={t("sites.blocks.FormHeader")} />
+          return (
+            <header className={`${wrap} grid max-w-3xl gap-3 pt-[clamp(32px,6vw,72px)] pb-4`}>
+              <h1 className="text-[clamp(30px,4.5vw,48px)] leading-tight font-semibold tracking-tight">{f.title}</h1>
+              {f.intro && <p className="text-lg whitespace-pre-line text-[var(--s-muted)]">{f.intro}</p>}
+            </header>
+          )
+        },
+      },
+      FormFields: {
+        label: t("sites.blocks.FormFields"),
+        render: (p) => <div className={`${wrap} max-w-3xl py-6`}>{meta(p).render?.form?.() ?? <Placeholder label={t("sites.blocks.FormFields")} />}</div>,
+      },
+      PortalBox: {
+        label: t("sites.blocks.PortalBox"),
+        render: (p) => <div className={`${wrap} max-w-3xl py-10`}>{meta(p).render?.portal?.() ?? <Placeholder label={t("sites.blocks.PortalBox")} />}</div>,
+      },
     },
   }
 }
 
-/** Which blocks an org may use: module blocks only with the module on. */
-export function allowedBlocks(modules: string[]) {
+/** Which blocks an org may use on a page of this kind: module blocks need their module, template blocks their template. */
+export function allowedBlocks(modules: string[], kind: string = "page") {
+  const content = ["Hero", "Heading", "Text", "Image", "Buttons", "Columns", "Cards", "Stats", "Faq", "Contact", "Space"]
+  if (kind === "event") return [...content, "EventHeader", "EventText", "EventTimetable", ...(modules.includes("tickets") ? ["TicketShop"] : [])]
+  if (kind === "form") return [...content, "FormHeader", "FormFields"]
+  if (kind === "portal") return [...content, "PortalBox"]
   return [
-    "Hero",
-    "Heading",
-    "Text",
-    "Image",
-    "Buttons",
-    "Columns",
-    "Cards",
-    "Stats",
-    "Faq",
-    "Contact",
-    "Space",
+    ...content,
     ...(modules.includes("events") ? ["Events"] : []),
     ...(modules.includes("forms") ? ["Form"] : []),
     ...(modules.includes("members") ? ["Portal"] : []),
   ]
+}
+
+/** What a new template starts with (roots' standard layout, then the org changes it). */
+export function templateStarter(kind: TemplateKind) {
+  const b = (type: string, props: Record<string, unknown> = {}) => ({ type, props: { id: crypto.randomUUID(), ...props } })
+  const content =
+    kind === "event" ? [b("EventHeader", { layout: "top" }), b("EventText"), b("EventTimetable"), b("TicketShop")] : kind === "form" ? [b("FormHeader"), b("FormFields")] : [b("PortalBox")]
+  return { root: { props: {} }, content }
 }

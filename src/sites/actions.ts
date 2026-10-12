@@ -4,7 +4,7 @@ import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { replaceImage } from "@/lib/images"
-import { allowedBlocks } from "./blocks"
+import { allowedBlocks, TEMPLATE_KINDS, templateStarter, type TemplateKind } from "./blocks"
 import { pageSlug, RESERVED_SLUGS, sanitizePage } from "./sanitize"
 import { readTheme } from "./theme"
 
@@ -29,7 +29,9 @@ export async function uploadSiteImage(fd: FormData): Promise<{ path?: string; er
 export async function savePage(id: string, data: unknown, publish: boolean): Promise<Result> {
   const { ctx, t, allowed } = await manager()
   if (!allowed || !UUID.test(String(id))) return { error: t("errors.not_allowed") }
-  const clean = sanitizePage(data, allowedBlocks([...ctx.modules]), ctx.org.id)
+  const { data: row } = await ctx.supabase.from("site_pages").select("kind").eq("id", id).eq("org_id", ctx.org.id).maybeSingle()
+  if (!row) return { error: t("errors.not_allowed") }
+  const clean = sanitizePage(data, allowedBlocks([...ctx.modules], row.kind), ctx.org.id)
   const { error, count } = await ctx.supabase
     .from("site_pages")
     .update({ draft: clean as never, ...(publish && { published: clean as never, published_at: new Date().toISOString() }) }, { count: "exact" })
@@ -89,4 +91,16 @@ export async function saveSiteDesign(theme: unknown): Promise<Result> {
   if (!allowed) return { error: t("errors.not_allowed") }
   const { error } = await ctx.supabase.from("sites").upsert({ org_id: ctx.org.id, theme: readTheme(theme) as never }, { onConflict: "org_id" })
   return error ? { error: dbError(t, error) } : { ok: t("sites.designSaved") }
+}
+
+/** The org's own design for a module page (event / form / portal), started from roots' standard layout. */
+export async function createTemplatePage(kind: TemplateKind): Promise<Result> {
+  const { ctx, t, allowed } = await manager()
+  if (!allowed || !TEMPLATE_KINDS.includes(kind)) return { error: t("errors.not_allowed") }
+  const { data, error } = await ctx.supabase
+    .from("site_pages")
+    .insert({ org_id: ctx.org.id, kind, slug: "", title: t.dynamic(`sites.templates.${kind}`), in_nav: false, draft: templateStarter(kind) as never })
+    .select("id")
+    .single()
+  return error ? { error: dbError(t, error) } : { id: data.id }
 }

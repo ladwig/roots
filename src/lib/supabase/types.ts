@@ -1281,14 +1281,14 @@ isOneToOne: false
                   ]
                 },"site_pages": {
                   Row: {
-                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"draft": NonNullable<Json>,"id": string,"in_nav": boolean,"org_id": string,"position": number,"published": Json | null,"published_at": string | null,"slug": string,"title": string,"updated_at": string,"updated_by": string | null
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"draft": NonNullable<Json>,"id": string,"in_nav": boolean,"kind": string,"org_id": string,"position": number,"published": Json | null,"published_at": string | null,"slug": string,"title": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"draft"?: NonNullable<Json>,"id"?: string,"in_nav"?: boolean,"org_id": string,"position"?: number,"published"?: Json | null,"published_at"?: string | null,"slug"?: string,"title": string,"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"draft"?: NonNullable<Json>,"id"?: string,"in_nav"?: boolean,"kind"?: string,"org_id": string,"position"?: number,"published"?: Json | null,"published_at"?: string | null,"slug"?: string,"title": string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"draft"?: NonNullable<Json>,"id"?: string,"in_nav"?: boolean,"org_id"?: string,"position"?: number,"published"?: Json | null,"published_at"?: string | null,"slug"?: string,"title"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"draft"?: NonNullable<Json>,"id"?: string,"in_nav"?: boolean,"kind"?: string,"org_id"?: string,"position"?: number,"published"?: Json | null,"published_at"?: string | null,"slug"?: string,"title"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {

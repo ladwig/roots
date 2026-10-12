@@ -12,17 +12,17 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
+import { NativeSelect, NativeSelectOptGroup, NativeSelectOption } from "@/components/ui/native-select"
 import { useT } from "@/i18n/client"
 import { APP_HOME } from "@/lib/url"
-import { createSitePage, saveSiteDesign, savePage, trashSitePage, unpublishSitePage, updateSitePage } from "./actions"
-import { siteConfig, type SiteMeta } from "./blocks"
+import { createSitePage, createTemplatePage, saveSiteDesign, savePage, trashSitePage, unpublishSitePage, updateSitePage } from "./actions"
+import { siteConfig, type SiteMeta, type TemplateKind } from "./blocks"
 import { PUCK_DE } from "./puck-de"
 import { sanitizePage } from "./sanitize"
 import { FONTS, PRESET_KEYS, PRESETS, RADII, readTheme, type Theme } from "./theme"
 import "./site.css"
 
-export type EditorPage = { id: string; title: string; slug: string; description: string | null; in_nav: boolean; published_at: string | null }
+export type EditorPage = { id: string; kind: string; title: string; slug: string; description: string | null; in_nav: boolean; published_at: string | null }
 
 // Same document → same string, whatever the key order (jsonb from the DB sorts keys differently than the editor).
 const stable = (v: unknown): string =>
@@ -41,6 +41,7 @@ export function SiteEditor({
   meta,
   allowed,
   siteRoot,
+  templateKinds,
 }: {
   page: EditorPage
   draft: unknown
@@ -50,6 +51,7 @@ export function SiteEditor({
   meta: SiteMeta
   allowed: string[]
   siteRoot: string // public URL of the site, ends with "/"
+  templateKinds: TemplateKind[] // module page templates this org can design
 }) {
   const t = useT()
   const router = useRouter()
@@ -71,6 +73,7 @@ export function SiteEditor({
   }, [t, allowed])
   const metadata = useMemo(() => ({ ...meta, theme }), [meta, theme])
 
+  const isTemplate = page.kind !== "page"
   const unsaved = current !== savedDraft
   const changedFromLive = current !== live
   const run = (label: string, fn: () => Promise<{ ok?: string; error?: string; id?: string }>, then?: (r: { id?: string }) => void) => {
@@ -106,7 +109,7 @@ export function SiteEditor({
         metadata={metadata}
         dictionary={t.locale === "de" ? PUCK_DE : undefined}
         headerTitle={page.title}
-        headerPath={`/${page.slug}`}
+        headerPath={isTemplate ? t("sites.templates.hint") : `/${page.slug}`}
         height="100dvh"
         onChange={(d) => {
           latest.current = d
@@ -119,22 +122,60 @@ export function SiteEditor({
               <Button render={<Link href={APP_HOME} />} nativeButton={false} size="sm" variant="ghost" aria-label={t("sites.editorBack")}>
                 <ArrowLeftIcon /> {t("sites.toApp")}
               </Button>
-              <NativeSelect aria-label={t("sites.pages")} value={page.id} onChange={(e) => (e.target.value === "+" ? setDialog("new") : openPage(e.target.value))} className="h-8 min-w-40">
-                {pages.map((p) => (
-                  <NativeSelectOption key={p.id} value={p.id}>
-                    {p.title}
-                    {p.published_at ? "" : ` (${t("sites.draft")})`}
-                  </NativeSelectOption>
-                ))}
-                <NativeSelectOption value="+">+ {t("sites.newPage")}</NativeSelectOption>
+              <NativeSelect
+                aria-label={t("sites.pages")}
+                value={page.id}
+                onChange={(e) => {
+                  const v = e.target.value
+                  if (v === "+") return setDialog("new")
+                  if (v.startsWith("tpl:")) return run("page", () => createTemplatePage(v.slice(4) as TemplateKind), (r) => r.id && openPage(r.id))
+                  openPage(v)
+                }}
+                className="h-8 min-w-44"
+              >
+                <NativeSelectOptGroup label={t("sites.pages")}>
+                  {pages
+                    .filter((p) => p.kind === "page")
+                    .map((p) => (
+                      <NativeSelectOption key={p.id} value={p.id}>
+                        {p.title}
+                        {p.published_at ? "" : ` (${t("sites.draft")})`}
+                      </NativeSelectOption>
+                    ))}
+                  <NativeSelectOption value="+">+ {t("sites.newPage")}</NativeSelectOption>
+                </NativeSelectOptGroup>
+                {!!templateKinds.length && (
+                  <NativeSelectOptGroup label={t("sites.templates.title")}>
+                    {templateKinds.map((k) => {
+                      const tpl = pages.find((p) => p.kind === k)
+                      return tpl ? (
+                        <NativeSelectOption key={k} value={tpl.id}>
+                          {t.dynamic(`sites.templates.${k}`)} {tpl.published_at ? `(${t("sites.templateLive")})` : `(${t("sites.templates.standard")})`}
+                        </NativeSelectOption>
+                      ) : (
+                        <NativeSelectOption key={k} value={`tpl:${k}`}>
+                          {t("sites.templates.design", { name: t.dynamic(`sites.templates.${k}`) })}
+                        </NativeSelectOption>
+                      )
+                    })}
+                  </NativeSelectOptGroup>
+                )}
               </NativeSelect>
-              <Button size="sm" variant="outline" onClick={() => setDialog("page")}>
-                <FileCogIcon /> {t("sites.pageSettings")}
-              </Button>
+              {isTemplate ? (
+                live && (
+                  <Button size="sm" variant="outline" disabled={!!busy} onClick={() => run("page", () => unpublishSitePage(page.id), () => (setLive(null), router.refresh()))}>
+                    {t("sites.useStandard")}
+                  </Button>
+                )
+              ) : (
+                <Button size="sm" variant="outline" onClick={() => setDialog("page")}>
+                  <FileCogIcon /> {t("sites.pageSettings")}
+                </Button>
+              )}
               <Button size="sm" variant="outline" onClick={() => setDialog("design")}>
                 <PaletteIcon /> {t("sites.design")}
               </Button>
-              {page.published_at && (
+              {page.published_at && !isTemplate && (
                 <Button render={<a href={`${siteRoot}${page.slug}`} target="_blank" rel="noreferrer" />} nativeButton={false} size="sm" variant="ghost" aria-label={t("sites.open")}>
                   <ExternalLinkIcon />
                 </Button>
@@ -145,7 +186,7 @@ export function SiteEditor({
               </Button>
               <Button size="sm" disabled={!!busy || !changedFromLive} onClick={() => save(true)} title={changedFromLive ? undefined : t("sites.nothingToPublish")}>
                 {busy === "publish" && <Loader2Icon className="animate-spin" />}
-                {live && !changedFromLive ? t("sites.isLive") : t("sites.publish")}
+                {live && !changedFromLive ? (isTemplate ? t("sites.templateLive") : t("sites.isLive")) : isTemplate && !live ? t("sites.useTemplate") : t("sites.publish")}
               </Button>
             </>
           ),

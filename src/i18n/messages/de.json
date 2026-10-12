@@ -2606,7 +2606,8 @@
     "categories": {
       "layout": "Aufbau",
       "content": "Inhalt",
-      "modules": "Aus euren Modulen"
+      "modules": "Aus euren Modulen",
+      "template": "Für diese Vorlage"
     },
     "blocks": {
       "Hero": "Titelbereich",
@@ -2622,7 +2623,14 @@
       "Space": "Abstand",
       "Events": "Nächste Events",
       "Form": "Formular",
-      "Portal": "Mitgliederbereich"
+      "Portal": "Mitgliederbereich",
+      "EventHeader": "Event: Titel & Datum",
+      "EventText": "Event: Beschreibung",
+      "EventTimetable": "Event: Timetable",
+      "TicketShop": "Event: Tickets / Anmeldung",
+      "FormHeader": "Formular: Titel",
+      "FormFields": "Formular: Felder",
+      "PortalBox": "Mitgliederbereich: Inhalt"
     },
     "fields": {
       "title": "Titel",
@@ -2694,6 +2702,11 @@
       "eventsLayout": {
         "list": "Liste",
         "cards": "Karten"
+      },
+      "eventLayout": {
+        "top": "Bild oben",
+        "side": "Bild daneben",
+        "plain": "Ohne Bild"
       }
     },
     "defaults": {
@@ -2733,6 +2746,20 @@
     "isLive": "Ist online",
     "nothingToPublish": "Keine Änderungen gegenüber der veröffentlichten Seite.",
     "reallyTrash": "Wirklich löschen?",
-    "designHint": "Änderungen siehst du sofort in der Vorschau. Speichern übernimmt sie für die ganze Website."
+    "designHint": "Änderungen siehst du sofort in der Vorschau. Speichern übernimmt sie für die ganze Website.",
+    "templates": {
+      "title": "Vorlagen",
+      "event": "Event-Seite",
+      "form": "Formular-Seite",
+      "portal": "Mitgliederbereich",
+      "hint": "Gilt für alle Seiten dieser Art. Veröffentlicht = eure Gestaltung, offline = roots-Standardseite.",
+      "design": "{name} gestalten",
+      "standard": "Standard"
+    },
+    "useTemplate": "Eure Gestaltung verwenden",
+    "useStandard": "Zur Standardseite zurück",
+    "templateLive": "Wird verwendet",
+    "templatePreview": "Vorschau mit: {name}",
+    "noSample": "Noch keine Daten für die Vorschau – die Bausteine zeigen Platzhalter."
   }
 }

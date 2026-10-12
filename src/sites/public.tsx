@@ -3,11 +3,12 @@ import type { Metadata } from "next"
 import { getT } from "@/i18n/server"
 import { sitePath } from "@/lib/url"
 import { getSite } from "@/app/s/[site]/data"
+import type { SiteMeta, TemplateKind } from "./blocks"
 import { SitePage } from "./render"
 import { imprintHtml, privacyHtml, siteMeta } from "./server"
 
 type Page = { title: string; description: string | null; data: unknown }
-type Published = { theme: unknown; settings: unknown; nav: { slug: string; title: string }[]; page: Page | null }
+type Published = { theme: unknown; settings: unknown; nav: { slug: string; title: string }[]; page: Page | null; templates?: Partial<Record<TemplateKind, unknown>> }
 
 const baseOf = (site: string) => {
   const p = sitePath(site, "/")
@@ -66,4 +67,19 @@ export async function publicSiteMetadata(site: string, slug: string): Promise<Me
   if (!found?.page) return {}
   const name = found.live.meta.orgName
   return { title: { absolute: slug ? `${found.page.title} – ${name}` : name }, description: found.page.description ?? undefined }
+}
+
+/**
+ * The org's own design for a module page (event / form / portal), rendered with the record + the real module UI;
+ * null = no live site or no published template → the route shows roots' standard page.
+ */
+export async function TemplatePage({ site, kind, context, render }: { site: string; kind: TemplateKind; context?: SiteMeta["context"]; render: SiteMeta["render"] }) {
+  const live = await liveSite(site)
+  const data = live?.home.templates?.[kind]
+  if (!live || !data) return null
+  return (
+    <main>
+      <SitePage data={data} meta={{ ...live.meta, context, render }} t={live.t} />
+    </main>
+  )
 }
