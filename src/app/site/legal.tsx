@@ -1,16 +1,17 @@
 import { SiteFrame } from "./_components/frame"
 
-// Company details for Impressum + Datenschutz. ponytail: placeholders until the company data is final; fill in here once.
+// Operator details for Impressum + Datenschutz. Empty fields are left out of the pages.
+// ponytail: still missing the board members (required for an e.V.), a contact email and the Vereinsregister number.
 export const COMPANY = {
-  name: "[Firmenname GmbH]",
-  street: "[Straße Nr.]",
-  city: "[PLZ] Berlin",
+  name: "Gude Laune e.V.",
+  street: "Streustraße 20",
+  city: "13086 Berlin",
   country: "Deutschland",
-  represented: "[Vorname Nachname]",
-  email: "[kontakt@roots.de]",
-  phone: "[+49 30 …]",
-  register: "[Amtsgericht Charlottenburg, HRB …]",
-  vat: "[DE …]",
+  represented: "",
+  email: "",
+  phone: "",
+  register: "",
+  vat: "",
   updated: "Oktober 2026",
 }
 

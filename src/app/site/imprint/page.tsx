@@ -17,24 +17,42 @@ export default function Imprint() {
         <br />
         {c.country}
       </p>
-      <p>
-        Vertreten durch: {c.represented}
-        <br />
-        Registereintrag: {c.register}
-        <br />
-        Umsatzsteuer-ID gemäß § 27a UStG: {c.vat}
-      </p>
+      {(c.represented || c.register || c.vat) && (
+        <p>
+          {c.represented && (
+            <>
+              Vertreten durch den Vorstand: {c.represented}
+              <br />
+            </>
+          )}
+          {c.register && (
+            <>
+              Registereintrag: {c.register}
+              <br />
+            </>
+          )}
+          {c.vat && <>Umsatzsteuer-ID gemäß § 27a UStG: {c.vat}</>}
+        </p>
+      )}
 
-      <h2>Kontakt</h2>
-      <p>
-        E-Mail: {c.email}
-        <br />
-        Telefon: {c.phone}
-      </p>
+      {(c.email || c.phone) && (
+        <>
+          <h2>Kontakt</h2>
+          <p>
+            {c.email && (
+              <>
+                E-Mail: {c.email}
+                <br />
+              </>
+            )}
+            {c.phone && <>Telefon: {c.phone}</>}
+          </p>
+        </>
+      )}
 
       <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
       <p>
-        {c.represented}, {c.street}, {c.city}
+        {c.represented || c.name}, {c.street}, {c.city}
       </p>
 
       <h2>Verbraucherstreitbeilegung</h2>
@@ -42,21 +60,22 @@ export default function Imprint() {
 
       <h2>Haftung für Inhalte</h2>
       <p>
-        Als Diensteanbieter sind wir für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Wir sind jedoch nicht verpflichtet, übermittelte oder gespeicherte
-        fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen. Inhalte, die Organisationen über roots veröffentlichen (zum
-        Beispiel Veranstaltungsseiten oder Formulare), liegen in deren Verantwortung. Sobald uns eine Rechtsverletzung bekannt wird, entfernen wir die betroffenen Inhalte umgehend.
+        Als Diensteanbieter sind wir für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Wir sind jedoch nicht verpflichtet, übermittelte oder
+        gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen. Inhalte, die Organisationen über roots
+        veröffentlichen (zum Beispiel Veranstaltungsseiten oder Formulare), liegen in deren Verantwortung. Sobald uns eine Rechtsverletzung bekannt wird, entfernen wir die
+        betroffenen Inhalte umgehend.
       </p>
 
       <h2>Haftung für Links</h2>
       <p>
-        Unsere Seiten enthalten Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Für diese Inhalte ist stets der jeweilige Anbieter oder Betreiber verantwortlich.
-        Bei Bekanntwerden von Rechtsverletzungen entfernen wir derartige Links umgehend.
+        Unsere Seiten enthalten Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Für diese Inhalte ist stets der jeweilige Anbieter oder Betreiber
+        verantwortlich. Bei Bekanntwerden von Rechtsverletzungen entfernen wir derartige Links umgehend.
       </p>
 
       <h2>Urheberrecht und Bildnachweise</h2>
       <p>
-        Die Texte und Gestaltung dieser Website unterliegen dem deutschen Urheberrecht. Die gezeigten Gemälde (Pieter Bruegel d. Ä., Pierre-Auguste Renoir, Albrecht Dürer, Claude Lorrain)
-        sind gemeinfrei; die Abbildungen stammen aus Wikimedia Commons.
+        Die Texte und Gestaltung dieser Website unterliegen dem deutschen Urheberrecht. Die gezeigten Gemälde (Pieter Bruegel d. Ä., Pierre-Auguste Renoir, Albrecht Dürer, Claude
+        Lorrain) sind gemeinfrei; die Abbildungen stammen aus Wikimedia Commons.
       </p>
     </LegalPage>
   )
