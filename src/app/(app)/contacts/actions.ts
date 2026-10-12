@@ -39,13 +39,13 @@ export async function createContact(fd: FormData) {
     .single()
   if (error) back(`${PATH}?new=contact`, { error: uniqueError(t, error) })
   deliverSoon()
-  back(`${PATH}?edit=${data.id}`, { ok: t("contacts.created") })
+  back(`${PATH}/${data.id}`, { ok: t("contacts.created") })
 }
 
 export async function updateContact(fd: FormData) {
   const { ctx, t } = await manager()
   const id = idOf(fd)
-  const here = `${PATH}?edit=${id}`
+  const here = `${PATH}/${id}`
   const r = await readForm(ctx, fd)
   if ("error" in r) back(here, { error: fieldError(t, r) })
   const { error, count } = await ctx.supabase.from("contacts").update(r.row, { count: "exact" }).eq("id", id).eq("org_id", ctx.org.id)
@@ -57,7 +57,7 @@ export async function trashContact(fd: FormData) {
   const { ctx, t } = await manager()
   const id = idOf(fd)
   const { error } = await ctx.supabase.rpc("soft_delete", { p_table: "public.contacts", p_id: id })
-  if (error) back(`${PATH}?edit=${id}`, { error: dbError(t, error) })
+  if (error) back(`${PATH}/${id}`, { error: dbError(t, error) })
   back(PATH, { ok: t("contacts.trashed") })
 }
 
@@ -66,14 +66,14 @@ export async function restoreContact(fd: FormData) {
   const id = idOf(fd)
   const { error } = await ctx.supabase.rpc("restore_deleted", { p_table: "public.contacts", p_id: id })
   // A live contact took the email meanwhile → unique violation.
-  if (error) back(`${PATH}?trash=1&edit=${id}`, { error: uniqueError(t, error) })
-  back(`${PATH}?edit=${id}`, { ok: t("contacts.restored") })
+  if (error) back(`${PATH}/${id}`, { error: uniqueError(t, error) })
+  back(`${PATH}/${id}`, { ok: t("contacts.restored") })
 }
 
 export async function addNote(fd: FormData) {
   const { ctx, t } = await manager()
   const id = idOf(fd)
-  const here = `${PATH}?edit=${id}`
+  const here = `${PATH}/${id}`
   const body = String(fd.get("body") ?? "").trim()
   if (!body || body.length > 10000) back(here, { error: t("errors.invalid_input") })
   const { error } = await ctx.supabase.from("contact_notes").insert({ org_id: ctx.org.id, contact_id: id, body })
@@ -83,7 +83,7 @@ export async function addNote(fd: FormData) {
 
 export async function deleteNote(fd: FormData) {
   const { ctx, t } = await manager()
-  const here = `${PATH}?edit=${idOf(fd)}`
+  const here = `${PATH}/${idOf(fd)}`
   const { error, count } = await ctx.supabase
     .from("contact_notes")
     .delete({ count: "exact" })

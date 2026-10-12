@@ -860,7 +860,13 @@
     "details": "Details",
     "import": "Importieren",
     "importTitle": "Kontakte importieren",
-    "importHint": "Lade eine CSV-Datei hoch, ordne die Spalten zu und prüfe die Vorschau, bevor du importierst."
+    "importHint": "Lade eine CSV-Datei hoch, ordne die Spalten zu und prüfe die Vorschau, bevor du importierst.",
+    "writeLetter": "Brief erstellen",
+    "invoices": "Rechnungen & Angebote",
+    "submissions": "Formulare",
+    "emails": "E-Mails",
+    "memberSince": "Mitglied seit {date}",
+    "noMembership": "Kein Mitglied."
   },
   "fields": {
     "intro": "Eigene Felder für deine Daten, z. B. Mitgliedsnummer oder Kleidergröße bei Kontakten. Sie erscheinen in Formularen und im CSV-Import.",

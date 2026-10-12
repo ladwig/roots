@@ -16,7 +16,7 @@ import { restoreFile, trashFile, updateFile } from "./actions"
 
 // Records a file can be attached to → where that record opens.
 const RECORD_LINKS: Record<string, (id: string) => string> = {
-  contacts: (id) => `/contacts?edit=${id}`,
+  contacts: (id) => `/contacts/${id}`,
 }
 
 export default async function FilesPage({ searchParams }: PageProps<"/files">) {

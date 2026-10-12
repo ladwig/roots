@@ -20,6 +20,9 @@ export default async function TemplatesPage({ searchParams }: PageProps<"/files/
   const canManage = ctx.can("org.files.manage")
   const creating = canManage && param(sp, "new") === "template"
   const trash = canManage && param(sp, "trash") === "1"
+  // From a contact's "Brief erstellen": keep the contact for the template that gets picked.
+  const contact = param(sp, "contact")
+  const forContact = contact && /^[0-9a-f-]{36}$/.test(contact) ? `?contact=${contact}` : ""
   const cols = "id, org_id, name, updated_at"
   const { data } = trash
     ? await ctx.supabase.from("letter_templates").select(cols).eq("org_id", ctx.org.id).not("deleted_at", "is", null).order("deleted_at", { ascending: false })
@@ -62,7 +65,7 @@ export default async function TemplatesPage({ searchParams }: PageProps<"/files/
       <DataTable
         rows={rows}
         rowKey={(r) => r.id}
-        rowHref={trash ? undefined : (r) => `/files/templates/${r.id}`}
+        rowHref={trash ? undefined : (r) => `/files/templates/${r.id}${forContact}`}
         empty={trash ? t("letters.emptyTrash") : t("letters.empty")}
         columns={[
           { header: t("letters.name"), cell: (r) => <span className="font-medium">{r.name}</span> },

@@ -264,7 +264,7 @@ async function EditMembership({
     <UrlSheet params={["edit"]} title={name} description={t("membership.numberShort", { number: m.member_no ?? "" })}>
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
       {m.contacts && (
-        <Button render={<Link href={`/contacts?edit=${m.contacts.id}`} />} nativeButton={false} size="sm" variant="outline" className="justify-self-start">
+        <Button render={<Link href={`/contacts/${m.contacts.id}`} />} nativeButton={false} size="sm" variant="outline" className="justify-self-start">
           {t("membership.openContact")}
         </Button>
       )}

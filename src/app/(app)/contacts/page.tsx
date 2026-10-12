@@ -1,34 +1,19 @@
 import Link from "next/link"
-import { notFound } from "next/navigation"
-import { MailIcon, PhoneIcon, Trash2Icon, UploadIcon } from "lucide-react"
-import { CustomFieldInputs } from "@/components/custom-field-inputs"
+import { notFound, redirect } from "next/navigation"
+import { UploadIcon } from "lucide-react"
 import { ExportMenu } from "@/components/export-menu"
-import { TagSelect } from "@/components/tag-select"
-import { FileList } from "@/components/file-list"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { UrlSheet } from "@/components/url-sheet"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
-import { Separator } from "@/components/ui/separator"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { getT } from "@/i18n/server"
-import type { T } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
-import { loadFields, type CustomValues, type FieldDef } from "@/lib/custom-fields"
-import type { Tables } from "@/lib/supabase/types"
-import { pageParam, param, withParams, type SearchParams } from "@/lib/url"
-import { addNote, createContact, deleteNote, restoreContact, trashContact, updateContact } from "./actions"
-import { contactName, COUNTRIES } from "./fields"
-import { SubmitButton } from "@/components/submit-button"
-
-type Contact = Tables<"contacts">
-type Ctx = Awaited<ReturnType<typeof requirePerm>>
-const textareaClass =
-  "rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
+import { loadFields } from "@/lib/custom-fields"
+import { pageParam, param, withParams } from "@/lib/url"
+import { createContact } from "./actions"
+import { ContactForm } from "./contact-form"
+import { contactName } from "./fields"
 
 export default async function ContactsPage({ searchParams }: PageProps<"/contacts">) {
   const ctx = await requirePerm("crm.view")
@@ -42,7 +27,9 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
   const tag = param(sp, "tag")
   const trash = canManage && param(sp, "trash") === "1"
   const page = pageParam(sp)
+  // Old drawer links (?edit=<id>) → the contact's page.
   const editId = param(sp, "edit")
+  if (editId && /^[0-9a-f-]{36}$/.test(editId)) redirect(`/contacts/${editId}`)
   const creating = canManage && param(sp, "new") === "contact"
 
   // All filtering happens here in the query; the UI only writes the URL.
@@ -56,11 +43,10 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
     : query.is("deleted_at", null).order("last_name", { nullsFirst: false }).order("first_name").order("company")
   if (q) query = query.or(["first_name", "last_name", "company", "email", "phone", "city"].map((c) => `${c}.ilike.%${q}%`).join(","))
   if (tag) query = query.contains("tags", [tag])
-  const [{ data }, { data: tagRows }, { data: editing }, defs] = await Promise.all([
+  const [{ data }, { data: tagRows }, defs] = await Promise.all([
     query,
     ctx.supabase.rpc("contact_tags", { p_org: ctx.org.id }),
-    editId ? ctx.supabase.from("contacts").select("*").eq("id", editId).eq("org_id", ctx.org.id).maybeSingle() : Promise.resolve({ data: null }),
-    loadFields(ctx.supabase, ctx.org.id, "contacts"),
+    creating ? loadFields(ctx.supabase, ctx.org.id, "contacts") : Promise.resolve([]),
   ])
   const rows = data?.slice(0, PAGE_SIZE) ?? []
   const tags = ((tagRows ?? []) as unknown as string[]).sort((a, b) => a.localeCompare(b, t.locale))
@@ -86,21 +72,21 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
               <Button render={<Link href="/contacts/import" />} nativeButton={false} size="sm" variant="outline">
                 <UploadIcon /> {t("contacts.import")}
               </Button>
-              <Button render={<Link href={withParams(sp, { new: "contact", edit: undefined })} scroll={false} />} nativeButton={false} size="sm">
+              <Button render={<Link href={withParams(sp, { new: "contact" })} scroll={false} />} nativeButton={false} size="sm">
                 {t("contacts.new")}
               </Button>
             </>
           )}
         </div>
       </div>
-      <Notice error={!editId && !creating ? param(sp, "error") : undefined} ok={!editId ? param(sp, "ok") : undefined} />
+      <Notice error={!creating ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
 
       <div className="flex flex-wrap items-center gap-3">
         <SearchBox q={q} label={t("common.search")} />
         <nav aria-label={t("contacts.tags")} className="flex flex-wrap gap-1.5">
-          {chip(withParams(sp, { tag: undefined, trash: undefined, page: undefined, edit: undefined }), !trash && !tag, t("contacts.all"))}
-          {!trash && tags.map((tg) => chip(withParams(sp, { tag: tg, page: undefined, edit: undefined }), tg === tag, tg))}
-          {canManage && chip(withParams(sp, { trash: "1", tag: undefined, page: undefined, edit: undefined }), trash, t("contacts.trash"))}
+          {chip(withParams(sp, { tag: undefined, trash: undefined, page: undefined }), !trash && !tag, t("contacts.all"))}
+          {!trash && tags.map((tg) => chip(withParams(sp, { tag: tg, page: undefined }), tg === tag, tg))}
+          {canManage && chip(withParams(sp, { trash: "1", tag: undefined, page: undefined }), trash, t("contacts.trash"))}
         </nav>
       </div>
       {trash && <p className="text-sm text-muted-foreground">{t("contacts.trashHint", { days: 30 })}</p>}
@@ -108,7 +94,7 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
       <DataTable
         rows={rows}
         rowKey={(r) => r.id}
-        rowHref={(r) => withParams(sp, { edit: r.id, new: undefined })}
+        rowHref={(r) => `/contacts/${r.id}`}
         empty={trash ? t("contacts.emptyTrash") : q || tag ? t("contacts.noMatch") : t("contacts.empty")}
         columns={[
           {
@@ -145,236 +131,9 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
           <ContactForm t={t} action={createContact} defs={defs} tags={tags} />
         </UrlSheet>
       )}
-      {editing && <EditContact t={t} ctx={ctx} c={editing} sp={sp} canManage={canManage} defs={defs} tags={tags} />}
     </div>
-  )
-}
-
-function Field({ id, label, ...props }: { id: string; label: string } & React.ComponentProps<typeof Input>) {
-  return (
-    <div className="grid gap-2">
-      <Label htmlFor={id}>{label}</Label>
-      <Input id={id} {...props} />
-    </div>
-  )
-}
-
-function ContactForm({ t, action, c, disabled, defs, tags }: { t: T; action: (fd: FormData) => Promise<void>; c?: Contact; disabled?: boolean; defs: FieldDef[]; tags: string[] }) {
-  const regions = new Intl.DisplayNames([t.locale], { type: "region" })
-  return (
-    <form action={action} className="grid gap-4">
-      {c && <input type="hidden" name="id" value={c.id} />}
-      <fieldset disabled={disabled} className="grid gap-4">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field id="c-first" name="first_name" label={t("contacts.firstName")} defaultValue={c?.first_name ?? ""} maxLength={100} autoComplete="off" />
-          <Field id="c-last" name="last_name" label={t("contacts.lastName")} defaultValue={c?.last_name ?? ""} maxLength={100} autoComplete="off" />
-        </div>
-        <Field id="c-company" name="company" label={t("contacts.company")} defaultValue={c?.company ?? ""} maxLength={200} />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field id="c-email" name="email" type="email" label={t("contacts.email")} defaultValue={c?.email ?? ""} maxLength={320} />
-          <Field id="c-phone" name="phone" type="tel" label={t("contacts.phone")} defaultValue={c?.phone ?? ""} maxLength={50} />
-        </div>
-        <Field id="c-street" name="street" label={t("contacts.street")} defaultValue={c?.street ?? ""} maxLength={200} />
-        <div className="grid grid-cols-[minmax(0,7rem)_1fr] gap-4">
-          <Field id="c-zip" name="postal_code" label={t("contacts.postalCode")} defaultValue={c?.postal_code ?? ""} maxLength={20} />
-          <Field id="c-city" name="city" label={t("contacts.city")} defaultValue={c?.city ?? ""} maxLength={100} />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2">
-            <Label htmlFor="c-country">{t("contacts.country")}</Label>
-            <NativeSelect id="c-country" name="country" defaultValue={c?.country ?? ""} className="w-full">
-              <NativeSelectOption value="">–</NativeSelectOption>
-              {COUNTRIES.map((code) => (
-                <NativeSelectOption key={code} value={code}>
-                  {regions.of(code)}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </div>
-          <Field id="c-birthday" name="birthday" type="date" label={t("contacts.birthday")} defaultValue={c?.birthday ?? ""} />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="c-tags">{t("contacts.tags")}</Label>
-          <TagSelect id="c-tags" name="tags" options={tags} defaultValue={c?.tags ?? []} creatable disabled={disabled} />
-          <p id="c-tags-help" className="text-xs text-muted-foreground">
-            {t("contacts.tagsHelp")}
-          </p>
-        </div>
-        <CustomFieldInputs defs={defs} values={c?.custom as CustomValues | undefined} idPrefix="c-custom" />
-        {!disabled && (
-          <SubmitButton className="justify-self-start">
-            {c ? t("common.save") : t("contacts.new")}
-          </SubmitButton>
-        )}
-      </fieldset>
-    </form>
-  )
-}
-
-async function EditContact({ t, ctx, c, sp, canManage, defs, tags }: { t: T; ctx: Ctx; c: Contact; sp: SearchParams; canManage: boolean; defs: FieldDef[]; tags: string[] }) {
-  const { data: notes } = await ctx.supabase
-    .from("contact_notes")
-    .select("id, body, created_at, created_by")
-    .eq("contact_id", c.id)
-    .eq("org_id", ctx.org.id)
-    .order("created_at", { ascending: false })
-    .limit(200)
-  const authorIds = [...new Set([c.created_by, ...(notes ?? []).map((n) => n.created_by)].filter((v): v is string => !!v))]
-  const { data: people } = authorIds.length
-    ? await ctx.supabase.from("profiles").select("id, full_name, email").in("id", authorIds)
-    : { data: [] }
-  const who = (id: string | null) => {
-    const p = people?.find((x) => x.id === id)
-    return p?.full_name || p?.email || t("contacts.someone")
-  }
-  const dt = (v: string) => t.date(v, { dateStyle: "medium", timeStyle: "short" })
-  // Timeline: notes + created/changed, newest first. Later also tickets, guest lists, emails… of this contact.
-  const timeline = [
-    ...(notes ?? []).map((n) => ({ key: n.id, at: n.created_at, note: n })),
-    ...(c.updated_at !== c.created_at ? [{ key: "updated", at: c.updated_at, note: null }] : []),
-    { key: "created", at: c.created_at, note: null },
-  ].sort((a, b) => b.at.localeCompare(a.at))
-
-  return (
-    <UrlSheet params={["edit"]} title={contactName(c)} description={c.company && contactName(c) !== c.company ? c.company : undefined}>
-      <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
-      {c.deleted_at ? (
-        <>
-          <p className="rounded-lg border bg-muted px-3 py-2 text-sm">
-            {t("contacts.deletedOn", {
-              date: t.date(c.deleted_at),
-              purge: t.date(new Date(new Date(c.deleted_at).getTime() + 30 * 86_400_000)),
-            })}
-          </p>
-          {canManage && (
-            <form action={restoreContact}>
-              <input type="hidden" name="id" value={c.id} />
-              <SubmitButton>{t("contacts.restore")}</SubmitButton>
-            </form>
-          )}
-        </>
-      ) : (
-        <>
-          {(c.email || c.phone) && (
-            <div className="flex flex-wrap gap-2">
-              {c.email && (
-                <Button render={<a href={`mailto:${c.email}`} />} nativeButton={false} variant="outline" size="sm">
-                  <MailIcon /> {t("contacts.email")}
-                </Button>
-              )}
-              {c.phone && (
-                <Button render={<a href={`tel:${c.phone.replace(/[^\d+]/g, "")}`} />} nativeButton={false} variant="outline" size="sm">
-                  <PhoneIcon /> {t("contacts.phone")}
-                </Button>
-              )}
-            </div>
-          )}
-          <ContactMembership t={t} ctx={ctx} contactId={c.id} />
-          {!canManage && <p className="text-sm text-muted-foreground">{t("contacts.readOnly")}</p>}
-          <ContactForm t={t} action={updateContact} c={c} disabled={!canManage} defs={defs} tags={tags} />
-          <Separator />
-          <FileList ctx={ctx} entity="contacts" entityId={c.id} back={`/contacts?edit=${c.id}`} />
-          <Separator />
-          <section className="grid gap-3" aria-labelledby="c-timeline">
-            <h3 id="c-timeline" className="font-medium">
-              {t("contacts.timeline")}
-            </h3>
-            {canManage && (
-              <form action={addNote} className="grid gap-2">
-                <input type="hidden" name="id" value={c.id} />
-                <textarea
-                  name="body"
-                  required
-                  maxLength={10000}
-                  rows={3}
-                  placeholder={t("contacts.notePlaceholder")}
-                  aria-label={t("contacts.notePlaceholder")}
-                  className={textareaClass}
-                />
-                <SubmitButton size="sm" variant="outline" className="justify-self-start">
-                  {t("contacts.addNote")}
-                </SubmitButton>
-              </form>
-            )}
-            <ol className="grid gap-3 border-l pl-4">
-              {timeline.map((e) => (
-                <li key={e.key} className="relative grid gap-1 text-sm">
-                  <span className="absolute top-1.5 -left-[1.3rem] size-2 rounded-full bg-border" aria-hidden />
-                  <span className="text-xs text-muted-foreground">
-                    {dt(e.at)}
-                    {e.note && ` · ${who(e.note.created_by)}`}
-                  </span>
-                  {e.note ? (
-                    <div className="flex items-start gap-2">
-                      <p className="flex-1 whitespace-pre-wrap break-words">{e.note.body}</p>
-                      {canManage && (
-                        <form action={deleteNote}>
-                          <input type="hidden" name="id" value={c.id} />
-                          <input type="hidden" name="note" value={e.note.id} />
-                          <Tooltip>
-                            <TooltipTrigger
-                              render={<SubmitButton variant="ghost" size="icon-sm" aria-label={t("contacts.deleteNote")} />}
-                            >
-                              <Trash2Icon />
-                            </TooltipTrigger>
-                            <TooltipContent>{t("contacts.deleteNote")}</TooltipContent>
-                          </Tooltip>
-                        </form>
-                      )}
-                    </div>
-                  ) : e.key === "created" ? (
-                    <p>
-                      {t("contacts.createdEntry")} · <span className="text-muted-foreground">{t("contacts.createdBy", { who: who(c.created_by) })}</span>
-                    </p>
-                  ) : (
-                    <p>{t("contacts.updatedEntry")}</p>
-                  )}
-                </li>
-              ))}
-            </ol>
-          </section>
-          {canManage && (
-            <section className="grid gap-3 rounded-lg border border-destructive/30 p-3">
-              <h3 className="font-medium text-destructive">{t("admin.dangerZone")}</h3>
-              <form action={trashContact}>
-                <input type="hidden" name="id" value={c.id} />
-                <SubmitButton variant="outline" size="sm">
-                  {t("contacts.toTrash")}
-                </SubmitButton>
-              </form>
-            </section>
-          )}
-        </>
-      )}
-    </UrlSheet>
   )
 }
 
 // Reads session/URL at request time; no static shell needed yet (see AGENTS.md › Cache Components).
 export const instant = false
-
-// Members module: show the contact's membership, or offer to make them a member.
-async function ContactMembership({ t, ctx, contactId }: { t: T; ctx: Ctx; contactId: string }) {
-  if (!ctx.modules.has("members") || !ctx.can("members.view")) return null
-  const { data: m } = await ctx.supabase
-    .from("memberships")
-    .select("id, number, ends_on, types:membership_types(name)")
-    .eq("org_id", ctx.org.id)
-    .eq("contact_id", contactId)
-    .is("deleted_at", null)
-    .order("starts_on", { ascending: false })
-    .limit(1)
-    .maybeSingle()
-  if (m)
-    return (
-      <Link href={`/members?edit=${m.id}`} className="rounded-lg border px-3 py-2 text-sm hover:bg-muted">
-        {t("membership.contactMember", { number: m.number ?? 0, type: m.types?.name ?? "" })}
-        {m.ends_on && ` · ${t("membership.state.ending", { date: t.date(m.ends_on) })}`}
-      </Link>
-    )
-  return ctx.can("members.manage") ? (
-    <Button render={<Link href={`/members?new=1&contact=${contactId}`} />} nativeButton={false} size="sm" variant="outline" className="justify-self-start">
-      {t("membership.makeMember")}
-    </Button>
-  ) : null
-}

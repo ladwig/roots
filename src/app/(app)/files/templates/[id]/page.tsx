@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { CopyIcon, PencilIcon } from "lucide-react"
 import { Notice } from "@/components/notice"
+import { PageCrumbs } from "@/components/page-crumbs"
 import { RichTextEditor } from "@/components/rich-text-editor"
 import { SubmitButton } from "@/components/submit-button"
 import { UrlSheet } from "@/components/url-sheet"
@@ -42,6 +43,7 @@ export default async function TemplatePage({ params, searchParams }: PageProps<"
 
   return (
     <>
+      <PageCrumbs items={[{ href: "/files", label: t("files.title") }, { href: "/files/templates", label: t("letters.tabs.templates") }, { label: template.name }]} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="font-heading text-2xl font-semibold">{template.name}</h1>

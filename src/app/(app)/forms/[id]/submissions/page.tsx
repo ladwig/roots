@@ -88,7 +88,7 @@ export default async function SubmissionsPage({ params, searchParams }: PageProp
           <div className="flex flex-wrap items-center gap-2">
             {badge(sub.status)}
             {sub.contact_id && (
-              <Button render={<Link href={`/contacts?edit=${sub.contact_id}`} />} nativeButton={false} size="sm" variant="outline">
+              <Button render={<Link href={`/contacts/${sub.contact_id}`} />} nativeButton={false} size="sm" variant="outline">
                 {t("forms.openContact")}
               </Button>
             )}

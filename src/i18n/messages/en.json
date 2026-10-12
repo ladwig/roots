@@ -860,7 +860,13 @@
     "details": "Details",
     "import": "Import",
     "importTitle": "Import contacts",
-    "importHint": "Upload a CSV file, map the columns and check the preview before importing."
+    "importHint": "Upload a CSV file, map the columns and check the preview before importing.",
+    "writeLetter": "Write letter",
+    "invoices": "Invoices & quotes",
+    "submissions": "Forms",
+    "emails": "Emails",
+    "memberSince": "Member since {date}",
+    "noMembership": "Not a member."
   },
   "fields": {
     "intro": "Your own fields for your data, e.g. member number or shirt size on contacts. They show up in forms and in the CSV import.",
