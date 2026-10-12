@@ -47,3 +47,20 @@ test("pro-rata counts the months a membership touches", () => {
   assert.equal(periodFee(6000, "year", year, { starts_on: "2027-11-15", ends_on: null }, false), 6000)
   assert.equal(periodFee(6000, "year", year, { starts_on: "2020-01-01", ends_on: "2027-03-31" }, true), 1500)
 })
+
+test("member import row: contact + membership, German dates, type by name", async () => {
+  const { readMember } = await import("./fields.ts")
+  const types = [{ id: "t1", name: "Vollmitglied" }, { id: "t2", name: "Jugend" }]
+  const row = { first_name: "Ana", email: "ana@x.de", "membership.type": "jugend", "membership.starts_on": "01.03.2019", "membership.number": "M-0042", "membership.iban": "DE02 1203 0000 0000 2020 51" }
+  const r = readMember((k) => row[k] ?? "", types, [], "2027-01-01")
+  assert.ok("row" in r, JSON.stringify(r))
+  assert.equal(r.row.membership.type_id, "t2")
+  assert.equal(r.row.membership.starts_on, "2019-03-01")
+  assert.equal(r.row.membership.number, 42)
+  assert.equal(r.row.membership.member_no, "M-0042")
+  assert.equal(r.row.membership.mandate_signed_on, "2019-03-01")
+  assert.equal(readMember((k) => ({ ...row, "membership.type": "Gold" })[k] ?? "", types, [], "2027-01-01").error, "errors.unknown_membership_type")
+  const single = readMember((k) => ({ first_name: "B" })[k] ?? "", [types[0]], [], "2027-01-01")
+  assert.equal(single.row.membership.type_id, "t1")
+  assert.equal(single.row.membership.starts_on, "2027-01-01")
+})

@@ -455,7 +455,8 @@
     "invalid_iban": "The IBAN is invalid.",
     "invalid_bic": "The BIC is invalid.",
     "mandate_required": "Please grant the direct debit mandate.",
-    "consent_required": "Please confirm the consent."
+    "consent_required": "Please confirm the consent.",
+    "unknown_membership_type": "Unknown membership type"
   },
   "admin": {
     "title": "Platform",
@@ -704,7 +705,8 @@
       "shift.applied": "Shift application",
       "membership.started": "New member",
       "membership.ended": "Membership ends",
-      "form.submitted": "Form submitted"
+      "form.submitted": "Form submitted",
+      "memberships.imported": "Members imported"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -730,7 +732,8 @@
       "shift.applied": "🙋 {name} wants the shift on {when}",
       "membership.started": "🎉 New member: {name} (no. {number})",
       "membership.ended": "👋 Membership of {name} ends on {ends_on}",
-      "form.submitted": "📝 New submission “{form}”: {name}"
+      "form.submitted": "📝 New submission “{form}”: {name}",
+      "memberships.imported": "📥 {count} members imported"
     }
   },
   "inbox": {
@@ -1802,7 +1805,12 @@
     "reminderBye": "Best regards\n{org}",
     "restore": "Restore",
     "restored": "Membership restored.",
-    "deletedOn": "In the trash since {date}. Deleted for good on {purge}."
+    "deletedOn": "In the trash since {date}. Deleted for good on {purge}.",
+    "import": "Import",
+    "importTitle": "Import members",
+    "importHint": "CSV from Excel or your old club software: one row per person with membership type, start date, number and optionally bank details. Membership types must be named exactly as set up here ({types}). Existing contacts are recognised by email. No entry fees are created.",
+    "importNeedsType": "Map a column to the membership type (there are several types).",
+    "importNumber": "Member number (old)"
   },
   "forms": {
     "nav": "Forms",

@@ -455,7 +455,8 @@
     "invalid_iban": "Die IBAN ist ungültig.",
     "invalid_bic": "Die BIC ist ungültig.",
     "mandate_required": "Bitte erteile das Lastschriftmandat.",
-    "consent_required": "Bitte bestätige die Einwilligung."
+    "consent_required": "Bitte bestätige die Einwilligung.",
+    "unknown_membership_type": "Unbekannte Mitgliedsart"
   },
   "admin": {
     "title": "Plattform",
@@ -704,7 +705,8 @@
       "shift.applied": "Bewerbung auf Schicht",
       "membership.started": "Neues Mitglied",
       "membership.ended": "Mitgliedschaft endet",
-      "form.submitted": "Formular eingegangen"
+      "form.submitted": "Formular eingegangen",
+      "memberships.imported": "Mitglieder importiert"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -730,7 +732,8 @@
       "shift.applied": "🙋 {name} möchte die Schicht am {when}",
       "membership.started": "🎉 Neues Mitglied: {name} (Nr. {number})",
       "membership.ended": "👋 Mitgliedschaft von {name} endet am {ends_on}",
-      "form.submitted": "📝 Neue Einsendung „{form}“: {name}"
+      "form.submitted": "📝 Neue Einsendung „{form}“: {name}",
+      "memberships.imported": "📥 {count} Mitglieder importiert"
     }
   },
   "inbox": {
@@ -1802,7 +1805,12 @@
     "reminderBye": "Viele Grüße\n{org}",
     "restore": "Wiederherstellen",
     "restored": "Mitgliedschaft wiederhergestellt.",
-    "deletedOn": "Im Papierkorb seit {date}. Wird am {purge} endgültig gelöscht."
+    "deletedOn": "Im Papierkorb seit {date}. Wird am {purge} endgültig gelöscht.",
+    "import": "Importieren",
+    "importTitle": "Mitglieder importieren",
+    "importHint": "CSV aus Excel oder deiner alten Vereinssoftware: eine Zeile pro Person mit Mitgliedsart, Eintritt, Nummer und optional Bankdaten. Mitgliedsarten müssen genau so heißen wie hier angelegt ({types}). Bestehende Kontakte werden über die E-Mail erkannt. Aufnahmegebühren werden nicht erzeugt.",
+    "importNeedsType": "Ordne eine Spalte der Mitgliedsart zu (es gibt mehrere Arten).",
+    "importNumber": "Mitgliedsnummer (alt)"
   },
   "forms": {
     "nav": "Formulare",

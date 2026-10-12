@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { UploadIcon } from "lucide-react"
 import { contactName } from "@/app/(app)/contacts/fields"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { ContactPicker } from "@/components/contact-picker"
@@ -90,9 +91,16 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
           <p className="text-sm text-muted-foreground">{t("membership.activeCount", { count: activeCount ?? 0 })}</p>
         </div>
         {canManage && (
-          <Button render={<Link href={withParams(sp, { new: "1", edit: undefined })} scroll={false} />} nativeButton={false} size="sm" disabled={!types?.length}>
-            {t("membership.new")}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            {ctx.can("crm.manage") && (
+              <Button render={<Link href="/members/import" />} nativeButton={false} size="sm" variant="outline">
+                <UploadIcon /> {t("membership.import")}
+              </Button>
+            )}
+            <Button render={<Link href={withParams(sp, { new: "1", edit: undefined })} scroll={false} />} nativeButton={false} size="sm" disabled={!types?.length}>
+              {t("membership.new")}
+            </Button>
+          </div>
         )}
       </div>
       <Notice error={!editId && !creating ? param(sp, "error") : undefined} ok={!editId ? param(sp, "ok") : undefined} />

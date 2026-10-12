@@ -5,7 +5,11 @@ import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { back } from "@/lib/url"
+import type { ImportOutcome } from "@/components/csv-import"
+import { MAX_IMPORT_ROWS } from "@/app/(app)/contacts/fields"
+import { loadFields } from "@/lib/custom-fields"
 import { sendOrgEmail } from "@/lib/org-email"
+import { IMPORT_FIELDS, readMember, type MemberRow } from "@/members/fields"
 import { coversPeriod, earliestEnd, INTERVALS, periodFee, periods, type Interval } from "@/members/dues"
 
 const PATH = "/members"
@@ -362,4 +366,88 @@ export async function sendReminders(fd: FormData) {
   const skipped = (dues ?? []).filter((d) => !d.memberships?.contacts?.email).length
   if (!dues?.length) back(to, { error: t("membership.nothingOverdue") })
   back(to, sent.length ? { ok: t("membership.remindersSent", { count: byEmail.size }) + (skipped ? ` ${t("membership.remindersNoEmail", { count: skipped })}` : "") } : { error: t("membership.remindersFailed") })
+}
+
+// ---------- import ----------
+
+/** CSV import: each row = person + membership. Existing contacts (by email) are reused; a contact that already has
+ * a live membership is skipped, or its membership updated in "update" mode. No entry fees for imported members. */
+export async function importMembers(input: { rows: Record<string, string>[]; mode: "skip" | "update" }): Promise<ImportOutcome> {
+  const ctx = await requirePerm("members.manage")
+  const t = await getT()
+  if (!ctx.modules.has("members") || !ctx.can("crm.manage")) return { error: t("errors.not_allowed") }
+  if (!Array.isArray(input?.rows) || input.rows.length > MAX_IMPORT_ROWS) return { error: t("errors.invalid_input") }
+  const allowed = new Set(IMPORT_FIELDS.map((f) => f.key))
+  const [defs, { data: types }] = await Promise.all([
+    loadFields(ctx.supabase, ctx.org.id, "contacts"),
+    ctx.supabase.from("membership_types").select("id, name").eq("org_id", ctx.org.id),
+  ])
+  defs.forEach((d) => allowed.add(`custom.${d.key}`))
+  const mapped = new Set(Object.keys(input.rows[0] ?? {}))
+  const checkDefs = defs.map((d) => ({ ...d, required: d.required && mapped.has(`custom.${d.key}`) }))
+  const now = today()
+
+  const errors: { line: number; message: string }[] = []
+  const valid: { line: number; row: MemberRow }[] = []
+  const seen = new Set<string>()
+  let skipped = 0
+  input.rows.forEach((raw, i) => {
+    const line = i + 2
+    const r = readMember((k) => (allowed.has(k) && typeof raw?.[k] === "string" ? raw[k] : ""), types ?? [], checkDefs, now)
+    if ("error" in r) return void errors.push({ line, message: (r.field ? `${r.field}: ` : "") + t.dynamic(r.error) })
+    const email = r.row.contact.email
+    if (email && seen.has(email)) return void skipped++
+    if (email) seen.add(email)
+    valid.push({ line, row: r.row })
+  })
+
+  // Existing contacts (by email) and their live memberships.
+  const emails = valid.flatMap((v) => (v.row.contact.email ? [v.row.contact.email] : []))
+  const contactIds = new Map<string, string>()
+  for (let i = 0; i < emails.length; i += 500) {
+    const { data } = await ctx.supabase.from("contacts").select("id, email").eq("org_id", ctx.org.id).is("deleted_at", null).in("email", emails.slice(i, i + 500))
+    data?.forEach((c) => contactIds.set(c.email!, c.id))
+  }
+  const ids = [...contactIds.values()]
+  const memberOf = new Map<string, string>()
+  for (let i = 0; i < ids.length; i += 500) {
+    const { data } = await ctx.supabase.from("memberships").select("id, contact_id").eq("org_id", ctx.org.id).is("deleted_at", null).in("contact_id", ids.slice(i, i + 500))
+    data?.forEach((m) => memberOf.set(m.contact_id, m.id))
+  }
+
+  // New contacts in one insert (returned in input order); line → new contact id.
+  const created = new Map<number, string>()
+  const newContacts = valid.filter((v) => !v.row.contact.email || !contactIds.has(v.row.contact.email))
+  if (newContacts.length) {
+    const { data, error } = await ctx.supabase
+      .from("contacts")
+      .insert(newContacts.map((v) => ({ ...v.row.contact, custom: v.row.contact.custom as never, org_id: ctx.org.id })))
+      .select("id")
+    if (error || !data) return { error: dbError(t, error) }
+    newContacts.forEach((v, i) => created.set(v.line, data[i].id))
+  }
+  const contactOf = (v: (typeof valid)[number]) => created.get(v.line) ?? contactIds.get(v.row.contact.email!)!
+
+  const inserts = valid.filter((v) => !memberOf.has(contactOf(v)))
+  const existing = valid.filter((v) => memberOf.has(contactOf(v)))
+  let inserted = 0
+  if (inserts.length) {
+    const { error } = await ctx.supabase.from("memberships").insert(inserts.map((v) => ({ ...v.row.membership, org_id: ctx.org.id, contact_id: contactOf(v) })))
+    if (error) return { error: dbError(t, error) }
+    inserted = inserts.length
+  }
+  let updated = 0
+  if (input.mode === "update") {
+    for (const v of existing) {
+      // The number stays as it is (the old system's number only counts for new members).
+      const m: Partial<MemberRow["membership"]> = { ...v.row.membership }
+      delete m.number
+      delete m.member_no
+      const { error } = await ctx.supabase.from("memberships").update(m).eq("id", memberOf.get(contactOf(v))!).eq("org_id", ctx.org.id)
+      if (error) errors.push({ line: v.line, message: dbError(t, error) })
+      else updated++
+    }
+  } else skipped += existing.length
+  deliverSoon()
+  return { inserted, updated, skipped, errors: errors.sort((a, b) => a.line - b.line) }
 }
