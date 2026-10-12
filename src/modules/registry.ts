@@ -6,7 +6,7 @@
 
 import { CalendarClockIcon, CalendarDaysIcon, ClipboardListIcon, ContactIcon, CreditCardIcon, FileTextIcon, GlobeIcon, IdCardIcon, ListChecksIcon, MailIcon, ScanLineIcon, type LucideIcon } from "lucide-react"
 
-export type NavItem = { href: string; label: string; icon: LucideIcon; permission?: string | string[] } // label = message key; several permissions = any of them
+export type NavItem = { href: string; label: string; icon: LucideIcon; permission?: string | string[]; newTab?: boolean } // label = message key; several permissions = any of them
 export type ModuleDef = {
   key: string
   requires?: { modules?: string[]; integrations?: string[] }
@@ -78,7 +78,7 @@ export const modules: ModuleDef[] = [
     permissions: ["email.view", "email.manage"],
     nav: [{ href: "/email", label: "email.nav", icon: MailIcon, permission: "email.view" }],
   },
-  { key: "sites", permissions: ["sites.manage"], nav: [{ href: "/website", label: "sites.nav", icon: GlobeIcon, permission: "sites.manage" }] },
+  { key: "sites", permissions: ["sites.manage"], nav: [{ href: "/website/edit", label: "sites.nav", icon: GlobeIcon, permission: "sites.manage", newTab: true }] },
 ]
 
 export const getModule = (key: string) => modules.find((m) => m.key === key)

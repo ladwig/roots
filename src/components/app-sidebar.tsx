@@ -35,7 +35,7 @@ import { setLocale } from "@/i18n/actions"
 import { useT } from "@/i18n/client"
 import { localeNames, locales } from "@/i18n/config"
 
-export type SidebarLink = { href: string; label: string; icon: React.ReactNode; count?: number }
+export type SidebarLink = { href: string; label: string; icon: React.ReactNode; count?: number; newTab?: boolean }
 export type Me = { name: string; email: string; avatar: string | null }
 
 export function AppSidebar({
@@ -70,7 +70,13 @@ export function AppSidebar({
                   <SidebarMenuButton
                     isActive={isActive(n.href)}
                     tooltip={n.label}
-                    render={<Link href={n.href} aria-current={isActive(n.href) ? "page" : undefined} onClick={() => setOpenMobile(false)} />}
+                    render={
+                      n.newTab ? (
+                        <a href={n.href} target="_blank" rel="noreferrer" />
+                      ) : (
+                        <Link href={n.href} aria-current={isActive(n.href) ? "page" : undefined} onClick={() => setOpenMobile(false)} />
+                      )
+                    }
                   >
                     {n.icon}
                     <span>{n.label}</span>

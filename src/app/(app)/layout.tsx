@@ -19,7 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .flatMap((m) => m.nav ?? [])
     .filter((n) => !n.permission || [n.permission].flat().some((p) => ctx.can(p)))
     .filter((n, i, all) => all.findIndex((x) => x.href === n.href) === i) // e.g. the door belongs to tickets and guest lists
-    .map((n) => ({ href: n.href, label: t.dynamic(n.label), icon: <n.icon /> }))
+    .map((n) => ({ href: n.href, label: t.dynamic(n.label), icon: <n.icon />, newTab: n.newTab }))
   const groups = [
     {
       items: [

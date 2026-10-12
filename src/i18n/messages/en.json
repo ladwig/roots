@@ -2726,6 +2726,13 @@
       "join": "Join us",
       "joinText": "Want to join? Here are our forms and the member area.",
       "toEvents": "See dates"
-    }
+    },
+    "toApp": "To the app",
+    "draftSavedShort": "Saved",
+    "publish": "Publish",
+    "isLive": "Live",
+    "nothingToPublish": "No changes compared to the published page.",
+    "reallyTrash": "Really delete?",
+    "designHint": "Changes show in the preview right away. Save applies them to the whole website."
   }
 }

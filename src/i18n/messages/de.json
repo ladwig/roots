@@ -2726,6 +2726,13 @@
       "join": "Mitmachen",
       "joinText": "Ihr wollt dabei sein? Hier geht es zu unseren Formularen und zum Mitgliederbereich.",
       "toEvents": "Zu den Terminen"
-    }
+    },
+    "toApp": "Zur App",
+    "draftSavedShort": "Gespeichert",
+    "publish": "Veröffentlichen",
+    "isLive": "Ist online",
+    "nothingToPublish": "Keine Änderungen gegenüber der veröffentlichten Seite.",
+    "reallyTrash": "Wirklich löschen?",
+    "designHint": "Änderungen siehst du sofort in der Vorschau. Speichern übernimmt sie für die ganze Website."
   }
 }

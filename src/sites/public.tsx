@@ -6,7 +6,8 @@ import { getSite } from "@/app/s/[site]/data"
 import { SitePage } from "./render"
 import { imprintHtml, privacyHtml, siteMeta } from "./server"
 
-type Published = { theme: unknown; settings: unknown; nav: { slug: string; title: string }[]; page: { title: string; description: string | null; data: unknown } }
+type Page = { title: string; description: string | null; data: unknown }
+type Published = { theme: unknown; settings: unknown; nav: { slug: string; title: string }[]; page: Page | null }
 
 const baseOf = (site: string) => {
   const p = sitePath(site, "/")
@@ -14,7 +15,7 @@ const baseOf = (site: string) => {
 }
 
 /**
- * An org's live website (published home page) with everything the frame and blocks need; null = no live site
+ * An org's live website (at least one published page) with everything the frame and blocks need; null = no live site
  * (then the public pages show without the frame). Cached per request: the layout and the page share it.
  */
 export const liveSite = cache(async (site: string) => {
@@ -31,15 +32,14 @@ export const liveSite = cache(async (site: string) => {
 const publishedPage = cache(async (site: string, slug: string) => {
   const live = await liveSite(site)
   if (!live) return null
-  if (!slug) return { live, page: live.home.page }
-  const { data } = await live.s.db.rpc("public_site", { p_org: live.s.org.id, p_slug: slug })
-  return data ? { live, page: (data as unknown as Published).page } : null
+  const page = slug ? ((await live.s.db.rpc("public_site", { p_org: live.s.org.id, p_slug: slug })).data as unknown as Published | null)?.page : live.home.page
+  return { live, page: page ?? null }
 })
 
 /** A published page (slug '' = home) or the generated Impressum / Datenschutz, without the frame (the layout adds it). */
 export async function PublicSitePage({ site, slug, legal }: { site: string; slug: string; legal?: "imprint" | "privacy" }) {
   const found = await publishedPage(site, legal ? "" : slug)
-  if (!found) return null
+  if (!found || (!legal && !found.page)) return null
   const { live } = found
   const t = live.t
   const data = legal
@@ -53,7 +53,7 @@ export async function PublicSitePage({ site, slug, legal }: { site: string; slug
           },
         ],
       }
-    : found.page.data
+    : found.page!.data
   return (
     <main>
       <SitePage data={data} meta={live.meta} t={t} />
@@ -63,7 +63,7 @@ export async function PublicSitePage({ site, slug, legal }: { site: string; slug
 
 export async function publicSiteMetadata(site: string, slug: string): Promise<Metadata> {
   const found = await publishedPage(site, slug)
-  if (!found) return {}
+  if (!found?.page) return {}
   const name = found.live.meta.orgName
   return { title: { absolute: slug ? `${found.page.title} – ${name}` : name }, description: found.page.description ?? undefined }
 }
