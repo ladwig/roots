@@ -1,6 +1,7 @@
 // Public pages of an org (website, event and form pages, Impressum) read their data through cached functions, so a
 // visit costs no database round trip. Everything public of one org shares one tag; any change to it calls
-// refreshPublic(orgId) (from Server Actions), and nothing is ever older than an hour (safety net).
+// refreshPublic(orgId) (from Server Actions) for an immediate update; without it data is at most ~1 minute old
+// (cacheLife "minutes" = safety net, so a forgotten refresh costs little).
 // Live data stays uncached: ticket availability/shop, waiting-list claims, form submissions, checkout, portal.
 import { cacheLife, cacheTag, updateTag } from "next/cache"
 import { createPublicClient } from "@/lib/supabase/server"
@@ -14,7 +15,7 @@ export function refreshPublic(orgId: string) {
 
 export async function cachedOrg(slug: string) {
   "use cache"
-  cacheLife("hours")
+  cacheLife("minutes")
   cacheTag(`site:${slug}`)
   const { data } = await createPublicClient().from("orgs").select("id, slug, name, logo_path").eq("slug", slug).maybeSingle()
   if (data) cacheTag(publicTag(data.id))
@@ -24,7 +25,7 @@ export async function cachedOrg(slug: string) {
 /** The website (null = not live) + what its blocks need: enabled modules, published forms, legal details, events. */
 export async function cachedSiteData(orgId: string) {
   "use cache"
-  cacheLife("hours")
+  cacheLife("minutes")
   cacheTag(publicTag(orgId))
   const db = createPublicClient()
   const now = new Date().toISOString()
@@ -45,7 +46,7 @@ export async function cachedSiteData(orgId: string) {
 
 export async function cachedSitePage(orgId: string, slug: string) {
   "use cache"
-  cacheLife("hours")
+  cacheLife("minutes")
   cacheTag(publicTag(orgId))
   const { data } = await createPublicClient().rpc("public_site", { p_org: orgId, p_slug: slug })
   return data
@@ -53,7 +54,7 @@ export async function cachedSitePage(orgId: string, slug: string) {
 
 export async function cachedEvent(orgId: string, slug: string) {
   "use cache"
-  cacheLife("hours")
+  cacheLife("minutes")
   cacheTag(publicTag(orgId))
   const { data } = await createPublicClient()
     .from("events")
@@ -66,7 +67,7 @@ export async function cachedEvent(orgId: string, slug: string) {
 
 export async function cachedForm(orgId: string, slug: string) {
   "use cache"
-  cacheLife("hours")
+  cacheLife("minutes")
   cacheTag(publicTag(orgId))
   const { data } = await createPublicClient().rpc("public_form", { p_org: orgId, p_slug: slug })
   return data

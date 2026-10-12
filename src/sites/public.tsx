@@ -4,12 +4,11 @@ import { getT } from "@/i18n/server"
 import { sitePath } from "@/lib/url"
 import { getSite } from "@/app/s/[site]/data"
 import { cachedSiteData, cachedSitePage } from "@/lib/public-cache"
-import { templateStarter, type SiteMeta, type TemplateKind } from "./blocks"
 import { SitePage } from "./render"
 import { imprintHtml, privacyHtml, siteMeta } from "./server"
 
 type Page = { title: string; description: string | null; data: unknown }
-type Published = { theme: unknown; settings: unknown; nav: { slug: string; title: string }[]; page: Page | null; templates?: Partial<Record<TemplateKind, unknown>> }
+type Published = { theme: unknown; settings: unknown; nav: { slug: string; title: string }[]; page: Page | null }
 
 const baseOf = (site: string) => {
   const p = sitePath(site, "/")
@@ -70,17 +69,3 @@ export async function publicSiteMetadata(site: string, slug: string): Promise<Me
   return { title: { absolute: slug ? `${found.page.title} – ${name}` : name }, description: found.page.description ?? undefined }
 }
 
-/**
- * Module pages (event / form / portal) of an org with a live website: its own template if published, else the
- * default template – always in the site's design. null = no live website → the route shows roots' standard page.
- */
-export async function TemplatePage({ site, kind, context, render }: { site: string; kind: TemplateKind; context?: SiteMeta["context"]; render: SiteMeta["render"] }) {
-  const live = await liveSite(site)
-  if (!live) return null
-  const data = live.home.templates?.[kind] ?? templateStarter(kind)
-  return (
-    <main>
-      <SitePage data={data} meta={{ ...live.meta, context, render }} t={live.t} />
-    </main>
-  )
-}

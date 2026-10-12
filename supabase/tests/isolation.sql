@@ -676,11 +676,6 @@ begin
   assert public.public_site(org_a, '')->'page'->>'title' = 'Start', 'published page is public';
   assert position('geheim' in public.public_site(org_a, '')::text) = 0, 'draft content never leaves via public_site';
   reset role;
-  insert into public.site_pages (org_id, kind, slug, title, published, published_at) values (org_a, 'event', '', 'Event-Seite', '{"content":[],"root":{"props":{}}}', now());
-  set local role anon;
-  assert public.public_site(org_a, '')->'templates' ? 'event', 'published event template is used';
-  assert public.public_site(org_a, '')->'page'->>'title' = 'Start', 'templates do not replace the home page';
-  reset role;
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
   set local role authenticated;
   select count(*) into n from public.site_pages where org_id = org_a;       assert n = 0, 'B sees site pages of A';

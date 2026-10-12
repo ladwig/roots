@@ -2613,8 +2613,7 @@
     "categories": {
       "layout": "Layout",
       "content": "Content",
-      "modules": "From your modules",
-      "template": "For this template"
+      "modules": "From your modules"
     },
     "blocks": {
       "Hero": "Hero",
@@ -2630,14 +2629,7 @@
       "Space": "Spacing",
       "Events": "Upcoming events",
       "Form": "Form",
-      "Portal": "Member area",
-      "EventHeader": "Event: title & date",
-      "EventText": "Event: description",
-      "EventTimetable": "Event: timetable",
-      "TicketShop": "Event: tickets / registration",
-      "FormHeader": "Form: title",
-      "FormFields": "Form: fields",
-      "PortalBox": "Member area: content"
+      "Portal": "Member area"
     },
     "fields": {
       "title": "Title",
@@ -2709,11 +2701,6 @@
       "eventsLayout": {
         "list": "List",
         "cards": "Cards"
-      },
-      "eventLayout": {
-        "top": "Image on top",
-        "side": "Image beside",
-        "plain": "No image"
       }
     },
     "defaults": {
@@ -2753,15 +2740,6 @@
     "isLive": "Live",
     "nothingToPublish": "No changes compared to the published page.",
     "reallyTrash": "Really delete?",
-    "designHint": "Changes show in the preview right away. Save applies them to the whole website.",
-    "templates": {
-      "title": "Templates",
-      "event": "Event page",
-      "form": "Form page",
-      "portal": "Member area",
-      "hint": "Applies to all pages of this kind on your website."
-    },
-    "templatePreview": "Preview with: {name}",
-    "noSample": "No data for the preview yet – the blocks show placeholders."
+    "designHint": "Changes show in the preview right away. Save applies them to the whole website."
   }
 }

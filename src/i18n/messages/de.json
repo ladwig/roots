@@ -2613,8 +2613,7 @@
     "categories": {
       "layout": "Aufbau",
       "content": "Inhalt",
-      "modules": "Aus euren Modulen",
-      "template": "Für diese Vorlage"
+      "modules": "Aus euren Modulen"
     },
     "blocks": {
       "Hero": "Titelbereich",
@@ -2630,14 +2629,7 @@
       "Space": "Abstand",
       "Events": "Nächste Events",
       "Form": "Formular",
-      "Portal": "Mitgliederbereich",
-      "EventHeader": "Event: Titel & Datum",
-      "EventText": "Event: Beschreibung",
-      "EventTimetable": "Event: Timetable",
-      "TicketShop": "Event: Tickets / Anmeldung",
-      "FormHeader": "Formular: Titel",
-      "FormFields": "Formular: Felder",
-      "PortalBox": "Mitgliederbereich: Inhalt"
+      "Portal": "Mitgliederbereich"
     },
     "fields": {
       "title": "Titel",
@@ -2709,11 +2701,6 @@
       "eventsLayout": {
         "list": "Liste",
         "cards": "Karten"
-      },
-      "eventLayout": {
-        "top": "Bild oben",
-        "side": "Bild daneben",
-        "plain": "Ohne Bild"
       }
     },
     "defaults": {
@@ -2753,15 +2740,6 @@
     "isLive": "Ist online",
     "nothingToPublish": "Keine Änderungen gegenüber der veröffentlichten Seite.",
     "reallyTrash": "Wirklich löschen?",
-    "designHint": "Änderungen siehst du sofort in der Vorschau. Speichern übernimmt sie für die ganze Website.",
-    "templates": {
-      "title": "Vorlagen",
-      "event": "Event-Seite",
-      "form": "Formular-Seite",
-      "portal": "Mitgliederbereich",
-      "hint": "Gilt für alle Seiten dieser Art auf eurer Website."
-    },
-    "templatePreview": "Vorschau mit: {name}",
-    "noSample": "Noch keine Daten für die Vorschau – die Bausteine zeigen Platzhalter."
+    "designHint": "Änderungen siehst du sofort in der Vorschau. Speichern übernimmt sie für die ganze Website."
   }
 }

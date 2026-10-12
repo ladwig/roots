@@ -8,7 +8,6 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { param } from "@/lib/url"
 import { PORTAL_SECTIONS } from "@/portal/sections"
 import { getPortalContact } from "@/portal/session"
-import { TemplatePage } from "@/sites/public"
 import { getSite } from "../data"
 import { logout, requestLink } from "./actions"
 
@@ -21,9 +20,6 @@ export default async function Portal({ params, searchParams }: PageProps<"/s/[si
   const t = await getT()
   const me = await getPortalContact(s.org.id)
   const body = () => <PortalBody site={site} sp={sp} org={s.org} me={me} />
-  // The org's own member-area design (website builder), else the standard page.
-  const designed = await TemplatePage({ site, kind: "portal", render: { portal: body } })
-  if (designed) return designed
   return (
     <main className={`mx-auto grid gap-6 px-4 ${me ? "max-w-2xl py-12" : "max-w-md py-16"}`}>
       {!me && (

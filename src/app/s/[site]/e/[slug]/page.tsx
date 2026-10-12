@@ -6,7 +6,6 @@ import { getT } from "@/i18n/server"
 import { imageUrl } from "@/lib/images"
 import { createPublicClient } from "@/lib/supabase/server"
 import { cachedEvent } from "@/lib/public-cache"
-import { TemplatePage } from "@/sites/public"
 import { getSite } from "../../data"
 import { TicketShop } from "./shop"
 
@@ -20,9 +19,6 @@ export default async function PublicEvent({ params, searchParams }: PageProps<"/
   const e = await cachedEvent(s.org.id, slug)
   if (!e) notFound()
   const shop = () => (e.status === "published" ? <TicketShop site={site} slug={slug} eventId={e.id} max={e.max_tickets_per_order} code={code} waitlist={waitlist} /> : null)
-  // The org's own event page design (website builder), else the standard page below.
-  const designed = await TemplatePage({ site, kind: "event", context: { event: e }, render: { ticketShop: shop, timetable: () => <Timetable eventId={e.id} /> } })
-  if (designed) return designed
   const t = await getT()
   const sameDay = e.ends_at && new Date(e.ends_at).getTime() - new Date(e.starts_at).getTime() < 86_400_000
 

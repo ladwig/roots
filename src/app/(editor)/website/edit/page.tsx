@@ -7,7 +7,7 @@ import { createStarterSite } from "@/sites/starter"
 export default async function WebsiteEntry() {
   const ctx = await requirePerm("sites.manage")
   if (!ctx.modules.has("sites")) notFound()
-  const first = () => ctx.supabase.from("site_pages").select("id").eq("org_id", ctx.org.id).eq("kind", "page").is("deleted_at", null).order("position").order("created_at").limit(1).maybeSingle()
+  const first = () => ctx.supabase.from("site_pages").select("id").eq("org_id", ctx.org.id).is("deleted_at", null).order("position").order("created_at").limit(1).maybeSingle()
   let { data: page } = await first()
   if (!page) {
     await createStarterSite(ctx, await getT())

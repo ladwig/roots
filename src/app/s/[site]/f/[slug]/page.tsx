@@ -2,7 +2,6 @@ import { notFound } from "next/navigation"
 import { getT } from "@/i18n/server"
 import { param } from "@/lib/url"
 import { cachedForm } from "@/lib/public-cache"
-import { TemplatePage } from "@/sites/public"
 import { getSite } from "../../data"
 import type { PublicForm } from "./data"
 import { FormRenderer } from "./form-renderer"
@@ -22,9 +21,6 @@ export default async function PublicFormPage({ params, searchParams }: PageProps
     ) : (
       <FormRenderer form={form} site={site} slug={slug} org={s.org.name} />
     )
-  // The org's own form page design (website builder), else the standard page below.
-  const designed = await TemplatePage({ site, kind: "form", context: { form: { title: form.title, intro: form.intro } }, render: { form: body } })
-  if (designed) return designed
 
   return (
     <main className="mx-auto grid max-w-xl gap-6 px-4 py-12">
