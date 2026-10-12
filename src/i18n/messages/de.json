@@ -1319,7 +1319,8 @@
     },
     "cancelsInvoice": "Storno zu Rechnung",
     "cancels": "Storniert die Rechnung →",
-    "cancelled": "Stornorechnung erstellt."
+    "cancelled": "Stornorechnung erstellt.",
+    "pdfDownload": "PDF herunterladen"
   },
   "guestlists": {
     "nav": "Gästelisten",

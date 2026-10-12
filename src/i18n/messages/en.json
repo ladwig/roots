@@ -1319,7 +1319,8 @@
     },
     "cancelsInvoice": "Cancels invoice",
     "cancels": "Cancels invoice →",
-    "cancelled": "Cancellation invoice created."
+    "cancelled": "Cancellation invoice created.",
+    "pdfDownload": "Download PDF"
   },
   "guestlists": {
     "nav": "Guest lists",

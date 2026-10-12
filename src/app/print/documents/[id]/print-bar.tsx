@@ -2,14 +2,14 @@
 
 import { useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { PrinterIcon } from "lucide-react"
+import { FileDownIcon, PrinterIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { useT } from "@/i18n/client"
 import { TEMPLATES } from "@/documents/templates"
 
-// Toolbar above the paper (hidden when printing): template + "print / save as PDF".
-export function PrintBar({ template, filename }: { template: string; filename: string }) {
+// Toolbar above the paper (hidden when printing): template, server PDF, browser print.
+export function PrintBar({ template, filename, pdfHref }: { template: string; filename: string; pdfHref: string }) {
   const t = useT()
   const router = useRouter()
   const pathname = usePathname()
@@ -30,9 +30,14 @@ export function PrintBar({ template, filename }: { template: string; filename: s
           </NativeSelectOption>
         ))}
       </NativeSelect>
-      <Button type="button" onClick={() => window.print()}>
-        <PrinterIcon /> {t("invoices.print")}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button render={<a href={pdfHref} target="_blank" rel="noreferrer" />} nativeButton={false} variant="outline">
+          <FileDownIcon /> {t("invoices.pdfDownload")}
+        </Button>
+        <Button type="button" onClick={() => window.print()}>
+          <PrinterIcon /> {t("invoices.print")}
+        </Button>
+      </div>
     </div>
   )
 }

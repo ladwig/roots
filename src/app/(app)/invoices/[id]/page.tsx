@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeftIcon, CopyIcon, FileOutputIcon, PrinterIcon } from "lucide-react"
+import { ArrowLeftIcon, CopyIcon, FileDownIcon, FileOutputIcon, PrinterIcon } from "lucide-react"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { Badge } from "@/components/ui/badge"
@@ -90,6 +90,9 @@ export default async function DocumentPage({ params, searchParams }: PageProps<"
               variant="outline"
             >
               <PrinterIcon /> {t("invoices.pdf")}
+            </Button>
+            <Button render={<a href={`/print/documents/${doc.id}/pdf`} target="_blank" rel="noreferrer" />} nativeButton={false} size="sm" variant="outline">
+              <FileDownIcon /> {t("invoices.pdfDownload")}
             </Button>
           </div>
         </div>

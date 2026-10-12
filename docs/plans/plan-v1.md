@@ -198,7 +198,7 @@ Order: 7 → 8 → 9 → 10 → 11. Each builds on the one before.
 
 | Phase | Scope | Done when |
 |---|---|---|
-| **7 — Files** ✅ (core, every org; server PDFs still open) | Private `files` bucket, `files` table, upload/list components for any record, Files page, browser image compression, server PDFs | A contact gets a PDF attached; an image upload arrives compressed; an issued invoice can be downloaded as PDF |
+| **7 — Files** ✅ (core, every org; server PDFs via pdf-lib) | Private `files` bucket, `files` table, upload/list components for any record, Files page, browser image compression, server PDFs | A contact gets a PDF attached; an image upload arrives compressed; an issued invoice can be downloaded as PDF |
 | **8 — Members** ✅ (module `members`, Vereine) | Membership types, memberships on contacts, member numbers, SEPA mandates, dues run → `pain.008` | Treasurer exports a SEPA file for this quarter's dues |
 | **9 — Forms** ✅ (module `forms`) | Form builder over platform fields, fixed module forms + org forms, public `/f/<slug>`, submissions with a purpose | Public membership application creates a pending membership |
 | **10 — Portal** (core) | Magic-link login per org for contacts (no roots account), module sections | A member sees their membership and cancels; a buyer sees their tickets |
