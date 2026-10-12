@@ -7,6 +7,7 @@ import { getSecret } from "./server"
 // SumUp via OAuth (authorization code). Register an OAuth app at SumUp with the redirect URI
 // <APP_URL>/api/integrations/sumup/callback and put its client id/secret in SUMUP_CLIENT_ID / SUMUP_CLIENT_SECRET.
 // Taking payments needs the `payments` scope, which SumUp grants after a manual check of the app.
+// Second way, "key": the org pastes an API key of its own SumUp account (Developers → API keys); no app approval needed.
 const API = "https://api.sumup.com"
 const SCOPES = ["user.profile_readonly", "transactions.history", "payments"]
 
@@ -31,7 +32,8 @@ async function tokenRequest(params: Record<string, string>): Promise<Tokens & { 
 
 /** A valid access token for the org's SumUp account; refreshes and stores it when it's about to expire. */
 export async function sumupToken(orgId: string) {
-  const secret = (await getSecret(orgId, "sumup")) as Tokens | null
+  const secret = (await getSecret(orgId, "sumup")) as (Tokens & { apiKey?: string }) | null
+  if (secret?.apiKey) return secret.apiKey
   if (!secret?.refresh_token) throw new Error("payments.notConnected")
   if (new Date(secret.expires_at).getTime() > Date.now() + 60_000) return secret.access_token
   const fresh = await tokenRequest({ grant_type: "refresh_token", refresh_token: secret.refresh_token })
@@ -57,11 +59,28 @@ export async function sumup<T = unknown>(orgId: string, path: string, init?: { m
   return (res.status === 204 ? null : await res.json()) as T
 }
 
+// ponytail: /v0.1/me is SumUp's long-standing "who am I" endpoint; the newer /v1/merchants/{code} needs the code first.
+async function merchant(token: string) {
+  const res = await fetch(`${API}/v0.1/me`, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(10_000) })
+  if (!res.ok) return null
+  const profile = (await res.json().catch(() => ({})))?.merchant_profile ?? {}
+  return { merchant_code: String(profile.merchant_code ?? ""), merchant_name: String(profile.company_name ?? profile.doing_business_as?.business_name ?? "") }
+}
+
 export type SumUpCheckout = { id: string; status: "PENDING" | "PAID" | "FAILED" | "EXPIRED"; transaction_id?: string; hosted_checkout_url?: string }
 
 export const sumupIntegration: Integration = {
   key: "sumup",
   name: "SumUp",
+  fields: [{ key: "apiKey", secret: true, placeholder: "sup_sk_…" }],
+  async test(secret) {
+    const key = secret.apiKey ?? ""
+    if (!/^sup_sk_[A-Za-z0-9]+$/.test(key)) throw new Error("integrations.sumup.invalidKey")
+    const m = await merchant(key)
+    if (!m?.merchant_code) throw new Error("integrations.sumup.keyNoAccess")
+    // ponytail: an API key has the account's full rights, payments included; SumUp offers no cheap check for it.
+    return { via: "key", ...m, can_take_payments: true }
+  },
   connect: {
     async start({ state, callbackUrl }) {
       if (!process.env.SUMUP_CLIENT_ID || !process.env.SUMUP_CLIENT_SECRET) throw new Error("integrations.sumup.notConfigured")
@@ -72,16 +91,12 @@ export const sumupIntegration: Integration = {
     async finish({ params, callbackUrl }) {
       if (params.has("error")) throw new Error("integrations.sumup.denied")
       const tokens = await tokenRequest({ grant_type: "authorization_code", code: params.get("code") ?? "", redirect_uri: callbackUrl })
-      // ponytail: /v0.1/me is SumUp's long-standing "who am I" endpoint; the newer /v1/merchants/{code} needs the code first.
-      const me = await fetch(`${API}/v0.1/me`, { headers: { authorization: `Bearer ${tokens.access_token}` }, signal: AbortSignal.timeout(10_000) })
-        .then((r) => r.json())
-        .catch(() => ({}))
-      const profile = me?.merchant_profile ?? {}
+      const m = await merchant(tokens.access_token)
       const scopes = (tokens.scope ?? "").split(/\s+/).filter(Boolean)
       return {
         config: {
-          merchant_code: profile.merchant_code ?? "",
-          merchant_name: profile.company_name ?? profile.doing_business_as?.business_name ?? "",
+          merchant_code: m?.merchant_code ?? "",
+          merchant_name: m?.merchant_name ?? "",
           scopes,
           can_take_payments: scopes.includes("payments"),
         },

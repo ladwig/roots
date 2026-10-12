@@ -12,7 +12,7 @@ Production: https://roots-berlin.vercel.app · API docs: https://roots-berlin.ve
 | **CRM** | Contacts, tags, notes + timeline, custom fields (Settings → Felder), CSV import with column mapping |
 | **Events** | Events with public pages (`<org>.<domain>` or `/s/<org>`), drafts, cancel, images |
 | **Ticketing** | Ticket types, price tiers, promo codes / discount links, hidden crew types, checkout with names per ticket, QR tickets + PDF + email, scanner with offline mode |
-| **Payments** | Orders, payments, refunds; Stripe (Connect OAuth, hosted onboarding or the org's own API key) and SumUp |
+| **Payments** | Orders, payments, refunds; Stripe (Connect OAuth, hosted onboarding or the org's own API key) and SumUp (OAuth or the org's own API key) |
 | **Quotes & invoices** | German invoices (§ 14 UStG, Kleinunternehmer), number ranges, builder, issue + freeze, quote → invoice, print templates |
 | **Guest lists & lineup** | Permanent and per-event guest lists with magic links, optional tickets, door check-in; artists + timetable |
 | **Shift planning** | Team (members), positions, locations, shifts per event or location, recurring series, applications, check-in/out + hours, calendar views |
@@ -93,7 +93,7 @@ Public pages locally: `http://<org-slug>.localhost:3000` (or `/s/<org-slug>`). T
 
 **Stripe (an org's own key, no Connect)**: entered by the org in Settings → Integrations; the dialog lists the permissions (Checkout Sessions, Charges and Refunds, Webhook Endpoints: Write; Accounts: Read optional). roots registers the org's webhook endpoint itself.
 
-**SumUp**: developer.sumup.com → OAuth app (type Web), redirect URIs `<APP_URL>/api/integrations/sumup/callback` (production + localhost), no origin URL needed → `SUMUP_CLIENT_ID` / `SUMUP_CLIENT_SECRET`.
+**SumUp**: developer.sumup.com → OAuth app (type Web), redirect URIs `<APP_URL>/api/integrations/sumup/callback` (production + localhost), no origin URL needed → `SUMUP_CLIENT_ID` / `SUMUP_CLIENT_SECRET`. Taking payments needs the `payments` scope, which SumUp grants after reviewing the app; until then orgs connect with their own API key (`sup_sk_…`, SumUp → Developers → API keys). Webhooks need no setup in either case: each checkout carries its notify URL, and roots re-reads the status from SumUp.
 
 ## Deployment
 

@@ -310,7 +310,20 @@
       "denied": "The connection with SumUp was cancelled.",
       "reconnect": "The SumUp connection expired. Please connect again.",
       "merchant": "Merchant: {name} ({code})",
-      "noPayments": "Connected. For online payments SumUp has to grant the roots app the “payments” permission."
+      "noPayments": "Connected. For online payments SumUp has to grant the roots app the “payments” permission.",
+      "keyButton": "Connect with API key",
+      "fields": {
+        "apiKey": "API key"
+      },
+      "help": {
+        "apiKey": "SumUp account → Developers → API keys → “Create key” (sup_sk_…). The key has all rights of your account; payment notifications work automatically."
+      },
+      "invalidKey": "That's not a SumUp API key (starts with sup_sk_).",
+      "keyNoAccess": "SumUp rejected the key.",
+      "via": {
+        "oauth": "Connected via SumUp login",
+        "key": "Connected with API key"
+      }
     }
   },
   "activity": {

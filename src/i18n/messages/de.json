@@ -310,7 +310,20 @@
       "denied": "Die Verbindung mit SumUp wurde abgebrochen.",
       "reconnect": "Die Verbindung zu SumUp ist abgelaufen. Bitte neu verbinden.",
       "merchant": "Händler: {name} ({code})",
-      "noPayments": "Verbunden. Für Online-Zahlungen muss SumUp der roots-App die Berechtigung „payments“ freischalten."
+      "noPayments": "Verbunden. Für Online-Zahlungen muss SumUp der roots-App die Berechtigung „payments“ freischalten.",
+      "keyButton": "Mit API-Schlüssel verbinden",
+      "fields": {
+        "apiKey": "API-Schlüssel"
+      },
+      "help": {
+        "apiKey": "SumUp-Konto → Entwickler → API-Schlüssel → „Schlüssel erstellen“ (sup_sk_…). Der Schlüssel hat alle Rechte deines Kontos; Zahlungsbenachrichtigungen laufen automatisch."
+      },
+      "invalidKey": "Das ist kein SumUp-API-Schlüssel (beginnt mit sup_sk_).",
+      "keyNoAccess": "SumUp hat den Schlüssel abgelehnt.",
+      "via": {
+        "oauth": "Verbunden über SumUp-Login",
+        "key": "Verbunden per API-Schlüssel"
+      }
     }
   },
   "activity": {

@@ -53,6 +53,7 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
                 {row?.last_error && <p className="text-xs text-destructive">{row.last_error}</p>}
                 {i.key === "sumup" && row && (
                   <p className="text-xs text-muted-foreground">
+                    {t.dynamic(`integrations.sumup.via.${String((row.config as Record<string, unknown>)?.via ?? "oauth")}`)} ·{" "}
                     {t("integrations.sumup.merchant", {
                       name: String((row.config as Record<string, unknown>)?.merchant_name ?? ""),
                       code: String((row.config as Record<string, unknown>)?.merchant_code ?? ""),
