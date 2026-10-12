@@ -218,6 +218,9 @@ Order: 7 → 8 → 9 → 10 → 11. Each builds on the one before.
 - Member numbers gap-free per org (like `number_ranges`).
 - SEPA mandates: IBAN, mandate reference, signed date (IBAN in a normal column; it is not a secret, but stays out of public views). Dues run per period → `pain.008` XML for online banking. roots moves no money.
 - Custom fields stay for extras (size, licence number…).
+- Kinds of dues (as in Sportmember): recurring per type (month / quarter / year), **entry fee** once on joining, **one-off levies** (Umlage) for a group or everyone. Views: all payments, upcoming payments, open/overdue → reminder (Mahnung) as a document.
+- Groups (Aktive, Passive, Vorstand, Jugend…) = contact tags; dues runs, emails and forms target tags.
+- Learned from ClubDesk, for later phases: emails/letters to a group with templates, calendar with RSVP per group + iCal subscription, document templates (minutes, certificates), bank import that matches payments to dues and donations, simple bookkeeping (cash book / EÜR). Not in phase 8.
 
 **9 — Forms**
 - A form = ordered fields taken from the platform (contact fields, custom fields, membership fields) + content blocks (text, consent checkbox, SEPA mandate).
