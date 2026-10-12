@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
-  return { title: "Roots", description: t("meta.description") };
+  return { title: { default: "roots", template: "%s – roots" }, description: t("meta.description") };
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

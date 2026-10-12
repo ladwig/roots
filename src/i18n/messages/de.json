@@ -17,7 +17,7 @@
     "clear": "Leeren"
   },
   "auth": {
-    "title": "Bei Roots anmelden",
+    "title": "Bei roots anmelden",
     "subtitle": "Mit Passwort oder per Anmeldelink per E-Mail.",
     "email": "E-Mail",
     "password": "Passwort",

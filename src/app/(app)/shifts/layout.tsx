@@ -1,6 +1,9 @@
 import { NavLink } from "@/components/nav-link"
 import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
+import { titled } from "@/lib/title"
+
+export const generateMetadata = titled("shifts.nav")
 
 // Tabs for planners (shifts.view); people with only shifts.self just get their own page.
 export default async function ShiftsLayout({ children }: { children: React.ReactNode }) {

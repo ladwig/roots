@@ -1,6 +1,9 @@
 import { NavLink } from "@/components/nav-link"
 import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
+import { titled } from "@/lib/title"
+
+export const generateMetadata = titled("shell.settings")
 
 const tabs = [
   { key: "profile" },

@@ -1,6 +1,9 @@
 import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
 import { modules } from "@/modules/registry"
+import { titled } from "@/lib/title"
+
+export const generateMetadata = titled("shell.home")
 
 export default async function HomePage() {
   const ctx = await getContext()

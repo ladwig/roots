@@ -9,6 +9,9 @@ import { SiteShell } from "@/app/site/_components/site-shell"
 import { SiteSubmit } from "@/app/site/_components/site-submit"
 import { PAINTINGS } from "@/app/site/paintings"
 import { sendMagicLink, signIn, signUp } from "./actions"
+import { titled } from "@/lib/title"
+
+export const generateMetadata = titled("auth.signIn")
 
 // Sign-in in the website's look: form on the left, a painting on the right (desktop).
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {

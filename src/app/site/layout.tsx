@@ -4,7 +4,7 @@ import { SiteShell } from "./_components/site-shell"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT()
-  return { title: t("landing.meta.title"), description: t("landing.meta.description") }
+  return { title: { absolute: "roots" }, description: t("landing.meta.description") }
 }
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {

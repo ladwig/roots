@@ -17,7 +17,7 @@
     "clear": "Clear"
   },
   "auth": {
-    "title": "Sign in to Roots",
+    "title": "Sign in to roots",
     "subtitle": "Use your password, or get a sign-in link by email.",
     "email": "Email",
     "password": "Password",

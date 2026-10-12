@@ -5,6 +5,9 @@ import { AppShell } from "@/components/app-shell"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
 import { getT } from "@/i18n/server"
 import { requirePlatformAdmin } from "@/lib/context"
+import { titled } from "@/lib/title"
+
+export const generateMetadata = titled("admin.link")
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await requirePlatformAdmin()

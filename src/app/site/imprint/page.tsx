@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { COMPANY, LegalPage } from "../legal"
 
-export const metadata: Metadata = { title: "Impressum · roots" }
+export const metadata: Metadata = { title: { absolute: "roots" } }
 
 export default function Imprint() {
   const c = COMPANY

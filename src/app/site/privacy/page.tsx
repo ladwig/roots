@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { COMPANY, LegalPage } from "../legal"
 
-export const metadata: Metadata = { title: "Datenschutz · roots" }
+export const metadata: Metadata = { title: { absolute: "roots" } }
 
 // Matches what the code does today: no analytics/tracking, only necessary cookies, fonts + images served by us.
 // Update this page when a new third-party service is added (hosting, email, payments, analytics …).

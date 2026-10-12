@@ -2,6 +2,9 @@ import { notFound } from "next/navigation"
 import { NavLink } from "@/components/nav-link"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
+import { titled } from "@/lib/title"
+
+export const generateMetadata = titled("email.nav")
 
 export default async function EmailLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requirePerm("email.view")

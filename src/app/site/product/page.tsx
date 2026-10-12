@@ -8,7 +8,7 @@ import { FeatureText, HalftoneBand, ModuleRow, Painting, Tag } from "../_compone
 // /product: every area of roots with its own anchor (linked from the "Produkt" menu). Look: docs/design/site.md.
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT()
-  return { title: t("landing.productPage.meta"), description: t("landing.meta.description") }
+  return { title: { absolute: "roots" }, description: t("landing.meta.description") }
 }
 
 const panel = (children: React.ReactNode) => <div className="rounded-[10px] bg-[var(--paper-2)] p-[clamp(16px,3vw,44px)]">{children}</div>
