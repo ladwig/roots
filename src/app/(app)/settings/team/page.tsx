@@ -14,7 +14,7 @@ import { changeRole, removeMember, revokeInvite } from "./actions"
 import { InviteForm } from "./invite-form"
 import { SubmitButton } from "@/components/submit-button"
 
-export default async function MembersSettings({ searchParams }: PageProps<"/settings/members">) {
+export default async function MembersSettings({ searchParams }: PageProps<"/settings/team">) {
   const ctx = await getContext()
   const sp = await searchParams
   const t = await getT()

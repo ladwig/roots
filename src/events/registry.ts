@@ -15,8 +15,8 @@ export type EventType = {
 }
 
 export const eventTypes: EventType[] = [
-  { key: "member.joined", module: "org", audience: { permission: "org.members.manage", defaults: ["in_app"] }, href: () => "/settings/members" },
-  { key: "member.left", module: "org", audience: { permission: "org.members.manage", defaults: ["in_app"] }, href: () => "/settings/members" },
+  { key: "member.joined", module: "org", audience: { permission: "org.members.manage", defaults: ["in_app"] }, href: () => "/settings/team" },
+  { key: "member.left", module: "org", audience: { permission: "org.members.manage", defaults: ["in_app"] }, href: () => "/settings/team" },
   { key: "member.invited", module: "org" },
   { key: "order.paid", module: "payments", audience: { permission: "payments.view", defaults: ["in_app"] }, href: (p) => `/payments?edit=${p.order_id}` },
   { key: "order.refunded", module: "payments", audience: { permission: "payments.view", defaults: ["in_app"] }, href: (p) => `/payments?edit=${p.order_id}` },

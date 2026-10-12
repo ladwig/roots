@@ -10,7 +10,7 @@ import { dbError } from "@/i18n/translate"
 import { ACTIVE_ORG_COOKIE, getContext } from "@/lib/context"
 import { APP_URL, back } from "@/lib/url"
 
-const PATH = "/settings/members"
+const PATH = "/settings/team"
 
 export async function changeRole(formData: FormData) {
   const ctx = await getContext()

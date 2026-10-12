@@ -85,7 +85,6 @@
     "nav": "Settings",
     "tabs": {
       "general": "General",
-      "members": "Members",
       "roles": "Roles",
       "modules": "Modules",
       "integrations": "Integrations",
@@ -93,7 +92,8 @@
       "profile": "Profile",
       "fields": "Fields",
       "api": "API",
-      "locations": "Locations"
+      "locations": "Locations",
+      "team": "Team"
     }
   },
   "general": {
@@ -105,7 +105,7 @@
     "logoHint": "PNG, JPG, WebP or GIF, max. 2 MB. Shown in the app and on public pages."
   },
   "members": {
-    "heading": "Members",
+    "heading": "Team",
     "invite": "Invite",
     "person": "Person",
     "role": "Role",

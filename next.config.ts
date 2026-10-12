@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/settings", destination: "/settings/general", permanent: false },
+      { source: "/settings/members", destination: "/settings/team", permanent: true },
       { source: "/admin", destination: "/admin/orgs", permanent: false },
       { source: "/settings/activity", destination: "/settings/general", permanent: false },
       { source: "/settings/notifications", destination: "/settings/integrations#notifications", permanent: false },

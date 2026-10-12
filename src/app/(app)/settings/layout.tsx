@@ -5,7 +5,7 @@ import { getContext } from "@/lib/context"
 const tabs = [
   { key: "profile" },
   { key: "general" },
-  { key: "members" },
+  { key: "team" },
   { key: "roles" },
   { key: "modules" },
   { key: "fields" },
