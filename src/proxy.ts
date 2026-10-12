@@ -21,6 +21,8 @@ export async function proxy(request: NextRequest) {
   const host = request.headers.get("host") ?? ""
   const sub = host.endsWith(`.${ROOT}`) ? host.slice(0, -ROOT.length - 1) : null
   if (sub && sub !== "app") {
+    // Already the internal route (redirect target of a public Server Action, see siteActionPath).
+    if (request.nextUrl.pathname === `/s/${sub}` || request.nextUrl.pathname.startsWith(`/s/${sub}/`)) return NextResponse.next()
     const url = request.nextUrl.clone()
     url.pathname = `/s/${sub}${url.pathname === "/" ? "" : url.pathname}`
     return NextResponse.rewrite(url)

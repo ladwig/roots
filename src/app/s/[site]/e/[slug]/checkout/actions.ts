@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation"
 import { getT } from "@/i18n/server"
-import { back, siteUrl, sitePath } from "@/lib/url"
+import { back, siteActionPath, siteUrl } from "@/lib/url"
 import { buyTickets } from "@/tickets/server"
 import { getSite } from "../../../data"
 
@@ -16,7 +16,7 @@ export async function buy(fd: FormData) {
   const items = fd.getAll("type").map(String)
   const code = String(fd.get("code") ?? "").trim().toUpperCase().slice(0, 40) || null
   const waitlist = String(fd.get("w") ?? "").trim().slice(0, 64) || null
-  const here = `${sitePath(site, `/e/${slug}/checkout`)}?${new URLSearchParams([
+  const here = `${siteActionPath(site, `/e/${slug}/checkout`)}?${new URLSearchParams([
     ...Object.entries(items.reduce<Record<string, number>>((a, id) => ((a[`t_${id}`] = (a[`t_${id}`] ?? 0) + 1), a), {})).map(([k, v]) => [k, String(v)]),
     ...(code ? [["code", code]] : []),
     ...(waitlist ? [["w", waitlist]] : []),

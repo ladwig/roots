@@ -26,6 +26,7 @@ export type SiteMeta = {
   forms: SiteForm[]
   modules: string[]
   locale: string
+  year: number // footer ©; from the cached site data (no clock reads while rendering)
   labels: { imprint: string; privacy: string; more: string; noEvents: string; poweredBy: string }
   // Templates (event / form / portal page): the record the page is about, and – on the public site only – the real
   // module UI as render functions (server components: ticket shop, timetable, form, portal). The editor shows previews.
@@ -149,7 +150,7 @@ export function SiteFrame({ meta: m, children }: { meta: SiteMeta; children: Rea
       <footer className="mt-16 border-t border-[var(--s-line)]">
         <div className={`${wrap} flex flex-wrap justify-between gap-4 py-8 text-sm text-[var(--s-muted)]`}>
           <span>
-            © {new Date().getFullYear()} {m.orgName}
+            © {m.year} {m.orgName}
           </span>
           <span className="flex gap-5">
             <a {...go("/imprint", m)} className="hover:text-[var(--s-fg)]">

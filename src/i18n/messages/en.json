@@ -960,7 +960,7 @@
     "salesStart": "On sale from (optional)",
     "salesEnd": "On sale until (optional)",
     "activeLabel": "Offer in the shop",
-    "inactive": "inactive",
+    "inactive": "Paused",
     "invalidPrice": "Please enter a valid price, e.g. 12.50.",
     "saved": "Saved.",
     "deleted": "Ticket type deleted.",
@@ -1059,7 +1059,14 @@
       "one": "1 check-in synced",
       "other": "{count} check-ins synced"
     },
-    "conflicts": "already checked in on another device: {codes}"
+    "conflicts": "already checked in on another device: {codes}",
+    "copyLink": "Copy link",
+    "pause": "Pause sales",
+    "activate": "Resume sales",
+    "pauseHint": "While paused, this ticket type can't be bought, not even with a code. Sold tickets stay valid.",
+    "pausedHint": "Sales are paused. Sold tickets stay valid.",
+    "paused": "Sales paused.",
+    "activated": "Sales active."
   },
   "shop": {
     "title": "Tickets",

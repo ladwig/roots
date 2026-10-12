@@ -1,7 +1,7 @@
 "use server"
 
 import { getT } from "@/i18n/server"
-import { back, sitePath } from "@/lib/url"
+import { back, siteActionPath } from "@/lib/url"
 import { joinWaitlist } from "@/tickets/waitlist"
 import { getSite } from "../../data"
 
@@ -10,7 +10,7 @@ export async function joinWaitlistAction(fd: FormData) {
   const t = await getT()
   const site = String(fd.get("site") ?? "")
   const slug = String(fd.get("slug") ?? "")
-  const here = `${sitePath(site, `/e/${slug}`)}#tickets`
+  const here = `${siteActionPath(site, `/e/${slug}`)}#tickets`
   const s = await getSite(site)
   if (!s) back(here, { error: t("errors.not_allowed") })
   const { data: ev } = await s.db.from("events").select("id, max_tickets_per_order").eq("org_id", s.org.id).eq("slug", slug).eq("status", "published").maybeSingle()

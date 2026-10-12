@@ -16,8 +16,9 @@ import type { Tables } from "@/lib/supabase/types"
 import { toLocalInput } from "@/lib/time"
 import { pageParam, param, siteUrl, withParams } from "@/lib/url"
 import { priceInput } from "@/tickets/price"
-import { deleteCode, deleteTicketType, deleteTier, removeFromWaitlist, saveCode, saveTicketSettings, saveTicketType, saveTier } from "./actions"
+import { deleteCode, deleteTicketType, deleteTier, removeFromWaitlist, setTicketTypeActive, saveCode, saveTicketSettings, saveTicketType, saveTier } from "./actions"
 import { SubmitButton } from "@/components/submit-button"
+import { CopyButton } from "@/components/copy-button"
 
 type TicketType = Tables<"ticket_types">
 type Tier = Tables<"ticket_tiers">
@@ -198,7 +199,12 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
             },
             {
               header: t("tickets.link"),
-              cell: (c) => <span className="text-xs break-all text-muted-foreground">{`${shopUrl}?code=${c.code}`}</span>,
+              cell: (c) => (
+                <span className="flex items-center gap-1">
+                  <span className="text-xs break-all text-muted-foreground">{`${shopUrl}?code=${c.code}`}</span>
+                  <CopyButton value={`${shopUrl}?code=${encodeURIComponent(c.code)}`} label={t("tickets.copyLink")} />
+                </span>
+              ),
             },
             { header: t("tickets.status"), cell: (c) => (c.active ? null : <Badge variant="secondary">{t("tickets.inactive")}</Badge>) },
           ]}
@@ -288,6 +294,15 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
             tiers={tiers?.filter((r) => r.type_id === editing.id) ?? []}
             used={(id) => used("tier_id", id)}
           />
+          <form action={setTicketTypeActive} className="grid gap-2 rounded-lg border p-3">
+            <input type="hidden" name="event" value={ev.id} />
+            <input type="hidden" name="id" value={editing.id} />
+            <input type="hidden" name="active" value={editing.active ? "0" : "1"} />
+            <p className="text-sm text-muted-foreground">{editing.active ? t("tickets.pauseHint") : t("tickets.pausedHint")}</p>
+            <SubmitButton size="sm" variant="outline" className="justify-self-start">
+              {editing.active ? t("tickets.pause") : t("tickets.activate")}
+            </SubmitButton>
+          </form>
           <section className="grid gap-3 rounded-lg border border-destructive/30 p-3">
             <h3 className="font-medium text-destructive">{t("admin.dangerZone")}</h3>
             <p className="text-sm text-muted-foreground">{t("tickets.deleteHint")}</p>
@@ -537,11 +552,6 @@ function TypeForm({ t, eventId, ty }: { t: T; eventId: string; ty?: TicketType }
         <Label htmlFor="ty-desc">{t("tickets.typeDescription")}</Label>
         <Input id="ty-desc" name="description" defaultValue={ty?.description ?? ""} maxLength={1000} />
       </div>
-      <label className="flex items-center gap-2 text-sm">
-        <input type="hidden" name="active" value="0" />
-        <input type="checkbox" name="active" value="1" defaultChecked={ty?.active ?? true} className="size-4" />
-        {t("tickets.activeLabel")}
-      </label>
       <label className="flex items-start gap-2 text-sm">
         <input type="checkbox" name="hidden" value="1" defaultChecked={ty?.hidden} className="mt-0.5 size-4" />
         <span>

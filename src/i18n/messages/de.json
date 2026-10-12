@@ -960,7 +960,7 @@
     "salesStart": "Verkauf ab (optional)",
     "salesEnd": "Verkauf bis (optional)",
     "activeLabel": "Im Shop anbieten",
-    "inactive": "inaktiv",
+    "inactive": "Pausiert",
     "invalidPrice": "Bitte einen gültigen Preis angeben, z. B. 12,50.",
     "saved": "Gespeichert.",
     "deleted": "Ticketart gelöscht.",
@@ -1059,7 +1059,14 @@
       "one": "1 Check-in synchronisiert",
       "other": "{count} Check-ins synchronisiert"
     },
-    "conflicts": "schon an anderem Gerät eingecheckt: {codes}"
+    "conflicts": "schon an anderem Gerät eingecheckt: {codes}",
+    "copyLink": "Link kopieren",
+    "pause": "Verkauf pausieren",
+    "activate": "Verkauf wieder aktivieren",
+    "pauseHint": "Pausiert ist die Ticketart nicht mehr erhältlich, auch nicht mit Code. Verkaufte Tickets bleiben gültig.",
+    "pausedHint": "Der Verkauf ist pausiert. Verkaufte Tickets bleiben gültig.",
+    "paused": "Verkauf pausiert.",
+    "activated": "Verkauf aktiv."
   },
   "shop": {
     "title": "Tickets",

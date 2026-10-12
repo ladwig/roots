@@ -5,7 +5,7 @@ import { deliverSoon } from "@/events/worker"
 import { getT } from "@/i18n/server"
 import { sendOrgEmail } from "@/lib/org-email"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { back, sitePath, siteUrl } from "@/lib/url"
+import { back, siteActionPath, siteUrl } from "@/lib/url"
 import { earliestEnd, type Interval } from "@/members/dues"
 import { createLoginToken, getPortalContact, signIn, signOut } from "@/portal/session"
 import { getSite } from "../data"
@@ -17,7 +17,7 @@ async function site(fd: FormData) {
   const slug = String(fd.get("site") ?? "")
   const s = await getSite(slug)
   if (!s) redirect("/")
-  return { slug, org: s.org, here: sitePath(slug, "/portal") }
+  return { slug, org: s.org, here: siteActionPath(slug, "/portal") }
 }
 
 /** Email a login link. Same answer whether or not the address is known (no member lookup from outside). */

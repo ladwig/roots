@@ -7,7 +7,7 @@ import { upsertContact } from "@/forms/server"
 import { getT } from "@/i18n/server"
 import { sendOrgEmail } from "@/lib/org-email"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { sitePath } from "@/lib/url"
+import { siteActionPath } from "@/lib/url"
 import { getSite } from "../../data"
 import type { PublicForm } from "./data"
 
@@ -74,5 +74,5 @@ export async function submitForm(prev: State, fd: FormData): Promise<State> {
       html: text.split("\n").map((l) => `<p style="margin:0 0 4px">${l.replace(/[<>&]/g, (x) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[x]!)}</p>`).join(""),
     }).catch(() => false)
   }
-  redirect(`${sitePath(site, `/f/${slug}`)}?done=1`)
+  redirect(`${siteActionPath(site, `/f/${slug}`)}?done=1`)
 }

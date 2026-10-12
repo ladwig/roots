@@ -25,7 +25,7 @@ export async function siteMeta(
   base: string,
   t: T,
 ): Promise<{ meta: SiteMeta; legal: Legal }> {
-  const { extras, events } = await cachedSiteData(org.id) // cached; refreshed on any public change of the org
+  const { extras, events, year } = await cachedSiteData(org.id) // cached; refreshed on any public change of the org
   const x = (extras ?? {}) as { modules?: string[]; forms?: SiteForm[]; legal?: Legal }
   return {
     meta: {
@@ -39,6 +39,7 @@ export async function siteMeta(
       forms: x.forms ?? [],
       modules: x.modules ?? [],
       locale: t.locale,
+      year,
       labels: { imprint: t("sites.imprint"), privacy: t("sites.privacy"), more: t("sites.more"), noEvents: t("site.noEvents"), poweredBy: t("sites.poweredBy") },
     },
     legal: x.legal ?? null,

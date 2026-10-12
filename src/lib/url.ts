@@ -45,5 +45,9 @@ export const pageParam = (sp: SearchParams) => Math.max(1, Number(param(sp, "pag
 export const SITE_PATHS = ROOT_DOMAIN.endsWith(".vercel.app")
 export const siteUrl = (orgSlug: string, path = "") =>
   SITE_PATHS ? `${APP_URL}/s/${orgSlug}${path}` : `${new URL(APP_URL).protocol}//${orgSlug}.${ROOT_DOMAIN}${path}`
+// Redirect target after a public Server Action: always the internal /s/<slug>/… route. Next renders an action's
+// redirect target internally without the proxy, so a subdomain-relative "/e/…" would hit the App instead
+// (the proxy accepts /s/<slug>/… on the org's subdomain too).
+export const siteActionPath = (orgSlug: string, path = "/") => `/s/${orgSlug}${path === "/" ? "" : path}`
 // Links between public pages of one org (relative on its subdomain, /s/<slug>/… in path mode).
 export const sitePath = (orgSlug: string, path = "/") => (SITE_PATHS ? `/s/${orgSlug}${path === "/" ? "" : path}` : path)

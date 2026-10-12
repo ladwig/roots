@@ -40,7 +40,7 @@ export async function cachedSiteData(orgId: string) {
       .order("starts_at")
       .limit(24),
   ])
-  return { site, extras, events: events ?? [] }
+  return { site, extras, events: events ?? [], year: new Date().getFullYear() }
 }
 
 export async function cachedSitePage(orgId: string, slug: string) {

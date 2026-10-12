@@ -27,7 +27,7 @@ function readType(fd: FormData) {
   if (!name || (quota !== null && !(Number.isInteger(quota) && quota > 0))) return { error: "errors.invalid_input" }
   if (sales_start === undefined || sales_end === undefined) return { error: "errors.invalid_time" }
   if (sales_start && sales_end && sales_end <= sales_start) return { error: "errors.end_before_start" }
-  return { row: { name, description, quota, sales_start, sales_end, active: fd.getAll("active").includes("1"), hidden: fd.get("hidden") === "1" } }
+  return { row: { name, description, quota, sales_start, sales_end, hidden: fd.get("hidden") === "1" } }
 }
 
 export async function saveTicketType(fd: FormData) {
@@ -157,4 +157,14 @@ export async function removeFromWaitlist(fd: FormData) {
     .eq("org_id", ctx.org.id)
     .in("status", ["waiting", "offered"])
   back(`${here}#waitlist`, error || !count ? { error: error ? dbError(t, error) : t("errors.not_allowed") } : { ok: t("waitlist.removed") })
+}
+
+/** Pause or resume selling a ticket type (sold tickets stay valid). */
+export async function setTicketTypeActive(fd: FormData) {
+  const eventId = String(fd.get("event") ?? "")
+  const { ctx, t, here } = await manager(eventId)
+  const id = String(fd.get("id") ?? "")
+  const active = fd.get("active") === "1"
+  const { error } = await ctx.supabase.from("ticket_types").update({ active }).eq("id", id).eq("event_id", eventId)
+  back(`${here}?edit=${id}`, error ? { error: dbError(t, error) } : { ok: active ? t("tickets.activated") : t("tickets.paused") })
 }
