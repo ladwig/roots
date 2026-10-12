@@ -103,7 +103,7 @@ export default async function Landing() {
         {/* ---- nav ---- */}
         <header className="sticky top-0 z-50">
           <nav className="nav-bar flex h-16 items-center justify-between gap-4">
-            <a href="#top" className="serif text-[30px] leading-none">
+            <a href="#top" className="wordmark text-[26px]">
               roots
             </a>
             <div className="hidden items-center gap-7 text-[14px] md:flex">
@@ -124,47 +124,49 @@ export default async function Landing() {
           </nav>
         </header>
 
-        {/* ---- hero: the painting as a halftone that builds up, then (scrolling) the colour painting comes through
-             and the laptop rises into the field ---- */}
-        <section id="top" className="hero wrap relative h-[200svh] pt-4">
-          <div className="sticky top-20 h-[calc(100svh-6rem)]">
-            <div className="ticks h-full">
-              <div className="painting h-full rounded-[2px] bg-[#14130f]">
-                <Image
-                  src={PAINTINGS.harvesters.src}
-                  alt={`${PAINTINGS.harvesters.artist}, ${PAINTINGS.harvesters.title}`}
-                  fill
-                  priority
-                  sizes="100vw"
-                  className="object-cover"
-                  style={{ objectPosition: "50% 35%" }}
-                />
-                <Halftone src={PAINTINGS.harvesters.src} className="hero-halftone absolute inset-0 z-[1] size-full" />
-                {/* dark veil from the left, where the copy sits */}
-                <div className="absolute inset-0 z-[2] bg-[linear-gradient(90deg,rgb(20_19_15/.82)_0%,rgb(20_19_15/.55)_34%,rgb(20_19_15/0)_68%)] max-sm:bg-[linear-gradient(180deg,rgb(20_19_15/.85)_0%,rgb(20_19_15/.5)_60%,rgb(20_19_15/0)_90%)]" />
-                <div className="hero-copy relative z-[3] px-[clamp(20px,4vw,64px)] pt-[clamp(32px,8vh,104px)] text-[var(--paper)]">
-                  <p className="label mb-6 text-[var(--paper)]/70">{t("landing.hero.eyebrow")}</p>
-                  <h1 className="display fs-hero max-w-[13ch]">
-                    {t("landing.hero.title1")} <em>{t("landing.hero.accent")}</em> {t("landing.hero.title2")}
-                  </h1>
-                  <p className="fs-lead mt-6 max-w-[44ch] text-[var(--paper)]/80">{t("landing.hero.lead")}</p>
-                  <div className="mt-8 flex flex-wrap items-center gap-6">
-                    <Pill href={SIGNUP} light>
-                      {t("landing.hero.cta")}
-                    </Pill>
-                    <a href="#product" className="link text-[15px] decoration-white/40">
-                      {t("landing.hero.secondary")}
-                    </a>
+        {/* ---- hero: the painting fills the first screen (pinned); scrolling brings the laptop up into the field ---- */}
+        <section id="top" className="relative">
+          {/* Copy on paper, no veil needed */}
+          <div className="wrap grid gap-x-16 gap-y-8 pt-[clamp(48px,7vw,104px)] pb-[clamp(40px,5vw,72px)] lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:items-end">
+            <div>
+              <p className="label reveal soft mb-6">{t("landing.hero.eyebrow")}</p>
+              <h1 className="display fs-hero reveal max-w-[13ch]">
+                {t("landing.hero.title1")} <em>{t("landing.hero.accent")}</em> {t("landing.hero.title2")}
+              </h1>
+            </div>
+            <div className="reveal grid gap-8 lg:pb-3">
+              <p className="fs-lead soft max-w-[44ch]">{t("landing.hero.lead")}</p>
+              <div className="flex flex-wrap items-center gap-6">
+                <Pill href={SIGNUP}>{t("landing.hero.cta")}</Pill>
+                <a href="#product" className="link text-[15px]">
+                  {t("landing.hero.secondary")}
+                </a>
+              </div>
+            </div>
+          </div>
+          {/* The painting: full width first, moves in to the margins while the laptop rises into the field */}
+          <div className="hero-stage relative h-[170svh]">
+            <div className="sticky top-20 h-[calc(100svh-6rem)]">
+              <div className="hero-frame h-full overflow-hidden">
+                <div className="painting h-full rounded-none">
+                  <Image
+                    src={PAINTINGS.harvesters.src}
+                    alt={`${PAINTINGS.harvesters.artist}, ${PAINTINGS.harvesters.title}`}
+                    fill
+                    priority
+                    sizes="100vw"
+                    className="object-cover"
+                    style={{ objectPosition: "50% 35%" }}
+                  />
+                  <div className="hero-laptop absolute inset-x-0 bottom-[-4%] z-[4] mx-auto w-[min(86%,980px)] sm:w-[min(62%,980px)]">
+                    <DeviceLaptop>
+                      <DashboardMock />
+                    </DeviceLaptop>
                   </div>
+                  <p className="absolute right-5 bottom-4 z-[3] text-[12px] text-[var(--paper)]/75 max-sm:hidden">
+                    {PAINTINGS.harvesters.artist}, <em>{PAINTINGS.harvesters.title}</em>, {PAINTINGS.harvesters.year}
+                  </p>
                 </div>
-                <div className="hero-laptop absolute inset-x-0 bottom-[-4%] z-[4] mx-auto w-[min(86%,980px)] sm:w-[min(62%,980px)]">
-                  <DeviceLaptop>
-                    <DashboardMock />
-                  </DeviceLaptop>
-                </div>
-                <p className="absolute right-5 bottom-4 z-[3] text-[12px] text-[var(--paper)]/75 max-sm:hidden">
-                  {PAINTINGS.harvesters.artist}, <em>{PAINTINGS.harvesters.title}</em>, {PAINTINGS.harvesters.year}
-                </p>
               </div>
             </div>
           </div>
@@ -222,7 +224,7 @@ export default async function Landing() {
         </section>
 
         {/* ---- features ---- */}
-        <section id="product" className="wrap grid gap-[clamp(88px,11vw,160px)] pb-[clamp(96px,12vw,176px)]">
+        <section id="product" className="wrap mx-auto grid max-w-[1560px] gap-[clamp(88px,11vw,160px)] pb-[clamp(96px,12vw,176px)]">
           {features.map((f, i) => (
             <article key={f.key} className="rule grid items-start gap-10 pt-10 md:grid-cols-12">
               <div className="reveal md:col-span-4">
@@ -241,8 +243,8 @@ export default async function Landing() {
               </div>
               <div className="reveal md:col-span-8">
                 {f.painting ? (
-                  <Painting k={f.painting} sizes="(min-width: 768px) 820px, 100vw" className="aspect-[4/3] md:aspect-[16/11]" position="40% 60%">
-                    <div className="absolute top-[8%] right-[9%] z-[2] w-[min(28%,210px)]">
+                  <Painting k={f.painting} sizes="(min-width: 768px) 820px, 100vw" className="aspect-[4/3] md:aspect-[16/10]" position="35% 55%">
+                    <div className="absolute top-1/2 right-[8%] z-[2] w-[min(32%,280px)] -translate-y-1/2">
                       <DevicePhone>
                         <ScannerMock />
                       </DevicePhone>
@@ -369,15 +371,25 @@ export default async function Landing() {
           </div>
         </section>
 
-        {/* ---- final CTA ---- */}
-        <section className="wrap text-center">
-          <p className="display fs-h2 rule section leading-[1.05]">
-            {t("landing.final.before")}{" "}
-            <a href={SIGNUP} className="pill inline-pill">
-              <span>{t("landing.final.pill")}</span>
-              <ArrowUpRightIcon className="size-[0.32em] min-w-4" strokeWidth={2} />
-            </a>
-          </p>
+        {/* ---- final CTA: dark band, the Bauerntanz as a halftone that builds up as it comes into view ---- */}
+        <section className="wrap pb-[clamp(96px,12vw,176px)]">
+          <div className="ticks">
+            <div className="painting relative min-h-[420px] overflow-hidden rounded-[2px] bg-[#14130f] text-[var(--paper)] sm:min-h-[480px]">
+              <Halftone src={PAINTINGS.dance.src} className="absolute inset-0 size-full" />
+              <div className="absolute inset-0 z-[2] bg-[linear-gradient(90deg,rgb(20_19_15/.92)_0%,rgb(20_19_15/.7)_38%,rgb(20_19_15/0)_75%)]" />
+              <div className="relative z-[3] flex min-h-[420px] flex-col justify-center gap-6 px-[clamp(24px,6vw,96px)] py-14 sm:min-h-[480px]">
+                <h2 className="display fs-h2 max-w-[14ch]">
+                  {t("landing.final.title")} <em>{t("landing.final.accent")}</em>
+                </h2>
+                <p className="fs-lead max-w-[40ch] text-[var(--paper)]/75">{t("landing.final.text")}</p>
+                <div>
+                  <Pill href={SIGNUP} light>
+                    {t("landing.final.pill")}
+                  </Pill>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
       </div>
 
@@ -427,7 +439,7 @@ export default async function Landing() {
             </div>
           </div>
           <div>
-            <p className="serif text-[clamp(110px,24vw,340px)] leading-[0.8]">roots</p>
+            <p className="wordmark text-[clamp(110px,24vw,340px)] leading-[0.8]">roots</p>
             <div className="mt-6 flex flex-wrap justify-between gap-4 text-[12px] text-[var(--paper)]/60">
               <span>{t("landing.footer.grassroots")}</span>
               <span>

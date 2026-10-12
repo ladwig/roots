@@ -2289,7 +2289,9 @@
       "heading": "Häufige Fragen"
     },
     "final": {
-      "before": "Fangt heute an.",
+      "title": "Fangt heute an,",
+      "accent": "gemeinsam.",
+      "text": "Kostenlos während der Beta, ohne Kreditkarte. Eure Daten könnt ihr jederzeit mitnehmen.",
       "pill": "Kostenlos starten"
     },
     "footer": {

@@ -2289,7 +2289,9 @@
       "heading": "Frequently asked"
     },
     "final": {
-      "before": "Start today.",
+      "title": "Start today,",
+      "accent": "together.",
+      "text": "Free during the beta, no credit card. You can take your data with you anytime.",
       "pill": "Start for free"
     },
     "footer": {

@@ -26,17 +26,12 @@
 .site ::selection { background: var(--ink); color: var(--paper); }
 
 /* ---- type ---- */
-.site .serif {
-  font-family: var(--font-site-serif), Georgia, serif;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  line-height: 0.98;
-}
-.site .serif em { font-style: italic; }
+.site .wordmark { font-weight: 500; letter-spacing: -0.04em; line-height: 1; }
 /* Sans headlines (Swiss, tight); one italic serif word as accent */
 .site .display { font-weight: 400; letter-spacing: -0.035em; line-height: 1.02; }
 .site .fs-hero.display, .site .fs-h2.display { font-weight: 350; }
-.site .display em { font-family: var(--font-site-serif), Georgia, serif; font-style: italic; font-weight: 400; letter-spacing: -0.01em; }
+.site .display em { font-style: normal; color: var(--ink-soft); } /* two-tone accent instead of a second typeface */
+.site .text-\[var\(--paper\)\] .display em, .site .display.on-dark em { color: rgb(245 241 232 / 0.55); }
 /* Small label in a thin box ("WARUM ROOTS") */
 .site .tag {
   display: inline-block;
@@ -146,22 +141,22 @@
   from { max-width: 100%; margin-top: 0; padding-inline: var(--gutter); background: rgb(245 241 232 / 0); border-color: transparent; }
   to { max-width: min(1120px, calc(100% - 2 * var(--gutter))); margin-top: 10px; padding-inline: 18px; background: rgb(245 241 232 / 0.86); border-color: var(--line); }
 }
-/* Hero halftone: the dot version of the painting fades as you scroll and the colour painting comes through. */
+
+/* Hero frame: full width at first, moves in to the content margins as you scroll (like the nav). */
+.site .hero-frame { margin-inline: var(--gutter); border-radius: 2px; }
 @supports (animation-timeline: view()) {
-  .site .hero-halftone { animation: site-fade-out linear both; animation-timeline: --hero; animation-range: contain 2% contain 32%; }
+  .site .hero-frame { animation: site-hero-frame linear both; animation-timeline: --hero; animation-range: contain 0% contain 22%; }
 }
-@keyframes site-fade-out { to { opacity: 0; } }
+@keyframes site-hero-frame { from { margin-inline: 0; border-radius: 0; } to { margin-inline: var(--gutter); border-radius: 2px; } }
 
 /* Hero: the pinned painting stays, the laptop rises into the field, the copy steps back. Without support the
    laptop just sits low in the picture. */
 .site .hero-laptop { transform: translateY(58%); }
 @supports (animation-timeline: view()) {
-  .site .hero { view-timeline: --hero block; }
+  .site .hero-stage { view-timeline: --hero block; }
   .site .hero-laptop { animation: site-hero-laptop linear both; animation-timeline: --hero; animation-range: contain 0% contain 70%; }
-  .site .hero-copy { animation: site-hero-copy linear both; animation-timeline: --hero; animation-range: contain 15% contain 60%; }
 }
 @keyframes site-hero-laptop { from { transform: translateY(78%) scale(0.94); } to { transform: translateY(6%) scale(1); } }
-@keyframes site-hero-copy { to { opacity: 0.12; transform: translateY(-24px); } }
 @keyframes site-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 @keyframes site-settle { from { transform: scale(1.07); } to { transform: scale(1); } }
 

@@ -17,7 +17,7 @@ No "AI slop": no neon gradients, no glassy blobs, no emoji, no stock 3D. Real pa
 | Role | Font | Use |
 |---|---|---|
 | Display | **Hanken Grotesk** 400 (light for big numbers), tracking `-0.035em`, line-height `1.02` | Headlines, statements, big numbers (Swiss, close to Helvetica Now) |
-| Accent | **Instrument Serif** italic | One word per headline, and the wordmark |
+| Accent | same font, **lighter tone** (`--ink-soft` / paper 55 %) | One or two words per headline (two-tone), no second typeface |
 | Text | **Hanken Grotesk** 400/500, tracking `+0.012em` (small sizes `+0.02em`), line-height `1.6` | Body, nav, UI, buttons (Franklin Gothic lineage: editorial, not the default Inter look) |
 | Label | Hanken Grotesk 500, uppercase, tracking `0.12em`, 11–12 px | Eyebrows, section numbers, button labels |
 
@@ -56,12 +56,13 @@ chosen focal point. Product mocks float *on* a painting as on a table. Credits l
 
 ## Components
 
-- **Hero**: the painting fills the first screen inside the margins (pinned), first as a **halftone dot grid that builds up** (canvas, `_components/halftone.tsx`), light copy on a dark veil; scrolling fades the dots so the colour painting comes through, and the laptop rises into the field.
+- **Hero**: copy on paper (headline left, intro + buttons right), then the colour painting **full width**, pinned; scrolling moves it in to the content margins (like the nav) and brings the laptop up into the field. No veils or gradients over paintings.
+- **Halftone band** (final CTA): dark band where a painting builds up as a dot grid when it comes into view (canvas, `_components/halftone.tsx`), light copy, light button. Not used in the hero.
 - **Nav**: full width at the top, shrinks to a framed bar at content width as you scroll (scroll-driven CSS).
 - **Tag**: small uppercase label in a thin box above centred section headlines.
 - **Value cards**: hairline-bordered cards with thin line-art graphics (`_components/wireframes.tsx`), centred text.
 
-- **Nav**: paper background, serif wordmark "roots", small sans links, text link "Anmelden", black button CTA.
+- **Nav**: paper background, sans wordmark "roots", small sans links, text link "Anmelden", black button CTA.
 - **Button**: black (or paper on dark), 2 px corners, uppercase label with wide tracking + ↗; secondary = text link with underline. One primary per screen.
 - **Inline button**: a big serif sentence with the CTA button set *inside* the line ("Eine Software [ALLE MODULE ↗] für
   eure ganze Arbeit.").
