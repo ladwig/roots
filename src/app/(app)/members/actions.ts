@@ -126,6 +126,13 @@ export async function trashMembership(fd: FormData) {
   back(PATH, { ok: t("membership.trashed") })
 }
 
+export async function restoreMembership(fd: FormData) {
+  const { ctx, t } = await manager()
+  const id = str(fd, "id", 36) ?? ""
+  const { error } = await ctx.supabase.rpc("restore_deleted", { p_table: "public.memberships", p_id: id })
+  back(`${PATH}?edit=${id}`, error ? { error: dbError(t, error) } : { ok: t("membership.restored") })
+}
+
 // ---------- types + settings ----------
 
 export async function saveType(fd: FormData) {

@@ -148,6 +148,13 @@ export async function trashForm(fd: FormData) {
   back(PATH, { ok: t("forms.trashed") })
 }
 
+export async function restoreForm(fd: FormData) {
+  const { ctx, t } = await manager()
+  const { error } = await ctx.supabase.rpc("restore_deleted", { p_table: "public.forms", p_id: str(fd, "id", 36) ?? "" })
+  // Another live form took the slug meanwhile → unique violation.
+  back(`${PATH}?trash=1`, error ? { error: error.code === "23505" ? t("errors.slug_taken") : dbError(t, error) } : { ok: t("forms.restored") })
+}
+
 /** Membership application → member (contact + membership); contact form submissions are already in. */
 export async function acceptSubmission(fd: FormData) {
   const { ctx, t } = await manager()

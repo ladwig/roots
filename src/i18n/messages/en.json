@@ -1648,7 +1648,8 @@
     "filters": {
       "active": "Active",
       "ended": "Left",
-      "all": "All"
+      "all": "All",
+      "trash": "Trash"
     },
     "noMatch": "No members found.",
     "empty": "No members yet.",
@@ -1798,7 +1799,10 @@
     "reminderIntro": "the following dues at {org} are still open:",
     "reminderTotal": "Total: {total}",
     "reminderPay": "Please transfer the amount to {name}, IBAN {iban}, reference: member no. {ref}. If you have already paid, please ignore this message.",
-    "reminderBye": "Best regards\n{org}"
+    "reminderBye": "Best regards\n{org}",
+    "restore": "Restore",
+    "restored": "Membership restored.",
+    "deletedOn": "In the trash since {date}. Deleted for good on {purge}."
   },
   "forms": {
     "nav": "Forms",
@@ -1891,6 +1895,11 @@
     "acceptMember": "Accept as member",
     "reject": "Reject",
     "accepted": "Accepted.",
-    "rejected": "Rejected."
+    "rejected": "Rejected.",
+    "trash": "Trash",
+    "trashHint": "Forms in the trash are deleted for good after {days} days.",
+    "emptyTrash": "The trash is empty.",
+    "restore": "Restore",
+    "restored": "Form restored."
   }
 }

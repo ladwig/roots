@@ -8,7 +8,7 @@ Production: https://roots-berlin.vercel.app · API docs: https://roots-berlin.ve
 
 | Area | What it does |
 |---|---|
-| **Core** | Orgs, members, invites, global roles + permissions, platform admins (`/admin`), audit log, soft delete + trash, i18n (de/en), dark mode, profile pictures + org logos |
+| **Core** | Orgs, team, invites, global roles + permissions, platform admins (`/admin`), audit log, soft delete + trash, i18n (de/en), dark mode, profile pictures + org logos |
 | **CRM** | Contacts, tags, notes + timeline, custom fields (Settings → Felder), CSV import with column mapping |
 | **Events** | Events with public pages (`<org>.<domain>` or `/s/<org>`), drafts, cancel, images |
 | **Ticketing** | Ticket types, price tiers, promo codes / discount links, hidden crew types, checkout with names per ticket, QR tickets + PDF + email, scanner with offline mode |
@@ -16,6 +16,9 @@ Production: https://roots-berlin.vercel.app · API docs: https://roots-berlin.ve
 | **Quotes & invoices** | German invoices (§ 14 UStG, Kleinunternehmer), number ranges, builder, issue + freeze, quote → invoice, print templates |
 | **Guest lists & lineup** | Permanent and per-event guest lists with magic links, optional tickets, door check-in; artists + timetable |
 | **Shift planning** | Team (members), positions, locations, shifts per event or location, recurring series, applications, check-in/out + hours, calendar views |
+| **Files** | Private file storage per org: attach files to any record (contacts, memberships…), Files page with folders + trash, photos compressed in the browser |
+| **Members** | Vereinsverwaltung: membership types (fee, interval, entry fee, notice, pro rata), memberships on contacts with number format + SEPA mandates, dues (periods, entry fees, levies), SEPA direct debit files (pain.008), reminders, cancel with notice |
+| **Forms** | Form builder over platform fields (contact, custom, membership), public forms with consents + SEPA mandate, submissions inbox; membership applications become members |
 | **Event hub** | Things that happen (`ticket.sold`, `contact.created`, …) → in-app inbox, email, webhooks, Telegram |
 | **Public API** | Per-org API keys with permissions, `/api/v1` (events, tickets, contacts), OpenAPI spec + interactive docs |
 

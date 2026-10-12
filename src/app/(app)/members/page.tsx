@@ -18,7 +18,7 @@ import { requirePerm } from "@/lib/context"
 import type { Tables } from "@/lib/supabase/types"
 import { pageParam, param, withParams, type SearchParams } from "@/lib/url"
 import { earliestEnd, type Interval } from "@/members/dues"
-import { endMembership, saveMembership, sendReminders, setDueStatus, trashMembership } from "./actions"
+import { endMembership, restoreMembership, saveMembership, sendReminders, setDueStatus, trashMembership } from "./actions"
 
 type Ctx = Awaited<ReturnType<typeof requirePerm>>
 type Type = Pick<Tables<"membership_types">, "id" | "name" | "fee_cents" | "interval" | "notice_months" | "active">
@@ -30,7 +30,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
   const sp = await searchParams
   const canManage = ctx.can("members.manage")
   const q = param(sp, "q")?.replace(/[%,()*]/g, "").trim()
-  const status = (["active", "ended", "all"] as const).find((s) => s === param(sp, "status")) ?? "active"
+  const status = (["active", "ended", "all", "trash"] as const).find((s) => s === param(sp, "status") && (s !== "trash" || canManage)) ?? "active"
   const typeFilter = param(sp, "type")
   const page = pageParam(sp)
   const editId = param(sp, "edit")
@@ -41,9 +41,9 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
     .from("memberships")
     .select("id, number, member_no, starts_on, ends_on, type_id, contacts!inner(first_name, last_name, company, email)")
     .eq("org_id", ctx.org.id)
-    .is("deleted_at", null)
     .order("number")
     .range(...pageRange(page))
+  query = status === "trash" ? query.not("deleted_at", "is", null) : query.is("deleted_at", null)
   if (status === "active") query = query.or(`ends_on.is.null,ends_on.gte.${now}`)
   if (status === "ended") query = query.lt("ends_on", now)
   if (typeFilter) query = query.eq("type_id", typeFilter)
@@ -110,7 +110,9 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
       <div className="flex flex-wrap items-center gap-3">
         <SearchBox q={q} label={t("common.search")} keep={{ ...(status !== "active" && { status }), ...(typeFilter && { type: typeFilter }) }} />
         <nav aria-label={t("membership.filter")} className="flex flex-wrap gap-1.5">
-          {(["active", "ended", "all"] as const).map((s) => chip(withParams(sp, { status: s === "active" ? undefined : s, page: undefined, edit: undefined }), s === status, t(`membership.filters.${s}`)))}
+          {(["active", "ended", "all", ...(canManage ? (["trash"] as const) : [])] as const).map((s) =>
+            chip(withParams(sp, { status: s === "active" ? undefined : s, page: undefined, edit: undefined }), s === status, t(`membership.filters.${s}`)),
+          )}
           {(types ?? []).map((x) => chip(withParams(sp, { type: x.id === typeFilter ? undefined : x.id, page: undefined, edit: undefined }), x.id === typeFilter, x.name))}
         </nav>
       </div>
@@ -256,15 +258,28 @@ async function EditMembership({
           {t("membership.openContact")}
         </Button>
       )}
+      {m.deleted_at && (
+        <>
+          <p className="rounded-lg border bg-muted px-3 py-2 text-sm">
+            {t("membership.deletedOn", { date: t.date(m.deleted_at), purge: t.date(new Date(new Date(m.deleted_at).getTime() + 30 * 86_400_000)) })}
+          </p>
+          {canManage && (
+            <form action={restoreMembership}>
+              <input type="hidden" name="id" value={m.id} />
+              <SubmitButton className="justify-self-start">{t("membership.restore")}</SubmitButton>
+            </form>
+          )}
+        </>
+      )}
       <form action={saveMembership} className="grid gap-4">
         <input type="hidden" name="id" value={m.id} />
-        <fieldset disabled={!canManage} className="grid gap-4">
+        <fieldset disabled={!canManage || !!m.deleted_at} className="grid gap-4">
           <MembershipFields t={t} types={types} m={m} />
         </fieldset>
-        {canManage && <SubmitButton className="justify-self-start">{t("common.save")}</SubmitButton>}
+        {canManage && !m.deleted_at && <SubmitButton className="justify-self-start">{t("common.save")}</SubmitButton>}
       </form>
 
-      {canManage && !m.ends_on && type && (
+      {canManage && !m.ends_on && !m.deleted_at && type && (
         <>
           <Separator />
           <form action={endMembership} className="grid gap-3">
@@ -324,7 +339,7 @@ async function EditMembership({
       <Separator />
       <FileList ctx={ctx} entity="memberships" entityId={m.id} back={here} />
 
-      {canManage && !dues?.length && (
+      {canManage && !dues?.length && !m.deleted_at && (
         <>
           <Separator />
           <form action={trashMembership}>

@@ -1648,7 +1648,8 @@
     "filters": {
       "active": "Aktiv",
       "ended": "Ausgetreten",
-      "all": "Alle"
+      "all": "Alle",
+      "trash": "Papierkorb"
     },
     "noMatch": "Keine Mitglieder gefunden.",
     "empty": "Noch keine Mitglieder.",
@@ -1798,7 +1799,10 @@
     "reminderIntro": "bei {org} sind folgende Beiträge noch offen:",
     "reminderTotal": "Gesamt: {total}",
     "reminderPay": "Bitte überweise den Betrag an {name}, IBAN {iban}, Verwendungszweck: Mitgliedsnr. {ref}. Falls du schon bezahlt hast, ignoriere diese Nachricht bitte.",
-    "reminderBye": "Viele Grüße\n{org}"
+    "reminderBye": "Viele Grüße\n{org}",
+    "restore": "Wiederherstellen",
+    "restored": "Mitgliedschaft wiederhergestellt.",
+    "deletedOn": "Im Papierkorb seit {date}. Wird am {purge} endgültig gelöscht."
   },
   "forms": {
     "nav": "Formulare",
@@ -1891,6 +1895,11 @@
     "acceptMember": "Als Mitglied aufnehmen",
     "reject": "Ablehnen",
     "accepted": "Angenommen.",
-    "rejected": "Abgelehnt."
+    "rejected": "Abgelehnt.",
+    "trash": "Papierkorb",
+    "trashHint": "Formulare im Papierkorb werden nach {days} Tagen endgültig gelöscht.",
+    "emptyTrash": "Der Papierkorb ist leer.",
+    "restore": "Wiederherstellen",
+    "restored": "Formular wiederhergestellt."
   }
 }
