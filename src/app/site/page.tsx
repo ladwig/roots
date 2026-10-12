@@ -72,7 +72,7 @@ export default async function Landing() {
             </div>
           </div>
           {/* The painting: full width first, moves in to the margins while the laptop rises into the field */}
-          <div className="hero-stage relative h-[170svh]">
+          <div className="hero-stage relative h-[145svh]">
             <div className="sticky top-0 h-[100svh]">
               <div className="hero-frame h-full overflow-hidden">
                 <div className="painting h-full rounded-none">

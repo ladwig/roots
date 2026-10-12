@@ -170,7 +170,7 @@
 .site .hero-laptop { transform: translateY(58%); }
 @supports (animation-timeline: view()) {
   .site .hero-stage { view-timeline: --hero block; }
-  .site .hero-laptop { animation: site-hero-laptop linear both; animation-timeline: --hero; animation-range: contain 0% contain 70%; }
+  .site .hero-laptop { animation: site-hero-laptop linear both; animation-timeline: --hero; animation-range: contain 0% contain 80%; }
 }
 @keyframes site-hero-laptop { from { transform: translateY(78%) scale(0.94); } to { transform: translateY(6%) scale(1); } }
 @keyframes site-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
