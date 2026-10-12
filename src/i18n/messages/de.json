@@ -400,7 +400,8 @@
       "forms": "Formulare",
       "form_submissions": "Formular-Einsendungen",
       "email_campaigns": "E-Mail-Kampagnen",
-      "email_automations": "E-Mail-Automationen"
+      "email_automations": "E-Mail-Automationen",
+      "letter_templates": "Briefvorlagen"
     }
   },
   "errors": {
@@ -2399,5 +2400,69 @@
       "accent": "An einem Ort.",
       "lead": "Jeder Bereich funktioniert für sich – und zusammen noch besser: ein Kontakt ist zugleich Mitglied, Ticketkäufer, Helferin und Empfänger."
     }
+  },
+  "letters": {
+    "tabs": {
+      "files": "Dateien",
+      "templates": "Vorlagen"
+    },
+    "title": "Vorlagen",
+    "intro": "Briefe und Bescheinigungen mit Platzhaltern: Kontakt wählen, Felder ausfüllen, als PDF herunterladen, ablegen oder per E-Mail senden.",
+    "new": "Neue Vorlage",
+    "create": "Anlegen",
+    "name": "Name",
+    "heading": "Überschrift",
+    "headingHelp": "Erscheint fett über dem Text; Platzhalter erlaubt, z. B. {subject}.",
+    "body": "Text",
+    "bodyHelp": "Platzhalter wie {name} oder {member_since} werden beim Ausfüllen ersetzt.",
+    "fields": "Eigene Felder",
+    "fieldsHelp": "Werden beim Ausfüllen abgefragt und stehen im Text als Platzhalter bereit.",
+    "addField": "Feld hinzufügen",
+    "fieldLabel": "Bezeichnung",
+    "fieldType": "Typ",
+    "removeField": "Feld entfernen",
+    "fieldTypes": {
+      "text": "Text",
+      "date": "Datum",
+      "textarea": "Langer Text"
+    },
+    "letterhead": "Briefkopf anzeigen",
+    "letterheadHelp": "Logo, Absenderzeile und Fußzeile aus den Rechnungseinstellungen. Aus für vorgedrucktes Briefpapier.",
+    "kind": "Art",
+    "default": "Standard",
+    "own": "Eigene",
+    "updated": "Geändert",
+    "copy": "Kopieren & anpassen",
+    "copied": "Kopie erstellt – jetzt anpassen.",
+    "copySuffix": "(Kopie)",
+    "edit": "Vorlage bearbeiten",
+    "save": "Speichern",
+    "saved": "Vorlage gespeichert.",
+    "nameRequired": "Bitte gib einen Namen ein.",
+    "toTrash": "In den Papierkorb",
+    "trashed": "Vorlage in den Papierkorb gelegt.",
+    "restore": "Wiederherstellen",
+    "restored": "Vorlage wiederhergestellt.",
+    "trash": "Papierkorb",
+    "emptyTrash": "Der Papierkorb ist leer.",
+    "trashHint": "Gelöschte Vorlagen werden nach {days} Tagen endgültig entfernt.",
+    "empty": "Noch keine Vorlagen.",
+    "all": "Alle",
+    "recipient": "Empfänger:in",
+    "recipientPlaceholder": "Kontakt suchen …",
+    "noRecipient": "Ohne Kontakt bleiben Anschrift und Kontakt-Platzhalter leer.",
+    "date": "Datum",
+    "preview": "Vorschau",
+    "download": "PDF herunterladen",
+    "saveFile": "In Dateien ablegen",
+    "savedFile": "Als PDF in den Dateien abgelegt.",
+    "send": "Per E-Mail senden",
+    "sent": "E-Mail mit PDF versendet.",
+    "noEmail": "Der Kontakt hat keine E-Mail-Adresse.",
+    "needContact": "Bitte wähle zuerst einen Kontakt.",
+    "mailText": "Guten Tag {name},\n\nanbei erhalten Sie „{document}“ als PDF.\n\nMit freundlichen Grüßen\n{org}",
+    "folder": "Briefe",
+    "defaultHint": "Standardvorlage von roots. Zum Ändern kopieren.",
+    "placeholdersTitle": "Platzhalter"
   }
 }

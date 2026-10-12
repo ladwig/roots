@@ -400,7 +400,8 @@
       "forms": "Forms",
       "form_submissions": "Form submissions",
       "email_campaigns": "Email campaigns",
-      "email_automations": "Email automations"
+      "email_automations": "Email automations",
+      "letter_templates": "Letter templates"
     }
   },
   "errors": {
@@ -2399,5 +2400,69 @@
       "accent": "In one place.",
       "lead": "Every area works on its own – and better together: one contact is member, ticket buyer, volunteer and recipient at once."
     }
+  },
+  "letters": {
+    "tabs": {
+      "files": "Files",
+      "templates": "Templates"
+    },
+    "title": "Templates",
+    "intro": "Letters and certificates with placeholders: pick a contact, fill in the fields, then download as PDF, file it or send it by email.",
+    "new": "New template",
+    "create": "Create",
+    "name": "Name",
+    "heading": "Heading",
+    "headingHelp": "Shown in bold above the text; placeholders allowed, e.g. {subject}.",
+    "body": "Text",
+    "bodyHelp": "Placeholders like {name} or {member_since} are replaced when filling in.",
+    "fields": "Own fields",
+    "fieldsHelp": "Asked for when filling in and available as placeholders in the text.",
+    "addField": "Add field",
+    "fieldLabel": "Label",
+    "fieldType": "Type",
+    "removeField": "Remove field",
+    "fieldTypes": {
+      "text": "Text",
+      "date": "Date",
+      "textarea": "Long text"
+    },
+    "letterhead": "Show letterhead",
+    "letterheadHelp": "Logo, sender line and footer from the invoice settings. Turn off for pre-printed paper.",
+    "kind": "Kind",
+    "default": "Default",
+    "own": "Own",
+    "updated": "Changed",
+    "copy": "Copy & adapt",
+    "copied": "Copy created – adapt it now.",
+    "copySuffix": "(copy)",
+    "edit": "Edit template",
+    "save": "Save",
+    "saved": "Template saved.",
+    "nameRequired": "Please enter a name.",
+    "toTrash": "Move to trash",
+    "trashed": "Template moved to the trash.",
+    "restore": "Restore",
+    "restored": "Template restored.",
+    "trash": "Trash",
+    "emptyTrash": "The trash is empty.",
+    "trashHint": "Deleted templates are removed for good after {days} days.",
+    "empty": "No templates yet.",
+    "all": "All",
+    "recipient": "Recipient",
+    "recipientPlaceholder": "Search contacts …",
+    "noRecipient": "Without a contact the address and contact placeholders stay empty.",
+    "date": "Date",
+    "preview": "Preview",
+    "download": "Download PDF",
+    "saveFile": "Save to files",
+    "savedFile": "Saved as PDF in files.",
+    "send": "Send by email",
+    "sent": "Email with PDF sent.",
+    "noEmail": "This contact has no email address.",
+    "needContact": "Please pick a contact first.",
+    "mailText": "Hello {name},\n\nplease find “{document}” attached as a PDF.\n\nKind regards\n{org}",
+    "folder": "Letters",
+    "defaultHint": "Default template from roots. Copy it to change it.",
+    "placeholdersTitle": "Placeholders"
   }
 }

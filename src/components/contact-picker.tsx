@@ -10,7 +10,19 @@ import { useT } from "@/i18n/client"
 type Option = { id: string; label: string; detail: string }
 
 /** Pick one contact by searching on the server (works for any number of contacts). Posts the id as `name`. */
-export function ContactPicker({ name, label, initial, placeholder }: { name: string; label: string; initial?: Option | null; placeholder?: string }) {
+export function ContactPicker({
+  name,
+  label,
+  initial,
+  placeholder,
+  onChange,
+}: {
+  name: string
+  label: string
+  initial?: Option | null
+  placeholder?: string
+  onChange?: (picked: Option | null) => void
+}) {
   const t = useT()
   const id = useId()
   const [picked, setPicked] = useState<Option | null>(initial ?? null)
@@ -37,7 +49,16 @@ export function ContactPicker({ name, label, initial, placeholder }: { name: str
             {picked.label}
             {picked.detail && <span className="text-muted-foreground"> · {picked.detail}</span>}
           </span>
-          <Button type="button" size="icon-sm" variant="ghost" aria-label={t("common.clear")} onClick={() => setPicked(null)}>
+          <Button
+            type="button"
+            size="icon-sm"
+            variant="ghost"
+            aria-label={t("common.clear")}
+            onClick={() => {
+              setPicked(null)
+              onChange?.(null)
+            }}
+          >
             <XIcon />
           </Button>
         </div>
@@ -66,6 +87,7 @@ export function ContactPicker({ name, label, initial, placeholder }: { name: str
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => {
                       setPicked(r)
+                      onChange?.(r)
                       setOpen(false)
                     }}
                   >

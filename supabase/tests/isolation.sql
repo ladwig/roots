@@ -616,6 +616,30 @@ begin
   select count(*) into n from public.forms where org_id = org_a;             assert n = 0, 'B sees forms of A';
   reset role;
 
+  -- Letter templates: own ones are org-private, roots defaults (org_id null) visible to all and read-only
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  insert into public.letter_templates (org_id, name) values (org_a, 'Eigene Vorlage');
+  update public.letter_templates set name = 'gekapert' where org_id is null;
+  begin
+    insert into public.letter_templates (org_id, name) values (null, 'Fake-Standard');
+    assert false, 'members must not add default templates';
+  exception when insufficient_privilege then null; end;
+  reset role;
+  select count(*) into n from public.letter_templates where org_id is null and name = 'gekapert';        assert n = 0, 'defaults are read-only';
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.letter_templates where org_id = org_a;    assert n = 0, 'B sees templates of A';
+  select count(*) into n from public.letter_templates where org_id is null;    assert n >= 4, 'everyone sees the default templates';
+  reset role;
+  perform set_config('request.jwt.claims', '{}', true);
+  set local role anon;
+  begin
+    perform 1 from public.letter_templates limit 1;
+    assert false, 'anon must not read templates';
+  exception when insufficient_privilege then null; end;
+  reset role;
+
   -- Email: an active automation on contact.created queues one send; unsubscribed contacts get none; B sees nothing
   insert into public.org_modules (org_id, module_key) values (org_a, 'email');
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);

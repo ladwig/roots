@@ -36,18 +36,24 @@ export function DocumentPage({ view, template }: { view: DocView; template: Temp
       <AddressAndMeta view={view} th={th} />
       {view.stamp && <p style={{ color: "#b91c1c", fontWeight: 700, letterSpacing: "0.1em", margin: "6mm 0 0", textTransform: "uppercase" }}>{view.stamp}</p>}
       <h1 style={{ fontSize: th.titleSize, fontWeight: 700, margin: "10mm 0 4mm", color: template === "modern" ? th.accent : "#111" }}>
-        {view.title} {view.meta[0]?.value && !view.draft ? view.meta[0].value : ""}
+        {view.title} {view.kind !== "letter" && view.meta[0]?.value && !view.draft ? view.meta[0].value : ""}
       </h1>
       {view.intro && <p style={{ whiteSpace: "pre-line", margin: "0 0 6mm" }}>{view.intro}</p>}
-      <Items view={view} th={th} />
-      <Totals view={view} th={th} />
+      {view.body !== undefined ? (
+        <LetterBody html={view.body} th={th} />
+      ) : (
+        <>
+          <Items view={view} th={th} />
+          <Totals view={view} th={th} />
+        </>
+      )}
       {view.notes.map((n) => (
         <p key={n} style={{ margin: "4mm 0 0" }}>
           {n}
         </p>
       ))}
       {view.outro && <p style={{ whiteSpace: "pre-line", margin: "6mm 0 0" }}>{view.outro}</p>}
-      <Footer view={view} th={th} />
+      {!view.plain && <Footer view={view} th={th} />}
     </div>
   )
 }
@@ -55,7 +61,7 @@ export function DocumentPage({ view, template }: { view: DocView; template: Temp
 function Letterhead({ view, th }: { view: DocView; th: Theme }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", height: "27mm", paddingTop: "10mm" }}>
-      <div style={{ fontWeight: 700, fontSize: "12pt", color: th.accent }}>{view.seller.legal_name}</div>
+      <div style={{ fontWeight: 700, fontSize: "12pt", color: th.accent }}>{!view.plain && view.seller.legal_name}</div>
       {view.logoUrl && (
         // eslint-disable-next-line @next/next/no-img-element -- printed document: plain img, no optimizer
         <img src={view.logoUrl} alt="" style={{ maxHeight: "18mm", maxWidth: "50mm", objectFit: "contain" }} />
@@ -69,7 +75,7 @@ function AddressAndMeta({ view, th }: { view: DocView; th: Theme }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", gap: "10mm", marginTop: "8mm", minHeight: "45mm" }}>
       <div style={{ width: "85mm" }}>
-        <p style={{ fontSize: "7pt", color: th.muted, borderBottom: `0.5pt solid ${th.line}`, paddingBottom: "1mm", margin: "0 0 2mm" }}>
+        <p style={{ fontSize: "7pt", color: th.muted, borderBottom: view.senderLine ? `0.5pt solid ${th.line}` : undefined, paddingBottom: "1mm", margin: "0 0 2mm", minHeight: "1em" }}>
           {view.senderLine}
         </p>
         {view.recipient.map((l, i) => (
@@ -171,5 +177,17 @@ function Footer({ view, th }: { view: DocView; th: Theme }) {
         </div>
       ))}
     </div>
+  )
+}
+
+// Letters: the filled template body (rich-text HTML, cleaned + escaped by src/letters/model.ts). Element styles via a
+// scoped <style>, since the HTML comes from the editor without inline styles.
+function LetterBody({ html, th }: { html: string; th: Theme }) {
+  const css = `.letter-body p{margin:0 0 3.5mm}.letter-body h1,.letter-body h2{font-size:13pt;margin:5mm 0 2mm}.letter-body h3{font-size:11pt;margin:4mm 0 2mm}.letter-body ul,.letter-body ol{margin:0 0 3.5mm;padding-left:6mm}.letter-body li p{margin:0}.letter-body blockquote{margin:0 0 3.5mm;padding-left:4mm;border-left:0.75pt solid ${th.line};color:${th.muted}}.letter-body hr{border:0;border-top:0.5pt solid ${th.line};margin:5mm 0}.letter-body img{display:none}`
+  return (
+    <>
+      <style>{css}</style>
+      <div className="letter-body" style={{ fontSize: "10pt", lineHeight: 1.5 }} dangerouslySetInnerHTML={{ __html: html }} />
+    </>
   )
 }

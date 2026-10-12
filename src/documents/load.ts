@@ -25,3 +25,10 @@ export async function loadDocView(ctx: Awaited<ReturnType<typeof requirePerm>>, 
   )
   return { doc, billing, view }
 }
+
+/** Logo bytes for the PDF: PNG/JPEG only (pdf-lib can't embed WebP/GIF); without it the PDF just has the name. */
+export async function pdfLogo(url: string | null): Promise<{ bytes: Uint8Array; type: "png" | "jpg" } | null> {
+  if (!url || !/\.(png|jpe?g)$/i.test(url)) return null
+  const res = await fetch(url, { signal: AbortSignal.timeout(5000) }).catch(() => null)
+  return res?.ok ? { bytes: new Uint8Array(await res.arrayBuffer()), type: /\.png$/i.test(url) ? "png" : "jpg" } : null
+}

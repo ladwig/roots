@@ -29,3 +29,14 @@ test("renders a multi-page invoice PDF", async () => {
 test("text is made safe for Helvetica", () => {
   assert.equal(pdfText("12,50 € – ok 🎉"), "12,50 € – ok ")
 })
+
+test("renders a letter body (rich text, plain = no letterhead)", async () => {
+  const para = "<p>Hiermit bestätigen wir, dass <strong>Erika Muster</strong> seit dem <em>1. März 2020</em> Mitglied ist. „Zitat“ und mehr Text, der umbrechen muss, weil er lang ist.</p>"
+  const letter = { ...view, kind: "letter", draft: false, stamp: null, title: "Mitgliedsbescheinigung", items: [], totals: [], notes: [], intro: null, outro: null, body: `<h2>Hinweis</h2>${para.repeat(30)}<ul><li>eins</li><li>zwei</li></ul><hr><blockquote><p>Zitat</p></blockquote>` }
+  const { PDFDocument } = await import("pdf-lib")
+  const full = await PDFDocument.load(await renderPdf(letter))
+  assert.ok(full.getPageCount() >= 2, `pages: ${full.getPageCount()}`)
+  const bytes = await renderPdf({ ...letter, plain: true, footer: [], senderLine: "", body: para })
+  assert.equal((await PDFDocument.load(bytes)).getPageCount(), 1)
+  if (process.env.PDF_OUT) writeFileSync(process.env.PDF_OUT.replace(/\.pdf$/, "-letter.pdf"), await renderPdf(letter))
+})

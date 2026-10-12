@@ -623,6 +623,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"letter_templates": {
+                  Row: {
+                    "body": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"fields": NonNullable<Json>,"id": string,"letterhead": boolean,"name": string,"org_id": string | null,"title": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"fields"?: NonNullable<Json>,"id"?: string,"letterhead"?: boolean,"name": string,"org_id"?: string | null,"title"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "body"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"fields"?: NonNullable<Json>,"id"?: string,"letterhead"?: boolean,"name"?: string,"org_id"?: string | null,"title"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "letter_templates_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"locations": {
                   Row: {
                     "address": string | null,"created_at": string,"created_by": string | null,"id": string,"name": string,"notes": string | null,"org_id": string,"updated_at": string,"updated_by": string | null
