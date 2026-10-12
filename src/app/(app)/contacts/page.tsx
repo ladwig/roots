@@ -265,6 +265,7 @@ async function EditContact({ t, ctx, c, sp, canManage, defs }: { t: T; ctx: Ctx;
               )}
             </div>
           )}
+          <ContactMembership t={t} ctx={ctx} contactId={c.id} />
           {!canManage && <p className="text-sm text-muted-foreground">{t("contacts.readOnly")}</p>}
           <ContactForm t={t} action={updateContact} c={c} disabled={!canManage} defs={defs} />
           <Separator />
@@ -347,3 +348,29 @@ async function EditContact({ t, ctx, c, sp, canManage, defs }: { t: T; ctx: Ctx;
 
 // Reads session/URL at request time; no static shell needed yet (see AGENTS.md › Cache Components).
 export const instant = false
+
+// Members module: show the contact's membership, or offer to make them a member.
+async function ContactMembership({ t, ctx, contactId }: { t: T; ctx: Ctx; contactId: string }) {
+  if (!ctx.modules.has("members") || !ctx.can("members.view")) return null
+  const { data: m } = await ctx.supabase
+    .from("memberships")
+    .select("id, number, ends_on, types:membership_types(name)")
+    .eq("org_id", ctx.org.id)
+    .eq("contact_id", contactId)
+    .is("deleted_at", null)
+    .order("starts_on", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (m)
+    return (
+      <Link href={`/members?edit=${m.id}`} className="rounded-lg border px-3 py-2 text-sm hover:bg-muted">
+        {t("membership.contactMember", { number: m.number ?? 0, type: m.types?.name ?? "" })}
+        {m.ends_on && ` · ${t("membership.state.ending", { date: t.date(m.ends_on) })}`}
+      </Link>
+    )
+  return ctx.can("members.manage") ? (
+    <Button render={<Link href={`/members?new=1&contact=${contactId}`} />} nativeButton={false} size="sm" variant="outline" className="justify-self-start">
+      {t("membership.makeMember")}
+    </Button>
+  ) : null
+}

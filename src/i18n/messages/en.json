@@ -212,6 +212,10 @@
     "invoices": {
       "name": "Quotes & invoices",
       "description": "Quotes and invoices following German rules, with number ranges and PDF."
+    },
+    "members": {
+      "name": "Members",
+      "description": "Memberships, dues and SEPA direct debit for clubs."
     }
   },
   "permissions": {
@@ -237,7 +241,9 @@
     "guestlists.checkin": "Check in guests at the door",
     "shifts.self": "See own shifts, apply, check in",
     "org.files.view": "View files",
-    "org.files.manage": "Upload and manage files"
+    "org.files.manage": "Upload and manage files",
+    "members.view": "View members and dues",
+    "members.manage": "Manage members and dues"
   },
   "integrations": {
     "connect": "Connect",
@@ -372,7 +378,12 @@
       "shift_series": "Recurring shifts",
       "shifts": "Shifts",
       "shift_assignments": "Shift assignments",
-      "files": "Files"
+      "files": "Files",
+      "membership_types": "Membership types",
+      "memberships": "Memberships",
+      "member_dues": "Member dues",
+      "sepa_runs": "Direct debit files",
+      "member_settings": "Member settings"
     }
   },
   "errors": {
@@ -429,7 +440,9 @@
     "shift_closed": "This shift isn't open (any more).",
     "not_qualified": "You're not set up for this position.",
     "not_now": "Check-in only works shortly before until shortly after the shift.",
-    "not_assigned": "You're not assigned to this shift."
+    "not_assigned": "You're not assigned to this shift.",
+    "contact_has_membership": "This contact has a membership. End it instead of deleting the contact.",
+    "membership_has_dues": "This membership has dues. End it instead."
   },
   "admin": {
     "title": "Platform",
@@ -675,7 +688,9 @@
       "quote.accepted": "Quote accepted",
       "invoice.cancelled": "Invoice cancelled",
       "guestlist.signed_up": "Guest list sign-up",
-      "shift.applied": "Shift application"
+      "shift.applied": "Shift application",
+      "membership.started": "New member",
+      "membership.ended": "Membership ends"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -698,7 +713,9 @@
       "quote.accepted": "🤝 Quote {number} accepted ({amount})",
       "invoice.cancelled": "↩️ Cancellation {number} to {name}: {amount}",
       "guestlist.signed_up": "📝 {name} added {count} names to “{list}”",
-      "shift.applied": "🙋 {name} wants the shift on {when}"
+      "shift.applied": "🙋 {name} wants the shift on {when}",
+      "membership.started": "🎉 New member: {name} (no. {number})",
+      "membership.ended": "👋 Membership of {name} ends on {ends_on}"
     }
   },
   "inbox": {
@@ -1593,7 +1610,152 @@
     "entities": {
       "contacts": "contact",
       "events": "event",
-      "invoices": "document"
+      "invoices": "document",
+      "memberships": "membership"
     }
+  },
+  "membership": {
+    "nav": "Members",
+    "title": "Members",
+    "tabs": {
+      "members": "Members",
+      "dues": "Dues",
+      "setup": "Setup"
+    },
+    "activeCount": {
+      "one": "{count} active member",
+      "other": "{count} active members"
+    },
+    "new": "New member",
+    "create": "Add member",
+    "noTypes": "First add a membership type (e.g. full member, reduced).",
+    "filter": "Filter",
+    "filters": {
+      "active": "Active",
+      "ended": "Left",
+      "all": "All"
+    },
+    "noMatch": "No members found.",
+    "empty": "No members yet.",
+    "name": "Name",
+    "numberShort": "No. {number}",
+    "type": "Membership type",
+    "since": "Member since",
+    "until": "Member until",
+    "status": "Status",
+    "state": {
+      "active": "Active",
+      "ended": "Left",
+      "ending": "Ends {date}",
+      "upcoming": "From {date}"
+    },
+    "person": "Person",
+    "existingContact": "Existing contact",
+    "newContact": "– Create a new person –",
+    "newContactHint": "Or a new person: enter name and/or email, they are added as a contact.",
+    "mandate": "SEPA direct debit mandate",
+    "mandateHint": "Optional. With IBAN and mandate date, dues can be collected by direct debit.",
+    "accountHolder": "Account holder (if different)",
+    "bicOptional": "BIC (optional)",
+    "mandateRef": "Mandate reference",
+    "mandateRefAuto": "automatic from the member number",
+    "mandateSigned": "Mandate signed on",
+    "note": "Note",
+    "openContact": "Open contact",
+    "cancel": "Cancel membership",
+    "cancelHint": "Earliest end when cancelling today: {date} ({months} months notice, to the end of the billing period). Or pick another date.",
+    "cancelOtherDate": "Other end date (optional)",
+    "noDues": "No dues.",
+    "markPaid": "Paid",
+    "toTrash": "Move to trash",
+    "dueStatus": {
+      "open": "Open",
+      "paid": "Paid",
+      "cancelled": "Cancelled"
+    },
+    "intervals": {
+      "month": "month",
+      "quarter": "quarter",
+      "half_year": "half year",
+      "year": "year",
+      "none": "one-off"
+    },
+    "saved": "Saved.",
+    "created": "Member added.",
+    "ended": "Membership ends on {date}.",
+    "trashed": "Membership moved to the trash.",
+    "typeAndStartRequired": "Membership type and start date are required.",
+    "personRequired": "Pick a contact or enter a name or email.",
+    "ibanInvalid": "The IBAN is invalid.",
+    "bicInvalid": "The BIC is invalid.",
+    "creditorIdInvalid": "The creditor ID is invalid (e.g. DE98ZZZ09999999999).",
+    "entryFeeText": "Entry fee {type}",
+    "types": "Membership types",
+    "typesHint": "Fee, billing interval, entry fee and notice period per type.",
+    "typeName": "Name",
+    "typePlaceholder": "e.g. Full member",
+    "fee": "Fee (€)",
+    "interval": "Interval",
+    "entryFee": "Entry fee (€)",
+    "noticeMonths": "Notice (months)",
+    "typeActive": "active",
+    "addType": "Add",
+    "deleteType": "Delete membership type",
+    "nameRequired": "The name can't be empty.",
+    "typeSaved": "Membership type saved.",
+    "typeDeleted": "Membership type deleted.",
+    "typeInUse": "This membership type is still in use. Set it to inactive instead.",
+    "sepa": "SEPA direct debit",
+    "creditorHint": "Your club's details for direct debits. The creditor ID is issued by the Bundesbank.",
+    "creditorName": "Name (payee)",
+    "creditorId": "Creditor ID",
+    "dueDay": "Due day",
+    "settingsSaved": "Settings saved.",
+    "openSummary": "Open: {open} · overdue: {overdue}",
+    "generate": "Generate dues",
+    "generateHint": "Creates the dues of all periods starting in the chosen range. Running it again creates no duplicates.",
+    "from": "From",
+    "to": "To",
+    "rangeInvalid": "Pick a valid range (at most 2 years).",
+    "duesGenerated": {
+      "one": "{count} due created.",
+      "other": "{count} dues created."
+    },
+    "levy": "Levy",
+    "levyText": "Text",
+    "levyPlaceholder": "e.g. Levy for the hall renovation",
+    "amount": "Amount (€)",
+    "dueOn": "Due on",
+    "levyGroup": "For",
+    "allMembers": "All active members",
+    "addLevy": "Add levy",
+    "levyInvalid": "Text, amount and due date are required.",
+    "sepaHint": "Bundles all open, due dues of members with a mandate into one file for your online banking.",
+    "collectionOn": "Collect on",
+    "createRun": "Create direct debit file",
+    "collectionDateInvalid": "The collection date must be in the future.",
+    "creditorMissing": "First enter name, creditor ID and IBAN under Setup.",
+    "nothingToCollect": "No due dues with a direct debit mandate.",
+    "runCreated": {
+      "one": "Direct debit file with {count} debit created.",
+      "other": "Direct debit file with {count} debits created."
+    },
+    "runs": "Direct debit files",
+    "runLine": "Collect on {date} · {count} items · {total}",
+    "runStatus": {
+      "exported": "Created",
+      "collected": "Collected",
+      "cancelled": "Discarded"
+    },
+    "downloadXml": "XML",
+    "markCollected": "Mark as collected",
+    "cancelRun": "Discard",
+    "runCollected": "Dues marked as paid.",
+    "runCancelled": "File discarded, the dues are open again.",
+    "overdue": "Overdue",
+    "inRun": "in direct debit",
+    "dueUpdated": "Due updated.",
+    "contactMember": "Member no. {number} · {type}",
+    "makeMember": "Make member"
   }
 }

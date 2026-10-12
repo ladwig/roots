@@ -507,6 +507,110 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"member_dues": {
+                  Row: {
+                    "amount_cents": number,"created_at": string,"created_by": string | null,"description": string,"due_on": string,"id": string,"kind": string,"membership_id": string,"org_id": string,"paid_on": string | null,"period_start": string | null,"run_id": string | null,"status": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_cents": number,"created_at"?: string,"created_by"?: string | null,"description": string,"due_on": string,"id"?: string,"kind": string,"membership_id": string,"org_id": string,"paid_on"?: string | null,"period_start"?: string | null,"run_id"?: string | null,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "amount_cents"?: number,"created_at"?: string,"created_by"?: string | null,"description"?: string,"due_on"?: string,"id"?: string,"kind"?: string,"membership_id"?: string,"org_id"?: string,"paid_on"?: string | null,"period_start"?: string | null,"run_id"?: string | null,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "member_dues_membership_id_fkey"
+      columns: ["membership_id"]
+isOneToOne: false
+      referencedRelation: "memberships"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "member_dues_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "member_dues_run"
+      columns: ["run_id"]
+isOneToOne: false
+      referencedRelation: "sepa_runs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"member_settings": {
+                  Row: {
+                    "bic": string | null,"created_at": string,"created_by": string | null,"creditor_id": string | null,"creditor_name": string | null,"due_day": number,"iban": string | null,"id": string,"org_id": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "bic"?: string | null,"created_at"?: string,"created_by"?: string | null,"creditor_id"?: string | null,"creditor_name"?: string | null,"due_day"?: number,"iban"?: string | null,"id"?: string,"org_id": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "bic"?: string | null,"created_at"?: string,"created_by"?: string | null,"creditor_id"?: string | null,"creditor_name"?: string | null,"due_day"?: number,"iban"?: string | null,"id"?: string,"org_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "member_settings_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: true
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"membership_types": {
+                  Row: {
+                    "active": boolean,"created_at": string,"created_by": string | null,"entry_fee_cents": number,"fee_cents": number,"id": string,"interval": string,"name": string,"notice_months": number,"org_id": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"entry_fee_cents"?: number,"fee_cents"?: number,"id"?: string,"interval"?: string,"name": string,"notice_months"?: number,"org_id": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"entry_fee_cents"?: number,"fee_cents"?: number,"id"?: string,"interval"?: string,"name"?: string,"notice_months"?: number,"org_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "membership_types_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"memberships": {
+                  Row: {
+                    "account_holder": string | null,"bic": string | null,"contact_id": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"ends_on": string | null,"iban": string | null,"id": string,"mandate_ref": string | null,"mandate_signed_on": string | null,"meta": NonNullable<Json>,"note": string | null,"number": number | null,"org_id": string,"starts_on": string,"type_id": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "account_holder"?: string | null,"bic"?: string | null,"contact_id": string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"ends_on"?: string | null,"iban"?: string | null,"id"?: string,"mandate_ref"?: string | null,"mandate_signed_on"?: string | null,"meta"?: NonNullable<Json>,"note"?: string | null,"number"?: number | null,"org_id": string,"starts_on"?: string,"type_id": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "account_holder"?: string | null,"bic"?: string | null,"contact_id"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"ends_on"?: string | null,"iban"?: string | null,"id"?: string,"mandate_ref"?: string | null,"mandate_signed_on"?: string | null,"meta"?: NonNullable<Json>,"note"?: string | null,"number"?: number | null,"org_id"?: string,"starts_on"?: string,"type_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "memberships_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "memberships_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "memberships_type_id_fkey"
+      columns: ["type_id"]
+isOneToOne: false
+      referencedRelation: "membership_types"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"notification_preferences": {
                   Row: {
                     "channel": string,"enabled": boolean,"event_type": string,"updated_at": string,"user_id": string
@@ -833,6 +937,26 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "roles_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"sepa_runs": {
+                  Row: {
+                    "collection_on": string,"count": number,"created_at": string,"created_by": string | null,"id": string,"message_id": string,"org_id": string,"status": string,"total_cents": number,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "collection_on": string,"count"?: number,"created_at"?: string,"created_by"?: string | null,"id"?: string,"message_id"?: string,"org_id": string,"status"?: string,"total_cents"?: number,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "collection_on"?: string,"count"?: number,"created_at"?: string,"created_by"?: string | null,"id"?: string,"message_id"?: string,"org_id"?: string,"status"?: string,"total_cents"?: number,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "sepa_runs_org_id_fkey"
       columns: ["org_id"]
 isOneToOne: false
       referencedRelation: "orgs"

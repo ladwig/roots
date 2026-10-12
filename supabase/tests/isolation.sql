@@ -562,6 +562,37 @@ begin
     reset role;
   end;
 
+  -- Members: numbers per org, rejoin keeps the number, mandate ref generated, trash guard, B sees nothing
+  insert into public.org_modules (org_id, module_key) values (org_a, 'members');
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  declare v_type uuid; v_max uuid; v_m uuid; v_num int; v_ref text;
+  begin
+    insert into public.membership_types (org_id, name, fee_cents) values (org_a, 'Voll', 6000) returning id into v_type;
+    select id into v_max from public.contacts where org_id = org_a and email = 'max@x.de';
+    insert into public.memberships (org_id, contact_id, type_id, starts_on, ends_on, iban) values (org_a, v_max, v_type, '2020-01-01', '2021-12-31', 'DE02120300000000202051')
+      returning id, number, mandate_ref into v_m, v_num, v_ref;
+    assert v_num = 1 and v_ref = 'M000001', 'first member gets number 1 and a mandate ref';
+    insert into public.memberships (org_id, contact_id, type_id) values (org_a, v_max, v_type) returning number into v_num;
+    assert v_num = 1, 'rejoining contact keeps its number';
+    insert into public.member_dues (org_id, membership_id, kind, description, amount_cents, period_start, due_on) values (org_a, v_m, 'fee', 'Beitrag 2020', 6000, '2020-01-01', '2020-01-15');
+    begin
+      insert into public.member_dues (org_id, membership_id, kind, description, amount_cents, period_start, due_on) values (org_a, v_m, 'fee', 'again', 6000, '2020-01-01', '2020-01-15');
+      assert false, 'a period fee exists once';
+    exception when unique_violation then null; end;
+    begin
+      perform public.soft_delete('public.contacts', v_max);
+      assert false, 'contact with membership must not go to the trash';
+    exception when raise_exception then null; end;
+  end;
+  reset role;
+  select count(*) into n from public.hub_events where org_id = org_a and type = 'membership.started'; assert n = 2, 'memberships emit membership.started';
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.memberships where org_id = org_a;       assert n = 0, 'B sees memberships of A';
+  select count(*) into n from public.member_dues where org_id = org_a;       assert n = 0, 'B sees dues of A';
+  reset role;
+
   -- Files: A (owner) registers files in A only, with paths under its own folder; B sees nothing
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   set local role authenticated;

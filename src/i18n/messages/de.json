@@ -212,6 +212,10 @@
     "invoices": {
       "name": "Angebote & Rechnungen",
       "description": "Angebote und Rechnungen nach deutschen Regeln, mit Nummernkreisen und PDF."
+    },
+    "members": {
+      "name": "Mitglieder",
+      "description": "Mitgliedschaften, Beiträge und SEPA-Lastschrift für Vereine."
     }
   },
   "permissions": {
@@ -237,7 +241,9 @@
     "guestlists.checkin": "Gäste am Einlass einchecken",
     "shifts.self": "Eigene Schichten sehen, bewerben, einchecken",
     "org.files.view": "Dateien ansehen",
-    "org.files.manage": "Dateien hochladen und verwalten"
+    "org.files.manage": "Dateien hochladen und verwalten",
+    "members.view": "Mitglieder und Beiträge ansehen",
+    "members.manage": "Mitglieder und Beiträge verwalten"
   },
   "integrations": {
     "connect": "Verbinden",
@@ -372,7 +378,12 @@
       "shift_series": "Wiederkehrende Schichten",
       "shifts": "Schichten",
       "shift_assignments": "Schicht-Einteilungen",
-      "files": "Dateien"
+      "files": "Dateien",
+      "membership_types": "Mitgliedsarten",
+      "memberships": "Mitgliedschaften",
+      "member_dues": "Mitgliedsbeiträge",
+      "sepa_runs": "Lastschriftdateien",
+      "member_settings": "Mitglieder-Einstellungen"
     }
   },
   "errors": {
@@ -429,7 +440,9 @@
     "shift_closed": "Diese Schicht ist nicht (mehr) offen.",
     "not_qualified": "Für diese Position bist du nicht eingetragen.",
     "not_now": "Einchecken geht nur kurz vor bis kurz nach der Schicht.",
-    "not_assigned": "Du bist für diese Schicht nicht eingeteilt."
+    "not_assigned": "Du bist für diese Schicht nicht eingeteilt.",
+    "contact_has_membership": "Der Kontakt hat eine Mitgliedschaft. Beende sie, statt den Kontakt zu löschen.",
+    "membership_has_dues": "Für die Mitgliedschaft gibt es Beiträge. Beende sie stattdessen."
   },
   "admin": {
     "title": "Plattform",
@@ -675,7 +688,9 @@
       "quote.accepted": "Angebot angenommen",
       "invoice.cancelled": "Rechnung storniert",
       "guestlist.signed_up": "Eintrag auf Gästeliste",
-      "shift.applied": "Bewerbung auf Schicht"
+      "shift.applied": "Bewerbung auf Schicht",
+      "membership.started": "Neues Mitglied",
+      "membership.ended": "Mitgliedschaft endet"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -698,7 +713,9 @@
       "quote.accepted": "🤝 Angebot {number} angenommen ({amount})",
       "invoice.cancelled": "↩️ Storno {number} an {name}: {amount}",
       "guestlist.signed_up": "📝 {name} hat {count} Namen auf „{list}“ eingetragen",
-      "shift.applied": "🙋 {name} möchte die Schicht am {when}"
+      "shift.applied": "🙋 {name} möchte die Schicht am {when}",
+      "membership.started": "🎉 Neues Mitglied: {name} (Nr. {number})",
+      "membership.ended": "👋 Mitgliedschaft von {name} endet am {ends_on}"
     }
   },
   "inbox": {
@@ -1593,7 +1610,152 @@
     "entities": {
       "contacts": "Kontakt",
       "events": "Veranstaltung",
-      "invoices": "Beleg"
+      "invoices": "Beleg",
+      "memberships": "Mitgliedschaft"
     }
+  },
+  "membership": {
+    "nav": "Mitglieder",
+    "title": "Mitglieder",
+    "tabs": {
+      "members": "Mitglieder",
+      "dues": "Beiträge",
+      "setup": "Einrichtung"
+    },
+    "activeCount": {
+      "one": "{count} aktives Mitglied",
+      "other": "{count} aktive Mitglieder"
+    },
+    "new": "Neues Mitglied",
+    "create": "Aufnehmen",
+    "noTypes": "Lege zuerst eine Mitgliedsart an (z. B. Vollmitglied, ermäßigt).",
+    "filter": "Filter",
+    "filters": {
+      "active": "Aktiv",
+      "ended": "Ausgetreten",
+      "all": "Alle"
+    },
+    "noMatch": "Keine Mitglieder gefunden.",
+    "empty": "Noch keine Mitglieder.",
+    "name": "Name",
+    "numberShort": "Nr. {number}",
+    "type": "Mitgliedsart",
+    "since": "Mitglied seit",
+    "until": "Mitglied bis",
+    "status": "Status",
+    "state": {
+      "active": "Aktiv",
+      "ended": "Ausgetreten",
+      "ending": "Endet am {date}",
+      "upcoming": "Ab {date}"
+    },
+    "person": "Person",
+    "existingContact": "Bestehender Kontakt",
+    "newContact": "– Neue Person anlegen –",
+    "newContactHint": "Oder neue Person: Name und/oder E-Mail eintragen, sie wird als Kontakt angelegt.",
+    "mandate": "SEPA-Lastschriftmandat",
+    "mandateHint": "Optional. Mit IBAN und Mandatsdatum können Beiträge per Lastschrift eingezogen werden.",
+    "accountHolder": "Kontoinhaber:in (falls abweichend)",
+    "bicOptional": "BIC (optional)",
+    "mandateRef": "Mandatsreferenz",
+    "mandateRefAuto": "automatisch aus der Mitgliedsnummer",
+    "mandateSigned": "Mandat erteilt am",
+    "note": "Notiz",
+    "openContact": "Zum Kontakt",
+    "cancel": "Kündigen",
+    "cancelHint": "Frühestes Ende bei Kündigung heute: {date} ({months} Monate Frist, zum Ende des Beitragszeitraums). Oder ein anderes Datum wählen.",
+    "cancelOtherDate": "Anderes Enddatum (optional)",
+    "noDues": "Keine Beiträge.",
+    "markPaid": "Bezahlt",
+    "toTrash": "In den Papierkorb",
+    "dueStatus": {
+      "open": "Offen",
+      "paid": "Bezahlt",
+      "cancelled": "Storniert"
+    },
+    "intervals": {
+      "month": "Monat",
+      "quarter": "Quartal",
+      "half_year": "Halbjahr",
+      "year": "Jahr",
+      "none": "einmalig"
+    },
+    "saved": "Gespeichert.",
+    "created": "Mitglied aufgenommen.",
+    "ended": "Mitgliedschaft endet am {date}.",
+    "trashed": "Mitgliedschaft in den Papierkorb verschoben.",
+    "typeAndStartRequired": "Mitgliedsart und Beginn sind nötig.",
+    "personRequired": "Wähle einen Kontakt oder gib Name oder E-Mail ein.",
+    "ibanInvalid": "Die IBAN ist ungültig.",
+    "bicInvalid": "Die BIC ist ungültig.",
+    "creditorIdInvalid": "Die Gläubiger-ID ist ungültig (z. B. DE98ZZZ09999999999).",
+    "entryFeeText": "Aufnahmegebühr {type}",
+    "types": "Mitgliedsarten",
+    "typesHint": "Beitrag, Zahlungsrhythmus, Aufnahmegebühr und Kündigungsfrist je Art.",
+    "typeName": "Name",
+    "typePlaceholder": "z. B. Vollmitglied",
+    "fee": "Beitrag (€)",
+    "interval": "Rhythmus",
+    "entryFee": "Aufnahme (€)",
+    "noticeMonths": "Frist (Monate)",
+    "typeActive": "aktiv",
+    "addType": "Hinzufügen",
+    "deleteType": "Mitgliedsart löschen",
+    "nameRequired": "Der Name darf nicht leer sein.",
+    "typeSaved": "Mitgliedsart gespeichert.",
+    "typeDeleted": "Mitgliedsart gelöscht.",
+    "typeInUse": "Die Mitgliedsart wird noch verwendet. Setze sie stattdessen auf inaktiv.",
+    "sepa": "SEPA-Lastschrift",
+    "creditorHint": "Daten deines Vereins für Lastschriften. Die Gläubiger-ID bekommst du bei der Bundesbank.",
+    "creditorName": "Name (Zahlungsempfänger)",
+    "creditorId": "Gläubiger-ID",
+    "dueDay": "Fälligkeitstag",
+    "settingsSaved": "Einstellungen gespeichert.",
+    "openSummary": "Offen: {open} · davon überfällig: {overdue}",
+    "generate": "Beiträge erzeugen",
+    "generateHint": "Erzeugt die Beiträge aller Zeiträume, die im gewählten Bereich beginnen. Mehrfach ausführen erzeugt nichts doppelt.",
+    "from": "Von",
+    "to": "Bis",
+    "rangeInvalid": "Bitte einen gültigen Zeitraum (höchstens 2 Jahre) wählen.",
+    "duesGenerated": {
+      "one": "{count} Beitrag erzeugt.",
+      "other": "{count} Beiträge erzeugt."
+    },
+    "levy": "Umlage",
+    "levyText": "Text",
+    "levyPlaceholder": "z. B. Umlage Hallensanierung",
+    "amount": "Betrag (€)",
+    "dueOn": "Fällig am",
+    "levyGroup": "Für",
+    "allMembers": "Alle aktiven Mitglieder",
+    "addLevy": "Umlage anlegen",
+    "levyInvalid": "Text, Betrag und Fälligkeit sind nötig.",
+    "sepaHint": "Bündelt alle offenen, fälligen Beiträge von Mitgliedern mit Mandat in eine Datei für dein Online-Banking.",
+    "collectionOn": "Einzug am",
+    "createRun": "Lastschriftdatei erstellen",
+    "collectionDateInvalid": "Das Einzugsdatum muss in der Zukunft liegen.",
+    "creditorMissing": "Trage zuerst Name, Gläubiger-ID und IBAN unter Einrichtung ein.",
+    "nothingToCollect": "Keine fälligen Beiträge mit Lastschriftmandat.",
+    "runCreated": {
+      "one": "Lastschriftdatei mit {count} Einzug erstellt.",
+      "other": "Lastschriftdatei mit {count} Einzügen erstellt."
+    },
+    "runs": "Lastschriftdateien",
+    "runLine": "Einzug am {date} · {count} Posten · {total}",
+    "runStatus": {
+      "exported": "Erstellt",
+      "collected": "Eingezogen",
+      "cancelled": "Verworfen"
+    },
+    "downloadXml": "XML",
+    "markCollected": "Als eingezogen markieren",
+    "cancelRun": "Verwerfen",
+    "runCollected": "Beiträge als bezahlt markiert.",
+    "runCancelled": "Datei verworfen, die Beiträge sind wieder offen.",
+    "overdue": "Überfällig",
+    "inRun": "in Lastschrift",
+    "dueUpdated": "Beitrag aktualisiert.",
+    "contactMember": "Mitglied Nr. {number} · {type}",
+    "makeMember": "Als Mitglied aufnehmen"
   }
 }

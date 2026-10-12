@@ -34,6 +34,8 @@ export const eventTypes: EventType[] = [
   { key: "guestlist.signed_up", module: "guestlists", audience: { permission: "guestlists.view", defaults: ["in_app"] }, href: (p) => `/guestlists/${p.list_id}` },
   { key: "shift.applied", module: "shifts", audience: { permission: "shifts.manage", defaults: ["in_app"] }, href: (p) => `/shifts?shift=${p.shift_id}` },
   { key: "tickets.sold", module: "tickets", audience: { permission: "tickets.view", defaults: ["in_app"] }, href: (p) => `/events/${p.event_id}/tickets` },
+  { key: "membership.started", module: "members", audience: { permission: "members.manage", defaults: ["in_app"] }, href: (p) => `/members?edit=${p.membership_id}` },
+  { key: "membership.ended", module: "members", audience: { permission: "members.manage", defaults: ["in_app"] }, href: (p) => `/members?edit=${p.membership_id}` },
   { key: "org.created", module: "platform", audience: { platform: true, defaults: ["in_app", "email"] }, href: (p) => `/admin/orgs?edit=${p.org_id}` },
 ]
 
