@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { coversPeriod, earliestEnd, periods } from "./dues.ts"
+import { coversPeriod, earliestEnd, periodFee, periods } from "./dues.ts"
 import { pain008, sepaText } from "./sepa.ts"
 
 test("periods are calendar-aligned and start inside the range", () => {
@@ -39,4 +39,11 @@ test("pain.008 sums, counts and cleans names", () => {
   assert.match(xml, /<Nm>Joerg Gross<\/Nm>/)
   assert.match(xml, /<Id>NOTPROVIDED<\/Id>/)
   assert.equal(sepaText("Café <b>", 70), "Cafe b")
+})
+
+test("pro-rata counts the months a membership touches", () => {
+  const year = { start: "2027-01-01", end: "2027-12-31" }
+  assert.equal(periodFee(6000, "year", year, { starts_on: "2027-11-15", ends_on: null }, true), 1000)
+  assert.equal(periodFee(6000, "year", year, { starts_on: "2027-11-15", ends_on: null }, false), 6000)
+  assert.equal(periodFee(6000, "year", year, { starts_on: "2020-01-01", ends_on: "2027-03-31" }, true), 1500)
 })

@@ -509,14 +509,14 @@ isOneToOne: false
                   ]
                 },"member_dues": {
                   Row: {
-                    "amount_cents": number,"created_at": string,"created_by": string | null,"description": string,"due_on": string,"id": string,"kind": string,"membership_id": string,"org_id": string,"paid_on": string | null,"period_start": string | null,"run_id": string | null,"status": string,"updated_at": string,"updated_by": string | null
+                    "amount_cents": number,"created_at": string,"created_by": string | null,"description": string,"due_on": string,"id": string,"kind": string,"membership_id": string,"org_id": string,"paid_on": string | null,"period_start": string | null,"reminded_at": string | null,"reminders": number,"run_id": string | null,"status": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_cents": number,"created_at"?: string,"created_by"?: string | null,"description": string,"due_on": string,"id"?: string,"kind": string,"membership_id": string,"org_id": string,"paid_on"?: string | null,"period_start"?: string | null,"run_id"?: string | null,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "amount_cents": number,"created_at"?: string,"created_by"?: string | null,"description": string,"due_on": string,"id"?: string,"kind": string,"membership_id": string,"org_id": string,"paid_on"?: string | null,"period_start"?: string | null,"reminded_at"?: string | null,"reminders"?: number,"run_id"?: string | null,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "amount_cents"?: number,"created_at"?: string,"created_by"?: string | null,"description"?: string,"due_on"?: string,"id"?: string,"kind"?: string,"membership_id"?: string,"org_id"?: string,"paid_on"?: string | null,"period_start"?: string | null,"run_id"?: string | null,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "amount_cents"?: number,"created_at"?: string,"created_by"?: string | null,"description"?: string,"due_on"?: string,"id"?: string,"kind"?: string,"membership_id"?: string,"org_id"?: string,"paid_on"?: string | null,"period_start"?: string | null,"reminded_at"?: string | null,"reminders"?: number,"run_id"?: string | null,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -541,14 +541,14 @@ isOneToOne: false
                   ]
                 },"member_settings": {
                   Row: {
-                    "bic": string | null,"created_at": string,"created_by": string | null,"creditor_id": string | null,"creditor_name": string | null,"due_day": number,"iban": string | null,"id": string,"org_id": string,"updated_at": string,"updated_by": string | null
+                    "bic": string | null,"created_at": string,"created_by": string | null,"creditor_id": string | null,"creditor_name": string | null,"due_day": number,"iban": string | null,"id": string,"number_format": string,"number_start": number,"org_id": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "bic"?: string | null,"created_at"?: string,"created_by"?: string | null,"creditor_id"?: string | null,"creditor_name"?: string | null,"due_day"?: number,"iban"?: string | null,"id"?: string,"org_id": string,"updated_at"?: string,"updated_by"?: string | null
+                    "bic"?: string | null,"created_at"?: string,"created_by"?: string | null,"creditor_id"?: string | null,"creditor_name"?: string | null,"due_day"?: number,"iban"?: string | null,"id"?: string,"number_format"?: string,"number_start"?: number,"org_id": string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "bic"?: string | null,"created_at"?: string,"created_by"?: string | null,"creditor_id"?: string | null,"creditor_name"?: string | null,"due_day"?: number,"iban"?: string | null,"id"?: string,"org_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "bic"?: string | null,"created_at"?: string,"created_by"?: string | null,"creditor_id"?: string | null,"creditor_name"?: string | null,"due_day"?: number,"iban"?: string | null,"id"?: string,"number_format"?: string,"number_start"?: number,"org_id"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -561,14 +561,14 @@ isOneToOne: true
                   ]
                 },"membership_types": {
                   Row: {
-                    "active": boolean,"created_at": string,"created_by": string | null,"entry_fee_cents": number,"fee_cents": number,"id": string,"interval": string,"name": string,"notice_months": number,"org_id": string,"updated_at": string,"updated_by": string | null
+                    "active": boolean,"created_at": string,"created_by": string | null,"entry_fee_cents": number,"fee_cents": number,"id": string,"interval": string,"name": string,"notice_months": number,"org_id": string,"prorate": boolean,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"entry_fee_cents"?: number,"fee_cents"?: number,"id"?: string,"interval"?: string,"name": string,"notice_months"?: number,"org_id": string,"updated_at"?: string,"updated_by"?: string | null
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"entry_fee_cents"?: number,"fee_cents"?: number,"id"?: string,"interval"?: string,"name": string,"notice_months"?: number,"org_id": string,"prorate"?: boolean,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"entry_fee_cents"?: number,"fee_cents"?: number,"id"?: string,"interval"?: string,"name"?: string,"notice_months"?: number,"org_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"entry_fee_cents"?: number,"fee_cents"?: number,"id"?: string,"interval"?: string,"name"?: string,"notice_months"?: number,"org_id"?: string,"prorate"?: boolean,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -581,14 +581,14 @@ isOneToOne: false
                   ]
                 },"memberships": {
                   Row: {
-                    "account_holder": string | null,"bic": string | null,"contact_id": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"ends_on": string | null,"iban": string | null,"id": string,"mandate_ref": string | null,"mandate_signed_on": string | null,"meta": NonNullable<Json>,"note": string | null,"number": number | null,"org_id": string,"starts_on": string,"type_id": string,"updated_at": string,"updated_by": string | null
+                    "account_holder": string | null,"bic": string | null,"contact_id": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"ends_on": string | null,"iban": string | null,"id": string,"mandate_ref": string | null,"mandate_signed_on": string | null,"member_no": string | null,"meta": NonNullable<Json>,"note": string | null,"number": number | null,"org_id": string,"starts_on": string,"type_id": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "account_holder"?: string | null,"bic"?: string | null,"contact_id": string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"ends_on"?: string | null,"iban"?: string | null,"id"?: string,"mandate_ref"?: string | null,"mandate_signed_on"?: string | null,"meta"?: NonNullable<Json>,"note"?: string | null,"number"?: number | null,"org_id": string,"starts_on"?: string,"type_id": string,"updated_at"?: string,"updated_by"?: string | null
+                    "account_holder"?: string | null,"bic"?: string | null,"contact_id": string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"ends_on"?: string | null,"iban"?: string | null,"id"?: string,"mandate_ref"?: string | null,"mandate_signed_on"?: string | null,"member_no"?: string | null,"meta"?: NonNullable<Json>,"note"?: string | null,"number"?: number | null,"org_id": string,"starts_on"?: string,"type_id": string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "account_holder"?: string | null,"bic"?: string | null,"contact_id"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"ends_on"?: string | null,"iban"?: string | null,"id"?: string,"mandate_ref"?: string | null,"mandate_signed_on"?: string | null,"meta"?: NonNullable<Json>,"note"?: string | null,"number"?: number | null,"org_id"?: string,"starts_on"?: string,"type_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "account_holder"?: string | null,"bic"?: string | null,"contact_id"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"ends_on"?: string | null,"iban"?: string | null,"id"?: string,"mandate_ref"?: string | null,"mandate_signed_on"?: string | null,"member_no"?: string | null,"meta"?: NonNullable<Json>,"note"?: string | null,"number"?: number | null,"org_id"?: string,"starts_on"?: string,"type_id"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {

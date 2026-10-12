@@ -13,7 +13,8 @@
     "created": "Created",
     "open": "Open",
     "upload": "Upload",
-    "removeImage": "Remove image"
+    "removeImage": "Remove image",
+    "clear": "Clear"
   },
   "auth": {
     "title": "Sign in to Roots",
@@ -1756,6 +1757,33 @@
     "inRun": "in direct debit",
     "dueUpdated": "Due updated.",
     "contactMember": "Member no. {number} · {type}",
-    "makeMember": "Make member"
+    "makeMember": "Make member",
+    "numberFormat": "Member number format",
+    "numberStart": "Start number",
+    "numberFormatHelp": "{N} = number (NNNN = zero-padded to 4 digits), {YYYY} = year joined. Applies to new members.",
+    "numberFormatInvalid": "The format needs {N}, e.g. M-{NNNN}.",
+    "prorate": "pro rata",
+    "remind": "Remind",
+    "remindAll": "Remind everyone overdue",
+    "reminded": {
+      "one": "reminded {date}",
+      "other": "reminded {count}×, last {date}"
+    },
+    "nothingOverdue": "No overdue dues.",
+    "remindersSent": {
+      "one": "Reminder sent to {count} person.",
+      "other": "Reminders sent to {count} people."
+    },
+    "remindersNoEmail": {
+      "one": "{count} due without email address skipped.",
+      "other": "{count} dues without email address skipped."
+    },
+    "remindersFailed": "No reminder could be sent (email not set up or no addresses).",
+    "reminderSubject": "Open membership dues – {org}",
+    "reminderHello": "Hello {name},",
+    "reminderIntro": "the following dues at {org} are still open:",
+    "reminderTotal": "Total: {total}",
+    "reminderPay": "Please transfer the amount to {name}, IBAN {iban}, reference: member no. {ref}. If you have already paid, please ignore this message.",
+    "reminderBye": "Best regards\n{org}"
   }
 }

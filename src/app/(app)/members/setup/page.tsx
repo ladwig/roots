@@ -65,6 +65,13 @@ export default async function MembersSetupPage({ searchParams }: PageProps<"/mem
             <Field id="s-bic" name="bic" label={t("membership.bicOptional")} maxLength={11} defaultValue={settings?.bic ?? ""} />
             <Field id="s-day" name="due_day" type="number" min={1} max={28} label={t("membership.dueDay")} defaultValue={settings?.due_day ?? 15} />
           </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field id="s-format" name="number_format" label={t("membership.numberFormat")} maxLength={40} defaultValue={settings?.number_format ?? "{N}"} aria-describedby="s-format-help" />
+            <Field id="s-start" name="number_start" type="number" min={1} label={t("membership.numberStart")} defaultValue={settings?.number_start ?? 1} />
+          </div>
+          <p id="s-format-help" className="-mt-2 text-xs text-muted-foreground">
+            {t("membership.numberFormatHelp")}
+          </p>
           <SubmitButton className="justify-self-start">{t("common.save")}</SubmitButton>
         </form>
       </section>
@@ -76,7 +83,7 @@ function TypeForm({ t, type }: { t: T; type?: Tables<"membership_types"> }) {
   const euros = (c?: number) => (c ? (c / 100).toFixed(2) : "")
   return (
     <div className="flex flex-wrap items-end gap-3">
-      <form action={saveType} className="grid flex-1 gap-3 sm:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] sm:items-end">
+      <form action={saveType} className="grid flex-1 gap-3 sm:grid-cols-[2fr_1fr_1fr_1fr_1fr] lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] sm:items-end">
         {type && <input type="hidden" name="id" value={type.id} />}
         <Field id={`t-name-${type?.id ?? "new"}`} name="name" label={t("membership.typeName")} required maxLength={100} defaultValue={type?.name ?? ""} placeholder={type ? undefined : t("membership.typePlaceholder")} />
         <Field id={`t-fee-${type?.id ?? "new"}`} name="fee" type="number" min="0" step="0.01" label={t("membership.fee")} defaultValue={euros(type?.fee_cents)} />
@@ -93,6 +100,10 @@ function TypeForm({ t, type }: { t: T; type?: Tables<"membership_types"> }) {
         <Field id={`t-entry-${type?.id ?? "new"}`} name="entry_fee" type="number" min="0" step="0.01" label={t("membership.entryFee")} defaultValue={euros(type?.entry_fee_cents)} />
         <Field id={`t-notice-${type?.id ?? "new"}`} name="notice_months" type="number" min={0} max={24} label={t("membership.noticeMonths")} defaultValue={type?.notice_months ?? 3} />
         <div className="flex items-center gap-3">
+          <label className="flex items-center gap-1.5 text-sm">
+            <input type="checkbox" name="prorate" value="on" defaultChecked={type?.prorate ?? false} className="size-4" />
+            {t("membership.prorate")}
+          </label>
           {type && (
             <label className="flex items-center gap-1.5 text-sm">
               <input type="hidden" name="active" value="off" />

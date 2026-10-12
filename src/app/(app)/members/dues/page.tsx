@@ -12,7 +12,7 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { pageParam, param, withParams } from "@/lib/url"
-import { addLevy, createSepaRun, generateDues, setRunStatus } from "../actions"
+import { addLevy, createSepaRun, generateDues, sendReminders, setRunStatus } from "../actions"
 
 type Status = "open" | "paid" | "cancelled"
 const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
@@ -30,7 +30,7 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
 
   let query = ctx.supabase
     .from("member_dues")
-    .select("id, membership_id, description, amount_cents, due_on, status, run_id, memberships(number, contacts(first_name, last_name, company, email))")
+    .select("id, membership_id, description, amount_cents, due_on, status, run_id, reminders, reminded_at, memberships(number, contacts(first_name, last_name, company, email))")
     .eq("org_id", ctx.org.id)
     .order("due_on", { ascending: false })
     .range(...pageRange(page))
@@ -65,6 +65,13 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
           <h1 className="font-heading text-2xl font-semibold">{t("membership.tabs.dues")}</h1>
           <p className="text-sm text-muted-foreground">{t("membership.openSummary", { open: t.money(openTotal), overdue: t.money(overdue) })}</p>
         </div>
+        {canManage && overdue > 0 && (
+          <form action={sendReminders}>
+            <SubmitButton size="sm" variant="outline">
+              {t("membership.remindAll")}
+            </SubmitButton>
+          </form>
+        )}
       </div>
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
 
@@ -183,6 +190,7 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
               <Badge variant={r.status === "paid" ? "default" : r.status === "open" ? (r.due_on < now ? "destructive" : "secondary") : "outline"}>
                 {r.status === "open" && r.due_on < now ? t("membership.overdue") : t(`membership.dueStatus.${r.status as Status}`)}
                 {r.status === "open" && r.run_id ? ` · ${t("membership.inRun")}` : ""}
+                {r.status === "open" && r.reminded_at ? ` · ${t("membership.reminded", { count: r.reminders, date: t.date(r.reminded_at) })}` : ""}
               </Badge>
             ),
           },

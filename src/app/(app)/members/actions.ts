@@ -5,7 +5,8 @@ import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { back } from "@/lib/url"
-import { coversPeriod, earliestEnd, INTERVALS, periods, type Interval } from "@/members/dues"
+import { sendOrgEmail } from "@/lib/org-email"
+import { coversPeriod, earliestEnd, INTERVALS, periodFee, periods, type Interval } from "@/members/dues"
 
 const PATH = "/members"
 const DUES = "/members/dues"
@@ -140,6 +141,7 @@ export async function saveType(fd: FormData) {
     interval,
     notice_months: Math.min(24, Math.max(0, Math.floor(Number(fd.get("notice_months")) || 0))),
     active: !fd.has("active") || fd.getAll("active").includes("on"), // new types have no checkbox
+    prorate: fd.get("prorate") === "on",
   }
   const { error } = id
     ? await ctx.supabase.from("membership_types").update(row).eq("id", id).eq("org_id", ctx.org.id)
@@ -164,8 +166,12 @@ export async function saveSettings(fd: FormData) {
   if (iban && !/^[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}$/.test(iban)) back(SETUP, { error: t("membership.ibanInvalid") })
   if (bic && !/^[A-Z0-9]{8}([A-Z0-9]{3})?$/.test(bic)) back(SETUP, { error: t("membership.bicInvalid") })
   if (creditorId && !/^[A-Z]{2}[0-9]{2}[A-Z0-9]{3}[A-Z0-9]{1,28}$/.test(creditorId)) back(SETUP, { error: t("membership.creditorIdInvalid") })
+  const numberFormat = str(fd, "number_format", 40) ?? "{N}"
+  if (!/\{N+\}/.test(numberFormat)) back(SETUP, { error: t("membership.numberFormatInvalid") })
   const { error } = await ctx.supabase.from("member_settings").upsert({
     org_id: ctx.org.id,
+    number_format: numberFormat,
+    number_start: Math.max(1, Math.floor(Number(fd.get("number_start")) || 1)),
     creditor_name: str(fd, "creditor_name", 70),
     creditor_id: creditorId,
     iban,
@@ -187,7 +193,7 @@ export async function generateDues(fd: FormData) {
   const [{ data: members }, { data: settings }] = await Promise.all([
     ctx.supabase
       .from("memberships")
-      .select("id, starts_on, ends_on, types:membership_types(name, fee_cents, interval)")
+      .select("id, starts_on, ends_on, types:membership_types(name, fee_cents, interval, prorate)")
       .eq("org_id", ctx.org.id)
       .is("deleted_at", null)
       .lte("starts_on", to)
@@ -205,10 +211,11 @@ export async function generateDues(fd: FormData) {
             membership_id: m.id,
             kind: "fee" as const,
             description: `${m.types!.name} ${periodLabel(m.types!.interval as Interval, p.start)}`.slice(0, 140),
-            amount_cents: m.types!.fee_cents,
+            amount_cents: periodFee(m.types!.fee_cents, m.types!.interval as Interval, p, m, m.types!.prorate),
             period_start: p.start,
             due_on: `${p.start.slice(0, 8)}${dueDay}`,
-          })),
+          }))
+          .filter((r) => r.amount_cents > 0),
   )
   // ponytail: existing check per run over ≤ a few thousand rows; chunk the .in() if a Verein has more members.
   const { data: existing } = wanted.length
@@ -310,3 +317,42 @@ export async function setRunStatus(fd: FormData) {
   back(DUES, { ok: t(status === "collected" ? "membership.runCollected" : "membership.runCancelled") })
 }
 
+/** Email every member with overdue open dues (one mail per person, all items listed). Optional: only one due (`id`). */
+export async function sendReminders(fd: FormData) {
+  const { ctx, t } = await manager(DUES)
+  const only = str(fd, "id", 36)
+  const back_ = String(fd.get("back") ?? "")
+  const to = back_.startsWith("/members") ? back_ : DUES
+  let q = ctx.supabase
+    .from("member_dues")
+    .select("id, description, amount_cents, due_on, reminders, memberships!inner(member_no, contacts(first_name, last_name, company, email))")
+    .eq("org_id", ctx.org.id)
+    .eq("status", "open")
+    .is("run_id", null)
+    .lt("due_on", today())
+    .limit(5000)
+  if (only) q = q.eq("id", only)
+  const [{ data: dues }, { data: settings }] = await Promise.all([q, ctx.supabase.from("member_settings").select("creditor_name, iban").eq("org_id", ctx.org.id).maybeSingle()])
+  const byEmail = new Map<string, NonNullable<typeof dues>>()
+  for (const d of dues ?? []) {
+    const email = d.memberships?.contacts?.email
+    if (email) byEmail.set(email, [...(byEmail.get(email) ?? []), d])
+  }
+  const sent: string[] = []
+  for (const [email, items] of byEmail) {
+    const c = items[0].memberships!.contacts!
+    const name = c.first_name || c.company || ""
+    const total = items.reduce((s, d) => s + d.amount_cents, 0)
+    const lines = items.map((d) => `• ${d.description} (${t.date(d.due_on)}): ${t.money(d.amount_cents)}`)
+    const pay = settings?.iban ? t("membership.reminderPay", { name: settings.creditor_name ?? ctx.org.name, iban: settings.iban, ref: items[0].memberships!.member_no ?? "" }) : ""
+    const text = [t("membership.reminderHello", { name }), "", t("membership.reminderIntro", { org: ctx.org.name }), "", ...lines, "", t("membership.reminderTotal", { total: t.money(total) }), pay, "", t("membership.reminderBye", { org: ctx.org.name })].filter((l, i, a) => l || a[i - 1]).join("\n")
+    const html = text.split("\n").map((l) => (l ? `<p style="margin:0 0 4px">${l.replace(/[<>&]/g, (x) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[x]!)}</p>` : "<br>")).join("")
+    if (await sendOrgEmail(ctx.org.id, { to: email, subject: t("membership.reminderSubject", { org: ctx.org.name }), text, html })) sent.push(...items.map((d) => d.id))
+  }
+  // ponytail: reminder count bumped per batch of ids with a read-modify-write; fine for one treasurer clicking.
+  for (const d of (dues ?? []).filter((x) => sent.includes(x.id)))
+    await ctx.supabase.from("member_dues").update({ reminded_at: new Date().toISOString(), reminders: d.reminders + 1 }).eq("id", d.id).eq("org_id", ctx.org.id)
+  const skipped = (dues ?? []).filter((d) => !d.memberships?.contacts?.email).length
+  if (!dues?.length) back(to, { error: t("membership.nothingOverdue") })
+  back(to, sent.length ? { ok: t("membership.remindersSent", { count: byEmail.size }) + (skipped ? ` ${t("membership.remindersNoEmail", { count: skipped })}` : "") } : { error: t("membership.remindersFailed") })
+}

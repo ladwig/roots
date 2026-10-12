@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { contactName } from "@/app/(app)/contacts/fields"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
+import { ContactPicker } from "@/components/contact-picker"
 import { FileList } from "@/components/file-list"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
@@ -17,7 +18,7 @@ import { requirePerm } from "@/lib/context"
 import type { Tables } from "@/lib/supabase/types"
 import { pageParam, param, withParams, type SearchParams } from "@/lib/url"
 import { earliestEnd, type Interval } from "@/members/dues"
-import { endMembership, saveMembership, setDueStatus, trashMembership } from "./actions"
+import { endMembership, saveMembership, sendReminders, setDueStatus, trashMembership } from "./actions"
 
 type Ctx = Awaited<ReturnType<typeof requirePerm>>
 type Type = Pick<Tables<"membership_types">, "id" | "name" | "fee_cents" | "interval" | "notice_months" | "active">
@@ -38,7 +39,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
 
   let query = ctx.supabase
     .from("memberships")
-    .select("id, number, starts_on, ends_on, type_id, contacts!inner(first_name, last_name, company, email)")
+    .select("id, number, member_no, starts_on, ends_on, type_id, contacts!inner(first_name, last_name, company, email)")
     .eq("org_id", ctx.org.id)
     .is("deleted_at", null)
     .order("number")
@@ -47,16 +48,15 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
   if (status === "ended") query = query.lt("ends_on", now)
   if (typeFilter) query = query.eq("type_id", typeFilter)
   if (q) query = query.or(["first_name", "last_name", "company", "email"].map((c) => `${c}.ilike.%${q}%`).join(","), { referencedTable: "contacts" })
-  const [{ data }, { data: types }, { count: activeCount }, { data: editing }, { data: contacts }] = await Promise.all([
+  const [{ data }, { data: types }, { count: activeCount }, { data: editing }, { data: preset }] = await Promise.all([
     query,
     ctx.supabase.from("membership_types").select("id, name, fee_cents, interval, notice_months, active").eq("org_id", ctx.org.id).order("name"),
     ctx.supabase.from("memberships").select("id", { count: "exact", head: true }).eq("org_id", ctx.org.id).is("deleted_at", null).lte("starts_on", now).or(`ends_on.is.null,ends_on.gte.${now}`),
     editId
       ? ctx.supabase.from("memberships").select("*, contacts(id, first_name, last_name, company, email)").eq("id", editId).eq("org_id", ctx.org.id).maybeSingle()
       : Promise.resolve({ data: null }),
-    // ponytail: picker lists the first 1000 contacts; a search combobox once Vereine have more.
-    creating
-      ? ctx.supabase.from("contacts").select("id, first_name, last_name, company, email").eq("org_id", ctx.org.id).is("deleted_at", null).order("last_name").limit(1000)
+    creating && param(sp, "contact")
+      ? ctx.supabase.from("contacts").select("id, first_name, last_name, company, email").eq("id", param(sp, "contact")!).eq("org_id", ctx.org.id).maybeSingle()
       : Promise.resolve({ data: null }),
   ])
   const rows = data?.slice(0, PAGE_SIZE) ?? []
@@ -126,7 +126,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
             cell: (r) => (
               <span className="grid">
                 <span className="font-medium">{r.contacts ? contactName(r.contacts) : ""}</span>
-                <span className="text-xs text-muted-foreground">{t("membership.numberShort", { number: r.number ?? 0 })}</span>
+                <span className="text-xs text-muted-foreground">{t("membership.numberShort", { number: r.member_no ?? "" })}</span>
               </span>
             ),
           },
@@ -143,18 +143,11 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
           <form action={saveMembership} className="grid gap-4">
             <fieldset className="grid gap-4">
               <legend className="mb-2 font-medium">{t("membership.person")}</legend>
-              <div className="grid gap-2">
-                <Label htmlFor="m-contact">{t("membership.existingContact")}</Label>
-                <NativeSelect id="m-contact" name="contact_id" defaultValue={param(sp, "contact") ?? ""} className="w-full">
-                  <NativeSelectOption value="">{t("membership.newContact")}</NativeSelectOption>
-                  {(contacts ?? []).map((c) => (
-                    <NativeSelectOption key={c.id} value={c.id}>
-                      {contactName(c)}
-                      {c.email ? ` · ${c.email}` : ""}
-                    </NativeSelectOption>
-                  ))}
-                </NativeSelect>
-              </div>
+              <ContactPicker
+                name="contact_id"
+                label={t("membership.existingContact")}
+                initial={preset ? { id: preset.id, label: contactName(preset), detail: preset.email ?? "" } : null}
+              />
               <p className="text-xs text-muted-foreground">{t("membership.newContactHint")}</p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field id="m-first" name="first_name" label={t("contacts.firstName")} maxLength={100} autoComplete="off" />
@@ -256,7 +249,7 @@ async function EditMembership({
   const name = m.contacts ? contactName(m.contacts) : ""
 
   return (
-    <UrlSheet params={["edit"]} title={name} description={t("membership.numberShort", { number: m.number ?? 0 })}>
+    <UrlSheet params={["edit"]} title={name} description={t("membership.numberShort", { number: m.member_no ?? "" })}>
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
       {m.contacts && (
         <Button render={<Link href={`/contacts?edit=${m.contacts.id}`} />} nativeButton={false} size="sm" variant="outline" className="justify-self-start">
@@ -301,6 +294,15 @@ async function EditMembership({
                 <span className="text-xs text-muted-foreground">{t.date(d.due_on)}</span>
                 <span className="font-medium tabular-nums">{t.money(d.amount_cents)}</span>
                 <Badge variant={d.status === "paid" ? "default" : d.status === "open" ? "secondary" : "outline"}>{t(`membership.dueStatus.${d.status as "open" | "paid" | "cancelled"}`)}</Badge>
+                {canManage && d.status === "open" && d.due_on < today() && (
+                  <form action={sendReminders}>
+                    <input type="hidden" name="id" value={d.id} />
+                    <input type="hidden" name="back" value={here} />
+                    <SubmitButton size="sm" variant="ghost">
+                      {t("membership.remind")}
+                    </SubmitButton>
+                  </form>
+                )}
                 {canManage && d.status === "open" && (
                   <form action={setDueStatus}>
                     <input type="hidden" name="id" value={d.id} />

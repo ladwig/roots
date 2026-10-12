@@ -34,3 +34,11 @@ export function earliestEnd(today: string, noticeMonths: number, interval: Inter
   const step = MONTHS[interval]
   return iso(ay, Math.floor((am - 1) / step) * step + step, 0)
 }
+
+/** Fee for one period; with pro-rata, only the months the membership touches count (joining in November = 2/12). */
+export function periodFee(feeCents: number, interval: Interval, p: { start: string; end: string }, m: { starts_on: string; ends_on: string | null }, prorate: boolean) {
+  if (!prorate || interval === "none") return feeCents
+  const months = periods("month", p.start, p.end)
+  const covered = months.filter((x) => coversPeriod(m, x)).length
+  return Math.round((feeCents * covered) / months.length)
+}

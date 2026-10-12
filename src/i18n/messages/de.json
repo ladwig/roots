@@ -13,7 +13,8 @@
     "created": "Angelegt",
     "open": "Öffnen",
     "upload": "Hochladen",
-    "removeImage": "Bild entfernen"
+    "removeImage": "Bild entfernen",
+    "clear": "Leeren"
   },
   "auth": {
     "title": "Bei Roots anmelden",
@@ -1756,6 +1757,33 @@
     "inRun": "in Lastschrift",
     "dueUpdated": "Beitrag aktualisiert.",
     "contactMember": "Mitglied Nr. {number} · {type}",
-    "makeMember": "Als Mitglied aufnehmen"
+    "makeMember": "Als Mitglied aufnehmen",
+    "numberFormat": "Format der Mitgliedsnummer",
+    "numberStart": "Startnummer",
+    "numberFormatHelp": "{N} = Nummer (NNNN = mit Nullen auf 4 Stellen), {YYYY} = Eintrittsjahr. Gilt für neue Mitglieder.",
+    "numberFormatInvalid": "Das Format braucht {N}, z. B. M-{NNNN}.",
+    "prorate": "anteilig",
+    "remind": "Erinnern",
+    "remindAll": "Erinnerung an alle Überfälligen",
+    "reminded": {
+      "one": "erinnert {date}",
+      "other": "{count}× erinnert, zuletzt {date}"
+    },
+    "nothingOverdue": "Keine überfälligen Beiträge.",
+    "remindersSent": {
+      "one": "Erinnerung an {count} Person verschickt.",
+      "other": "Erinnerungen an {count} Personen verschickt."
+    },
+    "remindersNoEmail": {
+      "one": "{count} Beitrag ohne E-Mail-Adresse übersprungen.",
+      "other": "{count} Beiträge ohne E-Mail-Adresse übersprungen."
+    },
+    "remindersFailed": "Es konnte keine Erinnerung verschickt werden (E-Mail nicht eingerichtet oder keine Adressen).",
+    "reminderSubject": "Offene Mitgliedsbeiträge – {org}",
+    "reminderHello": "Hallo {name},",
+    "reminderIntro": "bei {org} sind folgende Beiträge noch offen:",
+    "reminderTotal": "Gesamt: {total}",
+    "reminderPay": "Bitte überweise den Betrag an {name}, IBAN {iban}, Verwendungszweck: Mitgliedsnr. {ref}. Falls du schon bezahlt hast, ignoriere diese Nachricht bitte.",
+    "reminderBye": "Viele Grüße\n{org}"
   }
 }

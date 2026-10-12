@@ -73,6 +73,7 @@ Every screen works on phone (from 360px), tablet (iPad, `md` = 768px+) and deskt
 - Mobile-first classes: base = phone, add `sm:` / `md:` / `lg:` for wider. No fixed widths that can overflow; text truncates or wraps.
 - Signed-in areas use `<AppShell>` (`src/components/app-shell.tsx`, App + `/admin`): shadcn sidebar = drawer on phones, collapsible to icons (with tooltips) from `md`. Nav items need a lucide icon (`icon` in the module registry).
 - Calendars: `<CalendarView>` (`src/components/calendar-view.tsx`, wraps the vendored ReUI event calendar in `src/components/reui/`): month / week / day / list / per-person views, view + date in the URL, click → `href` (drawer), empty slot → `newHref` with `start`/`end`, optional drag via a server action. Use it for anything with dates (shifts, events, bookings) instead of building grids.
+- No fixed row limits in the UI: lists paginate on the server (`<Pager>`), pickers search on the server (`<ContactPicker>` + a `search*` server action, 20 results per query). Never load "all" rows into a select.
 - Lists: `<DataTable>` shows cards on phones (first column = title, others label/value) and a table from `md`. Keep the first column meaningful.
 - Drawers (`<UrlSheet>`) are full-width on phones. Forms stack on phones: `grid gap-4 sm:grid-cols-2`.
 - Toolbars and page headers wrap: `flex flex-wrap items-center gap-3`.
