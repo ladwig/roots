@@ -1477,8 +1477,14 @@ isOneToOne: false
 "claim_unrouted_events":
 { Args: { "p_limit"?: number }; Returns: number[]
                            },
+"contact_tags":
+{ Args: { "p_org": string }; Returns: string[]
+                           },
 "create_org":
 { Args: { "p_name": string,"p_slug": string }; Returns: string
+                           },
+"default_module_keys":
+{ Args: Record<PropertyKey, never>; Returns: (string)[]
                            },
 "delete_integration":
 { Args: { "p_org": string,"p_provider": string }; Returns: undefined

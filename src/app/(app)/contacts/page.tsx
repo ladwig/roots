@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { MailIcon, PhoneIcon, Trash2Icon, UploadIcon } from "lucide-react"
 import { CustomFieldInputs } from "@/components/custom-field-inputs"
 import { ExportMenu } from "@/components/export-menu"
+import { TagSelect } from "@/components/tag-select"
 import { FileList } from "@/components/file-list"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
@@ -57,13 +58,12 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
   if (tag) query = query.contains("tags", [tag])
   const [{ data }, { data: tagRows }, { data: editing }, defs] = await Promise.all([
     query,
-    // ponytail: tag chips from the first 2000 contacts; a distinct-tags RPC once orgs have more.
-    ctx.supabase.from("contacts").select("tags").eq("org_id", ctx.org.id).is("deleted_at", null).limit(2000),
+    ctx.supabase.rpc("contact_tags", { p_org: ctx.org.id }),
     editId ? ctx.supabase.from("contacts").select("*").eq("id", editId).eq("org_id", ctx.org.id).maybeSingle() : Promise.resolve({ data: null }),
     loadFields(ctx.supabase, ctx.org.id, "contacts"),
   ])
   const rows = data?.slice(0, PAGE_SIZE) ?? []
-  const tags = [...new Set(tagRows?.flatMap((r) => r.tags))].sort((a, b) => a.localeCompare(b, t.locale))
+  const tags = ((tagRows ?? []) as unknown as string[]).sort((a, b) => a.localeCompare(b, t.locale))
   const chip = (href: string, current: boolean, label: string) => (
     <Link
       key={label}
@@ -142,10 +142,10 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
       {creating && (
         <UrlSheet params={["new"]} title={t("contacts.new")}>
           <Notice error={param(sp, "error")} />
-          <ContactForm t={t} action={createContact} defs={defs} />
+          <ContactForm t={t} action={createContact} defs={defs} tags={tags} />
         </UrlSheet>
       )}
-      {editing && <EditContact t={t} ctx={ctx} c={editing} sp={sp} canManage={canManage} defs={defs} />}
+      {editing && <EditContact t={t} ctx={ctx} c={editing} sp={sp} canManage={canManage} defs={defs} tags={tags} />}
     </div>
   )
 }
@@ -159,7 +159,7 @@ function Field({ id, label, ...props }: { id: string; label: string } & React.Co
   )
 }
 
-function ContactForm({ t, action, c, disabled, defs }: { t: T; action: (fd: FormData) => Promise<void>; c?: Contact; disabled?: boolean; defs: FieldDef[] }) {
+function ContactForm({ t, action, c, disabled, defs, tags }: { t: T; action: (fd: FormData) => Promise<void>; c?: Contact; disabled?: boolean; defs: FieldDef[]; tags: string[] }) {
   const regions = new Intl.DisplayNames([t.locale], { type: "region" })
   return (
     <form action={action} className="grid gap-4">
@@ -195,7 +195,7 @@ function ContactForm({ t, action, c, disabled, defs }: { t: T; action: (fd: Form
         </div>
         <div className="grid gap-2">
           <Label htmlFor="c-tags">{t("contacts.tags")}</Label>
-          <Input id="c-tags" name="tags" defaultValue={c?.tags.join(", ") ?? ""} aria-describedby="c-tags-help" />
+          <TagSelect id="c-tags" name="tags" options={tags} defaultValue={c?.tags ?? []} creatable disabled={disabled} />
           <p id="c-tags-help" className="text-xs text-muted-foreground">
             {t("contacts.tagsHelp")}
           </p>
@@ -211,7 +211,7 @@ function ContactForm({ t, action, c, disabled, defs }: { t: T; action: (fd: Form
   )
 }
 
-async function EditContact({ t, ctx, c, sp, canManage, defs }: { t: T; ctx: Ctx; c: Contact; sp: SearchParams; canManage: boolean; defs: FieldDef[] }) {
+async function EditContact({ t, ctx, c, sp, canManage, defs, tags }: { t: T; ctx: Ctx; c: Contact; sp: SearchParams; canManage: boolean; defs: FieldDef[]; tags: string[] }) {
   const { data: notes } = await ctx.supabase
     .from("contact_notes")
     .select("id, body, created_at, created_by")
@@ -271,7 +271,7 @@ async function EditContact({ t, ctx, c, sp, canManage, defs }: { t: T; ctx: Ctx;
           )}
           <ContactMembership t={t} ctx={ctx} contactId={c.id} />
           {!canManage && <p className="text-sm text-muted-foreground">{t("contacts.readOnly")}</p>}
-          <ContactForm t={t} action={updateContact} c={c} disabled={!canManage} defs={defs} />
+          <ContactForm t={t} action={updateContact} c={c} disabled={!canManage} defs={defs} tags={tags} />
           <Separator />
           <FileList ctx={ctx} entity="contacts" entityId={c.id} back={`/contacts?edit=${c.id}`} />
           <Separator />

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { PlusIcon } from "lucide-react"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { getT } from "@/i18n/server"
 import type { T } from "@/i18n/translate"
-import { requirePerm } from "@/lib/context"
+import { getContext } from "@/lib/context"
 import { fromLocalInput, toLocalInput } from "@/lib/time"
 import { param, withParams } from "@/lib/url"
 import { assign, deleteShift, moveShift, saveShift } from "./actions"
@@ -24,8 +24,12 @@ const monday = (d: string) => addDays(d, -((day(d).getUTCDay() + 6) % 7))
 const berlinDay = (ts: string) => new Date(ts).toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
 
 export default async function ShiftPlan({ searchParams }: PageProps<"/shifts">) {
-  const ctx = await requirePerm("shifts.view")
+  const ctx = await getContext()
   if (!ctx.modules.has("shifts")) notFound()
+  if (!ctx.can("shifts.view")) {
+    if (ctx.can("shifts.self")) redirect("/shifts/me")
+    notFound()
+  }
   const t = await getT()
   const sp = await searchParams
   const canManage = ctx.can("shifts.manage")

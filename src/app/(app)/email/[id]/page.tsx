@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { EmailBodyField } from "@/components/email-body-field"
+import { TagSelect } from "@/components/tag-select"
 import { BASE_PLACEHOLDERS, type Format } from "@/email/render"
 import { resolveAudience, type Audience } from "@/email/server"
 import { getT } from "@/i18n/server"
@@ -23,12 +24,14 @@ export default async function CampaignPage({ params, searchParams }: PageProps<"
   if (!c) notFound()
   const audience = c.audience as Audience
   const editable = canManage && (c.status === "draft" || c.status === "scheduled")
-  const [reach, stats] = await Promise.all([
+  const [reach, stats, { data: tagRows }] = await Promise.all([
     editable && (audience.tags?.length || audience.members) ? resolveAudience(ctx.supabase, ctx.org.id, audience).then((r) => r.length) : Promise.resolve(null),
     !editable
       ? ctx.supabase.from("email_sends").select("status").eq("campaign_id", id).limit(50000).then(({ data }) => data ?? [])
       : Promise.resolve([] as { status: string }[]),
+    ctx.supabase.rpc("contact_tags", { p_org: ctx.org.id }),
   ])
+  const allTags = (tagRows ?? []) as unknown as string[]
   const count = (s: string) => stats.filter((x) => x.status === s).length
 
   return (
@@ -53,7 +56,10 @@ export default async function CampaignPage({ params, searchParams }: PageProps<"
           <EmailBodyField id="c-body" format={c.format as Format} body={c.body} placeholders={BASE_PLACEHOLDERS} disabled={!editable} />
           <fieldset className="grid gap-3 rounded-lg border p-4">
             <legend className="px-1 font-medium">{t("email.audience")}</legend>
-            <Field id="c-tags" name="tags" label={t("email.audienceTags")} defaultValue={(audience.tags ?? []).join(", ")} />
+            <div className="grid gap-2">
+              <Label>{t("email.audienceTags")}</Label>
+              <TagSelect name="tags" options={allTags} defaultValue={audience.tags ?? []} disabled={!editable} />
+            </div>
             {ctx.modules.has("members") && (
               <label className="flex items-center gap-2 text-sm">
                 <input type="checkbox" name="members" value="active" defaultChecked={audience.members === "active"} className="size-4" />

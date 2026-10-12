@@ -836,7 +836,7 @@
     "country": "Country",
     "birthday": "Birthday",
     "tags": "Tags",
-    "tagsHelp": "Separate with commas, e.g. member, VIP",
+    "tagsHelp": "Tap existing tags or type new ones (Enter).",
     "address": "Address",
     "created": "Contact created.",
     "saved": "Saved.",
@@ -1866,7 +1866,7 @@
     "intro": "Introduction",
     "successText": "Text after submitting",
     "tags": "Tags for submitters",
-    "tagsHelp": "Comma-separated. Added to the contact (e.g. newsletter, lead).",
+    "tagsHelp": "Added to the contact (e.g. newsletter, lead).",
     "elements": "Fields and content",
     "elementsHint": "Same order as in the form. Fields come from your contact fields (incl. custom fields).",
     "elementsHintMembership": "Same order as in the form. Membership type, direct debit mandate and consents belong to the application.",
@@ -1955,7 +1955,7 @@
     "body": "Text",
     "bodyHelp": "Blank line = new paragraph, links become clickable. Placeholders: {first_name}, {last_name}, {name}, {email}, {org}. An unsubscribe link is added automatically.",
     "audience": "Recipients",
-    "audienceTags": "Contacts with any of these tags (comma-separated)",
+    "audienceTags": "Contacts with any of these tags",
     "audienceMembers": "All active members",
     "audienceHint": "Pick tags and/or active members. Unsubscribed contacts are never emailed.",
     "reach": {
@@ -2083,5 +2083,11 @@
     "whatAddress": "contact details",
     "whatBank": "bank details",
     "portalLink": "Member area for your members: {url}"
+  },
+  "tags": {
+    "remove": "Remove {tag}",
+    "typeNew": "Type a tag, Enter to add",
+    "none": "None selected – tap below",
+    "available": "Existing tags"
   }
 }

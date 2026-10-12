@@ -16,7 +16,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const moduleLinks: SidebarLink[] = modules
     .filter((m) => ctx.modules.has(m.key))
     .flatMap((m) => m.nav ?? [])
-    .filter((n) => !n.permission || ctx.can(n.permission))
+    .filter((n) => !n.permission || [n.permission].flat().some((p) => ctx.can(p)))
     .filter((n, i, all) => all.findIndex((x) => x.href === n.href) === i) // e.g. the door belongs to tickets and guest lists
     .map((n) => ({ href: n.href, label: t.dynamic(n.label), icon: <n.icon /> }))
   const groups = [

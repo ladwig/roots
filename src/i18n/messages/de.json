@@ -836,7 +836,7 @@
     "country": "Land",
     "birthday": "Geburtstag",
     "tags": "Tags",
-    "tagsHelp": "Mit Komma trennen, z. B. Mitglied, VIP",
+    "tagsHelp": "Vorhandene Tags antippen oder neue eingeben (Enter).",
     "address": "Adresse",
     "created": "Kontakt angelegt.",
     "saved": "Gespeichert.",
@@ -1866,7 +1866,7 @@
     "intro": "Einleitung",
     "successText": "Text nach dem Absenden",
     "tags": "Tags für Einsender:innen",
-    "tagsHelp": "Kommagetrennt. Werden dem Kontakt hinzugefügt (z. B. Newsletter, Interessent).",
+    "tagsHelp": "Werden dem Kontakt hinzugefügt (z. B. Newsletter, Interessent).",
     "elements": "Felder und Inhalte",
     "elementsHint": "Reihenfolge wie im Formular. Felder kommen aus deinen Kontaktfeldern (inkl. eigener Felder).",
     "elementsHintMembership": "Reihenfolge wie im Formular. Mitgliedsart, Lastschriftmandat und Einwilligungen gehören zum Antrag.",
@@ -1955,7 +1955,7 @@
     "body": "Text",
     "bodyHelp": "Leerzeile = neuer Absatz, Links werden klickbar. Platzhalter: {first_name}, {last_name}, {name}, {email}, {org}. Ein Abmeldelink wird automatisch angehängt.",
     "audience": "Empfänger:innen",
-    "audienceTags": "Kontakte mit einem dieser Tags (kommagetrennt)",
+    "audienceTags": "Kontakte mit einem dieser Tags",
     "audienceMembers": "Alle aktiven Mitglieder",
     "audienceHint": "Wähle Tags und/oder aktive Mitglieder. Abgemeldete Kontakte werden nie angeschrieben.",
     "reach": {
@@ -2083,5 +2083,11 @@
     "whatAddress": "Kontaktdaten",
     "whatBank": "Bankverbindung",
     "portalLink": "Mitgliederbereich für deine Mitglieder: {url}"
+  },
+  "tags": {
+    "remove": "{tag} entfernen",
+    "typeNew": "Tag eingeben, Enter zum Hinzufügen",
+    "none": "Keine ausgewählt – unten antippen",
+    "available": "Vorhandene Tags"
   }
 }

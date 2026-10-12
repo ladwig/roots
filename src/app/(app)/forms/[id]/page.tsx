@@ -1,5 +1,6 @@
 import { ArrowDownIcon, ArrowUpIcon, Trash2Icon } from "lucide-react"
 import { Notice } from "@/components/notice"
+import { TagSelect } from "@/components/tag-select"
 import { SubmitButton } from "@/components/submit-button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,10 +22,12 @@ export default async function FormBuilderPage({ params, searchParams }: PageProp
   const ctx = await requirePerm("forms.view")
   const t = await getT()
   const canManage = ctx.can("forms.manage")
-  const [{ data: form }, defs] = await Promise.all([
+  const [{ data: form }, defs, { data: tagRows }] = await Promise.all([
     ctx.supabase.from("forms").select("*").eq("id", id).eq("org_id", ctx.org.id).single(),
     loadFields(ctx.supabase, ctx.org.id, "contacts"),
+    ctx.supabase.rpc("contact_tags", { p_org: ctx.org.id }),
   ])
+  const allTags = (tagRows ?? []) as unknown as string[]
   if (!form) return null
   const purpose = form.purpose as Purpose
   const elements = form.elements as unknown as Element[]
@@ -66,7 +69,7 @@ export default async function FormBuilderPage({ params, searchParams }: PageProp
             <Area id="s-success" name="success_text" label={t("forms.successText")} defaultValue={form.success_text ?? ""} maxLength={2000} />
             <div className="grid gap-2">
               <Label htmlFor="s-tags">{t("forms.tags")}</Label>
-              <Input id="s-tags" name="tags" defaultValue={(settings.tags ?? []).join(", ")} aria-describedby="s-tags-help" />
+              <TagSelect id="s-tags" name="tags" options={allTags} defaultValue={settings.tags ?? []} creatable disabled={!canManage} />
               <p id="s-tags-help" className="text-xs text-muted-foreground">
                 {t("forms.tagsHelp")}
               </p>

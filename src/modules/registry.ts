@@ -4,9 +4,9 @@
 // Permission keys start with the module key ("events.manage"), so a role can grant a whole module with "events.*".
 // ponytail: one file while modules are just definitions; move each to src/modules/<key>/ once it has code.
 
-import { CalendarClockIcon, CalendarDaysIcon, ClipboardListIcon, ContactIcon, CreditCardIcon, FileTextIcon, IdCardIcon, ListChecksIcon, MailIcon, ScanLineIcon, UserRoundCheckIcon, type LucideIcon } from "lucide-react"
+import { CalendarClockIcon, CalendarDaysIcon, ClipboardListIcon, ContactIcon, CreditCardIcon, FileTextIcon, IdCardIcon, ListChecksIcon, MailIcon, ScanLineIcon, type LucideIcon } from "lucide-react"
 
-export type NavItem = { href: string; label: string; icon: LucideIcon; permission?: string } // label = message key
+export type NavItem = { href: string; label: string; icon: LucideIcon; permission?: string | string[] } // label = message key; several permissions = any of them
 export type ModuleDef = {
   key: string
   requires?: { modules?: string[]; integrations?: string[] }
@@ -57,10 +57,8 @@ export const modules: ModuleDef[] = [
   {
     key: "shifts",
     permissions: ["shifts.view", "shifts.manage", "shifts.self"],
-    nav: [
-      { href: "/shifts", label: "shifts.nav", icon: CalendarClockIcon, permission: "shifts.view" },
-      { href: "/shifts/me", label: "shifts.navMe", icon: UserRoundCheckIcon, permission: "shifts.self" },
-    ],
+    // One entry: planners get the plan (with a "my shifts" tab), everyone else lands on their own shifts.
+    nav: [{ href: "/shifts", label: "shifts.nav", icon: CalendarClockIcon, permission: ["shifts.view", "shifts.self"] }],
   },
   {
     key: "members",
