@@ -1596,7 +1596,8 @@
       "check_out": "Ausgecheckt. Danke!"
     },
     "pickMember": "Mitglied wählen…",
-    "memberHint": "Im Team ist, wer Mitglied der Organisation ist (Name und E-Mail aus dem Profil). Neue Leute vorher unter Einstellungen → Mitglieder einladen."
+    "memberHint": "Im Team ist, wer Mitglied der Organisation ist (Name und E-Mail aus dem Profil). Neue Leute vorher unter Einstellungen → Mitglieder einladen.",
+    "assignOnCreate": "Wird {name} zugeteilt."
   },
   "locations": {
     "title": "Ort",

@@ -146,6 +146,8 @@ export default async function ShiftPlan({ searchParams }: PageProps<"/shifts">) 
                 location: locationId ?? null,
                 start: param(sp, "start") ? toLocalInput(param(sp, "start")!) : `${focus}T18:00`,
                 end: param(sp, "end") ? toLocalInput(param(sp, "end")!) : undefined,
+                // Created in a person's column (per-person view): that person gets assigned.
+                assign: !editing ? ((staff ?? []).find((p) => p.id === param(sp, "resource")) ?? null) : null,
               }}
             />
           )}
@@ -194,12 +196,18 @@ function ShiftForm({
   positions: { id: string; name: string; needed: number }[]
   locations: { id: string; name: string }[]
   events: { id: string; title: string; starts_at: string }[]
-  defaults: { event: string | null; location: string | null; start: string; end?: string }
+  defaults: { event: string | null; location: string | null; start: string; end?: string; assign?: { id: string; name: string } | null }
 }) {
   return (
     <form action={saveShift} className="grid gap-4">
       {shift && <input type="hidden" name="id" value={shift.id} />}
       <input type="hidden" name="return" value={returnTo} />
+      {defaults.assign && (
+        <>
+          <input type="hidden" name="assign" value={defaults.assign.id} />
+          <p className="rounded-lg border bg-muted px-3 py-2 text-sm">{t("shifts.assignOnCreate", { name: defaults.assign.name })}</p>
+        </>
+      )}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="grid gap-2">
           <Label htmlFor="sh-pos">{t("shifts.position")}</Label>

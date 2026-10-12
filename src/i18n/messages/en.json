@@ -1596,7 +1596,8 @@
       "check_out": "Checked out. Thanks!"
     },
     "pickMember": "Pick a member…",
-    "memberHint": "The team consists of organisation members (name and email from their profile). Invite new people under Settings → Members first."
+    "memberHint": "The team consists of organisation members (name and email from their profile). Invite new people under Settings → Members first.",
+    "assignOnCreate": "Will be assigned to {name}."
   },
   "locations": {
     "title": "Location",

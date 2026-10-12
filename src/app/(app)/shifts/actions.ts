@@ -34,7 +34,10 @@ export async function saveShift(fd: FormData) {
   const starts = fromLocalInput(String(fd.get("starts_at") ?? ""))
   const ends = fromLocalInput(String(fd.get("ends_at") ?? ""))
   // On an error a new shift's drawer opens again with the times that were entered (e.g. dragged in the calendar).
-  const times = !shiftId && starts && ends ? `&start=${encodeURIComponent(starts.toISOString())}&end=${encodeURIComponent(ends.toISOString())}` : ""
+  const assignTo = shiftId ? null : id(fd, "assign")
+  const times =
+    (!shiftId && starts && ends ? `&start=${encodeURIComponent(starts.toISOString())}&end=${encodeURIComponent(ends.toISOString())}` : "") +
+    (assignTo ? `&resource=${assignTo}` : "")
   const retry = `${back_}${back_.includes("?") ? "&" : "?"}${shiftId ? `shift=${shiftId}` : `new=shift${times}`}`
   const needed = Number(fd.get("needed") ?? 1)
   if (!starts || !ends) back(retry, { error: t("errors.invalid_time") })
@@ -52,10 +55,19 @@ export async function saveShift(fd: FormData) {
     notes: str(fd, "notes", 2000),
   }
   if (!row.title && !row.position_id) back(retry, { error: t("shifts.needTitle") })
-  const { error } = shiftId
-    ? await ctx.supabase.from("shifts").update(row).eq("id", shiftId).eq("org_id", ctx.org.id)
-    : await ctx.supabase.from("shifts").insert({ ...row, org_id: ctx.org.id })
-  if (error) back(retry, { error: dbError(t, error) })
+  const { data: saved, error } = shiftId
+    ? await ctx.supabase.from("shifts").update(row).eq("id", shiftId).eq("org_id", ctx.org.id).select("id").single()
+    : await ctx.supabase.from("shifts").insert({ ...row, org_id: ctx.org.id }).select("id").single()
+  if (error || !saved) back(retry, { error: dbError(t, error) })
+  // New shift from a person's column: assign them (only someone of this org's team).
+  if (assignTo) {
+    const { data: person } = await ctx.supabase.from("staff").select("id").eq("id", assignTo).eq("org_id", ctx.org.id).maybeSingle()
+    if (person) {
+      const { error: aErr } = await ctx.supabase.from("shift_assignments").insert({ org_id: ctx.org.id, shift_id: saved.id, staff_id: person.id, status: "assigned" })
+      if (aErr) back(back_, { error: dbError(t, aErr) })
+      deliverSoon()
+    }
+  }
   back(back_, { ok: t("shifts.saved") })
 }
 
