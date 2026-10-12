@@ -31,9 +31,11 @@ export async function saveShift(fd: FormData) {
   const { ctx, t } = await manager()
   const shiftId = id(fd, "id")
   const back_ = ret(fd, "/shifts")
-  const retry = `${back_}${back_.includes("?") ? "&" : "?"}${shiftId ? `shift=${shiftId}` : "new=shift"}`
   const starts = fromLocalInput(String(fd.get("starts_at") ?? ""))
   const ends = fromLocalInput(String(fd.get("ends_at") ?? ""))
+  // On an error a new shift's drawer opens again with the times that were entered (e.g. dragged in the calendar).
+  const times = !shiftId && starts && ends ? `&start=${encodeURIComponent(starts.toISOString())}&end=${encodeURIComponent(ends.toISOString())}` : ""
+  const retry = `${back_}${back_.includes("?") ? "&" : "?"}${shiftId ? `shift=${shiftId}` : `new=shift${times}`}`
   const needed = Number(fd.get("needed") ?? 1)
   if (!starts || !ends) back(retry, { error: t("errors.invalid_time") })
   if (ends <= starts) back(retry, { error: t("errors.end_before_start") })

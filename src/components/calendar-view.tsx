@@ -12,8 +12,8 @@ import { useT } from "@/i18n/client"
 
 // Generic calendar for any module (shifts, events, bookings…), built on the ReUI event calendar (src/components/reui).
 // - View + date live in the URL (?view=week&date=2026-10-12), so every view is shareable and survives reload.
-// - Click an entry → its href (usually "?edit=<id>" / "?shift=<id>" opening a drawer). Click an empty slot →
-//   newHref + &start=…&end=…(&resource=…) to create something there.
+// - Click an entry → its href (usually "?edit=<id>" / "?shift=<id>" opening a drawer). Click an empty slot (default
+//   length `newMinutes`) or drag across a range → newHref + &start=…&end=…(&resource=…) to create something there.
 // - Optional drag & drop: `onMove` (a server action) gets the new times; it returns an error text to reject.
 // - "resource" view = one column per person/room; pass `resourceEvents` (entries with resourceId) for it.
 export type CalendarItem = { id: string; title: string; start: string; end: string; color?: string; href?: string; resourceId?: string; readOnly?: boolean }
@@ -26,6 +26,7 @@ export function CalendarView({
   defaultView = "week",
   newHref,
   onMove,
+  newMinutes = 240,
   className = "h-[70dvh] min-h-[480px]",
 }: {
   events: CalendarItem[]
@@ -35,6 +36,8 @@ export function CalendarView({
   defaultView?: View
   newHref?: string
   onMove?: (id: string, start: string, end: string) => Promise<{ error?: string } | void>
+  /** Length of a new entry when an empty slot is clicked (dragging picks the length). */
+  newMinutes?: number
   className?: string
 }) {
   const t = useT()
@@ -67,6 +70,8 @@ export function CalendarView({
   }
   const go = (href: string) => router.push(href.startsWith("?") ? `${pathname}${href}` : href, { scroll: false })
   const iso = (d: Date) => d.toISOString()
+  const create = (start: Date, end: Date, resourceId?: string) =>
+    go(`${newHref}&start=${encodeURIComponent(iso(start))}&end=${encodeURIComponent(iso(end))}${resourceId ? `&resource=${resourceId}` : ""}`)
   const day = (d: Date) => d.toLocaleDateString("sv-SE")
 
   return (
@@ -101,9 +106,15 @@ export function CalendarView({
       }}
       onSlotClick={(slot) => {
         if (!newHref) return
-        const end = slot.end ?? new Date(slot.date.getTime() + (slot.allDay ? 8 : 4) * 3600_000)
+        // All-day / month cell: evening by default; time grid: the clicked time + newMinutes.
         const start = slot.allDay ? new Date(new Date(slot.date).setHours(18, 0, 0, 0)) : slot.date
-        go(`${newHref}&start=${encodeURIComponent(iso(start))}&end=${encodeURIComponent(iso(slot.allDay ? new Date(start.getTime() + 6 * 3600_000) : end))}${slot.resourceId ? `&resource=${slot.resourceId}` : ""}`)
+        create(start, new Date(start.getTime() + newMinutes * 60_000), slot.resourceId)
+      }}
+      onSelectSlot={(draft) => {
+        if (!newHref) return
+        const start = draft.allDay ? new Date(new Date(draft.start).setHours(18, 0, 0, 0)) : draft.start
+        const end = draft.allDay ? new Date(start.getTime() + newMinutes * 60_000) : draft.end
+        create(start, end, draft.resourceId)
       }}
       onEventUpdate={
         onMove
