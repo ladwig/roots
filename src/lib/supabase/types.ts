@@ -1301,14 +1301,14 @@ isOneToOne: false
                   ]
                 },"sites": {
                   Row: {
-                    "created_at": string,"created_by": string | null,"org_id": string,"settings": NonNullable<Json>,"theme": NonNullable<Json>,"updated_at": string,"updated_by": string | null
+                    "created_at": string,"created_by": string | null,"id": string,"org_id": string,"settings": NonNullable<Json>,"theme": NonNullable<Json>,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by"?: string | null,"org_id": string,"settings"?: NonNullable<Json>,"theme"?: NonNullable<Json>,"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id": string,"settings"?: NonNullable<Json>,"theme"?: NonNullable<Json>,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string | null,"org_id"?: string,"settings"?: NonNullable<Json>,"theme"?: NonNullable<Json>,"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id"?: string,"settings"?: NonNullable<Json>,"theme"?: NonNullable<Json>,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {

@@ -660,6 +660,7 @@ begin
   insert into public.org_modules (org_id, module_key) values (org_a, 'sites') on conflict do nothing;
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   set local role authenticated;
+  insert into public.sites (org_id, theme) values (org_a, '{"preset":"nacht"}') on conflict (org_id) do update set theme = excluded.theme;
   insert into public.site_pages (org_id, slug, title, draft) values (org_a, '', 'Start', '{"content":[{"type":"Text","props":{"id":"x","richtext":"<p>geheim</p>"}}],"root":{"props":{}}}');
   reset role;
   perform set_config('request.jwt.claims', '{}', true);

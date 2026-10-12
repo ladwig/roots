@@ -33,6 +33,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Every org-scoped table:
   - `org_id uuid not null references public.orgs on delete cascade`
   - audit columns `created_at timestamptz not null default now(), created_by uuid, updated_at timestamptz not null default now(), updated_by uuid` + `select public.enable_audit('public.<table>')`
+  - an `id uuid` column even when the key is `org_id` (one row per org): the audit log identifies rows by `id`, without it every write fails
   - RLS on, policies via `public.is_member / has_perm(org_id, '<module>.<action>') / module_enabled(org_id, '<module>')`, `revoke all ... from anon`
   - a few assertions added to `supabase/tests/isolation.sql`
 - Secrets only via `save_integration` / `get_integration_secret` (Vault). Never store secrets in normal columns.

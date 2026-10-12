@@ -68,34 +68,36 @@ export default async function WebsitePage({ searchParams }: PageProps<"/website"
             <SubmitButton className="justify-self-start">{t("sites.starter.create")}</SubmitButton>
           </form>
         )}
-        <DataTable
-          rows={pages ?? []}
-          rowKey={(p) => p.id}
-          rowHref={(p) => withParams(sp, { edit: p.id, new: undefined })}
-          empty={t("sites.emptyPages")}
-          columns={[
-            { header: t("sites.pageTitle"), cell: (p) => <span className="font-medium">{p.title}</span> },
-            { header: t("sites.slug"), cell: (p) => <code className="text-xs">/{p.slug}</code> },
-            { header: t("sites.inNav"), cell: (p) => (p.in_nav ? "✓" : "–") },
-            {
-              header: t("sites.status"),
-              cell: (p) => (
-                <span className="flex flex-wrap gap-1">
-                  <Badge variant={p.published_at ? "default" : "outline"}>{p.published_at ? t("sites.published") : t("sites.unpublished")}</Badge>
-                  {changed(p) && <Badge variant="secondary">{t("sites.draft")}</Badge>}
-                </span>
-              ),
-            },
-            {
-              header: "",
-              cell: (p) => (
-                <Button render={<Link href={`/website/${p.id}/edit`} />} nativeButton={false} size="sm" variant="outline">
-                  <PencilRulerIcon /> {t("sites.edit")}
-                </Button>
-              ),
-            },
-          ]}
-        />
+        {!!pages?.length && (
+          <DataTable
+            rows={pages}
+            rowKey={(p) => p.id}
+            rowHref={(p) => withParams(sp, { edit: p.id, new: undefined })}
+            empty={t("sites.emptyPages")}
+            columns={[
+              { header: t("sites.pageTitle"), cell: (p) => <span className="font-medium">{p.title}</span> },
+              { header: t("sites.slug"), cell: (p) => <code className="text-xs">/{p.slug}</code> },
+              { header: t("sites.inNav"), cell: (p) => (p.in_nav ? "✓" : "–") },
+              {
+                header: t("sites.status"),
+                cell: (p) => (
+                  <span className="flex flex-wrap gap-1">
+                    <Badge variant={p.published_at ? "default" : "outline"}>{p.published_at ? t("sites.published") : t("sites.unpublished")}</Badge>
+                    {changed(p) && <Badge variant="secondary">{t("sites.draft")}</Badge>}
+                  </span>
+                ),
+              },
+              {
+                header: "",
+                cell: (p) => (
+                  <Button render={<Link href={`/website/${p.id}/edit`} />} nativeButton={false} size="sm" variant="outline">
+                    <PencilRulerIcon /> {t("sites.edit")}
+                  </Button>
+                ),
+              },
+            ]}
+          />
+        )}
         <p className="text-xs text-muted-foreground">
           {t("sites.legalHint")}{" "}
           <Link href="/invoices/settings" className="underline underline-offset-2">
@@ -135,7 +137,14 @@ export default async function WebsitePage({ searchParams }: PageProps<"/website"
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="grid gap-2">
               <Label htmlFor="d-primary">{t("sites.primary")}</Label>
-              <Input id="d-primary" name="primary" defaultValue={theme.primary ?? ""} placeholder="#1d4ed8" pattern="#[0-9a-fA-F]{6}" aria-describedby="d-primary-help" />
+              <Input
+                id="d-primary"
+                name="primary"
+                defaultValue={theme.primary ?? ""}
+                placeholder={PRESETS[theme.preset].primary}
+                pattern="#[0-9a-fA-F]{6}"
+                aria-describedby="d-primary-help"
+              />
               <p id="d-primary-help" className="text-xs text-muted-foreground">
                 {t("sites.primaryHelp")}
               </p>
