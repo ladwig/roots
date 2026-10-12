@@ -3,6 +3,7 @@ import { UploadIcon } from "lucide-react"
 import { contactName } from "@/app/(app)/contacts/fields"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { ContactPicker } from "@/components/contact-picker"
+import { ExportMenu } from "@/components/export-menu"
 import { FileList } from "@/components/file-list"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
@@ -90,18 +91,19 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
           <h1 className="font-heading text-2xl font-semibold">{t("membership.title")}</h1>
           <p className="text-sm text-muted-foreground">{t("membership.activeCount", { count: activeCount ?? 0 })}</p>
         </div>
-        {canManage && (
-          <div className="flex flex-wrap gap-2">
-            {ctx.can("crm.manage") && (
-              <Button render={<Link href="/members/import" />} nativeButton={false} size="sm" variant="outline">
-                <UploadIcon /> {t("membership.import")}
-              </Button>
-            )}
+        <div className="flex flex-wrap gap-2">
+          <ExportMenu entity="members" query={{ status, type: typeFilter, q }} />
+          {canManage && ctx.can("crm.manage") && (
+            <Button render={<Link href="/members/import" />} nativeButton={false} size="sm" variant="outline">
+              <UploadIcon /> {t("membership.import")}
+            </Button>
+          )}
+          {canManage && (
             <Button render={<Link href={withParams(sp, { new: "1", edit: undefined })} scroll={false} />} nativeButton={false} size="sm" disabled={!types?.length}>
               {t("membership.new")}
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
       <Notice error={!editId && !creating ? param(sp, "error") : undefined} ok={!editId ? param(sp, "ok") : undefined} />
       {!types?.length && (

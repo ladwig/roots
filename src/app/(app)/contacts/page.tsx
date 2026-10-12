@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { MailIcon, PhoneIcon, Trash2Icon, UploadIcon } from "lucide-react"
 import { CustomFieldInputs } from "@/components/custom-field-inputs"
+import { ExportMenu } from "@/components/export-menu"
 import { FileList } from "@/components/file-list"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
@@ -78,16 +79,19 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
     <div className="grid max-w-5xl gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-heading text-2xl font-semibold">{t("contacts.title")}</h1>
-        {canManage && (
-          <div className="flex flex-wrap gap-2">
-            <Button render={<Link href="/contacts/import" />} nativeButton={false} size="sm" variant="outline">
-              <UploadIcon /> {t("contacts.import")}
-            </Button>
-            <Button render={<Link href={withParams(sp, { new: "contact", edit: undefined })} scroll={false} />} nativeButton={false} size="sm">
-              {t("contacts.new")}
-            </Button>
-          </div>
-        )}
+        <div className="flex flex-wrap gap-2">
+          <ExportMenu entity="contacts" query={{ q, tag }} />
+          {canManage && (
+            <>
+              <Button render={<Link href="/contacts/import" />} nativeButton={false} size="sm" variant="outline">
+                <UploadIcon /> {t("contacts.import")}
+              </Button>
+              <Button render={<Link href={withParams(sp, { new: "contact", edit: undefined })} scroll={false} />} nativeButton={false} size="sm">
+                {t("contacts.new")}
+              </Button>
+            </>
+          )}
+        </div>
       </div>
       <Notice error={!editId && !creating ? param(sp, "error") : undefined} ok={!editId ? param(sp, "ok") : undefined} />
 

@@ -1810,7 +1810,8 @@
     "importTitle": "Import members",
     "importHint": "CSV from Excel or your old club software: one row per person with membership type, start date, number and optionally bank details. Membership types must be named exactly as set up here ({types}). Existing contacts are recognised by email. No entry fees are created.",
     "importNeedsType": "Map a column to the membership type (there are several types).",
-    "importNumber": "Member number (old)"
+    "importNumber": "Member number (old)",
+    "paidOn": "Paid on"
   },
   "forms": {
     "nav": "Forms",
@@ -1909,5 +1910,10 @@
     "emptyTrash": "The trash is empty.",
     "restore": "Restore",
     "restored": "Form restored."
+  },
+  "export": {
+    "button": "Export",
+    "xlsx": "Excel (.xlsx)",
+    "csv": "CSV"
   }
 }

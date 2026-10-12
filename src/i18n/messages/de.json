@@ -1810,7 +1810,8 @@
     "importTitle": "Mitglieder importieren",
     "importHint": "CSV aus Excel oder deiner alten Vereinssoftware: eine Zeile pro Person mit Mitgliedsart, Eintritt, Nummer und optional Bankdaten. Mitgliedsarten müssen genau so heißen wie hier angelegt ({types}). Bestehende Kontakte werden über die E-Mail erkannt. Aufnahmegebühren werden nicht erzeugt.",
     "importNeedsType": "Ordne eine Spalte der Mitgliedsart zu (es gibt mehrere Arten).",
-    "importNumber": "Mitgliedsnummer (alt)"
+    "importNumber": "Mitgliedsnummer (alt)",
+    "paidOn": "Bezahlt am"
   },
   "forms": {
     "nav": "Formulare",
@@ -1909,5 +1910,10 @@
     "emptyTrash": "Der Papierkorb ist leer.",
     "restore": "Wiederherstellen",
     "restored": "Formular wiederhergestellt."
+  },
+  "export": {
+    "button": "Exportieren",
+    "xlsx": "Excel (.xlsx)",
+    "csv": "CSV"
   }
 }

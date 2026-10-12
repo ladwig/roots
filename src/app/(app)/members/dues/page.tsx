@@ -2,6 +2,7 @@ import Link from "next/link"
 import { DownloadIcon } from "lucide-react"
 import { contactName } from "@/app/(app)/contacts/fields"
 import { DataTable, Pager, pageRange, PAGE_SIZE } from "@/components/data-table"
+import { ExportMenu } from "@/components/export-menu"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { Badge } from "@/components/ui/badge"
@@ -65,13 +66,16 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
           <h1 className="font-heading text-2xl font-semibold">{t("membership.tabs.dues")}</h1>
           <p className="text-sm text-muted-foreground">{t("membership.openSummary", { open: t.money(openTotal), overdue: t.money(overdue) })}</p>
         </div>
-        {canManage && overdue > 0 && (
-          <form action={sendReminders}>
-            <SubmitButton size="sm" variant="outline">
-              {t("membership.remindAll")}
-            </SubmitButton>
-          </form>
-        )}
+        <div className="flex flex-wrap gap-2">
+          <ExportMenu entity="dues" query={{ status }} />
+          {canManage && overdue > 0 && (
+            <form action={sendReminders}>
+              <SubmitButton size="sm" variant="outline">
+                {t("membership.remindAll")}
+              </SubmitButton>
+            </form>
+          )}
+        </div>
       </div>
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
 

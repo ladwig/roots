@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { DataTable, Pager, pageRange, PAGE_SIZE } from "@/components/data-table"
+import { ExportMenu } from "@/components/export-menu"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { UrlSheet } from "@/components/url-sheet"
@@ -61,9 +62,12 @@ export default async function SubmissionsPage({ params, searchParams }: PageProp
   return (
     <>
       <Notice error={!openId ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
-      <nav aria-label={t("forms.status")} className="flex flex-wrap gap-1.5">
-        {(["all", "new", "accepted", "rejected"] as const).map(chip)}
-      </nav>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <nav aria-label={t("forms.status")} className="flex flex-wrap gap-1.5">
+          {(["all", "new", "accepted", "rejected"] as const).map(chip)}
+        </nav>
+        <ExportMenu entity="submissions" query={{ form: id }} />
+      </div>
       <DataTable
         rows={rows}
         rowKey={(r) => r.id}
