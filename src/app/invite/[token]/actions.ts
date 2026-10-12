@@ -5,7 +5,7 @@ import { deliverSoon } from "@/events/worker"
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { setActiveOrg, getSession } from "@/lib/context"
-import { back } from "@/lib/url"
+import { back, APP_HOME } from "@/lib/url"
 
 export async function acceptInvite(token: string) {
   const session = await getSession()
@@ -14,5 +14,5 @@ export async function acceptInvite(token: string) {
   if (error) back(`/invite/${token}`, { error: dbError(await getT(), error) })
   deliverSoon()
   await setActiveOrg(data!)
-  redirect("/")
+  redirect(APP_HOME)
 }

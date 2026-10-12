@@ -8,7 +8,7 @@ import { deliverSoon } from "@/events/worker"
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { ACTIVE_ORG_COOKIE, getContext } from "@/lib/context"
-import { APP_URL, back } from "@/lib/url"
+import { APP_URL, back, APP_HOME } from "@/lib/url"
 
 const PATH = "/settings/team"
 
@@ -38,7 +38,7 @@ export async function removeMember(memberId: string) {
   deliverSoon()
   if (data.user_id === ctx.userId) {
     ;(await cookies()).delete(ACTIVE_ORG_COOKIE)
-    redirect("/")
+    redirect(APP_HOME)
   }
   back(PATH, { ok: t("members.removed") })
 }

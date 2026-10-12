@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { setActiveOrg, getSession } from "@/lib/context"
-import { back } from "@/lib/url"
+import { back, APP_HOME } from "@/lib/url"
 
 export async function createOrg(formData: FormData) {
   const session = await getSession()
@@ -18,5 +18,5 @@ export async function createOrg(formData: FormData) {
   const { data, error } = await session.supabase.rpc("create_org", { p_name: name, p_slug: slug })
   if (error) back("/onboarding", { error: error.code === "23505" ? t("onboarding.addressTaken") : dbError(t, error) })
   await setActiveOrg(data!)
-  redirect("/")
+  redirect(APP_HOME)
 }

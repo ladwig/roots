@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
+import { appRoute } from "@/lib/url"
 import { useTransition } from "react"
 import { CheckIcon, ChevronsUpDownIcon, LanguagesIcon, LogOutIcon, UserIcon } from "lucide-react"
 import { signOut } from "@/app/login/actions"
@@ -46,9 +47,9 @@ export function AppSidebar({
   me: Me
 }) {
   const t = useT()
-  const pathname = usePathname()
+  const pathname = appRoute(usePathname())
   const { setOpenMobile } = useSidebar()
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href))
+  const isActive = (href: string) => (appRoute(href) === "/" ? pathname === "/" : pathname.startsWith(appRoute(href)))
 
   return (
     <Sidebar collapsible="icon">

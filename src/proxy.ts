@@ -3,42 +3,55 @@ import { NextResponse, type NextRequest } from "next/server"
 
 const ROOT = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "localhost:3000"
 // App paths reachable without signing in.
-const PUBLIC_PATHS = ["/login", "/forgot", "/auth", "/invite", "/api/webhooks", "/api/integrations", "/api/cron", "/api/v1", "/api/docs", "/api/unsubscribe", "/checkout", "/s", "/u"]
+const PUBLIC_PATHS = ["/login", "/forgot", "/auth", "/invite", "/api/webhooks", "/api/integrations", "/api/cron", "/api/v1", "/api/docs", "/api/unsubscribe", "/checkout", "/s", "/u", "/site"]
+// On the bare domain these stay at the root; every other App path lives under /app there.
+const ROOT_PATHS = ["/login", "/forgot", "/auth", "/invite", "/api", "/checkout", "/s", "/u", "/site"]
+const under = (pathname: string, list: string[]) => list.some((p) => pathname === p || pathname.startsWith(`${p}/`))
 
+// Hosts:
+// - <org>.ROOT  → the org's public site (/s/<org>/…)
+// - app.ROOT    → the App at the root (/contacts, …)
+// - ROOT (bare; also *.vercel.app while there's no own domain) → the website at "/", the App under /app/…,
+//   the paths in ROOT_PATHS at the root. Internally App routes have no /app prefix: a rewrite strips it.
+// ponytail: on the bare domain an in-app link like "/contacts" costs one redirect to "/app/contacts" (links are
+// written without the prefix). Fine while app.<domain> is the main entry; make links host-aware if it isn't.
 export async function proxy(request: NextRequest) {
-  // Public surface: <org>.ROOT → /s/<org>/… (no session). app.ROOT and ROOT itself are the App.
-  // ponytail: custom domains later = look up the host here and rewrite the same way.
+  // ponytail: custom domains later = look up the host here and rewrite like org subdomains.
   const host = request.headers.get("host") ?? ""
-  const site = host.endsWith(`.${ROOT}`) ? host.slice(0, -ROOT.length - 1) : null
-  if (site && site !== "app") {
+  const sub = host.endsWith(`.${ROOT}`) ? host.slice(0, -ROOT.length - 1) : null
+  if (sub && sub !== "app") {
     const url = request.nextUrl.clone()
-    url.pathname = `/s/${site}${url.pathname === "/" ? "" : url.pathname}`
+    url.pathname = `/s/${sub}${url.pathname === "/" ? "" : url.pathname}`
     return NextResponse.rewrite(url)
   }
+  const { pathname, search } = request.nextUrl
+  if (!sub) {
+    if (pathname === "/") return NextResponse.rewrite(new URL(`/site${search}`, request.url))
+    if (pathname !== "/app" && !pathname.startsWith("/app/") && !under(pathname, ROOT_PATHS))
+      return NextResponse.redirect(new URL(`/app${pathname}${search}`, request.url))
+  }
+  // "/app/…" on any host → the App route without the prefix.
+  const appPath = pathname === "/app" || pathname.startsWith("/app/") ? pathname.slice(4) || "/" : pathname
+  const pass = () => (appPath === pathname ? NextResponse.next({ request }) : NextResponse.rewrite(new URL(`${appPath}${search}`, request.url), { request }))
 
   // App surface: refresh the Supabase session cookie. Auth checks live in pages/actions, not here.
-  let response = NextResponse.next({ request })
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll: () => request.cookies.getAll(),
-        setAll(toSet) {
-          toSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          response = NextResponse.next({ request })
-          toSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
-        },
+  let response = pass()
+  const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
+    cookies: {
+      getAll: () => request.cookies.getAll(),
+      setAll(toSet) {
+        toSet.forEach(({ name, value }) => request.cookies.set(name, value))
+        response = pass()
+        toSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
       },
-    }
-  )
+    },
+  })
   const { data } = await supabase.auth.getClaims()
 
   // Optimistic gate so signed-out visitors get a real 307 instead of a streamed redirect.
-  const { pathname, search } = request.nextUrl
-  if (!data?.claims && !PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+  if (!data?.claims && !under(appPath, PUBLIC_PATHS)) {
     const login = new URL("/login", request.url)
-    if (pathname !== "/") login.searchParams.set("next", pathname + search)
+    if (appPath !== "/") login.searchParams.set("next", pathname + search)
     return NextResponse.redirect(login)
   }
   return response

@@ -2,11 +2,13 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { appRoute } from "@/lib/url"
 import { cn } from "@/lib/utils"
 
 export function NavLink({ href, children, className, exact }: { href: string; children: React.ReactNode; className?: string; exact?: boolean }) {
-  const pathname = usePathname()
-  const active = href === "/" || exact ? pathname === href : pathname.startsWith(href)
+  const pathname = appRoute(usePathname())
+  const target = appRoute(href)
+  const active = target === "/" || exact ? pathname === target : pathname.startsWith(target)
   return (
     <Link
       href={href}

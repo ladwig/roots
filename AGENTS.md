@@ -124,8 +124,9 @@ Soft-delete side effects to handle every time:
 - Adding a language: add a JSON file and the code to `locales` in `src/i18n/config.ts`.
 - `npm test` runs `*.test.mjs` files (node --test).
 
-## Two surfaces
-- **App** (`src/app/(app)/`, `app.roots.app`): logged-in back office. Everything through RLS + permissions.
+## Three surfaces
+- **Website** (`src/app/site/`, the bare domain's `/`): marketing landing page with its own look — design sheet `docs/design/site.md`, styles scoped to `.site` in `site.css`, own fonts, texts under `landing.*`. Product shots are CSS device mocks (`_components/devices.tsx`, `mocks.tsx`), never screenshots.
+- **App** (`src/app/(app)/`, `app.<domain>` at the root, or `/app/…` on the bare domain): logged-in back office. Everything through RLS + permissions. Routes are written without `/app`; `src/proxy.ts` strips the prefix (rewrite) and moves unprefixed App paths on the bare domain under `/app`. Link to the App's home with `APP_HOME`, compare paths with `appRoute()` (`src/lib/url.ts`).
 - **Public** (`src/app/s/[site]/`, `<org>.roots.app` + custom domains): outward-facing pages for anyone. Never expose unpublished data; public writes only via Server Actions that validate input + link tokens. Never import App-only code (admin queries, secret-key clients) into Public pages without a reason.
   - Reads use `createPublicClient()` (always anonymous, even for signed-in visitors) + `getSite(slug)`. What anon may see is decided in the DB: an `anon` select policy (e.g. `status = 'published'`, module on via a small definer helper like `events_public()`) plus **column grants** (`grant select (<public columns>) … to anon`, never audit columns).
   - Links on public pages are relative to the subdomain (`/e/<slug>`); from the App link with `siteUrl(org.slug, path)`.

@@ -5,10 +5,10 @@ import { adoptProfileLocale } from "@/i18n/actions"
 import { getT } from "@/i18n/server"
 import { authError } from "@/i18n/translate"
 import { createClient } from "@/lib/supabase/server"
-import { APP_URL, safeNext } from "@/lib/url"
+import { APP_URL, safeNext, APP_HOME } from "@/lib/url"
 
 const loginUrl = (next: string, result: Record<string, string>) =>
-  `/login?${new URLSearchParams({ ...result, ...(next !== "/" && { next }) })}`
+  `/login?${new URLSearchParams({ ...result, ...(next !== APP_HOME && { next }) })}`
 
 function read(formData: FormData) {
   return {

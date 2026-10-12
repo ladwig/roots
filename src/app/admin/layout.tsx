@@ -1,3 +1,4 @@
+import { APP_HOME } from "@/lib/url"
 import Link from "next/link"
 import { ActivityIcon, BookOpenIcon, ArrowLeftIcon, BuildingIcon, ShieldIcon, UsersIcon } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
@@ -14,7 +15,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       header={
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip={t("admin.backToApp")} render={<Link href="/" />}>
+            <SidebarMenuButton tooltip={t("admin.backToApp")} render={<Link href={APP_HOME} />}>
               <ArrowLeftIcon />
               <span>{t("admin.backToApp")}</span>
             </SidebarMenuButton>

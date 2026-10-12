@@ -10,8 +10,13 @@ export const param = (sp: SearchParams, key: string) => {
 }
 
 // Only same-site relative paths, so ?next= can't send people elsewhere.
+// The App's home on every host: app.<domain>/app → "/" (rewrite), bare domain → /app (the website owns "/").
+export const APP_HOME = "/app"
+/** Browser path → App route ("/app/contacts" → "/contacts"), for active-link checks. */
+export const appRoute = (path: string) => (path === "/app" || path.startsWith("/app/") ? path.slice(4) || "/" : path)
+
 export const safeNext = (next: unknown) =>
-  typeof next === "string" && next.startsWith("/") && !next.startsWith("//") ? next : "/"
+  typeof next === "string" && next.startsWith("/") && !next.startsWith("//") && next !== "/" ? next : APP_HOME
 
 // Server actions report results through the URL (?error= / ?ok=), like every other piece of UI state.
 export function back(path: string, result: { error?: string; ok?: string }): never {

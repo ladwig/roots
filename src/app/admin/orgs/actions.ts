@@ -5,7 +5,7 @@ import { deliverSoon } from "@/events/worker"
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { requirePlatformAdmin, setActiveOrg } from "@/lib/context"
-import { back } from "@/lib/url"
+import { back, APP_HOME } from "@/lib/url"
 
 const PATH = "/admin/orgs"
 const SLUG = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/
@@ -76,7 +76,7 @@ export async function removeMember(orgId: string, memberId: string) {
 export async function openOrg(orgId: string) {
   await requirePlatformAdmin()
   await setActiveOrg(orgId)
-  redirect("/")
+  redirect(APP_HOME)
 }
 
 // To the trash (restorable for 30 days, then purged with all its data).

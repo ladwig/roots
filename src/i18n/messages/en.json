@@ -2090,5 +2090,145 @@
     "typeNew": "Type a tag, Enter to add",
     "none": "None selected – tap below",
     "available": "Existing tags"
+  },
+  "landing": {
+    "meta": {
+      "title": "roots – software for everyone building from the ground up",
+      "description": "Members, tickets, shifts, invoices, forms and email for clubs, collectives and promoters. One place instead of ten tools."
+    },
+    "nav": {
+      "product": "Product",
+      "who": "Who it's for",
+      "pricing": "Pricing",
+      "login": "Log in",
+      "start": "Start for free"
+    },
+    "hero": {
+      "eyebrow": "For clubs, collectives & promoters",
+      "title1": "Software for everyone building",
+      "accent": "from the ground",
+      "title2": "up.",
+      "lead": "Members, tickets, shifts, invoices and email – in one place. So your time goes back into what you started for.",
+      "cta": "Start for free",
+      "secondary": "See it"
+    },
+    "modules": {
+      "crm": "Contacts",
+      "members": "Members",
+      "events": "Events",
+      "tickets": "Tickets",
+      "guestlists": "Guest lists",
+      "shifts": "Shifts",
+      "forms": "Forms",
+      "email": "Email",
+      "invoices": "Invoices",
+      "files": "Files",
+      "portal": "Member area",
+      "api": "Open API"
+    },
+    "statement": {
+      "label": "Why roots",
+      "text": "Grassroots means people organising themselves. Until now with five tools, three spreadsheets and a folder in the clubhouse. From now on with one place that grows with you."
+    },
+    "product": {
+      "label": "Product",
+      "title": "Everything you do every day.",
+      "accent": "Just simpler."
+    },
+    "features": {
+      "members": {
+        "label": "Members",
+        "title": "Members & dues, without the treasurer's nightmare.",
+        "text": "Membership types, numbers, joining and leaving, SEPA mandates. Dues create themselves, the direct debit file is one click.",
+        "b1": "Import from Excel or your old club software",
+        "b2": "SEPA direct debit for your online banking",
+        "b3": "Member area: update details, cancel – no email ping-pong"
+      },
+      "tickets": {
+        "label": "Tickets & door",
+        "title": "Sell tickets, check in within seconds.",
+        "text": "Ticket types, price tiers, promo codes. Payments go to your own Stripe or SumUp account, scanning works with any phone.",
+        "b1": "QR tickets as PDF and by email",
+        "b2": "The scanner also works offline",
+        "b3": "Guest lists and artists at the same door"
+      },
+      "shifts": {
+        "label": "Shifts",
+        "title": "Shift plans that almost fill themselves.",
+        "text": "Plan bar, door or training in the calendar. Your team signs up themselves, hours count on their own.",
+        "b1": "Drag, drop, done",
+        "b2": "Recurring shifts, e.g. every second Thursday",
+        "b3": "Check-in and hours account"
+      },
+      "forms": {
+        "label": "Forms & email",
+        "title": "From application to welcome email.",
+        "text": "Build forms from your own fields, accept applications in one click and send newsletters or automatic emails – from your own address.",
+        "b1": "Membership application with SEPA mandate",
+        "b2": "Newsletters to tags or all members",
+        "b3": "Automations: welcome, reminder, sequence"
+      },
+      "invoices": {
+        "label": "Invoices",
+        "title": "Invoices the tax office likes.",
+        "text": "Quotes and invoices by German rules: gap-free numbers, small business mode, cancel instead of delete, PDF at the push of a button.",
+        "b1": "Number ranges and required details",
+        "b2": "A quote becomes an invoice in one click",
+        "b3": "PDF, print and export for accounting"
+      }
+    },
+    "who": {
+      "label": "Who it's for",
+      "title": "Made for the people who",
+      "accent": "get things done.",
+      "clubs": {
+        "title": "Clubs & associations",
+        "text": "Sports, culture, gardens, music: members, dues, shifts for the summer party and the newsletter to everyone."
+      },
+      "promoters": {
+        "title": "Venues & promoters",
+        "text": "Tickets, guest lists, line-up, timetable and door – from the announcement to the last shift."
+      },
+      "small": {
+        "title": "Collectives & small businesses",
+        "text": "Contacts, quotes, invoices and forms for everyone who does more than admin."
+      }
+    },
+    "trust": {
+      "gdpr": {
+        "title": "GDPR, EU servers",
+        "text": "Your data lives in Europe and stays yours."
+      },
+      "data": {
+        "title": "No lock-in",
+        "text": "Export to Excel anytime, open API for everything else."
+      },
+      "easy": {
+        "title": "No training",
+        "text": "If you can use WhatsApp, you can use roots. On phone and laptop."
+      },
+      "berlin": {
+        "title": "From Berlin",
+        "text": "Built with clubs and associations, not for a corporate department."
+      }
+    },
+    "pricing": {
+      "label": "Pricing",
+      "title": "Start for free.",
+      "accent": "Stay fair.",
+      "text": "roots is free during the beta. After that you pay per module you actually use – not per seat and not per member.",
+      "planLabel": "Beta",
+      "planText": "All modules, no credit card, export anytime."
+    },
+    "final": {
+      "label": "Ready?",
+      "title": "Let's go."
+    },
+    "footer": {
+      "claim": "roots is software for the grassroots: for everyone who organises themselves and builds something – voluntarily, together, from the ground up.",
+      "product": "Product",
+      "account": "Account",
+      "grassroots": "Grassroots. Like the movement."
+    }
   }
 }

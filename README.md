@@ -50,6 +50,14 @@ Supabase ── Postgres (RLS, triggers, definer functions), Auth, Storage (imag
 
 Every org-scoped table has `org_id`, audit columns, RLS policies via `has_perm(org, '<module>.<action>')` and checks in `supabase/tests/isolation.sql`.
 
+## Hosts
+
+| Host | What |
+|---|---|
+| `localhost:3000` / `roots-berlin.vercel.app` / later `<domain>` | Website at `/`, App under `/app/…`, login etc. at the root |
+| `app.localhost:3000` / later `app.<domain>` | App at the root |
+| `<org>.<domain>` (or `/s/<org>`) | The org's public pages |
+
 ## Local setup
 
 Requirements: Node 24, a Supabase project.

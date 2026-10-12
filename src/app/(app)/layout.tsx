@@ -1,3 +1,4 @@
+import { APP_HOME } from "@/lib/url"
 import { FolderIcon, HouseIcon, InboxIcon, SettingsIcon, ShieldIcon } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
 import type { SidebarLink } from "@/components/app-sidebar"
@@ -22,7 +23,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const groups = [
     {
       items: [
-        { href: "/", label: t("shell.home"), icon: <HouseIcon /> },
+        { href: APP_HOME, label: t("shell.home"), icon: <HouseIcon /> },
         { href: "/notifications", label: t("inbox.title"), icon: <InboxIcon />, count: unread ?? 0 },
       ],
     },
