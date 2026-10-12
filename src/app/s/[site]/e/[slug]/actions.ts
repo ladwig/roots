@@ -2,7 +2,7 @@
 
 import { getT } from "@/i18n/server"
 import { back, sitePath } from "@/lib/url"
-import { joinWaitlist } from "@/tickets/server"
+import { joinWaitlist } from "@/tickets/waitlist"
 import { getSite } from "../../data"
 
 // Public: join a sold-out event's waiting list. Validated here and again in joinWaitlist() (still sold out?).

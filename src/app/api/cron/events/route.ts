@@ -4,7 +4,7 @@ import { pollTelegram } from "@/integrations/telegram"
 import { deliverDue } from "@/events/worker"
 import { processEmailQueue } from "@/email/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { offerWaitlist } from "@/tickets/server"
+import { offerWaitlist } from "@/tickets/waitlist"
 
 // Called every minute (vercel.json cron, or `npm run worker` locally). Protected by CRON_SECRET.
 export async function GET(request: Request) {
