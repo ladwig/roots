@@ -138,8 +138,8 @@
   .site .nav-bar { animation: site-nav linear both; animation-timeline: scroll(root); animation-range: 0 220px; }
 }
 @keyframes site-nav {
-  from { max-width: 100%; margin-top: 0; padding-inline: var(--gutter); background: rgb(245 241 232 / 0); border-color: transparent; }
-  to { max-width: min(1120px, calc(100% - 2 * var(--gutter))); margin-top: 10px; padding-inline: 18px; background: rgb(245 241 232 / 0.86); border-color: var(--line); }
+  from { max-width: 100%; transform: translateY(0); padding-inline: var(--gutter); background: rgb(245 241 232 / 0); border-color: transparent; box-shadow: none; }
+  to { max-width: min(1120px, calc(100% - 2 * var(--gutter))); transform: translateY(12px); padding-inline: 18px; background: rgb(245 241 232 / 0.9); border-color: var(--line); box-shadow: 0 8px 24px -12px rgb(25 24 19 / 0.25); }
 }
 
 /* Hero frame: full width at first, moves in to the content margins as you scroll (like the nav). */
