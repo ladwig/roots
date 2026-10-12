@@ -35,6 +35,7 @@
 /* Small label in a thin box ("WARUM ROOTS") */
 .site .tag {
   display: inline-block;
+  width: fit-content;
   border: 1px solid var(--line);
   padding: 5px 9px 4px;
   font-size: 11px;
