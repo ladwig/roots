@@ -6,6 +6,7 @@ import { getContext } from "@/lib/context"
 import { back } from "@/lib/url"
 import { getIntegration, type Config, type Secret } from "@/integrations/registry"
 import { getSecret } from "@/integrations/server"
+import { stripeAccountReady } from "@/integrations/stripe"
 
 const PATH = "/settings/integrations"
 
@@ -69,4 +70,17 @@ export async function disconnectIntegration(provider: string) {
   const { error } = await ctx.supabase.rpc("delete_integration", { p_org: ctx.org.id, p_provider: provider })
   if (error) back(PATH, { error: dbError(t, error) })
   back(PATH, { ok: t("integrations.disconnected", { name: getIntegration(provider)?.name ?? provider }) })
+}
+
+// "Setup open" Stripe accounts (activation not finished at Stripe): ask Stripe again whether they can take payments.
+export async function checkStripe() {
+  const ctx = await getContext()
+  const t = await getT()
+  const { data: row } = await ctx.supabase.from("org_integrations").select("config").eq("org_id", ctx.org.id).eq("provider", "stripe").maybeSingle()
+  const config = (row?.config ?? {}) as Config
+  if (!config.accountId) back(PATH, { error: t("integrations.connectFailed") })
+  const ready = await stripeAccountReady(String(config.accountId)).catch(() => false)
+  const { error } = await ctx.supabase.rpc("save_integration", { p_org: ctx.org.id, p_provider: "stripe", p_config: config as never, p_status: ready ? "connected" : "pending" })
+  if (error) back(PATH, { error: dbError(t, error) })
+  back(PATH, ready ? { ok: t("integrations.connected", { name: "Stripe" }) } : { error: t("integrations.pendingHint", { name: "Stripe" }) })
 }

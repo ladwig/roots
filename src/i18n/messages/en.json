@@ -287,6 +287,7 @@
       "invalidKey": "Resend rejected this API key."
     },
     "continueSetup": "Continue setup",
+    "checkStatus": "Check status",
     "pendingHint": "{name} is connected, but setup isn't finished yet. Click “Continue setup”.",
     "telegram": {
       "description": "Your own Telegram bot for notifications in groups and chats.",

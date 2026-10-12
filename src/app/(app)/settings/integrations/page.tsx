@@ -9,7 +9,7 @@ import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param } from "@/lib/url"
 import { getIntegration, integrations } from "@/integrations/registry"
-import { connectIntegration, disconnectIntegration } from "./actions"
+import { checkStripe, connectIntegration, disconnectIntegration } from "./actions"
 import { NotificationsSection } from "../notifications/section"
 import { SubmitButton } from "@/components/submit-button"
 
@@ -86,11 +86,31 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
                 )}
                 <div className="mt-auto flex flex-wrap gap-2">
                   {i.connect ? (
-                    row?.status === "connected" ? null : row?.status === "pending" &&
-                      (row.config as Record<string, string>)?.via === "onboarding" ? (
-                      <Button render={<a href={`/api/integrations/${i.key}/connect?mode=new`} />} nativeButton={false} size="sm">
-                        {t("integrations.continueSetup")}
-                      </Button>
+                    // Linked: no connect buttons, only what fits the state (finish setup / check / disconnect).
+                    row?.status === "connected" ? null : row?.status === "pending" ? (
+                      <>
+                        <Button
+                          render={
+                            (row.config as Record<string, string>)?.via === "onboarding" ? (
+                              <a href={`/api/integrations/${i.key}/connect?mode=new`} />
+                            ) : (
+                              // OAuth-linked account: activation happens in the org's own Stripe Dashboard.
+                              <a href="https://dashboard.stripe.com/account/onboarding" target="_blank" rel="noreferrer" />
+                            )
+                          }
+                          nativeButton={false}
+                          size="sm"
+                        >
+                          {t("integrations.continueSetup")}
+                        </Button>
+                        {i.key === "stripe" && (
+                          <form action={checkStripe}>
+                            <SubmitButton variant="outline" size="sm">
+                              {t("integrations.checkStatus")}
+                            </SubmitButton>
+                          </form>
+                        )}
+                      </>
                     ) : (
                       <>
                         {(i.connect.modes ?? ["default"]).map((mode, n) => (

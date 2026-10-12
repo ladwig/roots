@@ -287,6 +287,7 @@
       "invalidKey": "Resend hat diesen API-Schlüssel abgelehnt."
     },
     "continueSetup": "Einrichtung fortsetzen",
+    "checkStatus": "Status prüfen",
     "pendingHint": "{name} ist verbunden, aber die Einrichtung ist noch nicht abgeschlossen. Klicke auf „Einrichtung fortsetzen“.",
     "telegram": {
       "description": "Dein eigener Telegram-Bot für Benachrichtigungen in Gruppen und Chats.",
