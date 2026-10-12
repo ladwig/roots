@@ -1,6 +1,6 @@
 // Server side of org websites: everything a page render needs (theme, nav, live module data) as Puck metadata.
 import type { getT } from "@/i18n/server"
-import { createPublicClient } from "@/lib/supabase/server"
+import { cachedSiteData } from "@/lib/public-cache"
 import type { SiteEvent, SiteForm, SiteMeta } from "./blocks"
 import { readTheme } from "./theme"
 
@@ -18,26 +18,14 @@ export type Legal = {
   vat_id: string | null
 } | null
 
-/** Metadata for the blocks + the legal details. Reads only public data (anon client + public_site_extras). */
+/** Metadata for the blocks + the legal details. Only public data, from the org's public cache. */
 export async function siteMeta(
   org: { id: string; slug: string; name: string; logo_path: string | null },
   site: { theme: unknown; nav: { slug: string; title: string }[] },
   base: string,
   t: T,
 ): Promise<{ meta: SiteMeta; legal: Legal }> {
-  const db = createPublicClient()
-  const now = new Date().toISOString()
-  const [{ data: extras }, { data: events }] = await Promise.all([
-    db.rpc("public_site_extras", { p_org: org.id }),
-    db
-      .from("events")
-      .select("slug, title, starts_at, venue_name, image_path")
-      .eq("org_id", org.id)
-      .eq("status", "published")
-      .or(`ends_at.gte.${now},and(ends_at.is.null,starts_at.gte.${now})`)
-      .order("starts_at")
-      .limit(24),
-  ])
+  const { extras, events } = await cachedSiteData(org.id) // cached; refreshed on any public change of the org
   const x = (extras ?? {}) as { modules?: string[]; forms?: SiteForm[]; legal?: Legal }
   return {
     meta: {

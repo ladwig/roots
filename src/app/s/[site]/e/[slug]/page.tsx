@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { getT } from "@/i18n/server"
 import { imageUrl } from "@/lib/images"
 import { createPublicClient } from "@/lib/supabase/server"
+import { cachedEvent } from "@/lib/public-cache"
 import { TemplatePage } from "@/sites/public"
 import { getSite } from "../../data"
 import { TicketShop } from "./shop"
@@ -16,12 +17,7 @@ export default async function PublicEvent({ params, searchParams }: PageProps<"/
   const waitlist = param(sp, "w")?.trim().slice(0, 64) || null
   const s = await getSite(site)
   if (!s) notFound()
-  const { data: e } = await s.db
-    .from("events")
-    .select("id, slug, title, status, starts_at, ends_at, venue_name, venue_address, description, image_path, max_tickets_per_order")
-    .eq("org_id", s.org.id)
-    .eq("slug", slug)
-    .maybeSingle()
+  const e = await cachedEvent(s.org.id, slug)
   if (!e) notFound()
   const shop = () => (e.status === "published" ? <TicketShop site={site} slug={slug} eventId={e.id} max={e.max_tickets_per_order} code={code} waitlist={waitlist} /> : null)
   // The org's own event page design (website builder), else the standard page below.

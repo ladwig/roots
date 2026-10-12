@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { getT } from "@/i18n/server"
 import { param } from "@/lib/url"
+import { cachedForm } from "@/lib/public-cache"
 import { TemplatePage } from "@/sites/public"
 import { getSite } from "../../data"
 import type { PublicForm } from "./data"
@@ -11,7 +12,7 @@ export default async function PublicFormPage({ params, searchParams }: PageProps
   const sp = await searchParams
   const s = await getSite(site)
   if (!s) notFound()
-  const { data } = await s.db.rpc("public_form", { p_org: s.org.id, p_slug: slug })
+  const data = await cachedForm(s.org.id, slug)
   if (!data) notFound()
   const form = data as unknown as PublicForm
   const t = await getT()

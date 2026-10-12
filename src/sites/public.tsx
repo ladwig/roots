@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { getT } from "@/i18n/server"
 import { sitePath } from "@/lib/url"
 import { getSite } from "@/app/s/[site]/data"
+import { cachedSiteData, cachedSitePage } from "@/lib/public-cache"
 import { templateStarter, type SiteMeta, type TemplateKind } from "./blocks"
 import { SitePage } from "./render"
 import { imprintHtml, privacyHtml, siteMeta } from "./server"
@@ -22,7 +23,7 @@ const baseOf = (site: string) => {
 export const liveSite = cache(async (site: string) => {
   const s = await getSite(site)
   if (!s) return null
-  const { data } = await s.db.rpc("public_site", { p_org: s.org.id, p_slug: "" })
+  const { site: data } = await cachedSiteData(s.org.id)
   if (!data) return null
   const home = data as unknown as Published
   const t = await getT()
@@ -33,7 +34,7 @@ export const liveSite = cache(async (site: string) => {
 const publishedPage = cache(async (site: string, slug: string) => {
   const live = await liveSite(site)
   if (!live) return null
-  const page = slug ? ((await live.s.db.rpc("public_site", { p_org: live.s.org.id, p_slug: slug })).data as unknown as Published | null)?.page : live.home.page
+  const page = slug ? ((await cachedSitePage(live.s.org.id, slug)) as unknown as Published | null)?.page : live.home.page
   return { live, page: page ?? null }
 })
 

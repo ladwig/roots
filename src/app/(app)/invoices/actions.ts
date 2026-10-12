@@ -6,6 +6,7 @@ import { deliverSoon } from "@/events/worker"
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
+import { refreshPublic } from "@/lib/public-cache"
 import { back } from "@/lib/url"
 import { TAX_RATES, totals, UNITS } from "@/documents/calc"
 import { TEMPLATES } from "@/documents/templates"
@@ -273,6 +274,7 @@ export async function saveBilling(fd: FormData) {
     template,
   })
   if (error) back(here, { error: dbError(t, error) })
+  refreshPublic(ctx.org.id) // public pages show this
   back(here, { ok: t("invoices.saved") })
 }
 

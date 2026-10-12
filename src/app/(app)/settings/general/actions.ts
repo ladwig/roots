@@ -5,6 +5,7 @@ import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { getContext, requirePerm } from "@/lib/context"
 import { removeImage, replaceImage } from "@/lib/images"
+import { refreshPublic } from "@/lib/public-cache"
 import { back } from "@/lib/url"
 
 export async function updateOrg(formData: FormData) {
@@ -15,6 +16,7 @@ export async function updateOrg(formData: FormData) {
   const { error, count } = await ctx.supabase.from("orgs").update({ name }, { count: "exact" }).eq("id", ctx.org.id)
   if (error || !count) back("/settings/general", { error: error ? dbError(t, error) : t("errors.not_allowed") })
   revalidatePath("/", "layout")
+  refreshPublic(ctx.org.id) // public pages show this
   back("/settings/general", { ok: t("general.saved") })
 }
 
@@ -32,5 +34,6 @@ export async function updateLogo(formData: FormData) {
   const { error } = await ctx.supabase.from("orgs").update({ logo_path }).eq("id", ctx.org.id)
   if (error) back("/settings/general", { error: dbError(t, error) })
   revalidatePath("/", "layout")
+  refreshPublic(ctx.org.id) // public pages show this
   back("/settings/general", { ok: t("general.saved") })
 }

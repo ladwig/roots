@@ -4,6 +4,7 @@ import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { replaceImage } from "@/lib/images"
+import { refreshPublic } from "@/lib/public-cache"
 import { allowedBlocks, TEMPLATE_KINDS, templateStarter, type TemplateKind } from "./blocks"
 import { pageSlug, RESERVED_SLUGS, sanitizePage } from "./sanitize"
 import { readTheme } from "./theme"
@@ -38,8 +39,18 @@ export async function savePage(id: string, data: unknown, publish: boolean): Pro
     .eq("id", id)
     .eq("org_id", ctx.org.id)
   if (error || !count) return { error: error ? dbError(t, error) : t("errors.not_allowed") }
+  if (publish) refreshPublic(ctx.org.id)
   return { ok: publish ? t("sites.publishedOk") : t("sites.draftSaved") }
 }
+
+// A new page isn't empty: its title as heading + a text block to start from.
+const newPageDraft = (title: string, t: Awaited<ReturnType<typeof getT>>) => ({
+  root: { props: {} },
+  content: [
+    { type: "Heading", props: { id: crypto.randomUUID(), text: title, level: "h2", align: "left" } },
+    { type: "Text", props: { id: crypto.randomUUID(), richtext: `<p>${t("sites.defaults.text")}</p>`, width: "narrow" } },
+  ],
+})
 
 type Settings = { title: string; slug: string; description: string; in_nav: boolean }
 function readSettings(s: Settings, t: Awaited<ReturnType<typeof getT>>) {
@@ -59,7 +70,7 @@ export async function createSitePage(s: Settings): Promise<Result> {
   const { count } = await ctx.supabase.from("site_pages").select("id", { count: "exact", head: true }).eq("org_id", ctx.org.id).is("deleted_at", null)
   const { data, error } = await ctx.supabase
     .from("site_pages")
-    .insert({ org_id: ctx.org.id, ...r.row, in_nav: true, position: count ?? 0, draft: { root: { props: {} }, content: [] } as never })
+    .insert({ org_id: ctx.org.id, ...r.row, in_nav: true, position: count ?? 0, draft: newPageDraft(r.row.title, t) as never })
     .select("id")
     .single()
   return error ? { error: slugError(t, error) } : { ok: t("sites.created"), id: data.id }
@@ -71,18 +82,21 @@ export async function updateSitePage(id: string, s: Settings): Promise<Result> {
   const r = readSettings(s, t)
   if (!r.row) return { error: r.error }
   const { error } = await ctx.supabase.from("site_pages").update(r.row).eq("id", id).eq("org_id", ctx.org.id)
+  if (!error) refreshPublic(ctx.org.id)
   return error ? { error: slugError(t, error) } : { ok: t("sites.saved") }
 }
 
 export async function unpublishSitePage(id: string): Promise<Result> {
   const { ctx, t } = await manager()
   const { error } = await ctx.supabase.from("site_pages").update({ published: null, published_at: null }).eq("id", String(id)).eq("org_id", ctx.org.id)
+  if (!error) refreshPublic(ctx.org.id)
   return error ? { error: dbError(t, error) } : { ok: t("sites.unpublishedOk") }
 }
 
 export async function trashSitePage(id: string): Promise<Result> {
   const { ctx, t } = await manager()
   const { error } = await ctx.supabase.rpc("soft_delete", { p_table: "public.site_pages", p_id: String(id) })
+  if (!error) refreshPublic(ctx.org.id)
   return error ? { error: dbError(t, error) } : { ok: t("sites.trashed") }
 }
 
@@ -90,6 +104,7 @@ export async function saveSiteDesign(theme: unknown): Promise<Result> {
   const { ctx, t, allowed } = await manager()
   if (!allowed) return { error: t("errors.not_allowed") }
   const { error } = await ctx.supabase.from("sites").upsert({ org_id: ctx.org.id, theme: readTheme(theme) as never }, { onConflict: "org_id" })
+  if (!error) refreshPublic(ctx.org.id)
   return error ? { error: dbError(t, error) } : { ok: t("sites.designSaved") }
 }
 

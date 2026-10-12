@@ -7,6 +7,7 @@ import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { removeImage, replaceImage } from "@/lib/images"
 import { fromLocalInput } from "@/lib/time"
+import { refreshPublic } from "@/lib/public-cache"
 import { back } from "@/lib/url"
 import { slugify } from "./slug"
 
@@ -68,6 +69,7 @@ export async function createEvent(fd: FormData) {
   // Auto address taken (same title as another event) → add a short suffix once.
   if (res.error?.code === "23505" && !r.slug) res = await insert(`${slugify(r.row!.title).slice(0, 74)}-${crypto.randomUUID().slice(0, 4)}`)
   if (res.error) back(`${PATH}?new=event`, { error: res.error.code === "23505" ? t("errors.slug_taken") : dbError(t, res.error) })
+  refreshPublic(ctx.org.id) // public pages show this
   back(`${PATH}?edit=${res.data!.id}`, { ok: t("eventsPage.created") })
 }
 
@@ -85,6 +87,7 @@ export async function updateEvent(fd: FormData) {
   if (error || !count)
     back(here, { error: error?.code === "23505" ? t("errors.slug_taken") : error ? dbError(t, error) : t("errors.not_allowed") })
   deliverSoon()
+  refreshPublic(ctx.org.id) // public pages show this
   back(here, { ok: t("eventsPage.saved") })
 }
 
@@ -97,6 +100,7 @@ export async function setEventStatus(fd: FormData) {
   const { error, count } = await ctx.supabase.from("events").update({ status }, { count: "exact" }).eq("id", id).eq("org_id", ctx.org.id)
   if (error || !count) back(here, { error: error ? dbError(t, error) : t("errors.not_allowed") })
   deliverSoon()
+  refreshPublic(ctx.org.id) // public pages show this
   back(here, {
     ok: t(status === "published" ? "eventsPage.published" : status === "draft" ? "eventsPage.unpublished" : "eventsPage.cancelledOk"),
   })
@@ -107,6 +111,7 @@ export async function trashEvent(fd: FormData) {
   const id = idOf(fd)
   const { error } = await ctx.supabase.rpc("soft_delete", { p_table: "public.events", p_id: id })
   if (error) back(`${PATH}?edit=${id}`, { error: dbError(t, error) })
+  refreshPublic(ctx.org.id) // public pages show this
   back(PATH, { ok: t("eventsPage.trashed") })
 }
 
@@ -116,6 +121,7 @@ export async function restoreEvent(fd: FormData) {
   const { error } = await ctx.supabase.rpc("restore_deleted", { p_table: "public.events", p_id: id })
   // A live event took the address meanwhile → unique violation.
   if (error) back(`${PATH}?trash=1&edit=${id}`, { error: error.code === "23505" ? t("errors.slug_taken") : dbError(t, error) })
+  refreshPublic(ctx.org.id) // public pages show this
   back(`${PATH}?edit=${id}`, { ok: t("eventsPage.restored") })
 }
 
@@ -135,5 +141,6 @@ export async function updateEventImage(fd: FormData) {
   const { error } = await ctx.supabase.from("events").update({ image_path }).eq("id", id)
   if (error) back(here, { error: dbError(t, error) })
   revalidatePath(PATH)
+  refreshPublic(ctx.org.id) // public pages show this
   back(here, { ok: t("eventsPage.saved") })
 }
