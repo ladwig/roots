@@ -1,62 +1,15 @@
 import Image from "next/image"
 import { ArrowUpRightIcon, PlusIcon } from "lucide-react"
+import { HalftoneBand, Painting, Pill } from "./_components/ui"
 import { getT } from "@/i18n/server"
 import { DeviceBrowser, DeviceLaptop, DevicePhone } from "./_components/devices"
 import { DashboardMock, FormMailMock, InvoiceMock, MembersMock, ScannerMock, ShiftsMock } from "./_components/mocks"
-import { Halftone } from "./_components/halftone"
 import { WireContours, WirePanels, WireSpheres } from "./_components/wireframes"
 import { PAINTINGS, type PaintingKey } from "./paintings"
 
 // Public website (landing). Look: docs/design/site.md. Served at "/" of the bare domain (see src/proxy.ts).
 const APP = "/app"
 const SIGNUP = "/login"
-
-function Pill({ href, children, light, className }: { href: string; children: React.ReactNode; light?: boolean; className?: string }) {
-  return (
-    <a href={href} className={`pill ${light ? "pill-light" : ""} ${className ?? ""}`}>
-      <span>{children}</span>
-      <ArrowUpRightIcon className="size-4" strokeWidth={2} />
-    </a>
-  )
-}
-
-/** A painting with a museum-style caption. */
-function Painting({
-  k,
-  className,
-  sizes,
-  priority,
-  children,
-  position,
-}: {
-  k: PaintingKey
-  className?: string
-  sizes: string
-  priority?: boolean
-  children?: React.ReactNode
-  position?: string
-}) {
-  const p = PAINTINGS[k]
-  return (
-    <figure className="grid gap-3">
-      <div className={`painting settle ${className ?? ""}`}>
-        <Image
-          src={p.src}
-          alt={`${p.artist}, ${p.title}`}
-          fill
-          sizes={sizes}
-          priority={priority}
-          className="object-cover"
-          style={{ objectPosition: position ?? "50% 50%" }}
-        />
-        {children}
-      </div>
-      <figcaption className="soft text-[12px]">
-        {p.artist}, <em>{p.title}</em>, {p.year}
-      </figcaption>
-    </figure>
-  )
-}
 
 export default async function Landing() {
   const t = await getT()
@@ -373,23 +326,7 @@ export default async function Landing() {
 
         {/* ---- final CTA: dark band, the Bauerntanz as a halftone that builds up as it comes into view ---- */}
         <section className="wrap pb-[clamp(96px,12vw,176px)]">
-          <div className="ticks">
-            <div className="painting relative min-h-[420px] overflow-hidden rounded-[2px] bg-[#14130f] text-[var(--paper)] sm:min-h-[480px]">
-              <Halftone src={PAINTINGS.dance.src} className="absolute inset-0 size-full" />
-              <div className="absolute inset-0 z-[2] bg-[linear-gradient(90deg,rgb(20_19_15/.92)_0%,rgb(20_19_15/.7)_38%,rgb(20_19_15/0)_75%)]" />
-              <div className="relative z-[3] flex min-h-[420px] flex-col justify-center gap-6 px-[clamp(24px,6vw,96px)] py-14 sm:min-h-[480px]">
-                <h2 className="display fs-h2 max-w-[14ch]">
-                  {t("landing.final.title")} <em>{t("landing.final.accent")}</em>
-                </h2>
-                <p className="fs-lead max-w-[40ch] text-[var(--paper)]/75">{t("landing.final.text")}</p>
-                <div>
-                  <Pill href={SIGNUP} light>
-                    {t("landing.final.pill")}
-                  </Pill>
-                </div>
-              </div>
-            </div>
-          </div>
+          <HalftoneBand k="dance" title={t("landing.final.title")} accent={t("landing.final.accent")} text={t("landing.final.text")} cta={t("landing.final.pill")} href={SIGNUP} />
         </section>
       </div>
 
