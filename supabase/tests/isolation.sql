@@ -25,13 +25,16 @@ begin
   set local role authenticated;
   org_a := public.create_org('Org A', 'iso-org-a');
   reset role;
-  insert into public.org_modules (org_id, module_key) values (org_a, 'events'); -- modules: platform admins only
 
   -- as B: create org B
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
   set local role authenticated;
   org_b := public.create_org('Org B', 'iso-org-b');
   reset role;
+  -- New orgs get every module by default; this test switches them on one by one, so start from none.
+  select count(*) into n from public.org_modules where org_id = org_a;       assert n > 5, 'new org gets the default modules';
+  delete from public.org_modules where org_id in (org_a, org_b);
+  insert into public.org_modules (org_id, module_key) values (org_a, 'events');
 
   -- A subscribes to member.joined (as postgres here; the app does it via RLS as the owner)
   insert into public.event_subscriptions (org_id, name, channel, event_types, config)
