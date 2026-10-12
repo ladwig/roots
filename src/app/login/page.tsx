@@ -1,52 +1,72 @@
+import Image from "next/image"
 import Link from "next/link"
 import { Notice } from "@/components/notice"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { LocaleSwitcher } from "@/i18n/client"
 import { getT } from "@/i18n/server"
 import { param, safeNext } from "@/lib/url"
+import { SiteShell } from "@/app/site/_components/site-shell"
+import { SiteSubmit } from "@/app/site/_components/site-submit"
+import { PAINTINGS } from "@/app/site/paintings"
 import { sendMagicLink, signIn, signUp } from "./actions"
-import { SubmitButton } from "@/components/submit-button"
 
+// Sign-in in the website's look: form on the left, a painting on the right (desktop).
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const sp = await searchParams
   const t = await getT()
   const next = safeNext(param(sp, "next"))
+  const art = PAINTINGS.turf
 
   return (
-    <main className="mx-auto flex min-h-full w-full max-w-sm flex-col justify-center gap-6 px-4 py-12">
-      <div className="space-y-1">
-        <h1 className="font-heading text-2xl font-semibold">{t("auth.title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("auth.subtitle")}</p>
-      </div>
-      <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
-      <form action={signIn} className="grid gap-4">
-        <input type="hidden" name="next" value={next} />
-        <div className="grid gap-2">
-          <Label htmlFor="email">{t("auth.email")}</Label>
-          <Input id="email" name="email" type="email" autoComplete="email" required />
-        </div>
-        <div className="grid gap-2">
-          <div className="flex items-baseline justify-between gap-2">
-            <Label htmlFor="password">{t("auth.password")}</Label>
-            <Link href="/forgot" className="text-xs text-muted-foreground underline underline-offset-4">
-              {t("auth.forgot")}
-            </Link>
+    <SiteShell className="grid lg:grid-cols-2">
+      <main className="flex min-h-dvh flex-col px-[clamp(20px,5vw,72px)] py-8">
+        <Link href="/" className="wordmark text-[26px]">
+          roots
+        </Link>
+        <div className="mx-auto my-auto grid w-full max-w-[440px] gap-8 py-12 sm:border sm:border-[var(--line)] sm:rounded-[10px] sm:bg-white sm:p-10">
+          <div className="grid gap-3">
+            <h1 className="display text-[clamp(36px,4vw,48px)]">{t("auth.title")}</h1>
+            <p className="soft">{t("auth.subtitle")}</p>
           </div>
-          <Input id="password" name="password" type="password" autoComplete="current-password" />
+          <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
+          <form action={signIn} className="grid gap-5">
+            <input type="hidden" name="next" value={next} />
+            <div className="grid gap-2">
+              <label htmlFor="email" className="label soft">
+                {t("auth.email")}
+              </label>
+              <input id="email" name="email" type="email" autoComplete="email" required className="field" />
+            </div>
+            <div className="grid gap-2">
+              <div className="flex items-baseline justify-between gap-2">
+                <label htmlFor="password" className="label soft">
+                  {t("auth.password")}
+                </label>
+                <Link href="/forgot" className="link soft text-[13px]">
+                  {t("auth.forgot")}
+                </Link>
+              </div>
+              <input id="password" name="password" type="password" autoComplete="current-password" className="field" />
+            </div>
+            <SiteSubmit className="w-full">{t("auth.signIn")}</SiteSubmit>
+            <div className="grid grid-cols-2 gap-2">
+              <SiteSubmit variant="outline" formAction={signUp}>
+                {t("auth.signUp")}
+              </SiteSubmit>
+              <SiteSubmit variant="outline" formAction={sendMagicLink} formNoValidate>
+                {t("auth.magicLink")}
+              </SiteSubmit>
+            </div>
+          </form>
         </div>
-        <SubmitButton>{t("auth.signIn")}</SubmitButton>
-        <div className="grid grid-cols-2 gap-2">
-          <SubmitButton variant="outline" formAction={signUp}>
-            {t("auth.signUp")}
-          </SubmitButton>
-          <SubmitButton variant="outline" formAction={sendMagicLink} formNoValidate>
-            {t("auth.magicLink")}
-          </SubmitButton>
-        </div>
-      </form>
-      <LocaleSwitcher className="justify-self-center" />
-    </main>
+        <LocaleSwitcher className="justify-self-start" />
+      </main>
+      <aside className="painting relative hidden overflow-hidden min-h-dvh rounded-none lg:block">
+        <Image src={art.src} alt={`${art.artist}, ${art.title}`} fill priority sizes="50vw" className="scale-[1.08] object-cover" style={{ objectPosition: "50% 60%" }} />
+        <p className="absolute right-6 bottom-5 z-[2] text-[12px] text-[var(--ink)]/70">
+          {art.artist}, <em>{art.title}</em>, {art.year}
+        </p>
+      </aside>
+    </SiteShell>
   )
 }
 

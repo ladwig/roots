@@ -101,6 +101,22 @@
 .site .pill svg { transition: transform 0.35s var(--ease); }
 .site .pill:hover svg { transform: translate(2px, -2px); }
 .site .pill-light { background: var(--paper); color: var(--ink); }
+.site .pill-outline { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.site .pill-outline:hover { background: rgb(25 24 19 / 0.04); }
+.site .pill:disabled { opacity: 0.6; cursor: progress; }
+/* Form fields on the website (login, later contact forms) */
+.site .field {
+  height: 46px;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.55);
+  padding: 0 14px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.site .field:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgb(25 24 19 / 0.08); }
 .site .pill-light:hover { background: #fff; }
 .site .link { text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 4px; transition: text-decoration-color 0.2s; }
 .site .link:hover { text-decoration-color: currentColor; }
