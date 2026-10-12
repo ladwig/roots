@@ -206,8 +206,8 @@
       "description": "Plan shifts and let members sign up and swap."
     },
     "sites": {
-      "name": "Public site",
-      "description": "Pages on your own subdomain, built from blocks."
+      "name": "Website",
+      "description": "Your public website on your subdomain, built from blocks."
     },
     "managedByPlatform": "Modules are switched on for your organisation by the platform.",
     "invoices": {
@@ -402,7 +402,9 @@
       "email_campaigns": "Email campaigns",
       "email_automations": "Email automations",
       "letter_templates": "Letter templates",
-      "event_waitlist": "Waiting lists"
+      "event_waitlist": "Waiting lists",
+      "sites": "Websites",
+      "site_pages": "Website pages"
     }
   },
   "errors": {
@@ -2522,5 +2524,208 @@
     "remove": "Remove",
     "removed": "Removed from the waiting list.",
     "hint": "When a spot frees up, the next person automatically gets an email and can secure it for 24 hours."
+  },
+  "sites": {
+    "nav": "Website",
+    "title": "Website",
+    "intro": "Your public website on {domain}: build pages from blocks, pick a design, publish.",
+    "tabs": {
+      "pages": "Pages",
+      "design": "Design"
+    },
+    "pages": "Pages",
+    "newPage": "New page",
+    "pageTitle": "Title",
+    "slug": "Address",
+    "slugHelp": "Empty = home page. Lowercase letters, numbers and hyphens only.",
+    "home": "Home",
+    "create": "Create",
+    "edit": "Edit",
+    "open": "View",
+    "inNav": "In menu",
+    "status": "Status",
+    "published": "Published",
+    "draft": "Draft",
+    "changed": "Publish unsaved changes",
+    "unpublished": "Not published",
+    "emptyPages": "No pages yet. Start with the home page.",
+    "viewSite": "View website",
+    "pageSettings": "Page settings",
+    "description": "Description (search engines)",
+    "save": "Save",
+    "saved": "Saved.",
+    "created": "Page created.",
+    "toTrash": "Move to trash",
+    "trashed": "Page moved to the trash.",
+    "unpublish": "Take offline",
+    "unpublishedOk": "Page is offline.",
+    "slugTaken": "This address is already taken.",
+    "slugReserved": "This address is reserved.",
+    "titleRequired": "Please enter a title.",
+    "design": "Design",
+    "preset": "Template",
+    "presets": {
+      "klar": "Clear",
+      "papier": "Paper",
+      "nacht": "Night",
+      "verein": "Club",
+      "kraeftig": "Bold"
+    },
+    "primary": "Main colour",
+    "primaryHelp": "Leave empty for the template's colour.",
+    "font": "Font",
+    "fonts": {
+      "sans": "Neutral",
+      "grotesk": "Modern",
+      "humanist": "Warm",
+      "serif": "Classic (serif)"
+    },
+    "radius": "Corners",
+    "radii": {
+      "none": "Square",
+      "small": "Slightly round",
+      "large": "Round"
+    },
+    "designSaved": "Design saved.",
+    "defaultOption": "Like template",
+    "editorBack": "Back",
+    "saveDraft": "Save draft",
+    "draftSaved": "Draft saved.",
+    "publishedOk": "Published.",
+    "unsaved": "Unsaved changes",
+    "pickForm": "Pick a form (right).",
+    "uploadImage": "Upload image",
+    "replaceImage": "Replace image",
+    "removeImage": "Remove image",
+    "imprint": "Imprint",
+    "privacy": "Privacy",
+    "more": "More",
+    "poweredBy": "Built with roots",
+    "legalHint": "Imprint and privacy policy are generated from the invoice settings.",
+    "legalSettings": "Edit details",
+    "categories": {
+      "layout": "Layout",
+      "content": "Content",
+      "modules": "From your modules"
+    },
+    "blocks": {
+      "Hero": "Hero",
+      "Heading": "Heading",
+      "Text": "Text",
+      "Image": "Image",
+      "Buttons": "Buttons",
+      "Columns": "Columns",
+      "Cards": "Cards",
+      "Stats": "Numbers",
+      "Faq": "FAQ",
+      "Contact": "Contact",
+      "Space": "Spacing",
+      "Events": "Upcoming events",
+      "Form": "Form",
+      "Portal": "Member area"
+    },
+    "fields": {
+      "title": "Title",
+      "text": "Text",
+      "image": "Image",
+      "layout": "Layout",
+      "buttons": "Buttons",
+      "label": "Label",
+      "href": "Link",
+      "style": "Style",
+      "level": "Level",
+      "align": "Alignment",
+      "width": "Width",
+      "alt": "Image description",
+      "caption": "Caption",
+      "ratio": "Format",
+      "columns": "Columns",
+      "cards": "Cards",
+      "items": "Items",
+      "value": "Number",
+      "question": "Question",
+      "answer": "Answer",
+      "address": "Address",
+      "email": "Email",
+      "phone": "Phone",
+      "hours": "Opening hours",
+      "mapLink": "Open map",
+      "size": "Size",
+      "limit": "Count",
+      "form": "Form"
+    },
+    "options": {
+      "style": {
+        "solid": "Filled",
+        "outline": "Outline"
+      },
+      "heroLayout": {
+        "side": "Image beside",
+        "background": "Image behind",
+        "plain": "Text only"
+      },
+      "level": {
+        "h2": "Large",
+        "h3": "Medium"
+      },
+      "align": {
+        "left": "Left",
+        "center": "Centre"
+      },
+      "width": {
+        "narrow": "Reading width",
+        "wide": "Full width"
+      },
+      "ratio": {
+        "wide": "Wide",
+        "landscape": "Landscape",
+        "square": "Square",
+        "auto": "Original"
+      },
+      "columns": {
+        "2": "2",
+        "3": "3"
+      },
+      "size": {
+        "sm": "Small",
+        "md": "Medium",
+        "lg": "Large"
+      },
+      "eventsLayout": {
+        "list": "List",
+        "cards": "Cards"
+      }
+    },
+    "defaults": {
+      "heroTitle": "Welcome",
+      "heroText": "Say in a sentence or two who you are and what you do.",
+      "button": "Learn more",
+      "heading": "Heading",
+      "text": "Your text goes here.",
+      "cardTitle": "Title",
+      "cardText": "A short text.",
+      "statLabel": "members",
+      "statSince": "founded",
+      "statEvents": "events a year",
+      "question": "How can I join?",
+      "answer": "Just write to us or drop by.",
+      "faqTitle": "FAQ",
+      "contactTitle": "Contact",
+      "eventsTitle": "Upcoming dates",
+      "formButton": "To the form",
+      "portalTitle": "Member area",
+      "portalText": "Manage dues, details and mandate yourself.",
+      "portalButton": "Sign in"
+    },
+    "starterText": "No website yet. Create a starter website from your modules in one click (home, dates, join us) and adapt it in the editor. Everything starts as a draft.",
+    "starterExists": "There are pages already.",
+    "starterCreated": "Starter website created. Open the pages in the editor and publish them.",
+    "starter": {
+      "create": "Create starter website",
+      "events": "Dates",
+      "join": "Join us",
+      "joinText": "Want to join? Here are our forms and the member area.",
+      "toEvents": "See dates"
+    }
   }
 }
