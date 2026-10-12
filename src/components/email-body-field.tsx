@@ -14,30 +14,26 @@ const toParagraphs = (text: string) =>
     .map((p) => `<p>${p.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!).replace(/\n/g, "<br>")}</p>`)
     .join("")
 
-/** Email body with a format switch: plain text, the rich text editor, or pasted HTML (with a sandboxed preview). */
+/** Email body: the rich text editor, or pasted HTML (with a sandboxed preview). */
 export function EmailBodyField({ id, format: initialFormat, body: initialBody, placeholders, disabled }: { id: string; format: Format; body: string; placeholders: string[]; disabled?: boolean }) {
   const t = useT()
-  const [format, setFormat] = useState<Format>(initialFormat)
-  const [body, setBody] = useState(initialBody)
-  // Switching text → editor keeps the paragraphs; the editor mounts again with the converted content.
-  const switchTo = (f: Format) => {
-    if (format === "text" && f !== "text" && body.trim() && !body.trim().startsWith("<")) setBody(toParagraphs(body))
-    setFormat(f)
-  }
+  // Two choices: the editor or own HTML. Old plain-text bodies open in the editor as paragraphs.
+  const [format, setFormat] = useState<Format>(initialFormat === "html" ? "html" : "rich")
+  const [body, setBody] = useState(initialFormat === "text" && initialBody.trim() ? toParagraphs(initialBody) : initialBody)
   return (
     <div className="grid gap-2">
       <input type="hidden" name="format" value={format} />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Label htmlFor={id}>{t("email.body")}</Label>
         <div role="radiogroup" aria-label={t("email.format")} className="flex gap-1 rounded-lg border p-0.5">
-          {(["text", "rich", "html"] as const).map((f) => (
+          {(["rich", "html"] as const).map((f) => (
             <button
               key={f}
               type="button"
               role="radio"
               aria-checked={format === f}
               disabled={disabled}
-              onClick={() => switchTo(f)}
+              onClick={() => setFormat(f)}
               className="rounded-md px-2.5 py-1 text-xs text-muted-foreground aria-checked:bg-primary aria-checked:text-primary-foreground"
             >
               {t(`email.formats.${f}`)}
@@ -51,13 +47,13 @@ export function EmailBodyField({ id, format: initialFormat, body: initialBody, p
         <textarea
           id={id}
           name="body"
-          rows={format === "html" ? 16 : 12}
+          rows={16}
           value={body}
           onChange={(e) => setBody(e.target.value)}
           disabled={disabled}
           maxLength={200000}
-          spellCheck={format === "text"}
-          className={`${textareaClass} ${format === "html" ? "font-mono text-xs" : ""}`}
+          spellCheck={false}
+          className={`${textareaClass} font-mono text-xs`}
         />
       )}
       <p className="text-xs text-muted-foreground">{t(`email.formatHelp.${format}`, { placeholders: placeholders.map((p) => `{${p}}`).join(", ") })}</p>
