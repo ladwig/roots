@@ -190,7 +190,7 @@ export default async function Landing() {
           <div className="wrap section grid items-center gap-[clamp(40px,7vw,112px)] md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
             <figure className="reveal mx-auto grid w-full max-w-[460px] gap-3">
               <div className="painting aspect-[1712/2200] rounded-[4px] ring-1 ring-white/10">
-                <Image src={PAINTINGS.turf.src} alt={`${PAINTINGS.turf.artist}, ${PAINTINGS.turf.title}`} fill sizes="460px" className="object-cover" />
+                <Image src={PAINTINGS.turf.src} alt={`${PAINTINGS.turf.artist}, ${PAINTINGS.turf.title}`} fill sizes="460px" className="scale-[1.08] object-cover" />
               </div>
               <figcaption className="text-[12px] text-[var(--paper)]/55">
                 {PAINTINGS.turf.artist}, <em>{PAINTINGS.turf.title}</em>, {PAINTINGS.turf.year}
@@ -210,7 +210,7 @@ export default async function Landing() {
         </section>
 
         {/* ---- for clubs & promoters ---- */}
-        <section className="wrap pb-[clamp(96px,12vw,176px)]">
+        <section className="wrap section">
           <Painting k="galette" sizes="(min-width: 1280px) 1280px, 100vw" className="aspect-[4/5] sm:aspect-[16/8]" position="50% 40%">
             <div className="absolute inset-x-4 bottom-4 z-[2] max-w-[460px] rounded-[10px] bg-[var(--paper)] p-6 sm:inset-x-auto sm:bottom-8 sm:left-8 sm:p-8">
               <p className="label soft mb-4">{t("landing.events.label")}</p>
