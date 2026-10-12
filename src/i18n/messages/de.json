@@ -2093,7 +2093,7 @@
   },
   "landing": {
     "meta": {
-      "title": "roots – Software für alle, die von unten etwas aufbauen",
+      "title": "roots – Wo Ideen Wurzeln schlagen",
       "description": "Mitglieder, Beiträge, Tickets, Schichten, Rechnungen, Formulare und E-Mails für Vereine, Kollektive und Veranstalter:innen. Ein Ort statt zehn Tools."
     },
     "nav": {
@@ -2106,10 +2106,10 @@
     },
     "hero": {
       "eyebrow": "Für Vereine, Kollektive und Veranstalter:innen",
-      "title1": "Software für alle, die",
-      "accent": "von unten",
-      "title2": "etwas aufbauen.",
-      "lead": "Mitglieder und Beiträge, Tickets und Einlass, Schichten, Rechnungen und E-Mails – an einem Ort, sauber gelöst. Damit eure Zeit wieder in die Sache fließt, nicht in die Verwaltung.",
+      "title1": "Wo Ideen",
+      "accent": "Wurzeln schlagen.",
+      "title2": "",
+      "lead": "Mehr machen, weniger verwalten. Mitglieder, Tickets, Schichten, Rechnungen und E-Mails an einem Ort – damit eure Zeit in die Sache fließt, nicht in die Verwaltung.",
       "cta": "Kostenlos starten",
       "secondary": "Produkt ansehen"
     },

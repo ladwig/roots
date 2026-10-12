@@ -2093,7 +2093,7 @@
   },
   "landing": {
     "meta": {
-      "title": "roots – software for everyone building from the ground up",
+      "title": "roots – Where ideas take root",
       "description": "Members, dues, tickets, shifts, invoices, forms and email for clubs, collectives and promoters. One place instead of ten tools."
     },
     "nav": {
@@ -2106,10 +2106,10 @@
     },
     "hero": {
       "eyebrow": "For clubs, collectives and promoters",
-      "title1": "Software for everyone building",
-      "accent": "from the ground",
-      "title2": "up.",
-      "lead": "Members and dues, tickets and door, shifts, invoices and email – in one place, done properly. So your time goes back into the cause, not the admin.",
+      "title1": "Where ideas",
+      "accent": "take root.",
+      "title2": "",
+      "lead": "Do more, manage less. Members, tickets, shifts, invoices and email in one place – so your time goes into the cause, not the admin.",
       "cta": "Start for free",
       "secondary": "See the product"
     },

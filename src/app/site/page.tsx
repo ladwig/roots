@@ -84,7 +84,7 @@ export default async function Landing() {
             <div>
               <p className="label reveal soft mb-6">{t("landing.hero.eyebrow")}</p>
               <h1 className="display fs-hero reveal max-w-[13ch]">
-                {t("landing.hero.title1")} <em>{t("landing.hero.accent")}</em> {t("landing.hero.title2")}
+                {t("landing.hero.title1")} <em>{t("landing.hero.accent")}</em>
               </h1>
             </div>
             <div className="reveal grid gap-8 lg:pb-3">
