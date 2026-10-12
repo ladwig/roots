@@ -231,14 +231,14 @@ isOneToOne: false
                   ]
                 },"email_sends": {
                   Row: {
-                    "automation_id": string | null,"campaign_id": string | null,"claimed_at": string | null,"contact_id": string | null,"created_at": string,"error": string | null,"id": string,"org_id": string,"send_after": string,"sent_at": string | null,"status": string,"to_email": string,"vars": NonNullable<Json>
+                    "automation_id": string | null,"campaign_id": string | null,"claimed_at": string | null,"contact_id": string | null,"created_at": string,"delivery": string | null,"delivery_at": string | null,"error": string | null,"id": string,"org_id": string,"send_after": string,"sent_at": string | null,"status": string,"to_email": string,"vars": NonNullable<Json>
                   }
                   ComputedFields: never
                   Insert: {
-                    "automation_id"?: string | null,"campaign_id"?: string | null,"claimed_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"error"?: string | null,"id"?: string,"org_id": string,"send_after"?: string,"sent_at"?: string | null,"status"?: string,"to_email": string,"vars"?: NonNullable<Json>
+                    "automation_id"?: string | null,"campaign_id"?: string | null,"claimed_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"delivery"?: string | null,"delivery_at"?: string | null,"error"?: string | null,"id"?: string,"org_id": string,"send_after"?: string,"sent_at"?: string | null,"status"?: string,"to_email": string,"vars"?: NonNullable<Json>
                   }
                   Update: {
-                    "automation_id"?: string | null,"campaign_id"?: string | null,"claimed_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"error"?: string | null,"id"?: string,"org_id"?: string,"send_after"?: string,"sent_at"?: string | null,"status"?: string,"to_email"?: string,"vars"?: NonNullable<Json>
+                    "automation_id"?: string | null,"campaign_id"?: string | null,"claimed_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"delivery"?: string | null,"delivery_at"?: string | null,"error"?: string | null,"id"?: string,"org_id"?: string,"send_after"?: string,"sent_at"?: string | null,"status"?: string,"to_email"?: string,"vars"?: NonNullable<Json>
                   }
                   Relationships: [
                     {
@@ -1456,6 +1456,8 @@ isOneToOne: false
 "claimed_at": string | null,
 "contact_id": string | null,
 "created_at": string,
+"delivery": string | null,
+"delivery_at": string | null,
 "error": string | null,
 "id": string,
 "org_id": string,

@@ -2030,7 +2030,14 @@
       "rich": "Formatieren mit der Leiste, Platzhalter über {}: {placeholders}. Ein Abmeldelink wird automatisch angehängt.",
       "html": "Fertiges HTML einfügen (z. B. aus Stripo oder Mailchimp). Platzhalter: {placeholders}. Skripte werden entfernt, der Abmeldelink wird unten angehängt."
     },
-    "preview": "Vorschau"
+    "preview": "Vorschau",
+    "delivery": {
+      "delivered": "Zugestellt",
+      "delayed": "Verzögert",
+      "bounced": "Unzustellbar",
+      "complained": "Als Spam gemeldet"
+    },
+    "deliveryStats": "{delivered} zugestellt · {bounced} unzustellbar · {complained} als Spam gemeldet"
   },
   "editor": {
     "toolbar": "Formatierung",

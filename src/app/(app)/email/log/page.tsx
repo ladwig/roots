@@ -12,7 +12,7 @@ export default async function EmailLogPage({ searchParams }: PageProps<"/email/l
   const page = pageParam(sp)
   const { data } = await ctx.supabase
     .from("email_sends")
-    .select("id, to_email, status, send_after, sent_at, error, email_campaigns(name), email_automations(name)")
+    .select("id, to_email, status, delivery, send_after, sent_at, error, email_campaigns(name), email_automations(name)")
     .eq("org_id", ctx.org.id)
     .order("created_at", { ascending: false })
     .range(...pageRange(page))
@@ -32,6 +32,11 @@ export default async function EmailLogPage({ searchParams }: PageProps<"/email/l
             cell: (r) => (
               <span className="grid gap-0.5">
                 <Badge variant={r.status === "sent" ? "default" : r.status === "failed" ? "destructive" : "outline"}>{t.dynamic(`email.sendStatus.${r.status}`)}</Badge>
+                {r.delivery && (
+                  <span className={r.delivery === "bounced" || r.delivery === "complained" ? "text-xs text-destructive" : "text-xs text-muted-foreground"}>
+                    {t.dynamic(`email.delivery.${r.delivery}`)}
+                  </span>
+                )}
                 {r.error && <span className="text-xs text-destructive">{r.error}</span>}
               </span>
             ),

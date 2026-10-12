@@ -2030,7 +2030,14 @@
       "rich": "Format with the toolbar, placeholders via {}: {placeholders}. An unsubscribe link is added automatically.",
       "html": "Paste finished HTML (e.g. from Stripo or Mailchimp). Placeholders: {placeholders}. Scripts are removed, the unsubscribe link is added at the bottom."
     },
-    "preview": "Preview"
+    "preview": "Preview",
+    "delivery": {
+      "delivered": "Delivered",
+      "delayed": "Delayed",
+      "bounced": "Bounced",
+      "complained": "Marked as spam"
+    },
+    "deliveryStats": "{delivered} delivered · {bounced} bounced · {complained} marked as spam"
   },
   "editor": {
     "toolbar": "Formatting",

@@ -108,6 +108,12 @@ Public pages locally: `http://<org-slug>.localhost:3000` (or `/s/<org-slug>`). T
 
 **SumUp**: developer.sumup.com → OAuth app (type Web), redirect URIs `<APP_URL>/api/integrations/sumup/callback` (production + localhost), no origin URL needed → `SUMUP_CLIENT_ID` / `SUMUP_CLIENT_SECRET`. Taking payments needs the `payments` scope, which SumUp grants after reviewing the app; until then orgs connect with their own API key (`sup_sk_…`, SumUp → Developers → API keys). Webhooks need no setup in either case: each checkout carries its notify URL, and roots re-reads the status from SumUp.
 
+### Email (Resend)
+
+**roots' own account** (fallback sender for orgs without their own): `RESEND_API_KEY` + `EMAIL_FROM` (`roots <mail@your-domain>`, domain verified in Resend). For delivery status: Resend → Webhooks → endpoint `<APP_URL>/api/webhooks/resend`, events `email.delivered`, `email.delivery_delayed`, `email.bounced`, `email.complained` → signing secret as `RESEND_WEBHOOK_SECRET`.
+
+**An org's own Resend account**: entered in Settings → Integrations. With a full-access key roots registers the webhook on their account itself (`?org=<id>`); a sending-only key works but shows no delivery status.
+
 ## Deployment
 
 - Vercel project `roots`, connected to this repo: every push to `main` deploys production.

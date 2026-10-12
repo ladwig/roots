@@ -81,6 +81,7 @@ export async function processEmailQueue(limit = 100) {
           to: s.to_email,
           ...mail,
           headers: { "List-Unsubscribe": `<${APP_URL}/api/unsubscribe/${s.id}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
+          tags: { send_id: s.id },
         })
         await db.from("email_sends").update(ok ? { status: "sent", sent_at: new Date().toISOString() } : { status: "failed", error: "No email provider configured" }).eq("id", s.id)
         if (ok) sent++
@@ -107,4 +108,28 @@ export async function unsubscribe(sendId: string) {
   if (s.contact_id) await db.from("contacts").update({ unsubscribed_at: new Date().toISOString() }).eq("id", s.contact_id).is("unsubscribed_at", null)
   await db.from("email_sends").update({ status: "skipped" }).eq("org_id", s.org_id).eq("to_email", s.to_email).eq("status", "queued")
   return { org: s.orgs?.name ?? "" }
+}
+
+const DELIVERY_RANK = { delayed: 1, delivered: 2, bounced: 3, complained: 4 } as const
+export type Delivery = keyof typeof DELIVERY_RANK
+
+/**
+ * Provider feedback for a send (webhook). Never downgrades (a late "delivered" doesn't undo "bounced").
+ * Hard bounce or spam complaint → the contact is unsubscribed so they get no more campaign/automation mails.
+ * `orgId` limits it to that org's sends (webhooks signed with an org's own secret).
+ * ponytail: bounces reuse unsubscribed_at instead of a separate "bounced" flag; split it if the UI needs to tell them apart.
+ */
+export async function recordDelivery(sendId: string, delivery: Delivery, opts: { at?: string; hard?: boolean; orgId?: string } = {}) {
+  if (!/^[0-9a-f-]{36}$/.test(sendId)) return
+  const db = createAdminClient()
+  const lower = Object.keys(DELIVERY_RANK).filter((k) => DELIVERY_RANK[k as Delivery] < DELIVERY_RANK[delivery])
+  let q = db
+    .from("email_sends")
+    .update({ delivery, delivery_at: opts.at ?? new Date().toISOString() })
+    .eq("id", sendId)
+    .or(`delivery.is.null,delivery.in.(${lower.join(",") || "none"})`)
+  if (opts.orgId) q = q.eq("org_id", opts.orgId)
+  const { data, error } = await q.select("id")
+  if (error) throw error
+  if (data.length && (delivery === "complained" || (delivery === "bounced" && opts.hard))) await unsubscribe(sendId)
 }

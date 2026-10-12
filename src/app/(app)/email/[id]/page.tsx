@@ -27,12 +27,13 @@ export default async function CampaignPage({ params, searchParams }: PageProps<"
   const [reach, stats, { data: tagRows }] = await Promise.all([
     editable && (audience.tags?.length || audience.members) ? resolveAudience(ctx.supabase, ctx.org.id, audience).then((r) => r.length) : Promise.resolve(null),
     !editable
-      ? ctx.supabase.from("email_sends").select("status").eq("campaign_id", id).limit(50000).then(({ data }) => data ?? [])
-      : Promise.resolve([] as { status: string }[]),
+      ? ctx.supabase.from("email_sends").select("status, delivery").eq("campaign_id", id).limit(50000).then(({ data }) => data ?? [])
+      : Promise.resolve([] as { status: string; delivery: string | null }[]),
     ctx.supabase.rpc("contact_tags", { p_org: ctx.org.id }),
   ])
   const allTags = (tagRows ?? []) as unknown as string[]
   const count = (s: string) => stats.filter((x) => x.status === s).length
+  const delivered = (d: string) => stats.filter((x) => x.delivery === d).length
 
   return (
     <>
@@ -44,6 +45,7 @@ export default async function CampaignPage({ params, searchParams }: PageProps<"
       {!editable && (
         <p className="text-sm text-muted-foreground">
           {t("email.stats", { sent: count("sent"), queued: count("queued") + count("sending"), failed: count("failed"), skipped: count("skipped") })}
+          {stats.some((x) => x.delivery) && ` · ${t("email.deliveryStats", { delivered: delivered("delivered"), bounced: delivered("bounced"), complained: delivered("complained") })}`}
         </p>
       )}
       <form action={saveCampaign} className="grid gap-4">

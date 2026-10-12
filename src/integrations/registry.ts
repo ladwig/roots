@@ -23,6 +23,7 @@ export type Mail = {
   text: string
   html: string
   headers?: Record<string, string> // e.g. List-Unsubscribe
+  tags?: Record<string, string> // returned by the provider's delivery webhook (send_id → email_sends row)
   attachments?: { filename: string; content: Uint8Array }[]
 }
 export type IncomingEvent = { externalId: string; type?: string; orgId?: string; payload: unknown }
