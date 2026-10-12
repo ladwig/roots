@@ -86,6 +86,95 @@ const ContactInput = z
   .partial()
   .strict()
 
+const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).describe("YYYY-MM-DD")
+const MembershipType = z.object({
+  id: uuid,
+  name: z.string(),
+  fee: z.number().int().describe("Fee per interval in cents"),
+  interval: z.enum(["month", "quarter", "half_year", "year", "none"]),
+  entry_fee: z.number().int().describe("One-off entry fee in cents"),
+  notice_months: z.number().int(),
+  prorate: z.boolean(),
+  active: z.boolean(),
+})
+const Membership = z.object({
+  id: uuid,
+  member_no: z.string().nullable().describe("Formatted member number"),
+  contact_id: uuid,
+  type_id: uuid,
+  starts_on: day,
+  ends_on: day.nullable(),
+  active: z.boolean().describe("Started and not ended (today)"),
+  has_mandate: z.boolean().describe("SEPA direct debit mandate on file (bank details are not exposed)"),
+  mandate_ref: z.string().nullable(),
+  note: z.string().nullable(),
+  created_at: ts,
+  updated_at: ts,
+})
+const MEMBERSHIP_COLS = "id, member_no, contact_id, type_id, starts_on, ends_on, iban, mandate_ref, note, created_at, updated_at"
+type MembershipRow = { iban: string | null; starts_on: string; ends_on: string | null } & Record<string, unknown>
+const berlinToday = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
+const membershipOut = ({ iban, ...m }: MembershipRow) => {
+  const now = berlinToday()
+  return { ...m, has_mandate: !!iban, active: m.starts_on <= now && (!m.ends_on || m.ends_on >= now) }
+}
+const Due = z.object({
+  id: uuid,
+  membership_id: uuid,
+  kind: z.enum(["fee", "entry", "levy"]),
+  description: z.string(),
+  amount: z.number().int().describe("Cents"),
+  period_start: day.nullable(),
+  due_on: day,
+  status: z.enum(["open", "paid", "cancelled"]),
+  paid_on: day.nullable(),
+  updated_at: ts,
+})
+const DUE_COLS = "id, membership_id, kind, description, amount:amount_cents, period_start, due_on, status, paid_on, updated_at"
+const Form = z.object({ id: uuid, title: z.string(), slug: z.string(), purpose: z.enum(["contact", "membership"]), status: z.enum(["draft", "published", "closed"]), created_at: ts, updated_at: ts })
+const Submission = z.object({
+  id: uuid,
+  form_id: uuid,
+  status: z.enum(["new", "accepted", "rejected"]),
+  email: z.string().nullable(),
+  data: z.record(z.string(), z.unknown()).describe("{ contact, custom, membership, consents } as submitted (IBAN masked)"),
+  contact_id: uuid.nullable(),
+  membership_id: uuid.nullable(),
+  created_at: ts,
+})
+const FileMeta = z.object({
+  id: uuid,
+  name: z.string(),
+  mime: z.string(),
+  size: z.number().int(),
+  entity: z.string().nullable(),
+  entity_id: uuid.nullable(),
+  folder: z.string().nullable(),
+  created_at: ts,
+  download_url: z.string().nullable().describe("Signed link, valid 10 minutes"),
+})
+const Invoice = z.object({
+  id: uuid,
+  kind: z.string().describe("invoice, quote or cancellation"),
+  status: z.string(),
+  number: z.string().nullable(),
+  contact_id: uuid.nullable(),
+  recipient_name: z.string().nullable(),
+  issue_date: day.nullable(),
+  due_date: day.nullable(),
+  currency: z.string(),
+  net_total: z.number().int(),
+  tax_total: z.number().int(),
+  gross_total: z.number().int(),
+  paid_at: ts.nullable(),
+  updated_at: ts,
+})
+const INVOICE_COLS = "id, kind, status, number, contact_id, recipient_name, issue_date, due_date, currency, net_total, tax_total, gross_total, paid_at, updated_at"
+const maskIban = (d: unknown) => {
+  const m = (d as { membership?: { iban?: string | null } })?.membership
+  return m?.iban ? { ...(d as object), membership: { ...m, iban: `${m.iban.slice(0, 4)}…${m.iban.slice(-4)}` } } : d
+}
+
 type Db = Parameters<Endpoint["handler"]>[0]["db"]
 async function eventOf(db: Db, orgId: string, id: string) {
   const { data } = await db.from("events").select("id").eq("id", id).eq("org_id", orgId).is("deleted_at", null).maybeSingle()
@@ -247,6 +336,231 @@ export const endpoints: Endpoint[] = [
       const { data, error } = await db.from("contacts").update(row).eq("id", params.id).eq("org_id", orgId).select(CONTACT_COLS).single()
       if (error) throw dbError(error)
       return data
+    },
+  }),
+  endpoint({
+    method: "GET",
+    path: "/membership-types",
+    permission: "members.view",
+    tag: "Members",
+    summary: "List membership types",
+    response: z.object({ data: z.array(MembershipType) }),
+    async handler({ db, orgId }) {
+      const { data } = await db
+        .from("membership_types")
+        .select("id, name, fee:fee_cents, interval, entry_fee:entry_fee_cents, notice_months, prorate, active")
+        .eq("org_id", orgId)
+        .order("name")
+      return { data: data ?? [] }
+    },
+  }),
+  endpoint({
+    method: "GET",
+    path: "/members",
+    permission: "members.view",
+    tag: "Members",
+    summary: "List memberships",
+    query: page.extend({
+      status: z.enum(["active", "ended", "all"]).default("all"),
+      contact_id: uuid.optional(),
+      type_id: uuid.optional(),
+      updated_since: z.iso.datetime({ offset: true }).optional(),
+    }),
+    response: list(Membership),
+    async handler({ db, orgId, query }) {
+      const now = berlinToday()
+      let q = db.from("memberships").select(MEMBERSHIP_COLS).eq("org_id", orgId).is("deleted_at", null).order("number").range(query.offset, query.offset + query.limit)
+      if (query.status === "active") q = q.lte("starts_on", now).or(`ends_on.is.null,ends_on.gte.${now}`)
+      if (query.status === "ended") q = q.lt("ends_on", now)
+      if (query.contact_id) q = q.eq("contact_id", query.contact_id)
+      if (query.type_id) q = q.eq("type_id", query.type_id)
+      if (query.updated_since) q = q.gte("updated_at", query.updated_since)
+      const { data } = await q
+      return paged(data?.map(membershipOut) ?? [], query)
+    },
+  }),
+  endpoint({
+    method: "GET",
+    path: "/members/{id}",
+    permission: "members.view",
+    tag: "Members",
+    summary: "Get a membership",
+    response: Membership,
+    async handler({ db, orgId, params }) {
+      const { data } = await db.from("memberships").select(MEMBERSHIP_COLS).eq("id", params.id).eq("org_id", orgId).is("deleted_at", null).maybeSingle()
+      if (!data) throw notFound()
+      return membershipOut(data)
+    },
+  }),
+  endpoint({
+    method: "POST",
+    path: "/members",
+    permission: "members.manage",
+    tag: "Members",
+    summary: "Add a member",
+    description: "For an existing contact (create it with POST /contacts first). The member number is assigned automatically.",
+    body: z
+      .object({
+        contact_id: uuid,
+        type_id: uuid,
+        starts_on: day.optional(),
+        iban: z.string().max(40).optional(),
+        bic: z.string().max(11).optional(),
+        account_holder: z.string().max(70).optional(),
+        mandate_signed_on: day.optional(),
+        note: z.string().max(5000).optional(),
+      })
+      .strict(),
+    response: Membership,
+    status: 201,
+    async handler({ db, orgId, body }) {
+      const iban = body.iban?.toUpperCase().replace(/\s/g, "") || null
+      if (iban && !/^[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}$/.test(iban)) throw new ApiError(422, "invalid_iban", "The IBAN is invalid.")
+      const startsOn = body.starts_on ?? berlinToday()
+      const { data, error } = await db
+        .from("memberships")
+        .insert({
+          org_id: orgId,
+          contact_id: body.contact_id,
+          type_id: body.type_id,
+          starts_on: startsOn,
+          iban,
+          bic: body.bic?.toUpperCase() || null,
+          account_holder: body.account_holder ?? null,
+          mandate_signed_on: iban ? (body.mandate_signed_on ?? startsOn) : null,
+          note: body.note ?? null,
+        })
+        .select(MEMBERSHIP_COLS)
+        .single()
+      if (error) throw error.message === "not_allowed" ? new ApiError(422, "invalid_reference", "contact_id or type_id does not belong to this organisation.") : new ApiError(500, "internal", "Database error.")
+      return membershipOut(data)
+    },
+  }),
+  endpoint({
+    method: "PATCH",
+    path: "/members/{id}",
+    permission: "members.manage",
+    tag: "Members",
+    summary: "Change a membership",
+    description: "Set `ends_on` to end it (cancellation), change the type or the note.",
+    body: z.object({ type_id: uuid, ends_on: day.nullable(), note: z.string().max(5000).nullable() }).partial().strict(),
+    response: Membership,
+    async handler({ db, orgId, params, body }) {
+      const { data, error } = await db.from("memberships").update(body).eq("id", params.id).eq("org_id", orgId).is("deleted_at", null).select(MEMBERSHIP_COLS).maybeSingle()
+      if (error) throw new ApiError(422, "invalid_input", "Invalid change (type of another organisation or end before start).")
+      if (!data) throw notFound()
+      return membershipOut(data)
+    },
+  }),
+  endpoint({
+    method: "GET",
+    path: "/dues",
+    permission: "members.view",
+    tag: "Members",
+    summary: "List member dues",
+    query: page.extend({ status: z.enum(["open", "paid", "cancelled"]).optional(), membership_id: uuid.optional(), updated_since: z.iso.datetime({ offset: true }).optional() }),
+    response: list(Due),
+    async handler({ db, orgId, query }) {
+      let q = db.from("member_dues").select(DUE_COLS).eq("org_id", orgId).order("due_on").range(query.offset, query.offset + query.limit)
+      if (query.status) q = q.eq("status", query.status)
+      if (query.membership_id) q = q.eq("membership_id", query.membership_id)
+      if (query.updated_since) q = q.gte("updated_at", query.updated_since)
+      const { data } = await q
+      return paged(data, query)
+    },
+  }),
+  endpoint({
+    method: "PATCH",
+    path: "/dues/{id}",
+    permission: "members.manage",
+    tag: "Members",
+    summary: "Mark a due paid or cancelled",
+    description: "For bank or accounting sync. `paid_on` defaults to today.",
+    body: z.object({ status: z.enum(["open", "paid", "cancelled"]), paid_on: day.optional() }).strict(),
+    response: Due,
+    async handler({ db, orgId, params, body }) {
+      const { data } = await db
+        .from("member_dues")
+        .update({ status: body.status, paid_on: body.status === "paid" ? (body.paid_on ?? berlinToday()) : null })
+        .eq("id", params.id)
+        .eq("org_id", orgId)
+        .select(DUE_COLS)
+        .maybeSingle()
+      if (!data) throw notFound()
+      return data
+    },
+  }),
+  endpoint({
+    method: "GET",
+    path: "/forms",
+    permission: "forms.view",
+    tag: "Forms",
+    summary: "List forms",
+    response: z.object({ data: z.array(Form) }),
+    async handler({ db, orgId }) {
+      const { data } = await db.from("forms").select("id, title, slug, purpose, status, created_at, updated_at").eq("org_id", orgId).is("deleted_at", null).order("created_at")
+      return { data: data ?? [] }
+    },
+  }),
+  endpoint({
+    method: "GET",
+    path: "/forms/{id}/submissions",
+    permission: "forms.view",
+    tag: "Forms",
+    summary: "Submissions of a form",
+    description: "Newest first. Poll with `since` to pick up new ones.",
+    query: page.extend({ status: z.enum(["new", "accepted", "rejected"]).optional(), since: z.iso.datetime({ offset: true }).optional() }),
+    response: list(Submission),
+    async handler({ db, orgId, params, query }) {
+      let q = db
+        .from("form_submissions")
+        .select("id, form_id, status, email, data, contact_id, membership_id, created_at")
+        .eq("org_id", orgId)
+        .eq("form_id", params.id)
+        .order("created_at", { ascending: false })
+        .range(query.offset, query.offset + query.limit)
+      if (query.status) q = q.eq("status", query.status)
+      if (query.since) q = q.gt("created_at", query.since)
+      const { data } = await q
+      return paged(data?.map((s) => ({ ...s, data: maskIban(s.data) })) ?? [], query)
+    },
+  }),
+  endpoint({
+    method: "GET",
+    path: "/files",
+    permission: "org.files.view",
+    tag: "Files",
+    summary: "List files",
+    description: "Optionally of one record (`entity` + `entity_id`, e.g. contacts + id) or one folder. Each file has a download link valid for 10 minutes.",
+    query: page.extend({ entity: z.string().max(40).optional(), entity_id: uuid.optional(), folder: z.string().max(200).optional() }),
+    response: list(FileMeta),
+    async handler({ db, orgId, query }) {
+      let q = db.from("files").select("id, name, mime, size, entity, entity_id, folder, created_at, path").eq("org_id", orgId).is("deleted_at", null).order("created_at", { ascending: false }).range(query.offset, query.offset + query.limit)
+      if (query.entity) q = q.eq("entity", query.entity)
+      if (query.entity_id) q = q.eq("entity_id", query.entity_id)
+      if (query.folder) q = q.eq("folder", query.folder)
+      const { data } = await q
+      const rows = data ?? []
+      const { data: signed } = rows.length ? await db.storage.from("files").createSignedUrls(rows.map((f) => f.path), 600) : { data: [] }
+      return paged(rows.map(({ path, ...f }) => ({ ...f, download_url: signed?.find((x) => x.path === path)?.signedUrl ?? null })), query)
+    },
+  }),
+  endpoint({
+    method: "GET",
+    path: "/invoices",
+    permission: "invoices.view",
+    tag: "Invoices",
+    summary: "List invoices, quotes and cancellations",
+    description: "Amounts in cents. Drafts have no number yet.",
+    query: page.extend({ kind: z.enum(["invoice", "quote", "cancellation"]).optional(), status: z.string().max(20).optional(), updated_since: z.iso.datetime({ offset: true }).optional() }),
+    response: list(Invoice),
+    async handler({ db, orgId, query }) {
+      let q = db.from("documents").select(INVOICE_COLS).eq("org_id", orgId).order("created_at").range(query.offset, query.offset + query.limit)
+      if (query.kind) q = q.eq("kind", query.kind)
+      if (query.status) q = q.eq("status", query.status)
+      if (query.updated_since) q = q.gte("updated_at", query.updated_since)
+      const { data } = await q
+      return paged(data, query)
     },
   }),
 ]

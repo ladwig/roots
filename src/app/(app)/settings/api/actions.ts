@@ -7,7 +7,7 @@ import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { back } from "@/lib/url"
-import { modules } from "@/modules/registry"
+import { apiCorePermissions, modules } from "@/modules/registry"
 
 const PATH = "/settings/api"
 const alphabet = "abcdefghijkmnpqrstuvwxyz23456789"
@@ -18,8 +18,9 @@ export async function createApiKey(_: unknown, fd: FormData): Promise<{ key?: st
   const ctx = await requirePerm("org.integrations.manage")
   const t = await getT()
   const name = String(fd.get("name") ?? "").trim().slice(0, 100)
-  const allowed = new Set(modules.filter((m) => ctx.modules.has(m.key)).flatMap((m) => m.permissions))
-  const permissions = [...new Set(fd.getAll("permissions").map(String))].filter((p) => allowed.has(p))
+  const allowed = new Set([...apiCorePermissions, ...modules.filter((m) => ctx.modules.has(m.key)).flatMap((m) => m.permissions)])
+  // A key never gets more than its creator has.
+  const permissions = [...new Set(fd.getAll("permissions").map(String))].filter((p) => allowed.has(p) && ctx.can(p))
   if (!name) return { error: t("api.nameMissing") }
   if (!permissions.length) return { error: t("api.permsMissing") }
   const prefix = `roots_${random(6)}`

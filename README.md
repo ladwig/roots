@@ -20,7 +20,7 @@ Production: https://roots-berlin.vercel.app · API docs: https://roots-berlin.ve
 | **Members** | Vereinsverwaltung: membership types (fee, interval, entry fee, notice, pro rata), memberships on contacts with number format + SEPA mandates, dues (periods, entry fees, levies), SEPA direct debit files (pain.008), reminders, cancel with notice |
 | **Forms** | Form builder over platform fields (contact, custom, membership), public forms with consents + SEPA mandate, submissions inbox; membership applications become members |
 | **Event hub** | Things that happen (`ticket.sold`, `contact.created`, …) → in-app inbox, email, webhooks, Telegram |
-| **Public API** | Per-org API keys with permissions, `/api/v1` (events, tickets, contacts), OpenAPI spec + interactive docs |
+| **Public API** | Per-org API keys with permissions, `/api/v1` (events, tickets, contacts, members + dues, forms + submissions, files, invoices), OpenAPI spec + interactive docs |
 
 Roadmap and architecture decisions: [`PLAN.md`](PLAN.md). Rules for working in the code (humans and AI agents): [`AGENTS.md`](AGENTS.md).
 

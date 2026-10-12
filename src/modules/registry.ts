@@ -26,6 +26,9 @@ export const core: ModuleDef = {
   ],
 }
 
+// Core permissions an API key may carry (data an org may want to sync), next to the enabled modules' ones.
+export const apiCorePermissions = ["org.files.view"]
+
 export const modules: ModuleDef[] = [
   { key: "crm", permissions: ["crm.view", "crm.manage"], nav: [{ href: "/contacts", label: "contacts.nav", icon: ContactIcon, permission: "crm.view" }] },
   {

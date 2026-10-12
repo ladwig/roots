@@ -1111,7 +1111,8 @@
     "revokedBadge": "revoked",
     "nameMissing": "Please give the key a name.",
     "permsMissing": "Please pick at least one permission.",
-    "noModules": "The API needs at least one enabled module."
+    "noModules": "The API needs at least one enabled module.",
+    "corePermissions": "General"
   },
   "invoices": {
     "nav": "Invoices",

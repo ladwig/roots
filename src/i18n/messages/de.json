@@ -1111,7 +1111,8 @@
     "revokedBadge": "widerrufen",
     "nameMissing": "Bitte gib dem Schlüssel einen Namen.",
     "permsMissing": "Bitte wähle mindestens ein Recht.",
-    "noModules": "Für die API muss mindestens ein Modul aktiv sein."
+    "noModules": "Für die API muss mindestens ein Modul aktiv sein.",
+    "corePermissions": "Allgemein"
   },
   "invoices": {
     "nav": "Rechnungen",

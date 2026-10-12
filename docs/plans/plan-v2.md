@@ -22,7 +22,7 @@ These choices hold up well and the recommendations build on them:
 
 ## 1. Correctness & security (fix first)
 
-### 1.1 API keys can carry more rights than their creator
+### 1.1 API keys can carry more rights than their creator ✅ (fixed 2026-10-12)
 - **Finding:** `createApiKey` (`src/app/(app)/settings/api/actions.ts:21`) allows every permission of every enabled module. Someone with only `org.integrations.manage` can create a key with `crm.manage` or `payments.refund`.
 - **Recommendation:** only offer and accept permissions the creator has: `.filter((p) => allowed.has(p) && ctx.can(p))`. Add an assertion to `isolation.sql` or a unit test.
 - **Effort:** S

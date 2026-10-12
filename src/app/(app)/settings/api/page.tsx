@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param } from "@/lib/url"
-import { modules } from "@/modules/registry"
+import { apiCorePermissions, modules } from "@/modules/registry"
 import { revokeApiKey } from "./actions"
 import { NewKey } from "./new-key"
 
@@ -19,13 +19,13 @@ export default async function ApiSettings({ searchParams }: PageProps<"/settings
     .select("id, name, prefix, permissions, last_used_at, revoked_at, created_at")
     .eq("org_id", ctx.org.id)
     .order("created_at", { ascending: false })
-  const groups = modules
-    .filter((m) => ctx.modules.has(m.key))
-    .map((m) => ({
-      module: m.key,
-      label: t.dynamic(`modules.${m.key}.name`),
-      perms: m.permissions.map((p) => ({ key: p, label: t.dynamic(`permissions.${p}`) })),
-    }))
+  // Only what the creator may do themselves (the action checks the same).
+  const groups = [
+    { module: "org", label: t("api.corePermissions"), perms: apiCorePermissions },
+    ...modules.filter((m) => ctx.modules.has(m.key)).map((m) => ({ module: m.key, label: t.dynamic(`modules.${m.key}.name`), perms: m.permissions })),
+  ]
+    .map((g) => ({ ...g, perms: g.perms.filter((p) => ctx.can(p)).map((p) => ({ key: p, label: t.dynamic(`permissions.${p}`) })) }))
+    .filter((g) => g.perms.length)
 
   return (
     <div className="grid gap-6">
