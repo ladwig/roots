@@ -401,7 +401,8 @@
       "form_submissions": "Form submissions",
       "email_campaigns": "Email campaigns",
       "email_automations": "Email automations",
-      "letter_templates": "Letter templates"
+      "letter_templates": "Letter templates",
+      "event_waitlist": "Waiting lists"
     }
   },
   "errors": {
@@ -1107,7 +1108,12 @@
     "emailSubject": "Your tickets: {event}",
     "emailIntro": "Hi {name}, here are your tickets ({count}) for {event} on {when}. Show the QR code at the entrance – printed or on your phone.",
     "emailLink": "View tickets online",
-    "emailFooter": "This email is from {org} via roots."
+    "emailFooter": "This email is from {org} via roots.",
+    "signupTitle": "Registration",
+    "signupCheckout": "Register",
+    "signup": "Register now",
+    "seatN": "Spot {n}",
+    "signupHint": "You get your registration with a QR code for entry on the next page and by email."
   },
   "api": {
     "intro": "API keys let your own tools, scripts or apps access your organisation's data. Each key can only do what you tick and can be revoked any time.",
@@ -2478,5 +2484,43 @@
     "empty": "Nothing found.",
     "hint": "Type to find contacts, members, events, invoices, forms, files and pages.",
     "loading": "Searching …"
+  },
+  "waitlist": {
+    "title": "Sold out – waiting list",
+    "text": "Sign up: when a spot frees up you get an email and can secure it for 24 hours.",
+    "name": "Your name",
+    "email": "Your email",
+    "quantity": "Number of spots",
+    "join": "Join the waiting list",
+    "joined": "You're on the waiting list. We'll email you as soon as a spot frees up.",
+    "already": "You're already on the waiting list.",
+    "notFull": "There are free spots again – you can book right away.",
+    "claimBanner": {
+      "one": "Reserved for you: 1 spot until {until}.",
+      "other": "Reserved for you: {count} spots until {until}."
+    },
+    "claimExpired": "This link has expired or was already used.",
+    "emailSubject": "A spot is free: {event}",
+    "emailBody": {
+      "one": "Hello {name}, a spot for {event} has freed up for you. We're holding it until {until}.",
+      "other": "Hello {name}, {count} spots for {event} have freed up for you. We're holding them until {until}."
+    },
+    "emailLink": "Secure your spot",
+    "admin": "Waiting list",
+    "empty": "Nobody on the waiting list.",
+    "position": "No.",
+    "seats": "Spots",
+    "since": "Since",
+    "statuses": {
+      "waiting": "Waiting",
+      "offered": "Offered",
+      "claimed": "Claimed",
+      "expired": "Expired",
+      "cancelled": "Removed"
+    },
+    "offeredUntil": "until {date}",
+    "remove": "Remove",
+    "removed": "Removed from the waiting list.",
+    "hint": "When a spot frees up, the next person automatically gets an email and can secure it for 24 hours."
   }
 }

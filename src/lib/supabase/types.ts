@@ -351,6 +351,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"event_waitlist": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"email": string,"event_id": string,"id": string,"name": string,"offered_until": string | null,"org_id": string,"quantity": number,"status": string,"token": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"email": string,"event_id": string,"id"?: string,"name": string,"offered_until"?: string | null,"org_id": string,"quantity"?: number,"status"?: string,"token"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"email"?: string,"event_id"?: string,"id"?: string,"name"?: string,"offered_until"?: string | null,"org_id"?: string,"quantity"?: number,"status"?: string,"token"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "event_waitlist_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "event_waitlist_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"events": {
                   Row: {
                     "capacity": number | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"ends_at": string | null,"id": string,"image_path": string | null,"location_id": string | null,"max_tickets_per_order": number,"org_id": string,"published_at": string | null,"slug": string,"starts_at": string,"status": string,"ticket_names": string,"title": string,"updated_at": string,"updated_by": string | null,"venue_address": string | null,"venue_name": string | null
@@ -1520,6 +1546,9 @@ isOneToOne: false
 "enable_soft_delete":
 { Args: { "p_org_column"?: string,"p_perm"?: string,"p_purge_days"?: number,"p_table": unknown }; Returns: undefined
                            },
+"event_left":
+{ Args: { "p_event": string,"p_token"?: string }; Returns: number
+                           },
 "event_visible":
 { Args: { "p_event": string }; Returns: boolean
                            },
@@ -1597,6 +1626,11 @@ isOneToOne: false
 "my_staff_id":
 { Args: { "p_org": string }; Returns: string
                            },
+"offer_waitlist":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "email": string,"event_id": string,"id": string,"name": string,"offered_until": string,"quantity": number,"token": string
+            }[]
+                           },
 "org_alive":
 { Args: { "p_org": string }; Returns: boolean
                            },
@@ -1613,7 +1647,7 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: string
                            },
 "reserve_tickets":
-{ Args: { "p_code"?: string,"p_event": string,"p_items": Json,"p_minutes": number,"p_order": string }; Returns: {
+{ Args: { "p_code"?: string,"p_event": string,"p_items": Json,"p_minutes": number,"p_order": string,"p_waitlist"?: string }; Returns: {
               "checked_in_at": string | null,
 "checked_in_by": string | null,
 "code": string,
@@ -1676,7 +1710,7 @@ isOneToOne: false
 { Args: { "k": Omit<Database["public"]['Tables']["tickets"]['Row'], Database["public"]['Tables']["tickets"]['ComputedFields']> }; Returns: boolean
                            },
 "ticket_offer":
-{ Args: { "p_code"?: string,"p_event": string }; Returns: {
+{ Args: { "p_code"?: string,"p_event": string,"p_waitlist"?: string }; Returns: {
               "code_applies": boolean,"code_id": string,"currency": string,"description": string,"final_price": number,"hidden": boolean,"name": string,"price": number,"remaining": number,"sales_end": string,"sales_start": string,"tier_id": string,"tier_name": string,"type_id": string
             }[]
                            },

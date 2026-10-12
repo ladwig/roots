@@ -18,20 +18,21 @@ export type BuyInput = {
   email: string
   name: string
   code: string | null // promo / unlock code
+  waitlist?: string | null // claim token from a waiting-list offer (uses the seats held for it)
   items: { typeId: string; holderName: string | null }[] // one per ticket
   successUrl: (orderId: string, token: string) => string
   cancelUrl: string
 }
 
 /** The current offer (tier prices, code discount, what's left) – same function the shop shows. */
-export async function ticketOffer(eventId: string, code: string | null) {
-  const { data } = await db().rpc("ticket_offer", { p_event: eventId, p_code: code ?? undefined })
+export async function ticketOffer(eventId: string, code: string | null, waitlist?: string | null) {
+  const { data } = await db().rpc("ticket_offer", { p_event: eventId, p_code: code ?? undefined, p_waitlist: waitlist ?? undefined })
   return data ?? []
 }
 
 /** Reserve tickets, create the order and return where to send the buyer. Throws message keys. */
 export async function buyTickets(b: BuyInput) {
-  const offer = new Map((await ticketOffer(b.eventId, b.code)).map((o) => [o.type_id, o]))
+  const offer = new Map((await ticketOffer(b.eventId, b.code, b.waitlist)).map((o) => [o.type_id, o]))
   if (!b.items.length || b.items.some((i) => !offer.has(i.typeId))) throw new Error("tickets.notOnSale")
   const currencies = new Set(b.items.map((i) => offer.get(i.typeId)!.currency))
   if (currencies.size > 1) throw new Error("tickets.notOnSale")
@@ -61,6 +62,7 @@ export async function buyTickets(b: BuyInput) {
     p_items: b.items.map((i) => ({ type_id: i.typeId, holder_name: i.holderName })),
     p_minutes: RESERVE_MINUTES,
     p_code: b.code ?? undefined,
+    p_waitlist: b.waitlist ?? undefined,
   })
   // The tier or code changed between showing and reserving: don't charge a different price silently.
   const expected = lines.reduce((s, l) => s + l.quantity * l.unitAmount, 0)
@@ -180,3 +182,39 @@ export async function ticketsForBuyer(orderId: string, token: string) {
 }
 
 export const qrSvg = (code: string) => QRCode.toString(code, { type: "svg", margin: 1, errorCorrectionLevel: "M" })
+
+/** Minute worker: expire old waiting-list offers, offer free seats in order and email each claim link. */
+export async function offerWaitlist() {
+  const { data: offers, error } = await db().rpc("offer_waitlist")
+  if (error) throw error
+  for (const o of offers ?? []) {
+    const { data: ev } = await db().from("events").select("title, slug, starts_at, orgs(id, slug, name)").eq("id", o.event_id).single()
+    if (!ev?.orgs) continue
+    const t = tDe()
+    const link = siteUrl(ev.orgs.slug, `/e/${ev.slug}?w=${o.token}`)
+    const until = t.date(o.offered_until, { dateStyle: "medium", timeStyle: "short" })
+    const body = t("waitlist.emailBody", { name: o.name, event: ev.title, count: o.quantity, until })
+    await sendOrgEmail(ev.orgs.id, {
+      to: o.email,
+      subject: t("waitlist.emailSubject", { event: ev.title }),
+      text: `${body}\n\n${t("waitlist.emailLink")}: ${link}\n\n${t("shop.emailFooter", { org: ev.orgs.name })}`,
+      html: `<div style="font:16px/1.5 system-ui,sans-serif"><p>${esc(body)}</p><p><a href="${esc(link)}">${esc(t("waitlist.emailLink"))}</a></p><p style="color:#666;font-size:13px">${esc(t("shop.emailFooter", { org: ev.orgs.name }))}</p></div>`,
+    }).catch((e) => console.error("waitlist email", o.id, e))
+  }
+  return offers?.length ?? 0
+}
+
+/** Public: join an event's waiting list (only while nothing is on sale). Throws message keys. */
+export async function joinWaitlist(w: { orgId: string; eventId: string; name: string; email: string; quantity: number }) {
+  const offer = await ticketOffer(w.eventId, null)
+  if (!offer.length || offer.some((o) => !o.hidden && o.remaining !== 0)) throw new Error("waitlist.notFull")
+  const { error } = await db().from("event_waitlist").insert({ org_id: w.orgId, event_id: w.eventId, name: w.name, email: w.email, quantity: w.quantity })
+  if (error) throw new Error(error.code === "23505" ? "waitlist.already" : "shop.failed")
+}
+
+/** A waiting-list claim link that is still valid for this event: how many seats are held until when. */
+export async function waitlistClaim(eventId: string, token: string | null) {
+  if (!token || !/^[0-9a-f]{36}$/.test(token)) return null
+  const { data } = await db().from("event_waitlist").select("quantity, offered_until").eq("event_id", eventId).eq("token", token).eq("status", "offered").gt("offered_until", new Date().toISOString()).maybeSingle()
+  return data
+}

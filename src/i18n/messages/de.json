@@ -401,7 +401,8 @@
       "form_submissions": "Formular-Einsendungen",
       "email_campaigns": "E-Mail-Kampagnen",
       "email_automations": "E-Mail-Automationen",
-      "letter_templates": "Briefvorlagen"
+      "letter_templates": "Briefvorlagen",
+      "event_waitlist": "Wartelisten"
     }
   },
   "errors": {
@@ -1107,7 +1108,12 @@
     "emailSubject": "Deine Tickets: {event}",
     "emailIntro": "Hallo {name}, hier sind deine Tickets ({count}) für {event} am {when}. Zeig den QR-Code am Einlass – ausgedruckt oder auf dem Handy.",
     "emailLink": "Tickets online ansehen",
-    "emailFooter": "Diese E-Mail kommt von {org} über roots."
+    "emailFooter": "Diese E-Mail kommt von {org} über roots.",
+    "signupTitle": "Anmeldung",
+    "signupCheckout": "Anmelden",
+    "signup": "Verbindlich anmelden",
+    "seatN": "Platz {n}",
+    "signupHint": "Deine Anmeldung mit QR-Code für den Einlass bekommst du direkt auf der nächsten Seite und per E-Mail."
   },
   "api": {
     "intro": "Mit API-Schlüsseln greifen eigene Tools, Skripte oder Apps auf die Daten deiner Organisation zu. Jeder Schlüssel darf nur, was du ankreuzt, und lässt sich jederzeit widerrufen.",
@@ -2478,5 +2484,43 @@
     "empty": "Nichts gefunden.",
     "hint": "Tippe, um Kontakte, Mitglieder, Events, Rechnungen, Formulare, Dateien und Seiten zu finden.",
     "loading": "Suche …"
+  },
+  "waitlist": {
+    "title": "Ausgebucht – Warteliste",
+    "text": "Trag dich ein: Wird ein Platz frei, bekommst du eine E-Mail und kannst ihn 24 Stunden lang sichern.",
+    "name": "Dein Name",
+    "email": "Deine E-Mail",
+    "quantity": "Anzahl Plätze",
+    "join": "Auf die Warteliste",
+    "joined": "Du stehst auf der Warteliste. Wir melden uns per E-Mail, sobald ein Platz frei wird.",
+    "already": "Du stehst schon auf der Warteliste.",
+    "notFull": "Es gibt wieder freie Plätze – du kannst direkt buchen.",
+    "claimBanner": {
+      "one": "Für dich reserviert: 1 Platz bis {until}.",
+      "other": "Für dich reserviert: {count} Plätze bis {until}."
+    },
+    "claimExpired": "Dieser Link ist abgelaufen oder wurde schon genutzt.",
+    "emailSubject": "Ein Platz ist frei: {event}",
+    "emailBody": {
+      "one": "Hallo {name}, bei {event} ist ein Platz für dich frei geworden. Wir halten ihn bis {until} für dich.",
+      "other": "Hallo {name}, bei {event} sind {count} Plätze für dich frei geworden. Wir halten sie bis {until} für dich."
+    },
+    "emailLink": "Platz sichern",
+    "admin": "Warteliste",
+    "empty": "Niemand auf der Warteliste.",
+    "position": "Nr.",
+    "seats": "Plätze",
+    "since": "Seit",
+    "statuses": {
+      "waiting": "Wartet",
+      "offered": "Angeboten",
+      "claimed": "Eingelöst",
+      "expired": "Abgelaufen",
+      "cancelled": "Entfernt"
+    },
+    "offeredUntil": "bis {date}",
+    "remove": "Entfernen",
+    "removed": "Von der Warteliste entfernt.",
+    "hint": "Wird ein Platz frei, bekommt der oder die Nächste automatisch eine E-Mail und kann ihn 24 Stunden lang sichern."
   }
 }

@@ -25,7 +25,8 @@ export default async function Checkout({ params, searchParams }: PageProps<"/s/[
   if (!ev) notFound()
   const t = await getT()
   const code = param(sp, "code")?.trim().toUpperCase().slice(0, 40) || null
-  const { data: offer } = await s.db.rpc("ticket_offer", { p_event: ev.id, p_code: code ?? undefined })
+  const waitlist = param(sp, "w")?.trim().slice(0, 64) || null
+  const { data: offer } = await s.db.rpc("ticket_offer", { p_event: ev.id, p_code: code ?? undefined, p_waitlist: waitlist ?? undefined })
   const types = offer?.map((o) => ({ id: o.type_id, name: o.tier_name ? `${o.name} · ${o.tier_name}` : o.name, price: o.final_price, currency: o.currency }))
   // One entry per ticket, from ?t_<typeId>=<qty>
   const picked = (types ?? []).flatMap((ty) => {
@@ -34,13 +35,14 @@ export default async function Checkout({ params, searchParams }: PageProps<"/s/[
   })
   const back = sitePath(site, `/e/${slug}`)
   const total = picked.reduce((sum, ty) => sum + ty.price, 0)
+  const free = picked.length > 0 && total === 0 // free event → "Anmeldung" wording
 
   return (
     <main className="mx-auto grid max-w-xl gap-6 px-4 py-12">
       <Link href={back} className="text-sm text-muted-foreground underline-offset-4 hover:underline">
         ← {ev.title}
       </Link>
-      <h1 className="font-heading text-2xl font-semibold">{t("shop.checkoutTitle")}</h1>
+      <h1 className="font-heading text-2xl font-semibold">{free ? t("shop.signupCheckout") : t("shop.checkoutTitle")}</h1>
       <Notice error={param(sp, "error")} />
       {!picked.length ? (
         <p className="text-sm text-muted-foreground">
@@ -56,13 +58,14 @@ export default async function Checkout({ params, searchParams }: PageProps<"/s/[
           <input type="hidden" name="site" value={site} />
           <input type="hidden" name="slug" value={slug} />
           {code && <input type="hidden" name="code" value={code} />}
+          {waitlist && <input type="hidden" name="w" value={waitlist} />}
           <ol className="grid gap-3">
             {picked.map((ty, i) => (
               <li key={i} className="grid gap-2 rounded-lg border p-3">
                 <input type="hidden" name="type" value={ty.id} />
                 <p className="flex justify-between gap-2 text-sm">
                   <span className="font-medium">
-                    {t("shop.ticketN", { n: i + 1 })} · {ty.name}
+                    {free ? t("shop.seatN", { n: i + 1 }) : t("shop.ticketN", { n: i + 1 })} · {ty.name}
                   </span>
                   <span>{ty.price === 0 ? t("shop.free") : t.money(ty.price, ty.currency)}</span>
                 </p>
@@ -91,9 +94,9 @@ export default async function Checkout({ params, searchParams }: PageProps<"/s/[
               <Input id="buyer-email" name="email" type="email" required autoComplete="email" />
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">{t("shop.emailHint")}</p>
+          <p className="text-xs text-muted-foreground">{free ? t("shop.signupHint") : t("shop.emailHint")}</p>
           <SubmitButton className="justify-self-start">
-            {total === 0 ? t("shop.getFree") : t("shop.pay", { amount: t.money(total, picked[0].currency) })}
+            {free ? t("shop.signup") : t("shop.pay", { amount: t.money(total, picked[0].currency) })}
           </SubmitButton>
         </form>
       )}

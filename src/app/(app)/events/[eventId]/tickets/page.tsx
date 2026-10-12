@@ -16,7 +16,7 @@ import type { Tables } from "@/lib/supabase/types"
 import { toLocalInput } from "@/lib/time"
 import { pageParam, param, siteUrl, withParams } from "@/lib/url"
 import { priceInput } from "@/tickets/price"
-import { deleteCode, deleteTicketType, deleteTier, saveCode, saveTicketSettings, saveTicketType, saveTier } from "./actions"
+import { deleteCode, deleteTicketType, deleteTier, removeFromWaitlist, saveCode, saveTicketSettings, saveTicketType, saveTier } from "./actions"
 import { SubmitButton } from "@/components/submit-button"
 
 type TicketType = Tables<"ticket_types">
@@ -268,6 +268,8 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
         />
         <Pager sp={sp} page={page} hasNext={(tickets?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
       </section>
+
+      <Waitlist t={t} ctx={ctx} eventId={eventId} canManage={canManage} />
 
       {creating && (
         <UrlSheet params={["new"]} title={t("tickets.newType")}>
@@ -555,3 +557,61 @@ function TypeForm({ t, eventId, ty }: { t: T; eventId: string; ty?: TicketType }
 }
 
 export const instant = false
+
+// Waiting list (people who signed up while the event was full), in order. Offers go out automatically (minute worker).
+async function Waitlist({ t, ctx, eventId, canManage }: { t: T; ctx: Awaited<ReturnType<typeof requirePerm>>; eventId: string; canManage: boolean }) {
+  const { data: rows } = await ctx.supabase
+    .from("event_waitlist")
+    .select("id, name, email, quantity, status, offered_until, created_at")
+    .eq("event_id", eventId)
+    .eq("org_id", ctx.org.id)
+    .in("status", ["waiting", "offered", "claimed", "expired"])
+    .order("created_at")
+    .limit(500)
+  if (!rows?.length) return null
+  return (
+    <section className="grid gap-3" aria-labelledby="waitlist">
+      <div className="grid gap-1">
+        <h2 id="waitlist" className="font-medium">
+          {t("waitlist.admin")}
+        </h2>
+        <p className="text-sm text-muted-foreground">{t("waitlist.hint")}</p>
+      </div>
+      <DataTable
+        rows={rows}
+        rowKey={(r) => r.id}
+        empty={t("waitlist.empty")}
+        columns={[
+          { header: t("waitlist.name"), cell: (r) => <span className="font-medium">{r.name}</span> },
+          { header: t("waitlist.email"), cell: (r) => <span className="break-all">{r.email}</span> },
+          { header: t("waitlist.seats"), cell: (r) => r.quantity, className: "tabular-nums" },
+          {
+            header: t("tickets.status"),
+            cell: (r) => (
+              <span className="grid gap-0.5">
+                <Badge variant={r.status === "offered" ? "default" : "outline"}>{t.dynamic(`waitlist.statuses.${r.status}`)}</Badge>
+                {r.status === "offered" && r.offered_until && (
+                  <span className="text-xs text-muted-foreground">{t("waitlist.offeredUntil", { date: t.date(r.offered_until, { dateStyle: "short", timeStyle: "short" }) })}</span>
+                )}
+              </span>
+            ),
+          },
+          { header: t("waitlist.since"), cell: (r) => t.date(r.created_at, { dateStyle: "short", timeStyle: "short" }), className: "whitespace-nowrap" },
+          {
+            header: "",
+            cell: (r) =>
+              canManage && (r.status === "waiting" || r.status === "offered") ? (
+                <form action={removeFromWaitlist}>
+                  <input type="hidden" name="id" value={r.id} />
+                  <input type="hidden" name="event" value={eventId} />
+                  <SubmitButton size="sm" variant="outline">
+                    {t("waitlist.remove")}
+                  </SubmitButton>
+                </form>
+              ) : null,
+          },
+        ]}
+      />
+    </section>
+  )
+}

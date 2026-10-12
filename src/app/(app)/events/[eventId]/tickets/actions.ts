@@ -146,3 +146,15 @@ export async function deleteCode(fd: FormData) {
   if (error) back(`${here}?code=${id}`, { error: error.code === "23503" ? t("tickets.codeUsed") : dbError(t, error) })
   back(here, { ok: t("tickets.deleted") })
 }
+
+/** Take someone off the waiting list (a held offer is released for the next in line). */
+export async function removeFromWaitlist(fd: FormData) {
+  const { ctx, t, here } = await manager(String(fd.get("event") ?? ""))
+  const { error, count } = await ctx.supabase
+    .from("event_waitlist")
+    .update({ status: "cancelled" }, { count: "exact" })
+    .eq("id", String(fd.get("id") ?? ""))
+    .eq("org_id", ctx.org.id)
+    .in("status", ["waiting", "offered"])
+  back(`${here}#waitlist`, error || !count ? { error: error ? dbError(t, error) : t("errors.not_allowed") } : { ok: t("waitlist.removed") })
+}

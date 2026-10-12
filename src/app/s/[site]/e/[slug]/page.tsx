@@ -10,7 +10,9 @@ import { TicketShop } from "./shop"
 
 export default async function PublicEvent({ params, searchParams }: PageProps<"/s/[site]/e/[slug]">) {
   const { site, slug } = await params
-  const code = param(await searchParams, "code")?.trim().toUpperCase().slice(0, 40) || null
+  const sp = await searchParams
+  const code = param(sp, "code")?.trim().toUpperCase().slice(0, 40) || null
+  const waitlist = param(sp, "w")?.trim().slice(0, 64) || null
   const s = await getSite(site)
   if (!s) notFound()
   const { data: e } = await s.db
@@ -49,7 +51,7 @@ export default async function PublicEvent({ params, searchParams }: PageProps<"/
       </header>
       {e.description && <p className="whitespace-pre-line">{e.description}</p>}
       <Timetable eventId={e.id} />
-      {e.status === "published" && <TicketShop site={site} slug={slug} eventId={e.id} max={e.max_tickets_per_order} code={code} />}
+      {e.status === "published" && <TicketShop site={site} slug={slug} eventId={e.id} max={e.max_tickets_per_order} code={code} waitlist={waitlist} />}
     </main>
   )
 }

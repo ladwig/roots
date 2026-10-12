@@ -616,6 +616,46 @@ begin
   select count(*) into n from public.forms where org_id = org_a;             assert n = 0, 'B sees forms of A';
   reset role;
 
+  -- Event capacity + waiting list: capacity caps all types, a freed seat is offered (held) to the next in line,
+  -- only the claim token can take it; B / anon see nothing
+  declare v_ev uuid; v_type uuid; v_o1 uuid; v_o2 uuid; v_tok text;
+  begin
+    insert into public.events (org_id, title, slug, starts_at, status, capacity) values (org_a, 'Voll', 'voll', now() + interval '7 days', 'published', 1) returning id into v_ev;
+    insert into public.ticket_types (org_id, event_id, name, price) values (org_a, v_ev, 'Frei', 0) returning id into v_type;
+    insert into public.pay_orders (org_id, amount_total, source_module) values (org_a, 0, 'tickets') returning id into v_o1;
+    insert into public.pay_orders (org_id, amount_total, source_module) values (org_a, 0, 'tickets') returning id into v_o2;
+    set local role service_role;
+    perform public.reserve_tickets(v_o1, v_ev, jsonb_build_array(jsonb_build_object('type_id', v_type)), 30);
+    begin
+      perform public.reserve_tickets(v_o2, v_ev, jsonb_build_array(jsonb_build_object('type_id', v_type)), 30);
+      assert false, 'event capacity must cap unlimited types';
+    exception when raise_exception then null; end;
+    reset role;
+    select remaining into n from public.ticket_offer(v_ev) where type_id = v_type;        assert n = 0, 'offer shows the event as full';
+    insert into public.event_waitlist (org_id, event_id, name, email) values (org_a, v_ev, 'Wartend', 'w@x.de');
+    select count(*) into n from public.offer_waitlist() where event_id = v_ev;            assert n = 0, 'no offer while full';
+    update public.tickets set status = 'void' where order_id = v_o1;
+    select count(*) into n from public.offer_waitlist() where event_id = v_ev;            assert n = 1, 'freed seat is offered';
+    select token into v_tok from public.event_waitlist where event_id = v_ev and status = 'offered';
+    select remaining into n from public.ticket_offer(v_ev) where type_id = v_type;        assert n = 0, 'offered seat is held for others';
+    select remaining into n from public.ticket_offer(v_ev, null, v_tok) where type_id = v_type; assert n = 1, 'claim token sees its seat';
+    set local role service_role;
+    perform public.reserve_tickets(v_o2, v_ev, jsonb_build_array(jsonb_build_object('type_id', v_type)), 30, null, v_tok);
+    reset role;
+    select count(*) into n from public.event_waitlist where event_id = v_ev and status = 'claimed'; assert n = 1, 'claim marks the entry';
+    perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.event_waitlist where org_id = org_a;    assert n = 0, 'B sees waiting list of A';
+    reset role;
+    perform set_config('request.jwt.claims', '{}', true);
+    set local role anon;
+    begin
+      perform 1 from public.event_waitlist limit 1;
+      assert false, 'anon must not read the waiting list';
+    exception when insufficient_privilege then null; end;
+    reset role;
+  end;
+
   -- Letter templates: own ones are org-private, roots defaults (org_id null) visible to all and read-only
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   set local role authenticated;

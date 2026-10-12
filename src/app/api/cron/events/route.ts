@@ -4,6 +4,7 @@ import { pollTelegram } from "@/integrations/telegram"
 import { deliverDue } from "@/events/worker"
 import { processEmailQueue } from "@/email/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { offerWaitlist } from "@/tickets/server"
 
 // Called every minute (vercel.json cron, or `npm run worker` locally). Protected by CRON_SECRET.
 export async function GET(request: Request) {
@@ -19,6 +20,7 @@ export async function GET(request: Request) {
   // Email module queue (campaigns + automations), after the events so automations of new events are queued.
   const emails = await processEmailQueue().catch((e) => (console.error(e), 0))
   await generateAllSeries().catch(console.error) // recurring shifts stay 8 weeks ahead
+  await offerWaitlist().catch(console.error) // freed seats → next on the event waiting lists
   // Empty the trash (soft-deleted rows past their retention).
   const { data: purged } = await createAdminClient().rpc("purge_deleted")
   await createAdminClient().rpc("purge_portal_tokens") // expired portal logins/sessions

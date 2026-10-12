@@ -1,24 +1,38 @@
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
 import { sitePath } from "@/lib/url"
+import { waitlistClaim } from "@/tickets/server"
 import { getSite } from "../../data"
 import { SubmitButton } from "@/components/submit-button"
+import { joinWaitlistAction } from "./actions"
 
 // Ticket types with quantity fields; a plain GET form to the checkout step (works without JS).
-export async function TicketShop({ site, slug, eventId, max, code }: { site: string; slug: string; eventId: string; max: number; code: string | null }) {
+// Free events say "Anmeldung"; sold out → waiting list; ?w=<token> = a waiting-list offer with held seats.
+export async function TicketShop({ site, slug, eventId, max, code, waitlist }: { site: string; slug: string; eventId: string; max: number; code: string | null; waitlist: string | null }) {
   const s = (await getSite(site))!
-  const { data: offer } = await s.db.rpc("ticket_offer", { p_event: eventId, p_code: code ?? undefined })
+  const [{ data: offer }, claim] = await Promise.all([
+    s.db.rpc("ticket_offer", { p_event: eventId, p_code: code ?? undefined, p_waitlist: waitlist ?? undefined }),
+    waitlistClaim(eventId, waitlist),
+  ])
   const types = offer
   const codeValid = !!code && !!offer?.some((o) => o.code_applies)
   if (!types?.length) return null
   const t = await getT()
   const now = new Date().getTime()
+  const free = types.every((ty) => ty.final_price === 0)
+  const soldOut = !claim && types.filter((ty) => !ty.hidden).every((ty) => ty.remaining === 0)
   let anyOnSale = false
   return (
-    <section aria-labelledby="tickets" className="grid gap-4 rounded-xl border p-4">
+    <section aria-labelledby="tickets" className="grid scroll-mt-20 gap-4 rounded-xl border p-4">
       <h2 id="tickets" className="font-heading text-xl font-semibold">
-        {t("shop.title")}
+        {free ? t("shop.signupTitle") : t("shop.title")}
       </h2>
+      {waitlist && (
+        <p className={claim ? "rounded-lg bg-muted px-3 py-2 text-sm" : "text-sm text-destructive"}>
+          {claim ? t("waitlist.claimBanner", { count: claim.quantity, until: t.date(claim.offered_until!, { dateStyle: "medium", timeStyle: "short" }) }) : t("waitlist.claimExpired")}
+        </p>
+      )}
       <form className="flex flex-wrap items-center gap-2">
         <Input name="code" defaultValue={code ?? ""} placeholder={t("shop.codePlaceholder")} aria-label={t("shop.code")} className="w-44 uppercase" />
         <SubmitButton variant="outline" size="sm">
@@ -28,14 +42,15 @@ export async function TicketShop({ site, slug, eventId, max, code }: { site: str
       </form>
       <form action={sitePath(site, `/e/${slug}/checkout`)} className="grid gap-3">
         {codeValid && <input type="hidden" name="code" value={code!} />}
+        {claim && <input type="hidden" name="w" value={waitlist!} />}
         <ul className="grid gap-3">
           {types.map((ty) => {
             const remaining = ty.remaining
             const notYet = ty.sales_start && new Date(ty.sales_start).getTime() > now
             const over = ty.sales_end && new Date(ty.sales_end).getTime() < now
-            const soldOut = remaining === 0
+            const typeSoldOut = remaining === 0
             const discounted = ty.final_price !== ty.price
-            const onSale = !notYet && !over && !soldOut
+            const onSale = !notYet && !over && !typeSoldOut
             anyOnSale ||= onSale
             return (
               <li key={ty.type_id} className="flex flex-wrap items-center justify-between gap-3">
@@ -51,7 +66,7 @@ export async function TicketShop({ site, slug, eventId, max, code }: { site: str
                     {!onSale && (
                       <span className="text-muted-foreground">
                         {" · "}
-                        {soldOut
+                        {typeSoldOut
                           ? t("shop.soldOut")
                           : notYet
                             ? t("shop.from", { date: t.date(ty.sales_start!, { dateStyle: "medium", timeStyle: "short" }) })
@@ -82,6 +97,33 @@ export async function TicketShop({ site, slug, eventId, max, code }: { site: str
           </SubmitButton>
         )}
       </form>
+      {soldOut && (
+        <form action={joinWaitlistAction} className="grid gap-3 border-t pt-4">
+          <input type="hidden" name="site" value={site} />
+          <input type="hidden" name="slug" value={slug} />
+          <div className="grid gap-1">
+            <h3 className="font-medium">{t("waitlist.title")}</h3>
+            <p className="text-sm text-muted-foreground">{t("waitlist.text")}</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-[1fr_1fr_6rem]">
+            <div className="grid gap-1">
+              <Label htmlFor="wl-name">{t("waitlist.name")}</Label>
+              <Input id="wl-name" name="name" required maxLength={200} autoComplete="name" />
+            </div>
+            <div className="grid gap-1">
+              <Label htmlFor="wl-email">{t("waitlist.email")}</Label>
+              <Input id="wl-email" name="email" type="email" required autoComplete="email" />
+            </div>
+            <div className="grid gap-1">
+              <Label htmlFor="wl-qty">{t("waitlist.quantity")}</Label>
+              <Input id="wl-qty" name="quantity" type="number" min={1} max={Math.min(20, max)} defaultValue={1} required />
+            </div>
+          </div>
+          <SubmitButton variant="outline" className="justify-self-start">
+            {t("waitlist.join")}
+          </SubmitButton>
+        </form>
+      )}
     </section>
   )
 }
