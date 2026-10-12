@@ -6,6 +6,7 @@ const ROOT = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "localhost:3000"
 const PUBLIC_PATHS = ["/login", "/forgot", "/auth", "/invite", "/api/webhooks", "/api/integrations", "/api/cron", "/api/v1", "/api/docs", "/api/unsubscribe", "/checkout", "/s", "/u", "/site", "/style"]
 // On the bare domain these stay at the root; every other App path lives under /app there.
 const ROOT_PATHS = ["/login", "/forgot", "/auth", "/invite", "/api", "/checkout", "/s", "/u", "/site", "/style"]
+const SITE_PAGES = ["/product"]
 const under = (pathname: string, list: string[]) => list.some((p) => pathname === p || pathname.startsWith(`${p}/`))
 
 // Hosts:
@@ -27,6 +28,8 @@ export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
   if (!sub) {
     if (pathname === "/") return NextResponse.rewrite(new URL(`/site${search}`, request.url))
+    // Website pages beyond "/" (English paths): /product → src/app/site/product
+    if (SITE_PAGES.includes(pathname)) return NextResponse.rewrite(new URL(`/site${pathname}${search}`, request.url))
     if (pathname !== "/app" && !pathname.startsWith("/app/") && !under(pathname, ROOT_PATHS))
       return NextResponse.redirect(new URL(`/app${pathname}${search}`, request.url))
   }

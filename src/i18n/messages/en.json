@@ -2167,6 +2167,30 @@
         "b1": "Number ranges per document type",
         "b2": "A quote becomes an invoice in one click",
         "b3": "PDF, print and export for accounting"
+      },
+      "events": {
+        "label": "Events & guest lists",
+        "title": "The whole night on one screen.",
+        "text": "Events with their own page, line-up and timetable. Guest lists per night or permanent, with links for promoters and artists.",
+        "b1": "Public event page with timetable",
+        "b2": "Guest lists with quota and invite link",
+        "b3": "Door: tickets and guests in one view"
+      },
+      "contacts": {
+        "label": "Contacts",
+        "title": "Everyone. One list.",
+        "text": "Members, ticket buyers, volunteers and partners in one place – with tags, custom fields, notes and history.",
+        "b1": "CSV import with automatic mapping",
+        "b2": "Custom fields for whatever you need",
+        "b3": "Export to Excel, anytime"
+      },
+      "portal": {
+        "label": "Member area",
+        "title": "Self-service instead of email ping-pong.",
+        "text": "Members sign in by link, see their membership and dues, and update address or bank details themselves.",
+        "b1": "Sign-in without password",
+        "b2": "New bank details with SEPA mandate",
+        "b3": "Cancellation with the earliest date"
       }
     },
     "manifesto": {
@@ -2316,6 +2340,53 @@
         "title": "Everything connects",
         "text": "A ticket purchase becomes a contact, an application a membership, a due a direct debit. Without lifting a finger."
       }
+    },
+    "menu": {
+      "intro": "What roots takes care of",
+      "card": "Where ideas take root.",
+      "cardLink": "Why roots",
+      "all": "All features",
+      "api": "API documentation",
+      "items": {
+        "members": {
+          "title": "Members & dues",
+          "text": "From joining to direct debit"
+        },
+        "tickets": {
+          "title": "Tickets & door",
+          "text": "Sell, scan, settle up"
+        },
+        "events": {
+          "title": "Events & guest lists",
+          "text": "Line-up, timetable and door"
+        },
+        "shifts": {
+          "title": "Shifts",
+          "text": "Rotas that fill themselves"
+        },
+        "invoices": {
+          "title": "Invoices",
+          "text": "Quotes and invoices by German rules"
+        },
+        "forms": {
+          "title": "Forms & email",
+          "text": "Applications, newsletters, automations"
+        },
+        "contacts": {
+          "title": "Contacts",
+          "text": "Everyone in one place"
+        },
+        "portal": {
+          "title": "Member area",
+          "text": "Self-service by link instead of password"
+        }
+      }
+    },
+    "productPage": {
+      "meta": "roots – Product",
+      "title": "Everything you organise.",
+      "accent": "In one place.",
+      "lead": "Every area works on its own – and better together: one contact is member, ticket buyer, volunteer and recipient at once."
     }
   }
 }

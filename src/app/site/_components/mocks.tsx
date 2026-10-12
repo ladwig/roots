@@ -320,3 +320,121 @@ export function InvoiceMock() {
     </div>
   )
 }
+
+/** Contacts: one list, tags, where each person comes from. */
+export function ContactsMock() {
+  const rows = [
+    ["LK", "Lena Krüger", ["Mitglied", "Vorstand"], "Mitgliedsantrag"],
+    ["MY", "Murat Yılmaz", ["Ticketkauf"], "Sommerfest"],
+    ["SW", "Sophie Wagner", ["Newsletter"], "Formular"],
+    ["JB", "Jonas Becker", ["Mitglied", "Jugend"], "Import"],
+    ["AR", "Ana Ribeiro", ["Artist"], "Gästeliste"],
+  ] as const
+  return (
+    <div className="p-[1.2em] text-[clamp(8px,0.9vw,12.5px)]">
+      <div className="mb-[0.9em] flex items-center justify-between">
+        <span className="text-[1.4em] font-semibold tracking-tight">Kontakte</span>
+        <span className="rounded-[5px] border border-black/10 px-[0.8em] py-[0.3em] text-black/55">Suchen …</span>
+      </div>
+      <div className="overflow-hidden rounded-[0.7em] border border-black/5 bg-white">
+        {rows.map(([ini, name, tags, from], i) => (
+          <div key={name} className={cn("anim-row grid grid-cols-[2.2em_1.3fr_1.4fr_1fr] items-center gap-[0.7em] px-[0.9em] py-[0.6em]", i && "border-t border-black/5")} style={delay(i * 0.5)}>
+            <span className="grid size-[2.2em] place-items-center rounded-full bg-[#e9e4d6] text-[0.85em] font-medium">{ini}</span>
+            <span className="font-medium">{name}</span>
+            <span className="flex flex-wrap gap-[0.3em]">
+              {tags.map((t) => (
+                <Badge key={t} tone={t === "Mitglied" ? "moss" : "gray"}>
+                  {t}
+                </Badge>
+              ))}
+            </span>
+            <span className="text-black/45">{from}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** Events: timetable of the night next to the guest list at the door. */
+export function LineupMock() {
+  const acts = [
+    ["22:00", "Mira Lenz", "Floor"],
+    ["23:30", "Kollektiv Süd", "Floor"],
+    ["01:00", "DJ Okafor", "Floor"],
+    ["02:30", "Lia & Ben", "Garten"],
+  ]
+  const guests = [
+    ["Anna S.", "+1", true],
+    ["Tom K.", "", true],
+    ["Crew: Mo", "", false],
+    ["Lisa M.", "+2", false],
+  ] as const
+  return (
+    <div className="grid gap-[0.8em] p-[1.2em] text-[clamp(8px,0.9vw,12.5px)] sm:grid-cols-[1.2fr_1fr]">
+      <div className="rounded-[0.8em] bg-white p-[1em]">
+        <div className="mb-[0.7em] flex items-center justify-between">
+          <span className="text-[1.3em] font-semibold tracking-tight">Timetable</span>
+          <Badge tone="gray">Sa, 18. Okt.</Badge>
+        </div>
+        {acts.map(([time, act, stage], i) => (
+          <div key={act} className="anim-row flex items-center gap-[0.8em] border-t border-black/5 py-[0.55em]" style={delay(i * 0.4)}>
+            <span className="w-[3.2em] font-mono text-black/45">{time}</span>
+            <span className="flex-1 font-medium">{act}</span>
+            <span className="text-black/45">{stage}</span>
+          </div>
+        ))}
+      </div>
+      <div className="rounded-[0.8em] bg-white p-[1em]">
+        <div className="mb-[0.7em] flex items-center justify-between">
+          <span className="text-[1.3em] font-semibold tracking-tight">Gästeliste</span>
+          <span className="text-black/45">2 / 9 drin</span>
+        </div>
+        {guests.map(([name, plus, inside], i) => (
+          <div key={name} className="flex items-center gap-[0.6em] border-t border-black/5 py-[0.55em]">
+            <span className={cn("grid size-[1.4em] place-items-center rounded-[0.3em] border text-[0.8em]", inside ? "anim-drop border-[#4d5a2c] bg-[#4d5a2c] text-white" : "border-black/20")} style={delay(1 + i * 0.6)}>
+              {inside ? "✓" : ""}
+            </span>
+            <span className="flex-1">{name}</span>
+            <span className="text-black/45">{plus}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** Phone: the member area – membership, dues, change details, cancel. */
+export function PortalMock() {
+  return (
+    <div className="flex h-full flex-col gap-[0.8em] px-[1.2em] pt-[1em] text-[1em]">
+      <div>
+        <div className="text-[0.8em] text-black/45">TSV Süd · Mitgliederbereich</div>
+        <div className="text-[1.35em] leading-tight font-semibold">Hallo Paula</div>
+      </div>
+      <div className="rounded-[1em] bg-[#191813] p-[1em] text-white">
+        <div className="text-[0.75em] text-white/55">Mitgliedschaft</div>
+        <div className="text-[1.15em] font-semibold">Vollmitglied</div>
+        <div className="mt-[0.6em] flex justify-between text-[0.8em] text-white/70">
+          <span>Nr. M-0106</span>
+          <span>seit 03/2026</span>
+        </div>
+      </div>
+      <div className="grid gap-[0.4em] text-[0.85em]">
+        {[
+          ["Beitrag 2026", "bezahlt"],
+          ["Umlage Halle", "offen"],
+        ].map(([a, b]) => (
+          <div key={a} className="flex justify-between rounded-[0.6em] bg-white px-[0.8em] py-[0.55em]">
+            <span>{a}</span>
+            <span className={b === "offen" ? "text-[#8a5a2b]" : "text-[#4d5a2c]"}>{b}</span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-auto mb-[1.2em] grid gap-[0.4em] text-center text-[0.8em]">
+        <span className="rounded-[0.5em] bg-[#191813] py-[0.6em] text-white">Daten ändern</span>
+        <span className="py-[0.4em] text-black/50">Mitgliedschaft kündigen</span>
+      </div>
+    </div>
+  )
+}

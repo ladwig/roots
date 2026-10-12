@@ -1,5 +1,6 @@
 import Image from "next/image"
 import { ArrowUpRightIcon, PlusIcon } from "lucide-react"
+import { SIGNUP, SiteFrame } from "./_components/frame"
 import { HalftoneBand, Painting, Pill } from "./_components/ui"
 import { getT } from "@/i18n/server"
 import { DeviceBrowser, DeviceLaptop, DevicePhone } from "./_components/devices"
@@ -8,8 +9,6 @@ import { WireContours, WirePanels, WireSpheres } from "./_components/wireframes"
 import { PAINTINGS, type PaintingKey } from "./paintings"
 
 // Public website (landing). Look: docs/design/site.md. Served at "/" of the bare domain (see src/proxy.ts).
-const APP = "/app"
-const SIGNUP = "/login"
 
 export default async function Landing() {
   const t = await getT()
@@ -45,37 +44,12 @@ export default async function Landing() {
     },
     { key: "invoices", mock: <InvoiceMock /> },
   ]
-  const modules = ["crm", "members", "events", "tickets", "guestlists", "shifts", "forms", "email", "invoices", "files", "portal", "api"] as const
   const audiences = ["a1", "a2", "a3", "a4", "a5", "a6"] as const
   const faqs = ["q1", "q2", "q3", "q4", "q5"] as const
 
   return (
     <>
-      {/* Everything above the footer scrolls over it (the footer is revealed underneath). */}
-      <div className="relative z-10 bg-[var(--paper)] shadow-[0_24px_48px_rgb(25_24_19/.18)]">
-        {/* ---- nav ---- */}
-        <header className="sticky top-0 z-50">
-          <nav className="nav-bar flex h-16 items-center justify-between gap-4">
-            <a href="#top" className="wordmark text-[26px]">
-              roots
-            </a>
-            <div className="hidden items-center gap-7 text-[14px] md:flex">
-              {(["product", "modules", "pricing", "faq"] as const).map((k) => (
-                <a key={k} href={`#${k}`} className="soft transition-colors hover:text-[var(--ink)]">
-                  {t(`landing.nav.${k}`)}
-                </a>
-              ))}
-            </div>
-            <div className="flex items-center gap-5">
-              <a href={APP} className="soft text-[14px] hover:text-[var(--ink)] max-sm:hidden">
-                {t("landing.nav.login")}
-              </a>
-              <Pill href={SIGNUP} className="h-10 px-4">
-                {t("landing.nav.start")}
-              </Pill>
-            </div>
-          </nav>
-        </header>
+      <SiteFrame>
 
         {/* ---- hero: the painting fills the first screen (pinned); scrolling brings the laptop up into the field ---- */}
         <section id="top" className="relative">
@@ -141,7 +115,7 @@ export default async function Landing() {
         <section className="wrap section text-center">
           <p className="display fs-h2 reveal mx-auto max-w-[18ch] leading-[1.05]">
             {t("landing.statement.before")}{" "}
-            <a href="#modules" className="pill inline-pill">
+            <a href="/product" className="pill inline-pill">
               <span>{t("landing.statement.pill")}</span>
               <ArrowUpRightIcon className="size-[0.32em] min-w-4" strokeWidth={2} />
             </a>{" "}
@@ -150,7 +124,7 @@ export default async function Landing() {
         </section>
 
         {/* ---- values: three cards with line-art ---- */}
-        <section className="wrap pb-[clamp(96px,12vw,176px)]">
+        <section id="why" className="wrap scroll-mt-24 pb-[clamp(96px,12vw,176px)]">
           <div className="mb-14 grid justify-items-center gap-5 text-center">
             <span className="tag">{t("landing.values.label")}</span>
             <h2 className="display fs-h2 max-w-[18ch]">{t("landing.values.title")}</h2>
@@ -235,23 +209,6 @@ export default async function Landing() {
           </div>
         </section>
 
-        {/* ---- modules table ---- */}
-        <section id="modules" className="wrap section">
-          <div className="mb-14 grid gap-6 md:grid-cols-2 md:items-end">
-            <h2 className="display fs-h2 reveal">{t("landing.modulesSection.title")}</h2>
-            <p className="reveal soft max-w-[44ch] md:justify-self-end">{t("landing.modulesSection.text")}</p>
-          </div>
-          <dl className="border-b border-[var(--line)]">
-            {modules.map((m, i) => (
-              <div key={m} className="reveal rule grid gap-2 py-5 sm:grid-cols-[64px_minmax(0,1fr)_minmax(0,1.4fr)] sm:items-baseline sm:gap-8">
-                <span className="label text-[var(--umber)]">{String(i + 1).padStart(2, "0")}</span>
-                <dt className="display text-[clamp(22px,2vw,28px)] leading-tight">{t(`landing.modules.${m}.name`)}</dt>
-                <dd className="soft">{t(`landing.modules.${m}.text`)}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-
         {/* ---- for clubs & promoters ---- */}
         <section className="wrap pb-[clamp(96px,12vw,176px)]">
           <Painting k="galette" sizes="(min-width: 1280px) 1280px, 100vw" className="aspect-[4/5] sm:aspect-[16/8]" position="50% 40%">
@@ -328,72 +285,7 @@ export default async function Landing() {
         <section className="wrap pb-[clamp(96px,12vw,176px)]">
           <HalftoneBand k="dance" title={t("landing.final.title")} accent={t("landing.final.accent")} text={t("landing.final.text")} cta={t("landing.final.pill")} href={SIGNUP} />
         </section>
-      </div>
-
-      {/* ---- footer, revealed underneath ---- */}
-      <footer className="sticky bottom-0 z-0 h-[min(100svh,860px)] overflow-hidden bg-[var(--ink)] text-[var(--paper)]">
-        <Image
-          src={PAINTINGS.pastoral.src}
-          alt={`${PAINTINGS.pastoral.artist}, ${PAINTINGS.pastoral.title}`}
-          fill
-          sizes="100vw"
-          className="object-cover opacity-90 [filter:saturate(.9)_contrast(1.03)]"
-          style={{ objectPosition: "50% 45%" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[var(--ink)]/55 via-[var(--ink)]/10 to-[var(--ink)]/80" />
-        <div className="wrap relative flex h-full flex-col justify-between py-10">
-          <div className="flex flex-wrap justify-between gap-10 text-[14px]">
-            <p className="max-w-[36ch] text-[var(--paper)]/85">{t("landing.footer.claim")}</p>
-            <div className="flex gap-14">
-              <ul className="grid content-start gap-2">
-                <li className="label mb-1 text-[var(--paper)]/55">{t("landing.footer.product")}</li>
-                {(["product", "modules", "pricing", "faq"] as const).map((k) => (
-                  <li key={k}>
-                    <a href={`#${k}`} className="hover:underline">
-                      {t(`landing.nav.${k}`)}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-              <ul className="grid content-start gap-2">
-                <li className="label mb-1 text-[var(--paper)]/55">{t("landing.footer.account")}</li>
-                <li>
-                  <a href={APP} className="hover:underline">
-                    {t("landing.nav.login")}
-                  </a>
-                </li>
-                <li>
-                  <a href={SIGNUP} className="hover:underline">
-                    {t("landing.nav.start")}
-                  </a>
-                </li>
-                <li>
-                  <a href="/api/docs" className="hover:underline">
-                    API
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div>
-            <p className="wordmark text-[clamp(110px,24vw,340px)] leading-[0.8]">roots</p>
-            <div className="mt-6 flex flex-wrap justify-between gap-4 text-[12px] text-[var(--paper)]/60">
-              <span>{t("landing.footer.grassroots")}</span>
-              <span>
-                {t("landing.footer.paintings")}{" "}
-                {(["harvesters", "dance", "turf", "galette", "pastoral"] as const).map((k, i) => (
-                  <span key={k}>
-                    {i > 0 && " · "}
-                    <a href={PAINTINGS[k].source} className="hover:underline" target="_blank" rel="noreferrer">
-                      {PAINTINGS[k].artist}
-                    </a>
-                  </span>
-                ))}
-              </span>
-            </div>
-          </div>
-        </div>
-      </footer>
+      </SiteFrame>
     </>
   )
 }

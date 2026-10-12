@@ -2167,6 +2167,30 @@
         "b1": "Nummernkreise pro Belegart",
         "b2": "Aus dem Angebot wird mit einem Klick die Rechnung",
         "b3": "PDF, Druck und Export für die Buchhaltung"
+      },
+      "events": {
+        "label": "Events & Gästelisten",
+        "title": "Der ganze Abend auf einem Bildschirm.",
+        "text": "Events mit eigener Seite, Line-up und Timetable. Gästelisten pro Abend oder dauerhaft, mit Links für Promoter und Artists.",
+        "b1": "Öffentliche Eventseite mit Timetable",
+        "b2": "Gästelisten mit Kontingent und Einladungslink",
+        "b3": "Tür: Tickets und Gäste in einer Ansicht"
+      },
+      "contacts": {
+        "label": "Kontakte",
+        "title": "Alle Menschen. Eine Liste.",
+        "text": "Mitglieder, Ticketkäufer, Helfer und Partner an einem Ort – mit Tags, eigenen Feldern, Notizen und Verlauf.",
+        "b1": "Import per CSV mit automatischer Zuordnung",
+        "b2": "Eigene Felder für alles, was ihr braucht",
+        "b3": "Export als Excel, jederzeit"
+      },
+      "portal": {
+        "label": "Mitgliederbereich",
+        "title": "Selbstservice statt E-Mail-Pingpong.",
+        "text": "Mitglieder melden sich per Link an, sehen ihre Mitgliedschaft und Beiträge und ändern Adresse oder Bankdaten selbst.",
+        "b1": "Anmeldung ohne Passwort",
+        "b2": "Neue Bankverbindung mit SEPA-Mandat",
+        "b3": "Kündigung mit frühestem Termin"
       }
     },
     "manifesto": {
@@ -2316,6 +2340,53 @@
         "title": "Alles hängt zusammen",
         "text": "Ein Ticketkauf wird zum Kontakt, ein Antrag zur Mitgliedschaft, ein Beitrag zur Lastschrift. Ohne Zutun."
       }
+    },
+    "menu": {
+      "intro": "Was roots für euch übernimmt",
+      "card": "Wo Ideen Wurzeln schlagen.",
+      "cardLink": "Warum roots",
+      "all": "Alle Funktionen",
+      "api": "API-Dokumentation",
+      "items": {
+        "members": {
+          "title": "Mitglieder & Beiträge",
+          "text": "Von der Aufnahme bis zur Lastschrift"
+        },
+        "tickets": {
+          "title": "Tickets & Einlass",
+          "text": "Verkaufen, scannen, abrechnen"
+        },
+        "events": {
+          "title": "Events & Gästelisten",
+          "text": "Line-up, Timetable und Tür"
+        },
+        "shifts": {
+          "title": "Schichten",
+          "text": "Dienstpläne, die sich selbst füllen"
+        },
+        "invoices": {
+          "title": "Rechnungen",
+          "text": "Angebote und Rechnungen nach deutschen Regeln"
+        },
+        "forms": {
+          "title": "Formulare & E-Mail",
+          "text": "Anträge, Newsletter, Automationen"
+        },
+        "contacts": {
+          "title": "Kontakte",
+          "text": "Alle Menschen an einem Ort"
+        },
+        "portal": {
+          "title": "Mitgliederbereich",
+          "text": "Selbstservice per Link statt Passwort"
+        }
+      }
+    },
+    "productPage": {
+      "meta": "roots – Produkt",
+      "title": "Alles, was ihr organisiert.",
+      "accent": "An einem Ort.",
+      "lead": "Jeder Bereich funktioniert für sich – und zusammen noch besser: ein Kontakt ist zugleich Mitglied, Ticketkäufer, Helferin und Empfänger."
     }
   }
 }
