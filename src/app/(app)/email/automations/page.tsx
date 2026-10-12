@@ -5,16 +5,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { EmailBodyField } from "@/components/email-body-field"
 import { AUTOMATION_EVENTS } from "@/email/events"
+import { BASE_PLACEHOLDERS, type Format } from "@/email/render"
 import { getT } from "@/i18n/server"
 import type { T } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import type { Tables } from "@/lib/supabase/types"
 import { param } from "@/lib/url"
 import { deleteAutomation, saveAutomation } from "../actions"
-
-const textareaClass =
-  "rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
 
 // Automations: event + delay → email to the person it's about. Several on the same event with different delays
 // make a sequence ("welcome now, info after 7 days, survey after 30").
@@ -85,14 +84,13 @@ function AutomationForm({ t, a, events, disabled }: { t: T; a?: Tables<"email_au
             </div>
           </div>
           <Field id={`a-subject-${key}`} name="subject" label={t("email.subject")} required maxLength={300} defaultValue={a?.subject ?? ""} />
-          <div className="grid gap-2">
-            <Label htmlFor={`a-body-${key}`}>{t("email.body")}</Label>
-            <textarea id={`a-body-${key}`} name="body" rows={6} required maxLength={50000} defaultValue={a?.body ?? ""} className={textareaClass} />
-            <p className="text-xs text-muted-foreground">
-              {t("email.bodyHelp")}
-              {ev?.vars.length ? ` ${t("email.eventVars", { vars: ev.vars.map((v) => `{${v}}`).join(", ") })}` : ""}
-            </p>
-          </div>
+          <EmailBodyField
+            id={`a-body-${key}`}
+            format={(a?.format ?? "text") as Format}
+            body={a?.body ?? ""}
+            placeholders={[...BASE_PLACEHOLDERS, ...(ev?.vars ?? [])]}
+            disabled={disabled}
+          />
         </fieldset>
         {!disabled && (
           <div className="flex flex-wrap items-center gap-3">

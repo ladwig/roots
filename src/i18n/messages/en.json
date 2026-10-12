@@ -2014,6 +2014,36 @@
     "unsubscribeQuestion": "Don't want any more emails from this sender?",
     "unsubscribeConfirm": "Unsubscribe",
     "unsubscribed": "You're unsubscribed and won't get newsletters or automatic emails anymore.",
-    "unsubscribeInvalid": "This link is invalid."
+    "unsubscribeInvalid": "This link is invalid.",
+    "format": "Format",
+    "formats": {
+      "text": "Text",
+      "rich": "Editor",
+      "html": "Own HTML"
+    },
+    "formatHelp": {
+      "text": "Blank line = new paragraph, links become clickable. Placeholders: {placeholders}. An unsubscribe link is added automatically.",
+      "rich": "Format with the toolbar, placeholders via {}: {placeholders}. An unsubscribe link is added automatically.",
+      "html": "Paste finished HTML (e.g. from Stripo or Mailchimp). Placeholders: {placeholders}. Scripts are removed, the unsubscribe link is added at the bottom."
+    },
+    "preview": "Preview"
+  },
+  "editor": {
+    "toolbar": "Formatting",
+    "bold": "Bold",
+    "italic": "Italic",
+    "h2": "Heading",
+    "h3": "Subheading",
+    "bullets": "Bullet list",
+    "numbers": "Numbered list",
+    "quote": "Quote",
+    "link": "Link",
+    "linkPrompt": "Link address (empty = remove link)",
+    "image": "Image",
+    "imagePrompt": "Image address (https://…)",
+    "divider": "Divider",
+    "placeholder": "Insert placeholder",
+    "undo": "Undo",
+    "redo": "Redo"
   }
 }

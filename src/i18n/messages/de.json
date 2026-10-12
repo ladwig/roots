@@ -2014,6 +2014,36 @@
     "unsubscribeQuestion": "Möchtest du keine E-Mails mehr von diesem Absender bekommen?",
     "unsubscribeConfirm": "Abmelden",
     "unsubscribed": "Du bist abgemeldet und bekommst keine Newsletter oder automatischen E-Mails mehr.",
-    "unsubscribeInvalid": "Dieser Link ist ungültig."
+    "unsubscribeInvalid": "Dieser Link ist ungültig.",
+    "format": "Format",
+    "formats": {
+      "text": "Text",
+      "rich": "Editor",
+      "html": "Eigenes HTML"
+    },
+    "formatHelp": {
+      "text": "Leerzeile = neuer Absatz, Links werden klickbar. Platzhalter: {placeholders}. Ein Abmeldelink wird automatisch angehängt.",
+      "rich": "Formatieren mit der Leiste, Platzhalter über {}: {placeholders}. Ein Abmeldelink wird automatisch angehängt.",
+      "html": "Fertiges HTML einfügen (z. B. aus Stripo oder Mailchimp). Platzhalter: {placeholders}. Skripte werden entfernt, der Abmeldelink wird unten angehängt."
+    },
+    "preview": "Vorschau"
+  },
+  "editor": {
+    "toolbar": "Formatierung",
+    "bold": "Fett",
+    "italic": "Kursiv",
+    "h2": "Überschrift",
+    "h3": "Zwischenüberschrift",
+    "bullets": "Aufzählung",
+    "numbers": "Nummerierung",
+    "quote": "Zitat",
+    "link": "Link",
+    "linkPrompt": "Adresse des Links (leer = Link entfernen)",
+    "image": "Bild",
+    "imagePrompt": "Bildadresse (https://…)",
+    "divider": "Trennlinie",
+    "placeholder": "Platzhalter einfügen",
+    "undo": "Rückgängig",
+    "redo": "Wiederholen"
   }
 }

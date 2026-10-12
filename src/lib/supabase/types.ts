@@ -191,14 +191,14 @@ isOneToOne: false
                   ]
                 },"email_automations": {
                   Row: {
-                    "active": boolean,"body": string,"created_at": string,"created_by": string | null,"delay_minutes": number,"event_type": string,"id": string,"name": string,"org_id": string,"subject": string,"updated_at": string,"updated_by": string | null
+                    "active": boolean,"body": string,"created_at": string,"created_by": string | null,"delay_minutes": number,"event_type": string,"format": string,"id": string,"name": string,"org_id": string,"subject": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "active"?: boolean,"body": string,"created_at"?: string,"created_by"?: string | null,"delay_minutes"?: number,"event_type": string,"id"?: string,"name": string,"org_id": string,"subject": string,"updated_at"?: string,"updated_by"?: string | null
+                    "active"?: boolean,"body": string,"created_at"?: string,"created_by"?: string | null,"delay_minutes"?: number,"event_type": string,"format"?: string,"id"?: string,"name": string,"org_id": string,"subject": string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "active"?: boolean,"body"?: string,"created_at"?: string,"created_by"?: string | null,"delay_minutes"?: number,"event_type"?: string,"id"?: string,"name"?: string,"org_id"?: string,"subject"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "active"?: boolean,"body"?: string,"created_at"?: string,"created_by"?: string | null,"delay_minutes"?: number,"event_type"?: string,"format"?: string,"id"?: string,"name"?: string,"org_id"?: string,"subject"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -211,14 +211,14 @@ isOneToOne: false
                   ]
                 },"email_campaigns": {
                   Row: {
-                    "audience": NonNullable<Json>,"body": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"id": string,"name": string,"org_id": string,"recipients": number,"send_at": string | null,"status": string,"subject": string,"updated_at": string,"updated_by": string | null
+                    "audience": NonNullable<Json>,"body": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"format": string,"id": string,"name": string,"org_id": string,"recipients": number,"send_at": string | null,"status": string,"subject": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "audience"?: NonNullable<Json>,"body"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"name": string,"org_id": string,"recipients"?: number,"send_at"?: string | null,"status"?: string,"subject"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "audience"?: NonNullable<Json>,"body"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"format"?: string,"id"?: string,"name": string,"org_id": string,"recipients"?: number,"send_at"?: string | null,"status"?: string,"subject"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "audience"?: NonNullable<Json>,"body"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"name"?: string,"org_id"?: string,"recipients"?: number,"send_at"?: string | null,"status"?: string,"subject"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "audience"?: NonNullable<Json>,"body"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"format"?: string,"id"?: string,"name"?: string,"org_id"?: string,"recipients"?: number,"send_at"?: string | null,"status"?: string,"subject"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {

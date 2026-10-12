@@ -61,8 +61,8 @@ export async function processEmailQueue(limit = 100) {
   if (batch?.length) {
     const ids = (k: "campaign_id" | "automation_id" | "contact_id" | "org_id") => [...new Set(batch.map((s) => s[k]).filter((v): v is string => !!v))]
     const [{ data: campaigns }, { data: automations }, { data: contacts }, { data: orgs }] = await Promise.all([
-      db.from("email_campaigns").select("id, subject, body, deleted_at").in("id", ids("campaign_id")),
-      db.from("email_automations").select("id, subject, body, active").in("id", ids("automation_id")),
+      db.from("email_campaigns").select("id, subject, body, format, deleted_at").in("id", ids("campaign_id")),
+      db.from("email_automations").select("id, subject, body, format, active").in("id", ids("automation_id")),
       db.from("contacts").select("id, first_name, last_name, company, email, unsubscribed_at, deleted_at").in("id", ids("contact_id")),
       db.from("orgs").select("id, name").in("id", ids("org_id")),
     ])

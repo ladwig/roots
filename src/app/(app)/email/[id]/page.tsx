@@ -4,15 +4,14 @@ import { SubmitButton } from "@/components/submit-button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { EmailBodyField } from "@/components/email-body-field"
+import { BASE_PLACEHOLDERS, type Format } from "@/email/render"
 import { resolveAudience, type Audience } from "@/email/server"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { toLocalInput } from "@/lib/time"
 import { param } from "@/lib/url"
 import { saveCampaign, trashCampaign, unscheduleCampaign } from "../actions"
-
-const textareaClass =
-  "rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
 
 export default async function CampaignPage({ params, searchParams }: PageProps<"/email/[id]">) {
   const { id } = await params
@@ -51,13 +50,7 @@ export default async function CampaignPage({ params, searchParams }: PageProps<"
             <Field id="c-name" name="name" label={t("email.name")} defaultValue={c.name} required maxLength={200} />
             <Field id="c-subject" name="subject" label={t("email.subject")} defaultValue={c.subject} maxLength={300} />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="c-body">{t("email.body")}</Label>
-            <textarea id="c-body" name="body" rows={14} defaultValue={c.body} maxLength={50000} className={textareaClass} aria-describedby="c-body-help" />
-            <p id="c-body-help" className="text-xs text-muted-foreground">
-              {t("email.bodyHelp")}
-            </p>
-          </div>
+          <EmailBodyField id="c-body" format={c.format as Format} body={c.body} placeholders={BASE_PLACEHOLDERS} disabled={!editable} />
           <fieldset className="grid gap-3 rounded-lg border p-4">
             <legend className="px-1 font-medium">{t("email.audience")}</legend>
             <Field id="c-tags" name="tags" label={t("email.audienceTags")} defaultValue={(audience.tags ?? []).join(", ")} />
