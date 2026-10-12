@@ -28,7 +28,7 @@
 /* ---- type ---- */
 .site .wordmark { font-weight: 500; letter-spacing: -0.04em; line-height: 1; }
 /* Sans headlines (Swiss, tight); one italic serif word as accent */
-.site .display { font-weight: 400; letter-spacing: -0.035em; line-height: 1.02; }
+.site .display { font-weight: 400; letter-spacing: -0.018em; line-height: 1.04; }
 .site .fs-hero.display, .site .fs-h2.display { font-weight: 350; }
 .site .display em { font-style: normal; color: var(--ink-soft); } /* two-tone accent instead of a second typeface */
 .site .text-\[var\(--paper\)\] .display em, .site .display.on-dark em { color: rgb(245 241 232 / 0.55); }

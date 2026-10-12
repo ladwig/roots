@@ -16,7 +16,7 @@ No "AI slop": no neon gradients, no glassy blobs, no emoji, no stock 3D. Real pa
 
 | Role | Font | Use |
 |---|---|---|
-| Display | **Hanken Grotesk** 400 (light for big numbers), tracking `-0.035em`, line-height `1.02` | Headlines, statements, big numbers (Swiss, close to Helvetica Now) |
+| Display | **Hanken Grotesk** 400 (light for big numbers), tracking `-0.018em`, line-height `1.04` | Headlines, statements, big numbers (Swiss, close to Helvetica Now) |
 | Accent | same font, **lighter tone** (`--ink-soft` / paper 55 %) | One or two words per headline (two-tone), no second typeface |
 | Text | **Hanken Grotesk** 400/500, tracking `+0.012em` (small sizes `+0.02em`), line-height `1.6` | Body, nav, UI, buttons (Franklin Gothic lineage: editorial, not the default Inter look) |
 | Label | Hanken Grotesk 500, uppercase, tracking `0.12em`, 11–12 px | Eyebrows, section numbers, button labels |
