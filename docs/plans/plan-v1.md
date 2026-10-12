@@ -202,7 +202,7 @@ Order: 7 → 8 → 9 → 10 → 11. Each builds on the one before.
 | **8 — Members** ✅ (module `members`, Vereine) | Membership types, memberships on contacts, member numbers, SEPA mandates, dues run → `pain.008` | Treasurer exports a SEPA file for this quarter's dues |
 | **9 — Forms** ✅ (module `forms`) | Form builder over platform fields, fixed module forms + org forms, public `/f/<slug>`, submissions with a purpose | Public membership application creates a pending membership |
 | **10 — Portal** (core) | Magic-link login per org for contacts (no roots account), module sections | A member sees their membership and cancels; a buyer sees their tickets |
-| **12 — Email** (module `email`) | Campaigns to tags/segments, sequences (cadences), automations on hub events ("membership.started → welcome mail", "due overdue 14 days → reminder"), templates with placeholders, via the org's Resend (roots fallback) | A Verein sends a newsletter to "Jugend" and new members get a welcome mail automatically |
+| **12 — Email** ✅ (module `email`) | Campaigns to tags/segments, sequences (cadences), automations on hub events ("membership.started → welcome mail", "due overdue 14 days → reminder"), templates with placeholders, via the org's Resend (roots fallback) | A Verein sends a newsletter to "Jugend" and new members get a welcome mail automatically |
 | **11 — Donation receipts** | Donations + Zuwendungsbestätigung via the document builder | Yearly receipt printed for a donor |
 
 **7 — Files**

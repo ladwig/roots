@@ -93,14 +93,14 @@ isOneToOne: false
                   ]
                 },"contacts": {
                   Row: {
-                    "birthday": string | null,"city": string | null,"company": string | null,"country": string | null,"created_at": string,"created_by": string | null,"custom": NonNullable<Json>,"deleted_at": string | null,"deleted_by": string | null,"email": string | null,"first_name": string | null,"id": string,"last_name": string | null,"org_id": string,"phone": string | null,"postal_code": string | null,"street": string | null,"tags": (string)[],"updated_at": string,"updated_by": string | null
+                    "birthday": string | null,"city": string | null,"company": string | null,"country": string | null,"created_at": string,"created_by": string | null,"custom": NonNullable<Json>,"deleted_at": string | null,"deleted_by": string | null,"email": string | null,"first_name": string | null,"id": string,"last_name": string | null,"org_id": string,"phone": string | null,"postal_code": string | null,"street": string | null,"tags": (string)[],"unsubscribed_at": string | null,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "birthday"?: string | null,"city"?: string | null,"company"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"custom"?: NonNullable<Json>,"deleted_at"?: string | null,"deleted_by"?: string | null,"email"?: string | null,"first_name"?: string | null,"id"?: string,"last_name"?: string | null,"org_id": string,"phone"?: string | null,"postal_code"?: string | null,"street"?: string | null,"tags"?: (string)[],"updated_at"?: string,"updated_by"?: string | null
+                    "birthday"?: string | null,"city"?: string | null,"company"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"custom"?: NonNullable<Json>,"deleted_at"?: string | null,"deleted_by"?: string | null,"email"?: string | null,"first_name"?: string | null,"id"?: string,"last_name"?: string | null,"org_id": string,"phone"?: string | null,"postal_code"?: string | null,"street"?: string | null,"tags"?: (string)[],"unsubscribed_at"?: string | null,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "birthday"?: string | null,"city"?: string | null,"company"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"custom"?: NonNullable<Json>,"deleted_at"?: string | null,"deleted_by"?: string | null,"email"?: string | null,"first_name"?: string | null,"id"?: string,"last_name"?: string | null,"org_id"?: string,"phone"?: string | null,"postal_code"?: string | null,"street"?: string | null,"tags"?: (string)[],"updated_at"?: string,"updated_by"?: string | null
+                    "birthday"?: string | null,"city"?: string | null,"company"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"custom"?: NonNullable<Json>,"deleted_at"?: string | null,"deleted_by"?: string | null,"email"?: string | null,"first_name"?: string | null,"id"?: string,"last_name"?: string | null,"org_id"?: string,"phone"?: string | null,"postal_code"?: string | null,"street"?: string | null,"tags"?: (string)[],"unsubscribed_at"?: string | null,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -186,6 +186,84 @@ isOneToOne: false
       columns: ["source_id"]
 isOneToOne: false
       referencedRelation: "documents"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"email_automations": {
+                  Row: {
+                    "active": boolean,"body": string,"created_at": string,"created_by": string | null,"delay_minutes": number,"event_type": string,"id": string,"name": string,"org_id": string,"subject": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"body": string,"created_at"?: string,"created_by"?: string | null,"delay_minutes"?: number,"event_type": string,"id"?: string,"name": string,"org_id": string,"subject": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "active"?: boolean,"body"?: string,"created_at"?: string,"created_by"?: string | null,"delay_minutes"?: number,"event_type"?: string,"id"?: string,"name"?: string,"org_id"?: string,"subject"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "email_automations_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"email_campaigns": {
+                  Row: {
+                    "audience": NonNullable<Json>,"body": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"id": string,"name": string,"org_id": string,"recipients": number,"send_at": string | null,"status": string,"subject": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "audience"?: NonNullable<Json>,"body"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"name": string,"org_id": string,"recipients"?: number,"send_at"?: string | null,"status"?: string,"subject"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "audience"?: NonNullable<Json>,"body"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"name"?: string,"org_id"?: string,"recipients"?: number,"send_at"?: string | null,"status"?: string,"subject"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "email_campaigns_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"email_sends": {
+                  Row: {
+                    "automation_id": string | null,"campaign_id": string | null,"claimed_at": string | null,"contact_id": string | null,"created_at": string,"error": string | null,"id": string,"org_id": string,"send_after": string,"sent_at": string | null,"status": string,"to_email": string,"vars": NonNullable<Json>
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "automation_id"?: string | null,"campaign_id"?: string | null,"claimed_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"error"?: string | null,"id"?: string,"org_id": string,"send_after"?: string,"sent_at"?: string | null,"status"?: string,"to_email": string,"vars"?: NonNullable<Json>
+                  }
+                  Update: {
+                    "automation_id"?: string | null,"campaign_id"?: string | null,"claimed_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"error"?: string | null,"id"?: string,"org_id"?: string,"send_after"?: string,"sent_at"?: string | null,"status"?: string,"to_email"?: string,"vars"?: NonNullable<Json>
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "email_sends_automation_id_fkey"
+      columns: ["automation_id"]
+isOneToOne: false
+      referencedRelation: "email_automations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "email_sends_campaign_id_fkey"
+      columns: ["campaign_id"]
+isOneToOne: false
+      referencedRelation: "email_campaigns"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "email_sends_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "email_sends_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
       referencedColumns: ["id"]
     }
                   ]
@@ -1345,6 +1423,28 @@ isOneToOne: false
               "checked_in_at": string,"holder_name": string,"result": string,"type_name": string
             }[]
                            },
+"claim_email_sends":
+{ Args: { "p_limit"?: number }; Returns: {
+              "automation_id": string | null,
+"campaign_id": string | null,
+"claimed_at": string | null,
+"contact_id": string | null,
+"created_at": string,
+"error": string | null,
+"id": string,
+"org_id": string,
+"send_after": string,
+"sent_at": string | null,
+"status": string,
+"to_email": string,
+"vars": NonNullable<Json>
+            }[]
+                          SetofOptions: {
+        from: "*"
+        to: "email_sends"
+        isOneToOne: false
+        isSetofReturn: true
+      } },
 "claim_event_deliveries":
 { Args: { "p_limit"?: number }; Returns: number[]
                            },

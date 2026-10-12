@@ -613,6 +613,23 @@ begin
   select count(*) into n from public.forms where org_id = org_a;             assert n = 0, 'B sees forms of A';
   reset role;
 
+  -- Email: an active automation on contact.created queues one send; unsubscribed contacts get none; B sees nothing
+  insert into public.org_modules (org_id, module_key) values (org_a, 'email');
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  insert into public.email_automations (org_id, name, event_type, subject, body, active) values (org_a, 'Willkommen', 'contact.created', 'Hallo', 'Hallo {first_name}', true);
+  insert into public.contacts (org_id, first_name, email) values (org_a, 'Neu', 'neu-auto@x.de');
+  insert into public.contacts (org_id, first_name, email, unsubscribed_at) values (org_a, 'Weg', 'weg-auto@x.de', now());
+  insert into public.email_campaigns (org_id, name) values (org_a, 'News');
+  reset role;
+  select count(*) into n from public.email_sends where org_id = org_a and to_email = 'neu-auto@x.de';   assert n = 1, 'automation queues one send';
+  select count(*) into n from public.email_sends where org_id = org_a and to_email = 'weg-auto@x.de';   assert n = 0, 'unsubscribed contact gets no automation';
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.email_campaigns where org_id = org_a;    assert n = 0, 'B sees campaigns of A';
+  select count(*) into n from public.email_sends where org_id = org_a;       assert n = 0, 'B sees sends of A';
+  reset role;
+
   -- Files: A (owner) registers files in A only, with paths under its own folder; B sees nothing
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   set local role authenticated;

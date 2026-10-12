@@ -221,6 +221,10 @@
     "forms": {
       "name": "Formulare",
       "description": "Eigene Formulare und Mitgliedsanträge auf deiner Seite, Einsendungen landen im CRM."
+    },
+    "email": {
+      "name": "E-Mail",
+      "description": "Newsletter an Tags und Mitglieder, automatische E-Mails bei Ereignissen, über deinen E-Mail-Anbieter."
     }
   },
   "permissions": {
@@ -250,7 +254,9 @@
     "members.view": "Mitglieder und Beiträge ansehen",
     "members.manage": "Mitglieder und Beiträge verwalten",
     "forms.view": "Formulare und Einsendungen ansehen",
-    "forms.manage": "Formulare bauen und Einsendungen bearbeiten"
+    "forms.manage": "Formulare bauen und Einsendungen bearbeiten",
+    "email.view": "Kampagnen und Versand ansehen",
+    "email.manage": "Kampagnen und Automationen verwalten und versenden"
   },
   "integrations": {
     "connect": "Verbinden",
@@ -392,7 +398,9 @@
       "sepa_runs": "Lastschriftdateien",
       "member_settings": "Mitglieder-Einstellungen",
       "forms": "Formulare",
-      "form_submissions": "Formular-Einsendungen"
+      "form_submissions": "Formular-Einsendungen",
+      "email_campaigns": "E-Mail-Kampagnen",
+      "email_automations": "E-Mail-Automationen"
     }
   },
   "errors": {
@@ -1917,5 +1925,95 @@
     "button": "Exportieren",
     "xlsx": "Excel (.xlsx)",
     "csv": "CSV"
+  },
+  "email": {
+    "nav": "E-Mail",
+    "title": "E-Mail",
+    "tabs": {
+      "campaigns": "Kampagnen",
+      "automations": "Automationen",
+      "log": "Versand"
+    },
+    "newCampaign": "Neue Kampagne",
+    "create": "Anlegen",
+    "name": "Name",
+    "namePlaceholder": "z. B. Newsletter Oktober",
+    "nameRequired": "Der Name darf nicht leer sein.",
+    "emptyCampaigns": "Noch keine Kampagnen.",
+    "status": "Status",
+    "recipients": "Empfänger:innen",
+    "statuses": {
+      "draft": "Entwurf",
+      "scheduled": "Geplant",
+      "sending": "Wird versendet",
+      "sent": "Versendet"
+    },
+    "subject": "Betreff",
+    "body": "Text",
+    "bodyHelp": "Leerzeile = neuer Absatz, Links werden klickbar. Platzhalter: {first_name}, {last_name}, {name}, {email}, {org}. Ein Abmeldelink wird automatisch angehängt.",
+    "audience": "Empfänger:innen",
+    "audienceTags": "Kontakte mit einem dieser Tags (kommagetrennt)",
+    "audienceMembers": "Alle aktiven Mitglieder",
+    "audienceHint": "Wähle Tags und/oder aktive Mitglieder. Abgemeldete Kontakte werden nie angeschrieben.",
+    "reach": {
+      "one": "Geht an {count} Person.",
+      "other": "Geht an {count} Personen."
+    },
+    "save": "Speichern",
+    "sendTest": "Test an mich",
+    "sendNow": "Jetzt senden",
+    "sendAt": "Senden am",
+    "schedule": "Planen",
+    "unschedule": "Planung aufheben",
+    "toTrash": "In den Papierkorb",
+    "saved": "Gespeichert.",
+    "testSent": "Test an {email} verschickt.",
+    "noProvider": "Kein E-Mail-Versand eingerichtet (Einstellungen → Integrationen).",
+    "subjectBodyRequired": "Betreff und Text sind nötig.",
+    "audienceRequired": "Wähle Empfänger:innen (Tags oder Mitglieder).",
+    "scheduleInvalid": "Der Zeitpunkt muss in der Zukunft liegen.",
+    "scheduled": "Kampagne geplant.",
+    "unscheduled": "Planung aufgehoben.",
+    "queued": {
+      "one": "Wird an {count} Person versendet.",
+      "other": "Wird an {count} Personen versendet."
+    },
+    "alreadySent": "Die Kampagne wurde schon versendet.",
+    "trashed": "Kampagne in den Papierkorb verschoben.",
+    "stats": "{sent} versendet · {queued} in der Warteschlange · {failed} fehlgeschlagen · {skipped} übersprungen",
+    "testFirstName": "Test",
+    "automationsHint": "Ein Ereignis löst nach einer Wartezeit eine E-Mail an die betroffene Person aus. Mehrere Automationen zum selben Ereignis mit unterschiedlicher Wartezeit ergeben eine Serie (z. B. Willkommen sofort, Infos nach 7 Tagen).",
+    "newAutomation": "Neue Automation",
+    "automationPlaceholder": "z. B. Willkommensmail",
+    "trigger": "Auslöser",
+    "delay": "Wartezeit",
+    "unit": "Einheit",
+    "units": {
+      "minutes": "Minuten",
+      "hours": "Stunden",
+      "days": "Tage"
+    },
+    "active": "aktiv",
+    "delete": "Löschen",
+    "deleted": "Gelöscht.",
+    "automationInvalid": "Name, Auslöser, Betreff und Text sind nötig.",
+    "eventVars": "Außerdem: {vars}.",
+    "emptyLog": "Noch nichts versendet.",
+    "to": "An",
+    "source": "Kampagne / Automation",
+    "when": "Zeitpunkt",
+    "sendStatus": {
+      "queued": "Wartet",
+      "sending": "Wird gesendet",
+      "sent": "Versendet",
+      "failed": "Fehlgeschlagen",
+      "skipped": "Übersprungen"
+    },
+    "unsubscribe": "Abmelden",
+    "unsubscribeTitle": "Vom Verteiler abmelden",
+    "unsubscribeQuestion": "Möchtest du keine E-Mails mehr von diesem Absender bekommen?",
+    "unsubscribeConfirm": "Abmelden",
+    "unsubscribed": "Du bist abgemeldet und bekommst keine Newsletter oder automatischen E-Mails mehr.",
+    "unsubscribeInvalid": "Dieser Link ist ungültig."
   }
 }

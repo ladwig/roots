@@ -15,6 +15,16 @@ export type Connection = {
   expiresAt?: string
   status?: "pending" | "connected" // pending = the org still has to finish something at the provider
 }
+/** One outgoing email, provider-neutral. */
+export type Mail = {
+  from: string
+  to: string
+  subject: string
+  text: string
+  html: string
+  headers?: Record<string, string> // e.g. List-Unsubscribe
+  attachments?: { filename: string; content: Uint8Array }[]
+}
 export type IncomingEvent = { externalId: string; type?: string; orgId?: string; payload: unknown }
 
 export type Integration = {
@@ -51,6 +61,11 @@ export type Integration = {
    * May return extra non-secret config to store (e.g. the bot's username).
    */
   test?(secret: Secret, config: Config): Promise<void | Config>
+  /**
+   * Email provider (Resend today; Postmark, Brevo, SMTP… = one file each). `config.from` is the org's sender.
+   * Used by sendOrgEmail() for the org's connected provider and with roots' own credentials as the fallback.
+   */
+  email?: { send(mail: Mail, cred: { config: Config; secret: Secret }): Promise<void> }
   /** Handled by /api/webhooks/[provider]: verify → store in integration_events (deduped) → handle. */
   webhook?: {
     verify(req: Request, body: string): Promise<IncomingEvent>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { generateAllSeries } from "@/shifts/server"
 import { pollTelegram } from "@/integrations/telegram"
 import { deliverDue } from "@/events/worker"
+import { processEmailQueue } from "@/email/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 // Called every minute (vercel.json cron, or `npm run worker` locally). Protected by CRON_SECRET.
@@ -15,8 +16,10 @@ export async function GET(request: Request) {
     sent += n
     if (n === 0) break
   }
+  // Email module queue (campaigns + automations), after the events so automations of new events are queued.
+  const emails = await processEmailQueue().catch((e) => (console.error(e), 0))
   await generateAllSeries().catch(console.error) // recurring shifts stay 8 weeks ahead
   // Empty the trash (soft-deleted rows past their retention).
   const { data: purged } = await createAdminClient().rpc("purge_deleted")
-  return NextResponse.json({ sent, purged })
+  return NextResponse.json({ sent, emails, purged })
 }

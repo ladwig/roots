@@ -221,6 +221,10 @@
     "forms": {
       "name": "Forms",
       "description": "Your own forms and membership applications on your site; submissions land in the CRM."
+    },
+    "email": {
+      "name": "Email",
+      "description": "Newsletters to tags and members, automatic emails on events, through your email provider."
     }
   },
   "permissions": {
@@ -250,7 +254,9 @@
     "members.view": "View members and dues",
     "members.manage": "Manage members and dues",
     "forms.view": "View forms and submissions",
-    "forms.manage": "Build forms and handle submissions"
+    "forms.manage": "Build forms and handle submissions",
+    "email.view": "View campaigns and sends",
+    "email.manage": "Manage and send campaigns and automations"
   },
   "integrations": {
     "connect": "Connect",
@@ -392,7 +398,9 @@
       "sepa_runs": "Direct debit files",
       "member_settings": "Member settings",
       "forms": "Forms",
-      "form_submissions": "Form submissions"
+      "form_submissions": "Form submissions",
+      "email_campaigns": "Email campaigns",
+      "email_automations": "Email automations"
     }
   },
   "errors": {
@@ -1917,5 +1925,95 @@
     "button": "Export",
     "xlsx": "Excel (.xlsx)",
     "csv": "CSV"
+  },
+  "email": {
+    "nav": "Email",
+    "title": "Email",
+    "tabs": {
+      "campaigns": "Campaigns",
+      "automations": "Automations",
+      "log": "Sent"
+    },
+    "newCampaign": "New campaign",
+    "create": "Create",
+    "name": "Name",
+    "namePlaceholder": "e.g. October newsletter",
+    "nameRequired": "The name can't be empty.",
+    "emptyCampaigns": "No campaigns yet.",
+    "status": "Status",
+    "recipients": "Recipients",
+    "statuses": {
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "sending": "Sending",
+      "sent": "Sent"
+    },
+    "subject": "Subject",
+    "body": "Text",
+    "bodyHelp": "Blank line = new paragraph, links become clickable. Placeholders: {first_name}, {last_name}, {name}, {email}, {org}. An unsubscribe link is added automatically.",
+    "audience": "Recipients",
+    "audienceTags": "Contacts with any of these tags (comma-separated)",
+    "audienceMembers": "All active members",
+    "audienceHint": "Pick tags and/or active members. Unsubscribed contacts are never emailed.",
+    "reach": {
+      "one": "Goes to {count} person.",
+      "other": "Goes to {count} people."
+    },
+    "save": "Save",
+    "sendTest": "Test to me",
+    "sendNow": "Send now",
+    "sendAt": "Send at",
+    "schedule": "Schedule",
+    "unschedule": "Unschedule",
+    "toTrash": "Move to trash",
+    "saved": "Saved.",
+    "testSent": "Test sent to {email}.",
+    "noProvider": "No email sending set up (Settings → Integrations).",
+    "subjectBodyRequired": "Subject and text are required.",
+    "audienceRequired": "Pick recipients (tags or members).",
+    "scheduleInvalid": "The time must be in the future.",
+    "scheduled": "Campaign scheduled.",
+    "unscheduled": "Schedule removed.",
+    "queued": {
+      "one": "Sending to {count} person.",
+      "other": "Sending to {count} people."
+    },
+    "alreadySent": "This campaign was already sent.",
+    "trashed": "Campaign moved to the trash.",
+    "stats": "{sent} sent · {queued} queued · {failed} failed · {skipped} skipped",
+    "testFirstName": "Test",
+    "automationsHint": "An event sends an email to the person it's about, after a delay. Several automations on the same event with different delays make a sequence (e.g. welcome right away, info after 7 days).",
+    "newAutomation": "New automation",
+    "automationPlaceholder": "e.g. Welcome mail",
+    "trigger": "Trigger",
+    "delay": "Delay",
+    "unit": "Unit",
+    "units": {
+      "minutes": "minutes",
+      "hours": "hours",
+      "days": "days"
+    },
+    "active": "active",
+    "delete": "Delete",
+    "deleted": "Deleted.",
+    "automationInvalid": "Name, trigger, subject and text are required.",
+    "eventVars": "Also: {vars}.",
+    "emptyLog": "Nothing sent yet.",
+    "to": "To",
+    "source": "Campaign / automation",
+    "when": "When",
+    "sendStatus": {
+      "queued": "Waiting",
+      "sending": "Sending",
+      "sent": "Sent",
+      "failed": "Failed",
+      "skipped": "Skipped"
+    },
+    "unsubscribe": "Unsubscribe",
+    "unsubscribeTitle": "Unsubscribe",
+    "unsubscribeQuestion": "Don't want any more emails from this sender?",
+    "unsubscribeConfirm": "Unsubscribe",
+    "unsubscribed": "You're unsubscribed and won't get newsletters or automatic emails anymore.",
+    "unsubscribeInvalid": "This link is invalid."
   }
 }
