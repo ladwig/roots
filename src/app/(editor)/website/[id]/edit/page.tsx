@@ -24,6 +24,7 @@ export default async function EditSitePage({ params }: PageProps<"/website/[id]/
   const nav = (pages ?? []).filter((p) => p.in_nav).map((p) => ({ slug: p.slug, title: p.title }))
   const { meta } = await siteMeta(ctx.org, { theme: site?.theme, nav }, "", t)
   meta.modules = [...ctx.modules] // the editor uses the org's real modules (public_site_extras is empty until live)
+  meta.editorLinks = Object.fromEntries((pages ?? []).map((p) => [p.slug, `/website/${p.id}/edit`]))
   const { draft, published, ...info } = page
   return (
     <SiteEditor

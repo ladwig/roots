@@ -15,6 +15,7 @@ export type SiteMeta = {
   orgName: string
   logo: string | null
   base: string // "" on the org's subdomain, "/s/<org>" in dev
+  editorLinks?: Record<string, string> // editor only: page slug → its editor URL (links switch pages, never leave the editor)
   theme: Theme
   nav: { slug: string; title: string }[]
   events: SiteEvent[]
@@ -25,7 +26,14 @@ export type SiteMeta = {
 }
 
 // Site-relative links ("/kontakt") work on the subdomain and under /s/<org> in dev.
-const link = (href: string | undefined, meta: SiteMeta) => (href?.startsWith("/") ? `${meta.base}${href}` : href || "#")
+// In the editor (preview runs inside the App), own-page links open that page in the editor; anything else does nothing.
+const go = (href: string | undefined, meta: SiteMeta): { href: string; target?: string } => {
+  if (meta.editorLinks) {
+    const slug = href?.startsWith("/") ? href.slice(1).split(/[?#]/)[0] : null
+    return slug !== null && meta.editorLinks[slug] ? { href: meta.editorLinks[slug], target: "_top" } : { href: "#" }
+  }
+  return { href: href?.startsWith("/") ? `${meta.base}${href}` : href || "#" }
+}
 const wrap = "mx-auto w-full max-w-6xl px-[clamp(16px,4vw,48px)]"
 const btn = (style: string | undefined) =>
   style === "outline"
@@ -98,7 +106,7 @@ export function SiteFrame({ meta: m, children }: { meta: SiteMeta; children: Rea
     >
       <header className="border-b border-[var(--s-line)]">
         <div className={`${wrap} flex flex-wrap items-center justify-between gap-4 py-4`}>
-          <a href={link("/", m)} className="flex items-center gap-3 font-semibold">
+          <a {...go("/", m)} className="flex items-center gap-3 font-semibold">
             {m.logo && (
               // eslint-disable-next-line @next/next/no-img-element -- org logo
               <img src={imageUrl(m.logo)} alt="" className="size-9 rounded-[var(--s-radius)] object-contain" />
@@ -108,7 +116,7 @@ export function SiteFrame({ meta: m, children }: { meta: SiteMeta; children: Rea
           {m.nav.length > 1 && (
             <nav className="flex flex-wrap gap-x-6 gap-y-2 text-[15px]">
               {m.nav.map((n) => (
-                <a key={n.slug} href={link(`/${n.slug}`, m)} className="text-[var(--s-muted)] hover:text-[var(--s-fg)]">
+                <a key={n.slug} {...go(`/${n.slug}`, m)} className="text-[var(--s-muted)] hover:text-[var(--s-fg)]">
                   {n.title}
                 </a>
               ))}
@@ -123,10 +131,10 @@ export function SiteFrame({ meta: m, children }: { meta: SiteMeta; children: Rea
             © {new Date().getFullYear()} {m.orgName}
           </span>
           <span className="flex gap-5">
-            <a href={link("/imprint", m)} className="hover:text-[var(--s-fg)]">
+            <a {...go("/imprint", m)} className="hover:text-[var(--s-fg)]">
               {m.labels.imprint}
             </a>
-            <a href={link("/privacy", m)} className="hover:text-[var(--s-fg)]">
+            <a {...go("/privacy", m)} className="hover:text-[var(--s-fg)]">
               {m.labels.privacy}
             </a>
           </span>
@@ -175,7 +183,7 @@ export function siteConfig(t: T): Config<{ components: Props; root: { title?: st
           const actions = !!p.buttons?.length && (
             <div className="flex flex-wrap gap-3">
               {p.buttons.map((b, i) => (
-                <a key={i} href={link(b.href, m)} className={btn(b.style)}>
+                <a key={i} {...go(b.href, m)} className={btn(b.style)}>
                   {b.label}
                 </a>
               ))}
@@ -255,7 +263,7 @@ export function siteConfig(t: T): Config<{ components: Props; root: { title?: st
         render: (p) => (
           <div className={`${wrap} flex flex-wrap gap-3 py-6 ${p.align === "center" ? "justify-center" : ""}`}>
             {p.buttons?.map((b, i) => (
-              <a key={i} href={link(b.href, meta(p))} className={btn(b.style)}>
+              <a key={i} {...go(b.href, meta(p))} className={btn(b.style)}>
                 {b.label}
               </a>
             ))}
@@ -298,7 +306,7 @@ export function siteConfig(t: T): Config<{ components: Props; root: { title?: st
                 </>
               )
               return c.href ? (
-                <a key={i} href={link(c.href, meta(p))} className="grid content-start gap-3 rounded-[var(--s-radius)] bg-[var(--s-card)] p-5 hover:opacity-90">
+                <a key={i} {...go(c.href, meta(p))} className="grid content-start gap-3 rounded-[var(--s-radius)] bg-[var(--s-card)] p-5 hover:opacity-90">
                   {inner}
                 </a>
               ) : (
@@ -445,7 +453,7 @@ export function siteConfig(t: T): Config<{ components: Props; root: { title?: st
               ) : p.layout === "cards" ? (
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {events.map((e) => (
-                    <a key={e.slug} href={link(`/e/${e.slug}`, m)} className="grid content-start gap-3 rounded-[var(--s-radius)] bg-[var(--s-card)] p-4 hover:opacity-90">
+                    <a key={e.slug} {...go(`/e/${e.slug}`, m)} className="grid content-start gap-3 rounded-[var(--s-radius)] bg-[var(--s-card)] p-4 hover:opacity-90">
                       <Img path={e.image_path ?? undefined} className="aspect-[16/10] w-full rounded-[var(--s-radius)] object-cover" />
                       <span className="text-sm text-[var(--s-muted)]">{when(e.starts_at)}</span>
                       <span className="text-lg font-semibold">{e.title}</span>
@@ -457,7 +465,7 @@ export function siteConfig(t: T): Config<{ components: Props; root: { title?: st
                 <ul className="divide-y divide-[var(--s-line)] border-y border-[var(--s-line)]">
                   {events.map((e) => (
                     <li key={e.slug}>
-                      <a href={link(`/e/${e.slug}`, m)} className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-4 hover:opacity-80">
+                      <a {...go(`/e/${e.slug}`, m)} className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-4 hover:opacity-80">
                         <span className="text-lg font-medium">{e.title}</span>
                         <span className="text-sm text-[var(--s-muted)]">
                           {when(e.starts_at)}
@@ -492,7 +500,7 @@ export function siteConfig(t: T): Config<{ components: Props; root: { title?: st
                   <h2 className="text-2xl font-semibold">{f.title}</h2>
                   {f.intro && <p className="max-w-[60ch] whitespace-pre-line text-[var(--s-muted)]">{f.intro}</p>}
                 </div>
-                <a href={link(`/f/${f.slug}`, m)} className={btn("solid")}>
+                <a {...go(`/f/${f.slug}`, m)} className={btn("solid")}>
                   {p.button || m.labels.more}
                 </a>
               </div>
@@ -511,7 +519,7 @@ export function siteConfig(t: T): Config<{ components: Props; root: { title?: st
                 <h2 className="text-2xl font-semibold">{p.title}</h2>
                 {p.text && <p className="max-w-[60ch] whitespace-pre-line text-[var(--s-muted)]">{p.text}</p>}
               </div>
-              <a href={link("/portal", meta(p))} className={btn("outline")}>
+              <a {...go("/portal", meta(p))} className={btn("outline")}>
                 {p.button}
               </a>
             </div>
