@@ -2,7 +2,7 @@ import type { T } from "@/i18n/translate"
 import { qrSvg } from "@/tickets/server"
 import { PrintButton } from "./print-button"
 
-// The member card (Mitgliedsausweis): credit-card size, shown in the portal (digital, after the email login) and in the
+// The member card (Mitgliedskarte): credit-card size, shown in the portal (digital, after the email login) and in the
 // app; "Drucken" prints only the card. White paper with black text on purpose (printed cards, scanners need
 // dark-on-light). The QR holds the card code; the member number works at the door too.
 export async function IdCard({ t, org, name, number, type, code }: { t: T; org: string; name: string; number: string | null; type: string | null; code: string }) {

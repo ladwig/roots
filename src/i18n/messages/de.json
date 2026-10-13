@@ -1936,12 +1936,12 @@
     "resumed": "Pause beendet.",
     "pauseInvalid": "Das Ende der Pause liegt vor dem Beginn.",
     "notPaused": "Die Mitgliedschaft ist nicht pausiert.",
-    "card": "Mitgliedsausweis",
-    "cardQr": "QR-Code des Mitgliedsausweises",
-    "cardHint": "Am Einlass scannen oder Code bzw. Mitgliedsnummer eintippen. Das Mitglied sieht den Ausweis auch im Mitgliederbereich (Login per E-Mail) und kann ihn dort selbst drucken.",
+    "card": "Mitgliedskarte",
+    "cardQr": "QR-Code der Mitgliedskarte",
+    "cardHint": "Am Einlass scannen oder Code bzw. Mitgliedsnummer eintippen. Das Mitglied sieht die Karte auch im Mitgliederbereich (Login per E-Mail) und kann ihn dort selbst drucken.",
     "cardReset": "Neuen Code erzeugen (alter wird ungültig)",
-    "cardResetDone": "Neuer Ausweis-Code erzeugt.",
-    "cardPrint": "Ausweis drucken"
+    "cardResetDone": "Neuer Karten-Code erzeugt.",
+    "cardPrint": "Karte drucken"
   },
   "forms": {
     "nav": "Formulare",
@@ -2207,7 +2207,7 @@
     "whatAddress": "Kontaktdaten",
     "whatBank": "Bankverbindung",
     "portalLink": "Mitgliederbereich für deine Mitglieder: {url}",
-    "cardHint": "Dein Mitgliedsausweis: am Einlass auf dem Handy zeigen oder ausdrucken."
+    "cardHint": "Deine Mitgliedskarte: am Einlass auf dem Handy zeigen oder ausdrucken."
   },
   "tags": {
     "remove": "{tag} entfernen",
