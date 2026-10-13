@@ -251,6 +251,10 @@
     "wiki": {
       "name": "Knowledge",
       "description": "Wiki for handbooks, processes and minutes – pages in pages, Markdown, history."
+    },
+    "projects": {
+      "name": "Projects",
+      "description": "Tasks on a kanban board or as a list – with assignees, deadlines, subtasks and tags per project."
     }
   },
   "permissions": {
@@ -293,7 +297,9 @@
     "cashbook.view": "View cash book",
     "cashbook.manage": "Book entries and close months",
     "wiki.view": "Read wiki",
-    "wiki.manage": "Write wiki"
+    "wiki.manage": "Write wiki",
+    "projects.view": "View projects",
+    "projects.manage": "Edit tasks"
   },
   "integrations": {
     "connect": "Connect",
@@ -453,7 +459,10 @@
       "cash_accounts": "Cash accounts",
       "cash_entries": "Cash book",
       "cash_closings": "Cash closings",
-      "wiki_pages": "Wiki pages"
+      "wiki_pages": "Wiki pages",
+      "task_statuses": "Project columns",
+      "tasks": "Tasks",
+      "task_assignees": "Assignees"
     }
   },
   "errors": {
@@ -782,7 +791,9 @@
       "course.moved_up": "Course: moved up from the waiting list",
       "workflow.notified": "Message from an automation",
       "membership.checked_in": "Member checked in at an event's door",
-      "shift.assigned": "Shift assigned (directly or application confirmed)"
+      "shift.assigned": "Shift assigned (directly or application confirmed)",
+      "task.assigned": "Task assigned",
+      "task.completed": "Task completed"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -815,7 +826,9 @@
       "course.moved_up": "🎓 Moved up from the waiting list: “{title}”",
       "workflow.notified": "⚙️ {text}",
       "membership.checked_in": "🚪 {name} is here ({title}, visit {visits})",
-      "shift.assigned": "👷 {name} has the shift {title} ({when})"
+      "shift.assigned": "👷 {name} has the shift {title} ({when})",
+      "task.assigned": "📋 You were assigned the task “{title}”",
+      "task.completed": "✅ Task “{title}” is done"
     },
     "hints": {
       "member.joined": "Someone from your team (board, door staff …) accepted an invitation and can sign in to the app. Not for club members.",
@@ -846,7 +859,9 @@
       "form.submitted": "Someone submitted a form.",
       "course.enrolled": "Someone was enrolled in a course (with a place, not on the waiting list).",
       "course.moved_up": "Someone moved up from a course's waiting list.",
-      "workflow.notified": "An automation sent a team notification."
+      "workflow.notified": "An automation sent a team notification.",
+      "task.assigned": "Someone is assigned to a task – they get a notification.",
+      "task.completed": "A task moves into a column that counts as done."
     }
   },
   "inbox": {
@@ -2547,6 +2562,10 @@
       "wiki": {
         "name": "Knowledge",
         "text": "A wiki for handbooks, processes and minutes: pages in pages, Markdown, attachments and history."
+      },
+      "projects": {
+        "name": "Projects",
+        "text": "Tasks on a kanban board or as a list: assignees from the team, deadlines, subtasks, your own columns and tags per project."
       }
     },
     "events": {
@@ -3341,7 +3360,9 @@
       "now": "Time",
       "cash_entry": "Cash entry",
       "cash_account": "Cash account",
-      "wiki_page": "Wiki page"
+      "wiki_page": "Wiki page",
+      "task": "Task",
+      "task_status": "Project column"
     },
     "fields": {
       "contact": {
@@ -3552,6 +3573,15 @@
       },
       "wiki_page": {
         "title": "Title"
+      },
+      "task": {
+        "title": "Title",
+        "description": "Description",
+        "due_on": "Due on"
+      },
+      "task_status": {
+        "name": "Name",
+        "is_done": "Counts as done"
       }
     },
     "values": {
@@ -4068,5 +4098,72 @@
     "campaigns": "Email campaigns",
     "emailAutomations": "Email automations",
     "emailLog": "Email log"
+  },
+  "projects": {
+    "nav": "Projects",
+    "title": "Projects",
+    "setup": "Setup",
+    "setupHint": "The board's columns. Tasks in a column marked “counts as done” are complete. A column can be deleted once it is empty.",
+    "view": "View",
+    "views": {
+      "board": "Board",
+      "list": "List"
+    },
+    "search": "Search tasks",
+    "assignee": "Assignee",
+    "assignees": "Assignees",
+    "everyone": "Everyone",
+    "mine": "My tasks",
+    "due": "Due",
+    "anyDue": "Any due date",
+    "dues": {
+      "overdue": "Overdue",
+      "week": "Next 7 days",
+      "none": "No date"
+    },
+    "tags": "Tags",
+    "allTags": "All",
+    "empty": "No tasks found.",
+    "taskTitle": "Task",
+    "status": "Status",
+    "checklist": "Subtasks",
+    "addRow": "Add subtask",
+    "removeRow": "Remove subtask",
+    "add": "Add",
+    "quickAdd": "New task…",
+    "description": "Description",
+    "descriptionHint": "Details, links, notes…",
+    "noTeam": "No team members yet.",
+    "openAsPage": "Open as page",
+    "created": "Created {date}",
+    "completedOn": "completed {date}",
+    "toTrash": "Move to trash",
+    "trashed": "Task moved to trash.",
+    "saved": "Saved.",
+    "titleRequired": "Please enter a title.",
+    "nameRequired": "Please enter a name.",
+    "noStatuses": "Please create a column first.",
+    "color": "Colour",
+    "colors": {
+      "gray": "Grey",
+      "blue": "Blue",
+      "green": "Green",
+      "yellow": "Yellow",
+      "orange": "Orange",
+      "red": "Red",
+      "purple": "Purple",
+      "pink": "Pink"
+    },
+    "newStatus": "New column",
+    "statusName": "Column name",
+    "isDone": "counts as done",
+    "deleteStatus": "Delete column",
+    "move": {
+      "up": "Move up",
+      "down": "Move down"
+    },
+    "statusSaved": "Column saved.",
+    "statusDeleted": "Column deleted.",
+    "statusInUse": "The column still contains tasks."
   }
 }

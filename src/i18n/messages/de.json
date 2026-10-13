@@ -251,6 +251,10 @@
     "wiki": {
       "name": "Wissen",
       "description": "Wiki für Handbücher, Abläufe und Protokolle – Seiten in Seiten, Markdown, Verlauf."
+    },
+    "projects": {
+      "name": "Projekte",
+      "description": "Aufgaben auf einem Kanban-Board oder als Liste – mit Zuständigen, Fristen, Unteraufgaben und Tags je Projekt."
     }
   },
   "permissions": {
@@ -293,7 +297,9 @@
     "cashbook.view": "Kassenbuch ansehen",
     "cashbook.manage": "Buchen und Monate abschließen",
     "wiki.view": "Wiki lesen",
-    "wiki.manage": "Wiki schreiben"
+    "wiki.manage": "Wiki schreiben",
+    "projects.view": "Projekte ansehen",
+    "projects.manage": "Aufgaben bearbeiten"
   },
   "integrations": {
     "connect": "Verbinden",
@@ -453,7 +459,10 @@
       "cash_accounts": "Kassen & Konten",
       "cash_entries": "Kassenbuch",
       "cash_closings": "Kassenabschlüsse",
-      "wiki_pages": "Wiki-Seiten"
+      "wiki_pages": "Wiki-Seiten",
+      "task_statuses": "Projektspalten",
+      "tasks": "Aufgaben",
+      "task_assignees": "Zuständige"
     }
   },
   "errors": {
@@ -782,7 +791,9 @@
       "course.moved_up": "Kurs: von der Warteliste nachgerückt",
       "workflow.notified": "Nachricht aus einer Automation",
       "membership.checked_in": "Mitglied beim Einlass einer Veranstaltung eingecheckt",
-      "shift.assigned": "Schicht zugeteilt (direkt oder Bewerbung bestätigt)"
+      "shift.assigned": "Schicht zugeteilt (direkt oder Bewerbung bestätigt)",
+      "task.assigned": "Aufgabe zugewiesen",
+      "task.completed": "Aufgabe erledigt"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -815,7 +826,9 @@
       "course.moved_up": "🎓 Von der Warteliste nachgerückt: „{title}“",
       "workflow.notified": "⚙️ {text}",
       "membership.checked_in": "🚪 {name} ist da ({title}, Besuch {visits})",
-      "shift.assigned": "👷 {name} hat die Schicht {title} ({when})"
+      "shift.assigned": "👷 {name} hat die Schicht {title} ({when})",
+      "task.assigned": "📋 Dir wurde die Aufgabe „{title}“ zugewiesen",
+      "task.completed": "✅ Aufgabe „{title}“ ist erledigt"
     },
     "hints": {
       "member.joined": "Jemand aus eurem Team (Vorstand, Einlass …) hat eine Einladung angenommen und kann sich in der App anmelden. Nicht für Vereinsmitglieder.",
@@ -846,7 +859,9 @@
       "form.submitted": "Jemand hat ein Formular abgeschickt.",
       "course.enrolled": "Jemand wurde zu einem Kurs angemeldet (mit Platz, nicht auf der Warteliste).",
       "course.moved_up": "Jemand ist von der Warteliste eines Kurses nachgerückt.",
-      "workflow.notified": "Eine Automation hat eine Team-Benachrichtigung geschickt."
+      "workflow.notified": "Eine Automation hat eine Team-Benachrichtigung geschickt.",
+      "task.assigned": "Jemand wird einer Aufgabe zugewiesen – die Person bekommt eine Benachrichtigung.",
+      "task.completed": "Eine Aufgabe landet in einer Spalte, die als erledigt zählt."
     }
   },
   "inbox": {
@@ -2547,6 +2562,10 @@
       "wiki": {
         "name": "Wissen",
         "text": "Ein Wiki für Handbücher, Abläufe und Protokolle: Seiten in Seiten, Markdown, Anhänge und Verlauf."
+      },
+      "projects": {
+        "name": "Projekte",
+        "text": "Aufgaben auf dem Kanban-Board oder als Liste: Zuständige aus dem Team, Fristen, Unteraufgaben, eigene Spalten und Tags je Projekt."
       }
     },
     "events": {
@@ -3341,7 +3360,9 @@
       "now": "Zeitpunkt",
       "cash_entry": "Buchung",
       "cash_account": "Kasse / Konto",
-      "wiki_page": "Wiki-Seite"
+      "wiki_page": "Wiki-Seite",
+      "task": "Aufgabe",
+      "task_status": "Projektspalte"
     },
     "fields": {
       "contact": {
@@ -3552,6 +3573,15 @@
       },
       "wiki_page": {
         "title": "Titel"
+      },
+      "task": {
+        "title": "Titel",
+        "description": "Beschreibung",
+        "due_on": "Fällig am"
+      },
+      "task_status": {
+        "name": "Name",
+        "is_done": "Zählt als erledigt"
       }
     },
     "values": {
@@ -4068,5 +4098,72 @@
     "campaigns": "E-Mail-Kampagnen",
     "emailAutomations": "E-Mail-Automationen",
     "emailLog": "E-Mail-Versand"
+  },
+  "projects": {
+    "nav": "Projekte",
+    "title": "Projekte",
+    "setup": "Einrichtung",
+    "setupHint": "Die Spalten des Boards. Aufgaben in einer Spalte mit „zählt als erledigt“ gelten als abgeschlossen. Eine Spalte lässt sich löschen, wenn sie leer ist.",
+    "view": "Ansicht",
+    "views": {
+      "board": "Board",
+      "list": "Liste"
+    },
+    "search": "Aufgaben suchen",
+    "assignee": "Zuständig",
+    "assignees": "Zuständig",
+    "everyone": "Alle",
+    "mine": "Meine Aufgaben",
+    "due": "Fällig",
+    "anyDue": "Jede Fälligkeit",
+    "dues": {
+      "overdue": "Überfällig",
+      "week": "Nächste 7 Tage",
+      "none": "Ohne Datum"
+    },
+    "tags": "Tags",
+    "allTags": "Alle",
+    "empty": "Keine Aufgaben gefunden.",
+    "taskTitle": "Aufgabe",
+    "status": "Status",
+    "checklist": "Unteraufgaben",
+    "addRow": "Unteraufgabe hinzufügen",
+    "removeRow": "Unteraufgabe entfernen",
+    "add": "Hinzufügen",
+    "quickAdd": "Neue Aufgabe…",
+    "description": "Beschreibung",
+    "descriptionHint": "Details, Links, Notizen…",
+    "noTeam": "Noch keine Teammitglieder.",
+    "openAsPage": "Als Seite öffnen",
+    "created": "Angelegt am {date}",
+    "completedOn": "erledigt am {date}",
+    "toTrash": "In den Papierkorb",
+    "trashed": "Aufgabe im Papierkorb.",
+    "saved": "Gespeichert.",
+    "titleRequired": "Bitte einen Titel angeben.",
+    "nameRequired": "Bitte einen Namen angeben.",
+    "noStatuses": "Bitte zuerst eine Spalte anlegen.",
+    "color": "Farbe",
+    "colors": {
+      "gray": "Grau",
+      "blue": "Blau",
+      "green": "Grün",
+      "yellow": "Gelb",
+      "orange": "Orange",
+      "red": "Rot",
+      "purple": "Lila",
+      "pink": "Pink"
+    },
+    "newStatus": "Neue Spalte",
+    "statusName": "Name der Spalte",
+    "isDone": "zählt als erledigt",
+    "deleteStatus": "Spalte löschen",
+    "move": {
+      "up": "Nach oben",
+      "down": "Nach unten"
+    },
+    "statusSaved": "Spalte gespeichert.",
+    "statusDeleted": "Spalte gelöscht.",
+    "statusInUse": "Die Spalte enthält noch Aufgaben."
   }
 }

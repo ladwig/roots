@@ -200,6 +200,16 @@ export const OBJECTS = {
     fields: [pick("status", ["new", "accepted", "rejected"]), text("email")],
     relations: { form_id: "form", contact_id: "contact", membership_id: "membership" },
   },
+  task: {
+    table: "tasks",
+    idKey: "task_id",
+    remove: "soft",
+    module: "projects",
+    record: true,
+    fields: [text("title", true), text("description", true), date("due_on", true)],
+    relations: { status_id: "task_status" },
+  },
+  task_status: { table: "task_statuses", module: "projects", fields: [text("name"), bool("is_done")] },
   wiki_page: { table: "wiki_pages", remove: "soft", module: "wiki", record: true, fields: [text("title")], relations: { parent_id: "wiki_page" } },
   cash_entry: {
     table: "cash_entries",
@@ -236,7 +246,7 @@ export const def = (k: ObjectKey): ObjectDef => OBJECTS[k]
 export const NOT_OBJECTS = [
   "api_keys", "cash_closings", "custom_fields", "document_items", "email_automations", "email_campaigns", "employee_private", "event_subscriptions",
   "invites", "letter_templates", "locations", "member_settings", "number_ranges", "org_billing", "org_integrations", "org_members",
-  "org_modules", "orgs", "platform_admins", "positions", "roles", "sepa_runs", "shift_series", "site_pages", "sites", "ticket_codes",
+  "org_modules", "orgs", "platform_admins", "positions", "roles", "sepa_runs", "shift_series", "site_pages", "sites", "task_assignees", "ticket_codes",
   "ticket_tiers", "workflow_runs", "workflows",
 ]
 
@@ -278,6 +288,8 @@ export const EVENT_OBJECTS: Record<string, ObjectKey[]> = {
   "form.submitted": ["submission", "form", "contact"],
   "course.enrolled": ["course", "contact"],
   "course.moved_up": ["course", "contact"],
+  "task.assigned": ["task"],
+  "task.completed": ["task"],
 }
 
 /**

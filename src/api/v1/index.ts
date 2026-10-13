@@ -3,6 +3,7 @@
 import type { Endpoint } from "../core"
 import { endpoints as automations } from "./automations"
 import { endpoints as cashbook } from "./cashbook"
+import { endpoints as projects } from "./projects"
 import { endpoints as contacts } from "./contacts"
 import { endpoints as courses } from "./courses"
 import { endpoints as email } from "./email"
@@ -30,6 +31,7 @@ export const endpoints: Endpoint[] = [
   ...email,
   ...invoices,
   ...cashbook,
+  ...projects,
   ...payments,
   ...shifts,
   ...hr,

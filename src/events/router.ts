@@ -10,13 +10,14 @@ export async function routeEvents(limit = 50) {
   const { data: ids, error } = await db.rpc("claim_unrouted_events", { p_limit: limit })
   if (error) throw error
   if (!ids?.length) return 0
-  const { data: events } = await db.from("hub_events").select("id, org_id, type, actor_id").in("id", ids)
+  const { data: events } = await db.from("hub_events").select("id, org_id, type, actor_id, payload").in("id", ids)
 
   for (const event of events ?? []) {
     const audience = getEventType(event.type)?.audience
     if (!audience) continue
     let people: string[] = []
     if (audience.platform) people = ((await db.from("platform_admins").select("user_id")).data ?? []).map((r) => r.user_id)
+    else if (audience.users) people = (Array.isArray((event.payload as { user_ids?: unknown })?.user_ids) ? (event.payload as { user_ids: unknown[] }).user_ids : []).filter((u): u is string => typeof u === "string")
     else if (event.org_id && audience.permission)
       people = (await db.rpc("members_with_perm", { p_org: event.org_id, p_perm: audience.permission })).data ?? []
     people = [...new Set(people)].filter((id) => id !== event.actor_id)

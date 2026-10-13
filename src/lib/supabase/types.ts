@@ -1621,6 +1621,78 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"task_assignees": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"id": string,"org_id": string,"task_id": string,"updated_at": string,"updated_by": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id": string,"task_id": string,"updated_at"?: string,"updated_by"?: string | null,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id"?: string,"task_id"?: string,"updated_at"?: string,"updated_by"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "task_assignees_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_assignees_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"task_statuses": {
+                  Row: {
+                    "color": string,"created_at": string,"created_by": string | null,"id": string,"is_done": boolean,"name": string,"org_id": string,"position": number,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "color"?: string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_done"?: boolean,"name": string,"org_id": string,"position"?: number,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "color"?: string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_done"?: boolean,"name"?: string,"org_id"?: string,"position"?: number,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "task_statuses_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"tasks": {
+                  Row: {
+                    "checklist": NonNullable<Json>,"completed_at": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string,"due_on": string | null,"id": string,"org_id": string,"position": number,"status_id": string,"tags": (string)[],"title": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "checklist"?: NonNullable<Json>,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string,"due_on"?: string | null,"id"?: string,"org_id": string,"position"?: number,"status_id": string,"tags"?: (string)[],"title": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "checklist"?: NonNullable<Json>,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string,"due_on"?: string | null,"id"?: string,"org_id"?: string,"position"?: number,"status_id"?: string,"tags"?: (string)[],"title"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tasks_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_status_id_fkey"
+      columns: ["status_id"]
+isOneToOne: false
+      referencedRelation: "task_statuses"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"ticket_codes": {
                   Row: {
                     "active": boolean,"code": string,"created_at": string,"created_by": string | null,"event_id": string,"id": string,"kind": string,"max_uses": number | null,"org_id": string,"type_ids": (string)[],"updated_at": string,"updated_by": string | null,"valid_from": string | null,"valid_until": string | null,"value": number
@@ -2243,6 +2315,9 @@ isOneToOne: false
                            },
 "seed_org":
 { Args: { "p_name": string,"p_owner": string,"p_slug": string }; Returns: string
+                           },
+"seed_task_statuses":
+{ Args: { "p_org": string }; Returns: undefined
                            },
 "set_subscription_secret":
 { Args: { "p_secret": string,"p_subscription": string }; Returns: undefined

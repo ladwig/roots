@@ -10,7 +10,7 @@ export const personChannels: PersonChannel[] = ["in_app", "email"] // "push" plu
 export type EventType = {
   key: string
   module: string
-  audience?: { permission?: string; platform?: boolean; defaults: PersonChannel[] }
+  audience?: { permission?: string; platform?: boolean; users?: true; defaults: PersonChannel[] } // users = the payload's user_ids
   href?: (payload: Record<string, unknown>) => string
 }
 
@@ -33,6 +33,8 @@ export const eventTypes: EventType[] = [
   { key: "quote.accepted", module: "invoices", audience: { permission: "invoices.view", defaults: ["in_app"] }, href: (p) => `/invoices/${p.document_id}` },
   { key: "guestlist.signed_up", module: "guestlists", audience: { permission: "guestlists.view", defaults: ["in_app"] }, href: (p) => `/guestlists/${p.list_id}` },
   { key: "shift.assigned", module: "shifts" },
+  { key: "task.assigned", module: "projects", audience: { users: true, defaults: ["in_app", "email"] }, href: (p) => `/projects?task=${p.task_id}` },
+  { key: "task.completed", module: "projects", audience: { users: true, defaults: ["in_app"] }, href: (p) => `/projects?task=${p.task_id}` },
   { key: "shift.applied", module: "shifts", audience: { permission: "shifts.manage", defaults: ["in_app"] }, href: (p) => `/shifts?shift=${p.shift_id}` },
   { key: "tickets.sold", module: "tickets", audience: { permission: "tickets.view", defaults: ["in_app"] }, href: (p) => `/events/${p.event_id}/tickets` },
   { key: "membership.started", module: "members", audience: { permission: "members.manage", defaults: ["in_app"] }, href: (p) => `/members/${p.membership_id}` },

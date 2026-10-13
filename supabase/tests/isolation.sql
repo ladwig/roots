@@ -836,6 +836,32 @@ begin
     reset role;
   end;
 
+  -- Projects: default columns, done column sets completed_at, assignees must be team members; B sees nothing
+  insert into public.org_modules (org_id, module_key) values (org_a, 'projects') on conflict do nothing;
+  declare v_open uuid; v_done uuid; v_task uuid; v_at timestamptz;
+  begin
+    perform public.seed_task_statuses(org_a);
+    select id into v_open from public.task_statuses where org_id = org_a and not is_done order by position limit 1;
+    select id into v_done from public.task_statuses where org_id = org_a and is_done limit 1;
+    perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    insert into public.tasks (org_id, status_id, title) values (org_a, v_open, 'Flyer drucken') returning id into v_task;
+    update public.tasks set status_id = v_done where id = v_task;
+    select completed_at into v_at from public.tasks where id = v_task;  assert v_at is not null, 'moving into a done column completes the task';
+    insert into public.task_assignees (org_id, task_id, user_id) values (org_a, v_task, c);
+    begin
+      insert into public.task_assignees (org_id, task_id, user_id) values (org_a, v_task, b);
+      assert false, 'only team members can be assigned';
+    exception when raise_exception then null; end;
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.tasks where org_id = org_a;           assert n = 0, 'B sees tasks of A';
+    select count(*) into n from public.task_assignees where org_id = org_a;  assert n = 0, 'B sees task assignees of A';
+    select count(*) into n from public.task_statuses where org_id = org_a;   assert n = 0, 'B sees task statuses of A';
+    reset role;
+  end;
+
   -- Automations: an event of the trigger type starts one run per active workflow; B sees nothing
   insert into public.org_modules (org_id, module_key) values (org_a, 'automations') on conflict do nothing;
   declare v_wf uuid;

@@ -10,6 +10,7 @@ import {
   ContactIcon,
   GraduationCapIcon,
   IdCardIcon,
+  KanbanSquareIcon,
   LandmarkIcon,
   MessagesSquareIcon,
   WorkflowIcon,
@@ -94,6 +95,15 @@ export const NAV: Area[] = [
     ],
   },
   { key: "automations", label: "automations.nav", icon: WorkflowIcon, children: [{ href: "/automations", label: "automations.nav", module: "automations", permission: "automations.view" }] },
+  {
+    key: "projects",
+    label: "projects.nav",
+    icon: KanbanSquareIcon,
+    children: [
+      { href: "/projects", label: "nav.overview", module: "projects", permission: "projects.view" },
+      { href: "/projects/setup", label: "projects.setup", module: "projects", permission: "projects.manage" },
+    ],
+  },
   { key: "wiki", label: "wiki.nav", icon: BookOpenIcon, children: [{ href: "/wiki", label: "wiki.nav", module: "wiki", permission: "wiki.view" }] },
   { key: "reports", label: "reports.nav", icon: BarChart3Icon, children: [{ href: "/reports", label: "reports.nav", module: "reports", permission: "reports.view" }] },
 ]
