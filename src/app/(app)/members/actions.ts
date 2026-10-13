@@ -6,6 +6,7 @@ import { dbError, type T } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { back } from "@/lib/url"
 import type { ImportOutcome } from "@/components/csv-import"
+import { validRangeFormat } from "@/lib/number-ranges"
 import { INTERVALS } from "@/members/dues"
 import * as members from "@/members/server"
 import { BIC, compact, CREDITOR_ID, IBAN, PAYMENT_METHODS, today, type Fail } from "@/members/server"
@@ -169,12 +170,8 @@ export async function saveSettings(fd: FormData) {
   if (iban && !IBAN.test(iban)) back(SETUP, { error: t("membership.ibanInvalid") })
   if (bic && !BIC.test(bic)) back(SETUP, { error: t("membership.bicInvalid") })
   if (creditorId && !CREDITOR_ID.test(creditorId)) back(SETUP, { error: t("membership.creditorIdInvalid") })
-  const numberFormat = str(fd, "number_format", 40) ?? "{N}"
-  if (!/\{N+\}/.test(numberFormat)) back(SETUP, { error: t("membership.numberFormatInvalid") })
   const { error } = await ctx.supabase.from("member_settings").upsert({
     org_id: ctx.org.id,
-    number_format: numberFormat,
-    number_start: Math.max(1, Math.floor(Number(fd.get("number_start")) || 1)),
     creditor_name: str(fd, "creditor_name", 70),
     creditor_id: creditorId,
     iban,
@@ -188,6 +185,20 @@ export async function saveSettings(fd: FormData) {
 // ---------- dues ----------
 
 /** Period fees for every membership whose type bills a period starting in [from, to]. Running it twice adds nothing. */
+/** Member number range (format + next number), see src/lib/number-ranges.ts. */
+export async function saveMemberRange(fd: FormData) {
+  const { ctx, t } = await manager(SETUP)
+  const here = `${SETUP}#numbers`
+  const format = String(fd.get("format") ?? "").trim()
+  const next = Math.floor(Number(fd.get("next_number")))
+  if (!validRangeFormat(format)) back(here, { error: t("numbers.invalid") })
+  if (!(next >= 1 && next < 1e9)) back(here, { error: t("errors.invalid_input") })
+  const { error } = await ctx.supabase
+    .from("number_ranges")
+    .upsert({ org_id: ctx.org.id, kind: "member", format, next_number: next, yearly_reset: fd.get("yearly_reset") === "1" }, { onConflict: "org_id,kind" })
+  back(here, error ? { error: dbError(t, error) } : { ok: t("membership.settingsSaved") })
+}
+
 export async function generateDues(fd: FormData) {
   const { ctx, t } = await manager(DUES)
   const r = await members.generateDues(ctx.supabase, ctx.org.id, date(fd, "from") ?? "", date(fd, "to") ?? "")

@@ -451,13 +451,13 @@ export const endpoints: Endpoint[] = [
     permission: "invoices.manage",
     tag: "Invoices",
     summary: "Set a number range",
-    description: "`kind`: invoice or quote. Format placeholders: {YYYY} {YY} {MM} and {N…} (required); otherwise only A–Z, 0–9 and - _ / . #",
+    description: "`kind`: invoice or quote. Format placeholders: {N…} running number (N count = digits) or {RANDn} random characters (one of them required), {YYYY} {YY} {MM} issue date; otherwise only A–Z, 0–9 and - _ / . #",
     body: z.object({ format: z.string().trim().min(1).max(60), next_number: z.number().int().min(1).max(999_999_999), yearly_reset: z.boolean().default(false) }).strict(),
     response: NumberRange,
     async handler({ db, orgId, params, body }) {
       const kind = params.kind
       if (kind !== "invoice" && kind !== "quote") throw notFound()
-      if (!validRangeFormat(body.format)) throw new ApiError(422, "invalid_format", "Invalid format: needs {N…}; allowed are {YYYY} {YY} {MM}, A–Z, 0–9 and - _ / . #")
+      if (!validRangeFormat(body.format)) throw new ApiError(422, "invalid_format", "Invalid format: needs {N…} or {RANDn}; allowed are {YYYY} {YY} {MM}, A–Z, 0–9 and - _ / . #")
       const { data, error } = await db
         .from("number_ranges")
         .upsert({ org_id: orgId, kind, format: body.format, next_number: body.next_number, yearly_reset: body.yearly_reset }, { onConflict: "org_id,kind" })

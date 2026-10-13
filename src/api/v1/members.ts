@@ -3,6 +3,7 @@ import { deliverSoon } from "@/events/worker"
 import { messages } from "@/i18n/config"
 import { createT } from "@/i18n/translate"
 import * as members from "@/members/server"
+import { validRangeFormat } from "@/lib/number-ranges"
 import { isPaused, type Interval } from "@/members/dues"
 import { memberDoor } from "@/members/door"
 import { BIC, compact, CREDITOR_ID, IBAN, type Fail } from "@/members/server"
@@ -62,8 +63,8 @@ const typeRow = (b: z.infer<typeof TypeInput>) => ({
 
 const maskIban = (iban: string | null) => (iban ? `${iban.slice(0, 4)}…${iban.slice(-4)}` : null)
 const Settings = z.object({
-  number_format: z.string().describe("Member number format, {N} / {NNNN} = the number (zero-padded)"),
-  number_start: z.number().int().describe("First member number"),
+  number_format: z.string().describe("Member number format (the org's member number range): {N…} running number (N count = digits), {YYYY} {YY} {MM} start date, {BYYYY} {BY} birth year, {RANDn} random characters"),
+  number_start: z.number().int().describe("Next running number of the member range"),
   creditor_name: z.string().nullable().describe("SEPA creditor name"),
   creditor_id: z.string().nullable().describe("SEPA creditor identifier (Gläubiger-ID)"),
   iban: z.string().nullable().describe("Masked (first 4 and last 4 characters)"),
@@ -224,8 +225,11 @@ export const endpoints: Endpoint[] = [
     summary: "Member numbers and SEPA creditor settings",
     response: Settings,
     async handler({ db, orgId }) {
-      const { data } = await db.from("member_settings").select("number_format, number_start, creditor_name, creditor_id, iban, bic, due_day").eq("org_id", orgId).maybeSingle()
-      const s = data ?? SETTINGS_DEFAULTS
+      const [{ data }, { data: range }] = await Promise.all([
+        db.from("member_settings").select("creditor_name, creditor_id, iban, bic, due_day").eq("org_id", orgId).maybeSingle(),
+        db.from("number_ranges").select("format, next_number").eq("org_id", orgId).eq("kind", "member").maybeSingle(),
+      ])
+      const s = { ...SETTINGS_DEFAULTS, ...data, ...(range && { number_format: range.format, number_start: range.next_number }) }
       return { ...s, iban: maskIban(s.iban) }
     },
   }),
@@ -238,7 +242,7 @@ export const endpoints: Endpoint[] = [
     description: "Only the given fields change; null clears an optional field.",
     body: z
       .object({
-        number_format: z.string().max(40).regex(/\{N+\}/, "Must contain {N}"),
+        number_format: z.string().max(60).refine(validRangeFormat, "Needs {N…} or {RANDn}; allowed: {YYYY} {YY} {MM} {BYYYY} {BY}, A–Z, 0–9 and - _ / . #"),
         number_start: z.number().int().min(1).max(1_000_000_000),
         creditor_name: z.string().trim().max(70).nullable(),
         creditor_id: z.string().max(35).nullable(),
@@ -250,15 +254,25 @@ export const endpoints: Endpoint[] = [
       .strict(),
     response: Settings,
     async handler({ db, orgId, body }) {
-      const { data: cur } = await db.from("member_settings").select("number_format, number_start, creditor_name, creditor_id, iban, bic, due_day").eq("org_id", orgId).maybeSingle()
-      const next = { ...SETTINGS_DEFAULTS, ...cur, ...body }
+      const { number_format, number_start, ...rest } = body
+      const [{ data: cur }, { data: range }] = await Promise.all([
+        db.from("member_settings").select("creditor_name, creditor_id, iban, bic, due_day").eq("org_id", orgId).maybeSingle(),
+        db.from("number_ranges").select("format, next_number").eq("org_id", orgId).eq("kind", "member").maybeSingle(),
+      ])
+      const next = { creditor_name: null, creditor_id: null, iban: null, bic: null, due_day: 15, ...cur, ...rest }
       const row = { ...next, creditor_name: next.creditor_name || null, iban: compact(next.iban), bic: compact(next.bic), creditor_id: compact(next.creditor_id) }
       if (row.iban && !IBAN.test(row.iban)) throw new ApiError(422, "iban_invalid", en("membership.ibanInvalid"))
       if (row.bic && !BIC.test(row.bic)) throw new ApiError(422, "bic_invalid", en("membership.bicInvalid"))
       if (row.creditor_id && !CREDITOR_ID.test(row.creditor_id)) throw new ApiError(422, "creditor_id_invalid", en("membership.creditorIdInvalid"))
       const { error } = await db.from("member_settings").upsert({ ...row, org_id: orgId }, { onConflict: "org_id" })
       if (error) throw dbError(error)
-      return { ...row, iban: maskIban(row.iban) }
+      const format = number_format ?? range?.format ?? "{N}"
+      const start = number_start ?? range?.next_number ?? 1
+      if (number_format !== undefined || number_start !== undefined) {
+        const { error: rangeError } = await db.from("number_ranges").upsert({ org_id: orgId, kind: "member", format, next_number: start, yearly_reset: false }, { onConflict: "org_id,kind" })
+        if (rangeError) throw dbError(rangeError)
+      }
+      return { ...row, number_format: format, number_start: start, iban: maskIban(row.iban) }
     },
   }),
 

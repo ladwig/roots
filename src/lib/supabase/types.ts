@@ -1908,7 +1908,7 @@ isOneToOne: false
 { Args: { "p_error"?: string,"p_id": number,"p_ok": boolean }; Returns: undefined
                            },
 "format_document_number":
-{ Args: { "p_date": string,"p_format": string,"p_n": number }; Returns: string
+{ Args: { "p_birth"?: string,"p_date": string,"p_format": string,"p_n": number }; Returns: string
                            },
 "get_integration_secret":
 { Args: { "p_org": string,"p_provider": string }; Returns: string
@@ -1999,6 +1999,9 @@ isOneToOne: false
                            },
 "new_member_code":
 { Args: Record<PropertyKey, never>; Returns: string
+                           },
+"number_range_module":
+{ Args: { "p_kind": string }; Returns: string
                            },
 "offer_waitlist":
 { Args: Record<PropertyKey, never>; Returns: {
@@ -2096,6 +2099,9 @@ isOneToOne: false
                            },
 "soft_delete":
 { Args: { "p_id": string,"p_table": unknown }; Returns: boolean
+                           },
+"take_number":
+{ Args: { "p_date": string,"p_kind": string,"p_org": string }; Returns: number
                            },
 "ticket_availability":
 { Args: { "p_event": string }; Returns: {

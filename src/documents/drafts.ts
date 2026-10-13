@@ -17,7 +17,7 @@ export const VAT_ID = /^[A-Z]{2}[A-Z0-9]{2,13}$/
 export const IBAN = /^[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}$/
 export const BIC = /^[A-Z0-9]{8}([A-Z0-9]{3})?$/
 /** Number range format: needs {N…}, otherwise only {YYYY} {YY} {MM} and A-Z 0-9 - _ / . # */
-export const validRangeFormat = (format: string) => /\{N+\}/.test(format) && !/[^A-Za-z0-9{}\-_/.#]/.test(format.replace(/\{(YYYY|YY|MM|N+)\}/g, ""))
+export { validRangeFormat } from "@/lib/number-ranges"
 
 export const billing = async (db: Db, orgId: string) => (await db.from("org_billing").select("*").eq("org_id", orgId).maybeSingle()).data
 

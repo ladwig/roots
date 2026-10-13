@@ -11,6 +11,7 @@ import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param } from "@/lib/url"
 import { TEMPLATES } from "@/documents/templates"
+import { NumberRangeForm } from "@/components/number-range-form"
 import { saveBilling, saveNumberRange } from "../actions"
 
 const textarea =
@@ -132,29 +133,9 @@ export default async function InvoiceSettings({ searchParams }: PageProps<"/invo
           {t("invoices.numberRanges")}
         </h2>
         <p className="text-sm text-muted-foreground">{t("invoices.numberHint")}</p>
-        {(["invoice", "quote"] as const).map((kind) => {
-          const r = ranges?.find((x) => x.kind === kind)
-          return (
-            <form key={kind} action={saveNumberRange} className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[1fr_8rem_auto_auto] sm:items-end">
-              <input type="hidden" name="kind" value={kind} />
-              <div className="grid gap-2">
-                <Label htmlFor={`n-${kind}`}>{t.dynamic(`invoices.kinds.${kind}`)}</Label>
-                <Input id={`n-${kind}`} name="format" defaultValue={r?.format ?? (kind === "invoice" ? "RE-{YYYY}-{NNNN}" : "AN-{YYYY}-{NNNN}")} required className="font-mono" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor={`nn-${kind}`}>{t("invoices.nextNumber")}</Label>
-                <Input id={`nn-${kind}`} name="next_number" type="number" min={1} defaultValue={r?.next_number ?? 1} />
-              </div>
-              <label className="flex items-center gap-2 pb-2 text-sm">
-                <input type="checkbox" name="yearly_reset" value="1" defaultChecked={r?.yearly_reset ?? true} className="size-4" />
-                {t("invoices.yearlyReset")}
-              </label>
-              <SubmitButton variant="outline" size="sm">
-                {t("common.save")}
-              </SubmitButton>
-            </form>
-          )
-        })}
+        {(["invoice", "quote"] as const).map((kind) => (
+          <NumberRangeForm key={kind} t={t} kind={kind} range={ranges?.find((x) => x.kind === kind)} label={t.dynamic(`invoices.kinds.${kind}`)} action={saveNumberRange} />
+        ))}
       </section>
     </div>
   )

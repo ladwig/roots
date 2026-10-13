@@ -1958,7 +1958,9 @@
     "feeFreeUntilShort": "fee-free until {date}",
     "feeIsMinimum": "Minimum fee (\"from\")",
     "feeFrom": "from {fee}",
-    "feeBelowMinimum": "The fee is below this membership type's minimum ({min} €)."
+    "feeBelowMinimum": "The fee is below this membership type's minimum ({min} €).",
+    "numberRange": "Member numbers",
+    "numberRangeHint": "Applies to new members; people who rejoin keep their number. Date = start date."
   },
   "forms": {
     "nav": "Forms",
@@ -3572,5 +3574,12 @@
     "aggResultOf": "Count/value",
     "rename": "Rename",
     "deleteHint": "People, memberships, events etc. go to the trash (restorable for 30 days); links like notes or guest list entries are deleted. Money (tickets, orders, dues, invoices) is never deleted."
+  },
+  "numbers": {
+    "next": "Next number",
+    "yearlyReset": "Start at 1 every year",
+    "preview": "Next: {example}",
+    "help": "Placeholders: {NNNN} running number (N count = digits), {YYYY} / {YY} year, {MM} month, {BYYYY} / {BY} birth year, {RAND6} 6 random characters. {N…} or {RAND…} is required.",
+    "invalid": "The format needs {N} (running number) or {RAND6} (random); otherwise only A–Z, 0–9 and - _ / . #"
   }
 }

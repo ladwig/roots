@@ -12,16 +12,18 @@ import { requirePerm } from "@/lib/context"
 import type { Tables } from "@/lib/supabase/types"
 import { param, siteUrl } from "@/lib/url"
 import { INTERVALS, type Interval } from "@/members/dues"
-import { deleteType, saveSettings, saveType } from "../actions"
+import { NumberRangeForm } from "@/components/number-range-form"
+import { deleteType, saveMemberRange, saveSettings, saveType } from "../actions"
 
 export default async function MembersSetupPage({ searchParams }: PageProps<"/members/setup">) {
   const ctx = await requirePerm("members.manage")
   if (!ctx.modules.has("members")) notFound()
   const t = await getT()
   const sp = await searchParams
-  const [{ data: types }, { data: settings }] = await Promise.all([
+  const [{ data: types }, { data: settings }, { data: range }] = await Promise.all([
     ctx.supabase.from("membership_types").select("*").eq("org_id", ctx.org.id).order("name"),
     ctx.supabase.from("member_settings").select("*").eq("org_id", ctx.org.id).maybeSingle(),
+    ctx.supabase.from("number_ranges").select("format, next_number, yearly_reset").eq("org_id", ctx.org.id).eq("kind", "member").maybeSingle(),
   ])
 
   return (
@@ -68,15 +70,18 @@ export default async function MembersSetupPage({ searchParams }: PageProps<"/mem
             <Field id="s-bic" name="bic" label={t("membership.bicOptional")} maxLength={11} defaultValue={settings?.bic ?? ""} />
             <Field id="s-day" name="due_day" type="number" min={1} max={28} label={t("membership.dueDay")} defaultValue={settings?.due_day ?? 15} />
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="s-format" name="number_format" label={t("membership.numberFormat")} maxLength={40} defaultValue={settings?.number_format ?? "{N}"} aria-describedby="s-format-help" />
-            <Field id="s-start" name="number_start" type="number" min={1} label={t("membership.numberStart")} defaultValue={settings?.number_start ?? 1} />
-          </div>
-          <p id="s-format-help" className="-mt-2 text-xs text-muted-foreground">
-            {t("membership.numberFormatHelp")}
-          </p>
           <SubmitButton className="justify-self-start">{t("common.save")}</SubmitButton>
         </form>
+      </section>
+
+      <section className="grid gap-3" aria-labelledby="numbers">
+        <div>
+          <h2 id="numbers" className="font-medium">
+            {t("membership.numberRange")}
+          </h2>
+          <p className="text-sm text-muted-foreground">{t("membership.numberRangeHint")}</p>
+        </div>
+        <NumberRangeForm t={t} kind="member" range={range} label={t("membership.numberFormat")} action={saveMemberRange} />
       </section>
     </>
   )

@@ -1958,7 +1958,9 @@
     "feeFreeUntilShort": "beitragsfrei bis {date}",
     "feeIsMinimum": "Mindestbeitrag („ab“)",
     "feeFrom": "ab {fee}",
-    "feeBelowMinimum": "Der Beitrag liegt unter dem Mindestbeitrag dieser Mitgliedsart ({min} €)."
+    "feeBelowMinimum": "Der Beitrag liegt unter dem Mindestbeitrag dieser Mitgliedsart ({min} €).",
+    "numberRange": "Mitgliedsnummern",
+    "numberRangeHint": "Gilt für neue Mitglieder; wer wieder eintritt, behält seine Nummer. Datum = Eintrittsdatum."
   },
   "forms": {
     "nav": "Formulare",
@@ -3572,5 +3574,12 @@
     "aggResultOf": "Anzahl/Wert",
     "rename": "Umbenennen",
     "deleteHint": "Personen, Mitgliedschaften, Events u. Ä. kommen in den Papierkorb (30 Tage wiederherstellbar); Verknüpfungen wie Notizen oder Gästelisten-Einträge werden gelöscht. Geld (Tickets, Bestellungen, Beiträge, Rechnungen) wird nie gelöscht."
+  },
+  "numbers": {
+    "next": "Nächste Nummer",
+    "yearlyReset": "Jedes Jahr bei 1 beginnen",
+    "preview": "Nächste: {example}",
+    "help": "Platzhalter: {NNNN} laufende Nummer (Anzahl N = Stellen), {YYYY} / {YY} Jahr, {MM} Monat, {BYYYY} / {BY} Geburtsjahr, {RAND6} 6 Zufallszeichen. {N…} oder {RAND…} ist Pflicht.",
+    "invalid": "Das Format braucht {N} (laufende Nummer) oder {RAND6} (Zufall); sonst nur A–Z, 0–9 und - _ / . #"
   }
 }
