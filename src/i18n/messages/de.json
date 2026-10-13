@@ -981,7 +981,11 @@
       "unlinked": "Verknüpfung gelöst.",
       "taken": "Dieser Teamzugang ist schon mit einem anderen Kontakt verknüpft.",
       "badge": "Team"
-    }
+    },
+    "quickCreate": "Neuen Kontakt anlegen",
+    "quickCreateNamed": "„{name}“ als neuen Kontakt anlegen",
+    "quickSave": "Anlegen und auswählen",
+    "quickNeedsName": "Bitte einen Namen, eine Firma oder eine E-Mail angeben."
   },
   "fields": {
     "intro": "Eigene Felder für deine Daten, z. B. Mitgliedsnummer oder Kleidergröße bei Kontakten. Sie erscheinen in Formularen und im CSV-Import.",

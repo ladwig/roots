@@ -981,7 +981,11 @@
       "unlinked": "Unlinked.",
       "taken": "This team access is already linked to another contact.",
       "badge": "Team"
-    }
+    },
+    "quickCreate": "Create new contact",
+    "quickCreateNamed": "Create “{name}” as a new contact",
+    "quickSave": "Create and select",
+    "quickNeedsName": "Please enter a name, company or email."
   },
   "fields": {
     "intro": "Your own fields for your data, e.g. member number or shirt size on contacts. They show up in forms and in the CSV import.",
