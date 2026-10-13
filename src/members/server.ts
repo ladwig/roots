@@ -47,7 +47,13 @@ export type MembershipInput = {
   mandate_signed_on: string | null
   mandate_ref: string | null
   note: string | null
+  fee_cents?: number | null // own fee; null = the type's
+  fee_interval?: Interval | null
+  payment_method?: PaymentMethod | null // null = SEPA with a mandate, else transfer
+  fee_free_until?: string | null
 }
+export const PAYMENT_METHODS = ["sepa", "transfer", "cash", "paypal", "other"] as const
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
 
 function membershipRow(m: MembershipInput) {
   const iban = compact(m.iban)
@@ -64,14 +70,27 @@ function membershipRow(m: MembershipInput) {
       bic,
       mandate_signed_on: iban ? (m.mandate_signed_on ?? m.starts_on) : null,
       note: m.note,
+      ...(m.fee_cents !== undefined && { fee_cents: m.fee_cents }),
+      ...(m.fee_interval !== undefined && { fee_interval: m.fee_interval }),
+      ...(m.payment_method !== undefined && { payment_method: m.payment_method }),
+      ...(m.fee_free_until !== undefined && { fee_free_until: m.fee_free_until }),
     },
   }
+}
+
+/** "ab X €" types: an own fee can't go below the type's fee. */
+async function checkFee(db: Db, orgId: string, m: MembershipInput): Promise<Fail | null> {
+  if (m.fee_cents == null) return null
+  const { data: type } = await db.from("membership_types").select("fee_cents, fee_is_minimum").eq("id", m.type_id).eq("org_id", orgId).maybeSingle()
+  return type?.fee_is_minimum && m.fee_cents < type.fee_cents ? fail("membership.feeBelowMinimum", { vars: { min: (type.fee_cents / 100).toFixed(2) } }) : null
 }
 
 /** New membership for an existing contact (+ the type's entry fee as a due). */
 export async function insertMembership(db: Db, orgId: string, contactId: string, input: MembershipInput, t: T): Promise<Fail | { id: string }> {
   const r = membershipRow(input)
   if ("error" in r) return r
+  const low = await checkFee(db, orgId, input)
+  if (low) return low
   const { data: m, error } = await db
     .from("memberships")
     .insert({ org_id: orgId, contact_id: contactId, ...r.row, mandate_ref: r.row.iban ? input.mandate_ref : null })
@@ -93,6 +112,8 @@ export async function insertMembership(db: Db, orgId: string, contactId: string,
 export async function updateMembership(db: Db, orgId: string, id: string, input: MembershipInput): Promise<Fail | { id: string }> {
   const r = membershipRow(input)
   if ("error" in r) return r
+  const low = await checkFee(db, orgId, input)
+  if (low) return low
   // Mandate reference: as entered, else the existing one, else derived from the member number (like the insert trigger).
   const { data: cur } = await db.from("memberships").select("number, mandate_ref").eq("id", id).eq("org_id", orgId).maybeSingle()
   if (!cur) return fail("errors.not_allowed", { missing: true })
@@ -142,7 +163,7 @@ export async function generateDues(db: Db, orgId: string, from: string, to: stri
   const [{ data: members }, { data: settings }] = await Promise.all([
     db
       .from("memberships")
-      .select("id, starts_on, ends_on, paused_from, paused_until, types:membership_types(name, fee_cents, interval, prorate)")
+      .select("id, starts_on, ends_on, paused_from, paused_until, fee_free_until, fee_cents, fee_interval, types:membership_types(name, fee_cents, interval, prorate)")
       .eq("org_id", orgId)
       .is("deleted_at", null)
       .lte("starts_on", to)
@@ -150,22 +171,24 @@ export async function generateDues(db: Db, orgId: string, from: string, to: stri
     db.from("member_settings").select("due_day").eq("org_id", orgId).maybeSingle(),
   ])
   const dueDay = String(settings?.due_day ?? 15).padStart(2, "0")
-  const wanted = (members ?? []).flatMap((m) =>
-    !m.types || m.types.fee_cents <= 0
-      ? []
-      : periods(m.types.interval as Interval, from, to)
-          .filter((p) => billable(m, p))
-          .map((p) => ({
-            org_id: orgId,
-            membership_id: m.id,
-            kind: "fee" as const,
-            description: `${m.types!.name} ${periodLabel(m.types!.interval as Interval, p.start)}`.slice(0, 140),
-            amount_cents: periodFee(m.types!.fee_cents, m.types!.interval as Interval, p, m, m.types!.prorate),
-            period_start: p.start,
-            due_on: `${p.start.slice(0, 8)}${dueDay}`,
-          }))
-          .filter((r) => r.amount_cents > 0),
-  )
+  const wanted = (members ?? []).flatMap((m) => {
+    if (!m.types) return []
+    const fee = m.fee_cents ?? m.types.fee_cents // own fee, else the type's
+    const interval = (m.fee_interval ?? m.types.interval) as Interval
+    if (fee <= 0) return []
+    return periods(interval, from, to)
+      .filter((p) => billable(m, p))
+      .map((p) => ({
+        org_id: orgId,
+        membership_id: m.id,
+        kind: "fee" as const,
+        description: `${m.types!.name} ${periodLabel(interval, p.start)}`.slice(0, 140),
+        amount_cents: periodFee(fee, interval, p, m, m.types!.prorate),
+        period_start: p.start,
+        due_on: `${p.start.slice(0, 8)}${dueDay}`,
+      }))
+      .filter((r) => r.amount_cents > 0)
+  })
   // ponytail: existing check per run over ≤ a few thousand rows; chunk the .in() if a Verein has more members.
   const { data: existing } = wanted.length
     ? await db.from("member_dues").select("membership_id, period_start").eq("org_id", orgId).eq("kind", "fee").gte("period_start", from).lte("period_start", to)
@@ -252,6 +275,7 @@ export async function createSepaRun(db: Db, orgId: string, collectionOn: string 
     .lte("due_on", collectionOn)
     .not("memberships.iban", "is", null)
     .not("memberships.mandate_signed_on", "is", null)
+    .or("payment_method.is.null,payment_method.eq.sepa", { referencedTable: "memberships" })
     .limit(5000)
   if (!dues?.length) return fail("membership.nothingToCollect")
   const { data: run, error } = await db

@@ -8,7 +8,7 @@ import { back } from "@/lib/url"
 import type { ImportOutcome } from "@/components/csv-import"
 import { INTERVALS } from "@/members/dues"
 import * as members from "@/members/server"
-import { BIC, compact, CREDITOR_ID, IBAN, today, type Fail } from "@/members/server"
+import { BIC, compact, CREDITOR_ID, IBAN, PAYMENT_METHODS, today, type Fail } from "@/members/server"
 
 const PATH = "/members"
 const DUES = "/members/dues"
@@ -46,6 +46,10 @@ export async function saveMembership(fd: FormData) {
     mandate_signed_on: date(fd, "mandate_signed_on"),
     mandate_ref: str(fd, "mandate_ref", 35),
     note: str(fd, "note", 5000),
+    fee_cents: String(fd.get("fee") ?? "").trim() ? cents(fd, "fee") : null, // empty = the type's fee
+    fee_interval: INTERVALS.find((i) => i === fd.get("fee_interval")) ?? null,
+    payment_method: PAYMENT_METHODS.find((p) => p === fd.get("payment_method")) ?? null,
+    fee_free_until: date(fd, "fee_free_until"),
   }
 
   if (id) {
@@ -140,6 +144,7 @@ export async function saveType(fd: FormData) {
     notice_months: Math.min(24, Math.max(0, Math.floor(Number(fd.get("notice_months")) || 0))),
     active: !fd.has("active") || fd.getAll("active").includes("on"), // new types have no checkbox
     prorate: fd.get("prorate") === "on",
+    fee_is_minimum: fd.get("fee_is_minimum") === "on",
   }
   const { error } = id
     ? await ctx.supabase.from("membership_types").update(row).eq("id", id).eq("org_id", ctx.org.id)

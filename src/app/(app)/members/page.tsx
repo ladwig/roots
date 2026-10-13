@@ -19,12 +19,13 @@ import type { T } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import type { Tables } from "@/lib/supabase/types"
 import { pageParam, param, withParams, type SearchParams } from "@/lib/url"
-import { earliestEnd, isPaused, type Interval } from "@/members/dues"
+import { earliestEnd, INTERVALS, isPaused, type Interval } from "@/members/dues"
+import { PAYMENT_METHODS } from "@/members/server"
 import { IdCard } from "@/members/id-card"
 import { endMembership, pauseMembership, resetMemberCode, restoreMembership, resumeMembership, saveMembership, sendReminders, setDueStatus, trashMembership } from "./actions"
 
 type Ctx = Awaited<ReturnType<typeof requirePerm>>
-type Type = Pick<Tables<"membership_types">, "id" | "name" | "fee_cents" | "interval" | "notice_months" | "active">
+type Type = Pick<Tables<"membership_types">, "id" | "name" | "fee_cents" | "fee_is_minimum" | "interval" | "notice_months" | "active">
 const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
 
 export default async function MembersPage({ searchParams }: PageProps<"/members">) {
@@ -53,7 +54,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
   if (q) query = query.or(["first_name", "last_name", "company", "email"].map((c) => `${c}.ilike.%${q}%`).join(","), { referencedTable: "contacts" })
   const [{ data }, { data: types }, { count: activeCount }, { data: editing }, { data: preset }] = await Promise.all([
     query,
-    ctx.supabase.from("membership_types").select("id, name, fee_cents, interval, notice_months, active").eq("org_id", ctx.org.id).order("name"),
+    ctx.supabase.from("membership_types").select("id, name, fee_cents, fee_is_minimum, interval, notice_months, active").eq("org_id", ctx.org.id).order("name"),
     ctx.supabase.from("memberships").select("id", { count: "exact", head: true }).eq("org_id", ctx.org.id).is("deleted_at", null).lte("starts_on", now).or(`ends_on.is.null,ends_on.gte.${now}`),
     editId
       ? ctx.supabase.from("memberships").select("*, contacts(id, first_name, last_name, company, email, member_code)").eq("id", editId).eq("org_id", ctx.org.id).maybeSingle()
@@ -201,7 +202,7 @@ function MembershipFields({ t, types, m }: { t: T; types: Type[]; m?: Tables<"me
               .filter((x) => x.active || x.id === m?.type_id)
               .map((x) => (
                 <NativeSelectOption key={x.id} value={x.id}>
-                  {x.name} · {t.money(x.fee_cents)} / {t(`membership.intervals.${x.interval as Interval}`)}
+                  {x.name} · {x.fee_is_minimum ? t("membership.feeFrom", { fee: t.money(x.fee_cents) }) : t.money(x.fee_cents)} / {t(`membership.intervals.${x.interval as Interval}`)}
                 </NativeSelectOption>
               ))}
           </NativeSelect>
@@ -209,6 +210,36 @@ function MembershipFields({ t, types, m }: { t: T; types: Type[]; m?: Tables<"me
         <Field id="m-start" name="starts_on" type="date" required label={t("membership.since")} defaultValue={m?.starts_on ?? today()} />
       </div>
       {m && <Field id="m-end" name="ends_on" type="date" label={t("membership.until")} defaultValue={m.ends_on ?? ""} />}
+      <fieldset className="grid gap-4">
+        <legend className="mb-1 font-medium">{t("membership.feeOwn")}</legend>
+        <p className="text-xs text-muted-foreground">{t("membership.feeOwnHint")}</p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field id="m-fee" name="fee" type="number" min="0" step="0.01" label={t("membership.fee")} placeholder={t("membership.feeOfType")} defaultValue={m?.fee_cents != null ? (m.fee_cents / 100).toFixed(2) : ""} />
+          <div className="grid gap-2">
+            <Label htmlFor="m-interval">{t("membership.interval")}</Label>
+            <NativeSelect id="m-interval" name="fee_interval" defaultValue={m?.fee_interval ?? ""} className="w-full">
+              <NativeSelectOption value="">{t("membership.feeOfType")}</NativeSelectOption>
+              {INTERVALS.map((i) => (
+                <NativeSelectOption key={i} value={i}>
+                  {t(`membership.intervals.${i}`)}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="m-method">{t("membership.paymentMethod")}</Label>
+            <NativeSelect id="m-method" name="payment_method" defaultValue={m?.payment_method ?? ""} className="w-full">
+              <NativeSelectOption value="">{t("membership.paymentAuto")}</NativeSelectOption>
+              {PAYMENT_METHODS.map((p) => (
+                <NativeSelectOption key={p} value={p}>
+                  {t.dynamic(`membership.paymentMethods.${p}`)}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </div>
+          <Field id="m-free" name="fee_free_until" type="date" label={t("membership.feeFreeUntil")} defaultValue={m?.fee_free_until ?? ""} />
+        </div>
+      </fieldset>
       <fieldset className="grid gap-4">
         <legend className="mb-1 font-medium">{t("membership.mandate")}</legend>
         <p className="text-xs text-muted-foreground">{t("membership.mandateHint")}</p>

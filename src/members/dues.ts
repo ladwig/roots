@@ -25,14 +25,16 @@ export function periods(interval: Interval, from: string, to: string) {
 export const coversPeriod = (m: { starts_on: string; ends_on: string | null }, p: { start: string; end: string }) =>
   m.starts_on <= p.end && (!m.ends_on || m.ends_on >= p.start)
 
-type Pause = { paused_from?: string | null; paused_until?: string | null }
+type Pause = { paused_from?: string | null; paused_until?: string | null; fee_free_until?: string | null }
 
 /** Paused on that day (open-ended pause = until resumed). */
 export const isPaused = (m: Pause, day: string) => !!m.paused_from && m.paused_from <= day && (!m.paused_until || m.paused_until >= day)
 
-/** Billed for the period: overlaps it and isn't paused for all of it. */
+/** Billed for the period: overlaps it, isn't paused for all of it and isn't fee-free for all of it. */
 export const billable = (m: { starts_on: string; ends_on: string | null } & Pause, p: { start: string; end: string }) =>
-  coversPeriod(m, p) && !(m.paused_from && m.paused_from <= p.start && (!m.paused_until || m.paused_until >= p.end))
+  coversPeriod(m, p) &&
+  !(m.paused_from && m.paused_from <= p.start && (!m.paused_until || m.paused_until >= p.end)) &&
+  !(m.fee_free_until && m.fee_free_until >= p.end)
 
 /** Earliest end when cancelling on `today`: notice months later, then to the end of that billing period. */
 export function earliestEnd(today: string, noticeMonths: number, interval: Interval) {

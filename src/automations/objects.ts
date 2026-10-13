@@ -56,11 +56,11 @@ export const OBJECTS = {
     module: "members",
     idKey: "membership_id",
     record: true,
-    fields: [{ key: "type_id", kind: "ref", ref: "membership_types", refTable: "membership_types", write: true }, text("member_no"), date("starts_on"), date("ends_on", true), date("paused_from", true), date("paused_until", true), text("pause_reason", true), text("note", true)],
+    fields: [{ key: "type_id", kind: "ref", ref: "membership_types", refTable: "membership_types", write: true }, text("member_no"), date("starts_on"), date("ends_on", true), date("paused_from", true), date("paused_until", true), text("pause_reason", true), num("fee_cents", true), pick("fee_interval", ["month", "quarter", "half_year", "year", "none"], true), pick("payment_method", ["sepa", "transfer", "cash", "paypal", "other"], true), date("fee_free_until", true), text("note", true)],
     relations: { contact_id: "contact", type_id: "membership_type" },
     create: { fields: ["type_id", "starts_on", "ends_on", "note"], parents: { contact_id: "contact" } },
   },
-  membership_type: { table: "membership_types", module: "members", fields: [text("name"), num("fee_cents"), pick("interval", ["month", "quarter", "half_year", "year", "none"])] },
+  membership_type: { table: "membership_types", module: "members", fields: [text("name"), num("fee_cents"), bool("fee_is_minimum"), pick("interval", ["month", "quarter", "half_year", "year", "none"])] },
   due: {
     table: "member_dues",
     module: "members",

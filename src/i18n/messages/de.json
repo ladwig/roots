@@ -1941,7 +1941,24 @@
     "cardHint": "Am Einlass scannen oder Code bzw. Mitgliedsnummer eintippen. Das Mitglied sieht die Karte auch im Mitgliederbereich (Login per E-Mail) und kann ihn dort selbst drucken.",
     "cardReset": "Neue Karte (alte wird ungültig)",
     "cardResetDone": "Neue Karte erstellt. Die alte gilt nicht mehr.",
-    "cardPrint": "Karte drucken"
+    "cardPrint": "Karte drucken",
+    "feeOwn": "Beitrag",
+    "feeOwnHint": "Leer lassen = Beitrag und Intervall der Mitgliedsart. Bei „ab X €“-Arten darf der eigene Beitrag nicht darunter liegen.",
+    "feeOfType": "Wie Mitgliedsart",
+    "paymentMethod": "Zahlungsart",
+    "paymentAuto": "Automatisch (Lastschrift mit Mandat, sonst Überweisung)",
+    "paymentMethods": {
+      "sepa": "SEPA-Lastschrift",
+      "transfer": "Überweisung",
+      "cash": "Bar",
+      "paypal": "PayPal",
+      "other": "Andere"
+    },
+    "feeFreeUntil": "Beitragsfrei bis",
+    "feeFreeUntilShort": "beitragsfrei bis {date}",
+    "feeIsMinimum": "Mindestbeitrag („ab“)",
+    "feeFrom": "ab {fee}",
+    "feeBelowMinimum": "Der Beitrag liegt unter dem Mindestbeitrag dieser Mitgliedsart ({min} €)."
   },
   "forms": {
     "nav": "Formulare",

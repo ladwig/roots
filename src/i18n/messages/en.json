@@ -1941,7 +1941,24 @@
     "cardHint": "Scan at the door or type the code or member number. Members also see the card in the member area (email login) and can print it there.",
     "cardReset": "New card (old one stops working)",
     "cardResetDone": "New card created. The old one no longer works.",
-    "cardPrint": "Print card"
+    "cardPrint": "Print card",
+    "feeOwn": "Fee",
+    "feeOwnHint": "Leave empty = the membership type's fee and interval. For \"from X €\" types the own fee can't be lower.",
+    "feeOfType": "As membership type",
+    "paymentMethod": "Payment method",
+    "paymentAuto": "Automatic (direct debit with mandate, else transfer)",
+    "paymentMethods": {
+      "sepa": "SEPA direct debit",
+      "transfer": "Bank transfer",
+      "cash": "Cash",
+      "paypal": "PayPal",
+      "other": "Other"
+    },
+    "feeFreeUntil": "Fee-free until",
+    "feeFreeUntilShort": "fee-free until {date}",
+    "feeIsMinimum": "Minimum fee (\"from\")",
+    "feeFrom": "from {fee}",
+    "feeBelowMinimum": "The fee is below this membership type's minimum ({min} €)."
   },
   "forms": {
     "nav": "Forms",

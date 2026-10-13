@@ -3,7 +3,7 @@ import { deliverSoon } from "@/events/worker"
 import { messages } from "@/i18n/config"
 import { createT } from "@/i18n/translate"
 import * as members from "@/members/server"
-import { isPaused } from "@/members/dues"
+import { isPaused, type Interval } from "@/members/dues"
 import { memberDoor } from "@/members/door"
 import { BIC, compact, CREDITOR_ID, IBAN, type Fail } from "@/members/server"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
@@ -30,17 +30,19 @@ const MembershipType = z.object({
   fee: z.number().int().describe("Fee per interval in cents"),
   interval: Interval,
   entry_fee: z.number().int().describe("One-off entry fee in cents"),
+  fee_is_minimum: z.boolean().describe("The fee is a minimum (\"from X €\"): members may pay more"),
   notice_months: z.number().int(),
   prorate: z.boolean(),
   active: z.boolean(),
 })
-const TYPE_COLS = "id, name, fee:fee_cents, interval, entry_fee:entry_fee_cents, notice_months, prorate, active"
+const TYPE_COLS = "id, name, fee:fee_cents, interval, entry_fee:entry_fee_cents, fee_is_minimum, notice_months, prorate, active"
 const TypeInput = z
   .object({
     name: z.string().trim().min(1).max(100),
     fee: z.number().int().min(0).max(100_000_000).describe("Fee per interval in cents"),
     interval: Interval,
     entry_fee: z.number().int().min(0).max(100_000_000).describe("One-off entry fee in cents, billed when a membership starts"),
+    fee_is_minimum: z.boolean().describe("The fee is a minimum (\"from X €\"): members may pay more"),
     notice_months: z.number().int().min(0).max(24),
     prorate: z.boolean().describe("Bill partial periods pro rata when joining/leaving mid-period"),
     active: z.boolean().describe("Inactive types can't be chosen for new members"),
@@ -54,6 +56,7 @@ const typeRow = (b: z.infer<typeof TypeInput>) => ({
   ...(b.entry_fee !== undefined && { entry_fee_cents: b.entry_fee }),
   ...(b.notice_months !== undefined && { notice_months: b.notice_months }),
   ...(b.prorate !== undefined && { prorate: b.prorate }),
+  ...(b.fee_is_minimum !== undefined && { fee_is_minimum: b.fee_is_minimum }),
   ...(b.active !== undefined && { active: b.active }),
 })
 
@@ -80,6 +83,10 @@ const Membership = z.object({
   paused_until: day.nullable().describe("Pause end (null with paused_from = until resumed)"),
   pause_reason: z.string().nullable(),
   paused: z.boolean().describe("Paused today"),
+  fee_cents: z.number().int().nullable().describe("Own fee per interval in cents (null = the type's fee)"),
+  fee_interval: Interval.nullable().describe("Own interval (null = the type's)"),
+  payment_method: z.enum(["sepa", "transfer", "cash", "paypal", "other"]).nullable().describe("null = SEPA when a mandate is on file, else transfer. Only SEPA members go into SEPA runs"),
+  fee_free_until: day.nullable().describe("No fees for periods ending on or before this date (e.g. a DJ voucher)"),
   active: z.boolean().describe("Started and not ended (today)"),
   has_mandate: z.boolean().describe("SEPA direct debit mandate on file (bank details are not exposed)"),
   mandate_ref: z.string().nullable(),
@@ -87,7 +94,7 @@ const Membership = z.object({
   created_at: ts,
   updated_at: ts,
 })
-const MEMBERSHIP_COLS = "id, member_no, contact_id, type_id, starts_on, ends_on, paused_from, paused_until, pause_reason, iban, mandate_ref, note, created_at, updated_at"
+const MEMBERSHIP_COLS = "id, member_no, contact_id, type_id, starts_on, ends_on, paused_from, paused_until, pause_reason, fee_cents, fee_interval, payment_method, fee_free_until, iban, mandate_ref, note, created_at, updated_at"
 type MembershipRow = { iban: string | null; starts_on: string; ends_on: string | null; paused_from: string | null; paused_until: string | null } & Record<string, unknown>
 const membershipOut = ({ iban, ...m }: MembershipRow) => {
   const now = berlinToday()
@@ -106,6 +113,10 @@ const Bank = {
   mandate_signed_on: day.nullable().describe("Date the mandate was signed (default: start date)"),
   mandate_ref: z.string().max(35).nullable().describe("Mandate reference (default: derived from the member number)"),
   note: z.string().max(5000).nullable(),
+  fee_cents: z.number().int().min(0).max(100_000_000).nullable().describe("Own fee per interval in cents (null = the type's; not below it for \"from X €\" types)"),
+  fee_interval: Interval.nullable(),
+  payment_method: z.enum(["sepa", "transfer", "cash", "paypal", "other"]).nullable(),
+  fee_free_until: day.nullable().describe("No fees for periods ending on or before this date"),
 }
 
 const Due = z.object({
@@ -368,6 +379,10 @@ export const endpoints: Endpoint[] = [
           mandate_signed_on: body.mandate_signed_on ?? null,
           mandate_ref: body.mandate_ref || null,
           note: body.note ?? null,
+          fee_cents: body.fee_cents ?? null,
+          fee_interval: body.fee_interval ?? null,
+          payment_method: body.payment_method ?? null,
+          fee_free_until: body.fee_free_until ?? null,
         },
         de,
       )
@@ -391,13 +406,13 @@ export const endpoints: Endpoint[] = [
     async handler({ db, orgId, params, body }) {
       const { data: cur } = await db
         .from("memberships")
-        .select("type_id, starts_on, ends_on, account_holder, iban, bic, mandate_signed_on, mandate_ref, note")
+        .select("type_id, starts_on, ends_on, account_holder, iban, bic, mandate_signed_on, mandate_ref, note, fee_cents, fee_interval, payment_method, fee_free_until")
         .eq("id", params.id)
         .eq("org_id", orgId)
         .is("deleted_at", null)
         .maybeSingle()
       if (!cur) throw notFound()
-      const r = await members.updateMembership(db, orgId, params.id, { ...cur, ...body, account_holder: (body.account_holder ?? cur.account_holder) || null, mandate_ref: body.mandate_ref === undefined ? cur.mandate_ref : body.mandate_ref || null })
+      const r = await members.updateMembership(db, orgId, params.id, { ...cur, fee_interval: cur.fee_interval as Interval | null, payment_method: cur.payment_method as members.PaymentMethod | null, ...body, account_holder: (body.account_holder ?? cur.account_holder) || null, mandate_ref: body.mandate_ref === undefined ? cur.mandate_ref : body.mandate_ref || null })
       if ("error" in r) fail(r)
       deliverSoon()
       return getMembership(db, orgId, params.id)

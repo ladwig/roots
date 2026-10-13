@@ -17,7 +17,7 @@ export async function MembersSection({ orgId, orgName, site, contact }: SectionP
   const [{ data: m }, { data: creditor }, { data: card }] = await Promise.all([
     db
       .from("memberships")
-      .select("id, member_no, starts_on, ends_on, iban, account_holder, types:membership_types(name, fee_cents, interval, notice_months)")
+      .select("id, member_no, starts_on, ends_on, iban, account_holder, fee_cents, fee_interval, payment_method, fee_free_until, types:membership_types(name, fee_cents, interval, notice_months)")
       .eq("org_id", orgId)
       .eq("contact_id", contact.id)
       .is("deleted_at", null)
@@ -30,6 +30,8 @@ export async function MembersSection({ orgId, orgName, site, contact }: SectionP
   if (!m) return null
   const { data: dues } = await db.from("member_dues").select("id, description, amount_cents, due_on, status").eq("org_id", orgId).eq("membership_id", m.id).neq("status", "cancelled").order("due_on", { ascending: false }).limit(20)
   const now = today()
+  const fee = m.fee_cents ?? m.types?.fee_cents ?? 0 // own fee, else the type's
+  const interval = m.fee_interval ?? m.types?.interval ?? "none"
   const ended = !!m.ends_on && m.ends_on < now
   const hidden = <input type="hidden" name="site" value={site} />
 
@@ -48,14 +50,15 @@ export async function MembersSection({ orgId, orgName, site, contact }: SectionP
           <dt className="text-muted-foreground">{t("membership.type")}</dt>
           <dd>
             {m.types?.name}
-            {m.types && m.types.fee_cents > 0 && m.types.interval !== "none" && ` · ${t("forms.feePer", { fee: t.money(m.types.fee_cents), interval: t.dynamic(`membership.intervals.${m.types.interval}`) })}`}
+            {fee > 0 && interval !== "none" && ` · ${t("forms.feePer", { fee: t.money(fee), interval: t.dynamic(`membership.intervals.${interval}`) })}`}
+            {m.fee_free_until && m.fee_free_until >= now && ` · ${t("membership.feeFreeUntilShort", { date: t.date(m.fee_free_until) })}`}
           </dd>
           <dt className="text-muted-foreground">{t("portal.number")}</dt>
           <dd>{m.member_no}</dd>
           <dt className="text-muted-foreground">{t("membership.since")}</dt>
           <dd>{t.date(m.starts_on)}</dd>
           <dt className="text-muted-foreground">{t("portal.payment")}</dt>
-          <dd>{m.iban ? t("portal.debitFrom", { iban: `${m.iban.slice(0, 4)} •••• ${m.iban.slice(-4)}` }) : t("portal.noDebit")}</dd>
+          <dd>{m.payment_method && m.payment_method !== "sepa" ? t.dynamic(`membership.paymentMethods.${m.payment_method}`) : m.iban ? t("portal.debitFrom", { iban: `${m.iban.slice(0, 4)} •••• ${m.iban.slice(-4)}` }) : t("portal.noDebit")}</dd>
         </dl>
         {card?.member_code && !ended && (
           <div className="grid gap-2">

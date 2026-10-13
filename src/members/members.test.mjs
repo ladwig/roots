@@ -72,3 +72,10 @@ test("pause: no fee for periods fully inside it, pro-rata skips paused months", 
   assert.ok(!billable(m, { start: "2027-04-01", end: "2027-06-30" }))
   assert.equal(periodFee(1200, "year", { start: "2027-01-01", end: "2027-12-31" }, m, true), 900)
 })
+
+test("fee-free until (DJ voucher): periods ending on or before it are free", () => {
+  const m = { starts_on: "2027-01-01", ends_on: null, fee_free_until: "2027-06-30" }
+  assert.ok(!billable(m, { start: "2027-04-01", end: "2027-06-30" }))
+  assert.ok(billable(m, { start: "2027-07-01", end: "2027-09-30" }))
+  assert.equal(periodFee(1200, "year", { start: "2027-01-01", end: "2027-12-31" }, m, true), 600)
+})

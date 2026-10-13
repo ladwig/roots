@@ -107,6 +107,10 @@ function TypeForm({ t, type }: { t: T; type?: Tables<"membership_types"> }) {
             <input type="checkbox" name="prorate" value="on" defaultChecked={type?.prorate ?? false} className="size-4" />
             {t("membership.prorate")}
           </label>
+          <label className="flex items-center gap-1.5 text-sm">
+            <input type="checkbox" name="fee_is_minimum" value="on" defaultChecked={type?.fee_is_minimum ?? false} className="size-4" />
+            {t("membership.feeIsMinimum")}
+          </label>
           {type && (
             <label className="flex items-center gap-1.5 text-sm">
               <input type="hidden" name="active" value="off" />
