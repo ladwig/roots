@@ -25,6 +25,15 @@ export function periods(interval: Interval, from: string, to: string) {
 export const coversPeriod = (m: { starts_on: string; ends_on: string | null }, p: { start: string; end: string }) =>
   m.starts_on <= p.end && (!m.ends_on || m.ends_on >= p.start)
 
+type Pause = { paused_from?: string | null; paused_until?: string | null }
+
+/** Paused on that day (open-ended pause = until resumed). */
+export const isPaused = (m: Pause, day: string) => !!m.paused_from && m.paused_from <= day && (!m.paused_until || m.paused_until >= day)
+
+/** Billed for the period: overlaps it and isn't paused for all of it. */
+export const billable = (m: { starts_on: string; ends_on: string | null } & Pause, p: { start: string; end: string }) =>
+  coversPeriod(m, p) && !(m.paused_from && m.paused_from <= p.start && (!m.paused_until || m.paused_until >= p.end))
+
 /** Earliest end when cancelling on `today`: notice months later, then to the end of that billing period. */
 export function earliestEnd(today: string, noticeMonths: number, interval: Interval) {
   const [y, m, d] = parts(today)
@@ -35,10 +44,10 @@ export function earliestEnd(today: string, noticeMonths: number, interval: Inter
   return iso(ay, Math.floor((am - 1) / step) * step + step, 0)
 }
 
-/** Fee for one period; with pro-rata, only the months the membership touches count (joining in November = 2/12). */
-export function periodFee(feeCents: number, interval: Interval, p: { start: string; end: string }, m: { starts_on: string; ends_on: string | null }, prorate: boolean) {
+/** Fee for one period; with pro-rata, only the months the membership touches and isn't paused count (joining in November = 2/12). */
+export function periodFee(feeCents: number, interval: Interval, p: { start: string; end: string }, m: { starts_on: string; ends_on: string | null } & Pause, prorate: boolean) {
   if (!prorate || interval === "none") return feeCents
   const months = periods("month", p.start, p.end)
-  const covered = months.filter((x) => coversPeriod(m, x)).length
+  const covered = months.filter((x) => billable(m, x)).length
   return Math.round((feeCents * covered) / months.length)
 }

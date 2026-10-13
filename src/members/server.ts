@@ -10,7 +10,7 @@ import { loadFields } from "@/lib/custom-fields"
 import { sendOrgEmail } from "@/lib/org-email"
 import type { Database } from "@/lib/supabase/types"
 import { siteUrl } from "@/lib/url"
-import { coversPeriod, earliestEnd, periodFee, periods, type Interval } from "./dues"
+import { billable, earliestEnd, periodFee, periods, type Interval } from "./dues"
 import { IMPORT_FIELDS, readMember, type MemberRow } from "./fields"
 import { pain008 } from "./sepa"
 
@@ -115,6 +115,25 @@ export async function endMembership(db: Db, orgId: string, id: string, endsOn: s
   return error ? dbFail(error) : { endsOn: end }
 }
 
+/** Pause from `from` (default today) until `until` (open = until resumed). Fees skip periods fully inside it; the end date stays. */
+export async function pauseMembership(db: Db, orgId: string, id: string, p: { from: string | null; until: string | null; reason: string | null }): Promise<Fail | { from: string; until: string | null }> {
+  const from = p.from ?? today()
+  if (p.until && p.until < from) return fail("membership.pauseInvalid")
+  const { error } = await db.from("memberships").update({ paused_from: from, paused_until: p.until, pause_reason: p.reason }).eq("id", id).eq("org_id", orgId)
+  return error ? dbFail(error) : { from, until: p.until }
+}
+
+/** End a pause: a pause that hasn't started is dropped, a running one ends yesterday (past periods stay unbilled). */
+export async function resumeMembership(db: Db, orgId: string, id: string): Promise<Fail | { id: string }> {
+  const { data: m } = await db.from("memberships").select("paused_from").eq("id", id).eq("org_id", orgId).maybeSingle()
+  if (!m?.paused_from) return fail("membership.notPaused")
+  const now = today()
+  const yesterday = new Date(Date.parse(now) - 86_400_000).toISOString().slice(0, 10)
+  const row = m.paused_from >= now ? { paused_from: null, paused_until: null, pause_reason: null } : { paused_until: yesterday }
+  const { error } = await db.from("memberships").update(row).eq("id", id).eq("org_id", orgId)
+  return error ? dbFail(error) : { id }
+}
+
 // ---------- dues ----------
 
 /** Period fees for every membership whose type bills a period starting in [from, to]. Running it twice adds nothing. */
@@ -123,7 +142,7 @@ export async function generateDues(db: Db, orgId: string, from: string, to: stri
   const [{ data: members }, { data: settings }] = await Promise.all([
     db
       .from("memberships")
-      .select("id, starts_on, ends_on, types:membership_types(name, fee_cents, interval, prorate)")
+      .select("id, starts_on, ends_on, paused_from, paused_until, types:membership_types(name, fee_cents, interval, prorate)")
       .eq("org_id", orgId)
       .is("deleted_at", null)
       .lte("starts_on", to)
@@ -135,7 +154,7 @@ export async function generateDues(db: Db, orgId: string, from: string, to: stri
     !m.types || m.types.fee_cents <= 0
       ? []
       : periods(m.types.interval as Interval, from, to)
-          .filter((p) => coversPeriod(m, p))
+          .filter((p) => billable(m, p))
           .map((p) => ({
             org_id: orgId,
             membership_id: m.id,

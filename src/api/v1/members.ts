@@ -3,6 +3,7 @@ import { deliverSoon } from "@/events/worker"
 import { messages } from "@/i18n/config"
 import { createT } from "@/i18n/translate"
 import * as members from "@/members/server"
+import { isPaused } from "@/members/dues"
 import { BIC, compact, CREDITOR_ID, IBAN, type Fail } from "@/members/server"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
 import { ImportResult, trashRow } from "./contacts"
@@ -74,6 +75,10 @@ const Membership = z.object({
   type_id: uuid,
   starts_on: day,
   ends_on: day.nullable(),
+  paused_from: day.nullable().describe("Pause start; no fees for periods fully inside the pause"),
+  paused_until: day.nullable().describe("Pause end (null with paused_from = until resumed)"),
+  pause_reason: z.string().nullable(),
+  paused: z.boolean().describe("Paused today"),
   active: z.boolean().describe("Started and not ended (today)"),
   has_mandate: z.boolean().describe("SEPA direct debit mandate on file (bank details are not exposed)"),
   mandate_ref: z.string().nullable(),
@@ -81,12 +86,12 @@ const Membership = z.object({
   created_at: ts,
   updated_at: ts,
 })
-const MEMBERSHIP_COLS = "id, member_no, contact_id, type_id, starts_on, ends_on, iban, mandate_ref, note, created_at, updated_at"
-type MembershipRow = { iban: string | null; starts_on: string; ends_on: string | null } & Record<string, unknown>
+const MEMBERSHIP_COLS = "id, member_no, contact_id, type_id, starts_on, ends_on, paused_from, paused_until, pause_reason, iban, mandate_ref, note, created_at, updated_at"
+type MembershipRow = { iban: string | null; starts_on: string; ends_on: string | null; paused_from: string | null; paused_until: string | null } & Record<string, unknown>
 const membershipOut = ({ iban, ...m }: MembershipRow) => {
   const now = berlinToday()
   delete m.contacts // only joined for the search filter
-  return { ...m, has_mandate: !!iban, active: m.starts_on <= now && (!m.ends_on || m.ends_on >= now) }
+  return { ...m, has_mandate: !!iban, paused: isPaused(m, now), active: m.starts_on <= now && (!m.ends_on || m.ends_on >= now) }
 }
 async function getMembership(db: Db, orgId: string, id: string) {
   const { data } = await db.from("memberships").select(MEMBERSHIP_COLS).eq("id", id).eq("org_id", orgId).is("deleted_at", null).maybeSingle()
@@ -411,6 +416,37 @@ export const endpoints: Endpoint[] = [
       const r = await members.endMembership(db, orgId, params.id, body.ends_on ?? null)
       if ("error" in r) fail(r)
       deliverSoon()
+      return getMembership(db, orgId, params.id)
+    },
+  }),
+  endpoint({
+    method: "POST",
+    path: "/members/{id}/pause",
+    permission: "members.manage",
+    tag: "Members",
+    summary: "Pause a membership",
+    description: "Pauses from `paused_from` (default today) until `paused_until` (omit = until resumed). No fees for periods fully inside the pause; the end date doesn't move. Replaces an existing pause.",
+    body: z.object({ paused_from: day.optional(), paused_until: day.optional(), pause_reason: z.string().max(300).optional() }).strict(),
+    response: Membership,
+    async handler({ db, orgId, params, body }) {
+      await getMembership(db, orgId, params.id)
+      const r = await members.pauseMembership(db, orgId, params.id, { from: body.paused_from ?? null, until: body.paused_until ?? null, reason: body.pause_reason?.trim() || null })
+      if ("error" in r) fail(r)
+      return getMembership(db, orgId, params.id)
+    },
+  }),
+  endpoint({
+    method: "POST",
+    path: "/members/{id}/resume",
+    permission: "members.manage",
+    tag: "Members",
+    summary: "End a pause",
+    description: "A pause that hasn't started is removed; a running one ends yesterday.",
+    response: Membership,
+    async handler({ db, orgId, params }) {
+      await getMembership(db, orgId, params.id)
+      const r = await members.resumeMembership(db, orgId, params.id)
+      if ("error" in r) fail(r)
       return getMembership(db, orgId, params.id)
     },
   }),

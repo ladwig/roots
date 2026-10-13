@@ -1745,7 +1745,9 @@
       "active": "Aktiv",
       "ended": "Ausgetreten",
       "ending": "Endet am {date}",
-      "upcoming": "Ab {date}"
+      "upcoming": "Ab {date}",
+      "paused": "Pausiert",
+      "pausedUntil": "Pausiert bis {date}"
     },
     "person": "Person",
     "existingContact": "Bestehender Kontakt",
@@ -1891,7 +1893,19 @@
     "importNeedsType": "Ordne eine Spalte der Mitgliedsart zu (es gibt mehrere Arten).",
     "importNumber": "Mitgliedsnummer (alt)",
     "paidOn": "Bezahlt am",
-    "reminderPortal": "Deine Beiträge und Daten siehst du jederzeit im Mitgliederbereich: {url}"
+    "reminderPortal": "Deine Beiträge und Daten siehst du jederzeit im Mitgliederbereich: {url}",
+    "pause": "Pausieren",
+    "pauseHint": "Während der Pause werden keine Beiträge für Zeiträume berechnet, die ganz in der Pause liegen. Das Enddatum verschiebt sich nicht. Ohne Enddatum bis zum Fortsetzen.",
+    "pauseFrom": "Pause ab",
+    "pauseUntil": "Pause bis (optional)",
+    "pauseReason": "Grund (optional)",
+    "pausedRange": "Pausiert vom {from} bis {until}",
+    "pausedOpen": "Pausiert seit {from}, bis zum Fortsetzen",
+    "resume": "Pause beenden",
+    "paused": "Mitgliedschaft pausiert.",
+    "resumed": "Pause beendet.",
+    "pauseInvalid": "Das Ende der Pause liegt vor dem Beginn.",
+    "notPaused": "Die Mitgliedschaft ist nicht pausiert."
   },
   "forms": {
     "nav": "Formulare",

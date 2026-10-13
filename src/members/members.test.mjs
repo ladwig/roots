@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { coversPeriod, earliestEnd, periodFee, periods } from "./dues.ts"
+import { billable, coversPeriod, earliestEnd, isPaused, periodFee, periods } from "./dues.ts"
 import { pain008, sepaText } from "./sepa.ts"
 
 test("periods are calendar-aligned and start inside the range", () => {
@@ -63,4 +63,12 @@ test("member import row: contact + membership, German dates, type by name", asyn
   const single = readMember((k) => ({ first_name: "B" })[k] ?? "", [types[0]], [], "2027-01-01")
   assert.equal(single.row.membership.type_id, "t1")
   assert.equal(single.row.membership.starts_on, "2027-01-01")
+})
+
+test("pause: no fee for periods fully inside it, pro-rata skips paused months", () => {
+  const m = { starts_on: "2027-01-01", ends_on: null, paused_from: "2027-03-15", paused_until: "2027-06-30" }
+  assert.ok(isPaused(m, "2027-04-01") && !isPaused(m, "2027-07-01") && isPaused({ ...m, paused_until: null }, "2030-01-01"))
+  assert.ok(billable(m, { start: "2027-03-01", end: "2027-03-31" }))
+  assert.ok(!billable(m, { start: "2027-04-01", end: "2027-06-30" }))
+  assert.equal(periodFee(1200, "year", { start: "2027-01-01", end: "2027-12-31" }, m, true), 900)
 })

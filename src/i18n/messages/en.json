@@ -1745,7 +1745,9 @@
       "active": "Active",
       "ended": "Left",
       "ending": "Ends {date}",
-      "upcoming": "From {date}"
+      "upcoming": "From {date}",
+      "paused": "Paused",
+      "pausedUntil": "Paused until {date}"
     },
     "person": "Person",
     "existingContact": "Existing contact",
@@ -1891,7 +1893,19 @@
     "importNeedsType": "Map a column to the membership type (there are several types).",
     "importNumber": "Member number (old)",
     "paidOn": "Paid on",
-    "reminderPortal": "See your dues and details anytime in the member area: {url}"
+    "reminderPortal": "See your dues and details anytime in the member area: {url}",
+    "pause": "Pause",
+    "pauseHint": "No fees for periods that lie fully inside the pause. The end date doesn't move. Without an end, the pause lasts until resumed.",
+    "pauseFrom": "Pause from",
+    "pauseUntil": "Pause until (optional)",
+    "pauseReason": "Reason (optional)",
+    "pausedRange": "Paused from {from} to {until}",
+    "pausedOpen": "Paused since {from}, until resumed",
+    "resume": "End pause",
+    "paused": "Membership paused.",
+    "resumed": "Pause ended.",
+    "pauseInvalid": "The pause ends before it starts.",
+    "notPaused": "The membership isn't paused."
   },
   "forms": {
     "nav": "Forms",

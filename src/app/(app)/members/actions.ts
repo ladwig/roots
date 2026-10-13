@@ -83,6 +83,24 @@ export async function endMembership(fd: FormData) {
   back(here, { ok: t("membership.ended", { date: t.date(r.endsOn) }) })
 }
 
+export async function pauseMembership(fd: FormData) {
+  const { ctx, t } = await manager()
+  const id = str(fd, "id", 36) ?? ""
+  const here = `${PATH}?edit=${id}`
+  const r = await members.pauseMembership(ctx.supabase, ctx.org.id, id, { from: date(fd, "paused_from"), until: date(fd, "paused_until"), reason: str(fd, "pause_reason", 300) })
+  if ("error" in r) back(here, { error: message(t, r) })
+  back(here, { ok: t("membership.paused") })
+}
+
+export async function resumeMembership(fd: FormData) {
+  const { ctx, t } = await manager()
+  const id = str(fd, "id", 36) ?? ""
+  const here = `${PATH}?edit=${id}`
+  const r = await members.resumeMembership(ctx.supabase, ctx.org.id, id)
+  if ("error" in r) back(here, { error: message(t, r) })
+  back(here, { ok: t("membership.resumed") })
+}
+
 export async function trashMembership(fd: FormData) {
   const { ctx, t } = await manager()
   const id = str(fd, "id", 36) ?? ""

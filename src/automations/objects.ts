@@ -56,7 +56,7 @@ export const OBJECTS = {
     module: "members",
     idKey: "membership_id",
     record: true,
-    fields: [{ key: "type_id", kind: "ref", ref: "membership_types", refTable: "membership_types", write: true }, text("member_no"), date("starts_on"), date("ends_on", true), text("note", true)],
+    fields: [{ key: "type_id", kind: "ref", ref: "membership_types", refTable: "membership_types", write: true }, text("member_no"), date("starts_on"), date("ends_on", true), date("paused_from", true), date("paused_until", true), text("pause_reason", true), text("note", true)],
     relations: { contact_id: "contact", type_id: "membership_type" },
     create: { fields: ["type_id", "starts_on", "ends_on", "note"], parents: { contact_id: "contact" } },
   },

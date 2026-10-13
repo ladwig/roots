@@ -19,8 +19,8 @@ import type { T } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import type { Tables } from "@/lib/supabase/types"
 import { pageParam, param, withParams, type SearchParams } from "@/lib/url"
-import { earliestEnd, type Interval } from "@/members/dues"
-import { endMembership, restoreMembership, saveMembership, sendReminders, setDueStatus, trashMembership } from "./actions"
+import { earliestEnd, isPaused, type Interval } from "@/members/dues"
+import { endMembership, pauseMembership, restoreMembership, resumeMembership, saveMembership, sendReminders, setDueStatus, trashMembership } from "./actions"
 
 type Ctx = Awaited<ReturnType<typeof requirePerm>>
 type Type = Pick<Tables<"membership_types">, "id" | "name" | "fee_cents" | "interval" | "notice_months" | "active">
@@ -41,7 +41,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
 
   let query = ctx.supabase
     .from("memberships")
-    .select("id, number, member_no, starts_on, ends_on, type_id, contacts!inner(first_name, last_name, company, email)")
+    .select("id, number, member_no, starts_on, ends_on, paused_from, paused_until, type_id, contacts!inner(first_name, last_name, company, email)")
     .eq("org_id", ctx.org.id)
     .order("number")
     .range(...pageRange(page))
@@ -73,9 +73,11 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
       {label}
     </Link>
   )
-  const state = (m: { starts_on: string; ends_on: string | null }) =>
+  const state = (m: { starts_on: string; ends_on: string | null; paused_from: string | null; paused_until: string | null }) =>
     m.ends_on && m.ends_on < now ? (
       <Badge variant="outline">{t("membership.state.ended")}</Badge>
+    ) : isPaused(m, now) ? (
+      <Badge variant="secondary">{m.paused_until ? t("membership.state.pausedUntil", { date: t.date(m.paused_until) }) : t("membership.state.paused")}</Badge>
     ) : m.ends_on ? (
       <Badge variant="secondary">{t("membership.state.ending", { date: t.date(m.ends_on) })}</Badge>
     ) : m.starts_on > now ? (
@@ -303,6 +305,44 @@ async function EditMembership({
               {t("membership.cancel")}
             </SubmitButton>
           </form>
+        </>
+      )}
+
+      {canManage && !m.deleted_at && (!m.ends_on || m.ends_on >= today()) && (
+        <>
+          <Separator />
+          <section className="grid gap-3" aria-labelledby="m-pause">
+            <h3 id="m-pause" className="font-medium">
+              {t("membership.pause")}
+            </h3>
+            {m.paused_from && (!m.paused_until || m.paused_until >= today()) ? (
+              <form action={resumeMembership} className="grid gap-3">
+                <input type="hidden" name="id" value={m.id} />
+                <p className="text-sm">
+                  {m.paused_until
+                    ? t("membership.pausedRange", { from: t.date(m.paused_from), until: t.date(m.paused_until) })
+                    : t("membership.pausedOpen", { from: t.date(m.paused_from) })}
+                  {m.pause_reason && ` · ${m.pause_reason}`}
+                </p>
+                <SubmitButton variant="outline" size="sm" className="justify-self-start">
+                  {t("membership.resume")}
+                </SubmitButton>
+              </form>
+            ) : (
+              <form action={pauseMembership} className="grid gap-3">
+                <input type="hidden" name="id" value={m.id} />
+                <p className="text-sm text-muted-foreground">{t("membership.pauseHint")}</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field id="m-pause-from" name="paused_from" type="date" label={t("membership.pauseFrom")} defaultValue={today()} />
+                  <Field id="m-pause-until" name="paused_until" type="date" label={t("membership.pauseUntil")} />
+                </div>
+                <Field id="m-pause-reason" name="pause_reason" label={t("membership.pauseReason")} maxLength={300} />
+                <SubmitButton variant="outline" size="sm" className="justify-self-start">
+                  {t("membership.pause")}
+                </SubmitButton>
+              </form>
+            )}
+          </section>
         </>
       )}
 
