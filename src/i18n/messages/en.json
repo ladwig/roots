@@ -2995,20 +2995,22 @@
       "webhook": "Webhook",
       "notify_team": "In-app notification",
       "email_address": "Email to an address",
-      "telegram": "Telegram message"
+      "telegram": "Telegram message",
+      "create_record": "Create record"
     },
     "help": {
       "trigger": "What starts the automation? Every event gets its own run.",
       "condition": "Branches: if the conditions match it continues at “yes”, otherwise at “no”.",
       "wait": "Pauses the run, then it continues.",
-      "send_email": "Emails the person of the event (with unsubscribe link; unsubscribed people get nothing).",
+      "send_email": "Sends an email. To this run's person ({contact.email}) with unsubscribe link and delivery status; to other addresses (e.g. your team) directly.",
       "add_tag": "Gives the person a tag.",
       "remove_tag": "Takes a tag away from the person.",
       "set_field": "Changes a field of a record this run is about (person, membership, ticket type …).",
       "webhook": "POSTs the data to an https address (e.g. Zapier, Make, n8n).",
       "notify_team": "An in-app notification for everyone who may see automations.",
       "email_address": "Sends an email to a fixed address (e.g. your team inbox) – no unsubscribe link, not for newsletters.",
-      "telegram": "Sends a message through your Telegram bot to a chat."
+      "telegram": "Sends a message through your Telegram bot to a chat.",
+      "create_record": "Creates a new record (person, event as draft, shift, membership, note …). Links to this run's person etc. are set automatically."
     },
     "ops": {
       "eq": "is",
@@ -3096,7 +3098,7 @@
       "waitlist_entry": "Waiting list entry",
       "order": "Order",
       "guest_list": "Guest list",
-      "guest": "Guest",
+      "guest": "Guest list entry",
       "guest_checkin": "Guest check-in",
       "shift": "Shift",
       "shift_assignment": "Shift assignment",
@@ -3164,7 +3166,8 @@
         "title": "Title",
         "stage": "Stage",
         "starts_at": "Start",
-        "ends_at": "End"
+        "ends_at": "End",
+        "event_id": "Event"
       },
       "artist": {
         "name": "Name"
@@ -3208,7 +3211,8 @@
         "name": "Name",
         "email": "Email",
         "note": "Note",
-        "added_via": "Added via"
+        "added_via": "Added via",
+        "list_id": "Guest list"
       },
       "guest_checkin": {
         "checked_in_at": "Checked in at"
@@ -3218,7 +3222,8 @@
         "starts_at": "Start",
         "ends_at": "End",
         "needed": "Needed",
-        "open": "open for applications"
+        "open": "open for applications",
+        "event_id": "Event"
       },
       "shift_assignment": {
         "status": "Status"
@@ -3262,11 +3267,13 @@
         "starts_at": "Start",
         "ends_at": "End",
         "cancelled": "cancelled",
-        "note": "Note"
+        "note": "Note",
+        "course_id": "Course"
       },
       "participant": {
         "status": "Status",
-        "note": "Note"
+        "note": "Note",
+        "course_id": "Course"
       },
       "attendance": {
         "present": "present"
@@ -3404,9 +3411,41 @@
     "noTrigger": "Nothing found.",
     "watchFields": "Only when these change",
     "watchHint": "Nothing ticked = on every change.",
-    "to": "To (address)",
     "chat": "Chat",
     "pickChat": "Pick a chat…",
-    "telegramOff": "Connect Telegram under Settings → Integrations first."
+    "telegramOff": "Connect Telegram under Settings → Integrations first.",
+    "toHint": "{contact.email} = this run's person (with unsubscribe link). A fixed address is sent directly.",
+    "linkedTo": "Linked automatically with: {what}",
+    "schedule": "Schedule",
+    "every": "How often",
+    "at": "Time",
+    "everyOptions": {
+      "day": "Daily",
+      "week": "Weekly",
+      "month": "Monthly"
+    },
+    "monthday": "On day of month",
+    "forEach": "Run",
+    "once": "once",
+    "onlyThese": "Only for these (optional)",
+    "dateFilter": "By date (optional)",
+    "noDateFilter": "– no date filter –",
+    "daysBefore": "days before",
+    "onTheDay": "on the day",
+    "daysAfter": "days after",
+    "yearly": "every year (e.g. birthday)",
+    "days": "days",
+    "dateMode": "Date",
+    "dateFixed": "Fixed date",
+    "dateCalc": "Calculated",
+    "dateBase": "Base date",
+    "today": "Today",
+    "dateUnits": {
+      "d": "days",
+      "w": "weeks",
+      "m": "months",
+      "y": "years"
+    },
+    "to": "To"
   }
 }

@@ -1737,14 +1737,14 @@ isOneToOne: false
                   ]
                 },"workflows": {
                   Row: {
-                    "active": boolean,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"graph": NonNullable<Json>,"id": string,"name": string,"org_id": string,"trigger_type": string | null,"updated_at": string,"updated_by": string | null
+                    "active": boolean,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"graph": NonNullable<Json>,"id": string,"next_run_at": string | null,"name": string,"org_id": string,"trigger_type": string | null,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"graph"?: NonNullable<Json>,"id"?: string,"name": string,"org_id": string,"trigger_type"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"graph"?: NonNullable<Json>,"id"?: string,"next_run_at"?: string | null,"name": string,"org_id": string,"trigger_type"?: string | null,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"graph"?: NonNullable<Json>,"id"?: string,"name"?: string,"org_id"?: string,"trigger_type"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"graph"?: NonNullable<Json>,"id"?: string,"next_run_at"?: string | null,"name"?: string,"org_id"?: string,"trigger_type"?: string | null,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {

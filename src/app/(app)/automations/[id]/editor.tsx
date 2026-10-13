@@ -18,7 +18,7 @@ import {
   type Node,
   type NodeProps,
 } from "@xyflow/react"
-import { AtSignIcon, BellIcon, CheckIcon, ChevronsUpDownIcon, ClockIcon, SendIcon, DownloadIcon, FlaskConicalIcon, XIcon, GitForkIcon, LayoutListIcon, MailIcon, PencilIcon, SaveIcon, TagIcon, TagsIcon, Trash2Icon, WebhookIcon, ZapIcon, type LucideIcon } from "lucide-react"
+import { BellIcon, FilePlus2Icon, CheckIcon, ChevronsUpDownIcon, ClockIcon, SendIcon, DownloadIcon, FlaskConicalIcon, XIcon, GitForkIcon, LayoutListIcon, MailIcon, PencilIcon, SaveIcon, TagIcon, TagsIcon, Trash2Icon, WebhookIcon, ZapIcon, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 import { RichTextEditor } from "@/components/rich-text-editor"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
@@ -31,8 +31,8 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
 import { useT } from "@/i18n/client"
 import { cn } from "@/lib/utils"
-import { ACTIONS, validate, WAIT_UNITS, type Graph, type NodeType, type TraceStep } from "@/automations/graph"
-import { def, OBJECTS, objectsFor, OPS_FOR, parseRecordTrigger, splitPath, writableFor, type Field, type Kind, type ObjectKey, type RefList } from "@/automations/objects"
+import { ACTIONS, triggerKey, validate, WAIT_UNITS, type Graph, type NodeType, type TraceStep } from "@/automations/graph"
+import { creatableFor, def, OBJECTS, objectsFor, OPS_FOR, parseRecordTrigger, SCHEDULE_OBJECTS, splitPath, writableFor, type Field, type Kind, type ObjectKey, type RefList } from "@/automations/objects"
 import { saveWorkflow, testRun, testSamples } from "../actions"
 
 type Data = Record<string, unknown>
@@ -75,27 +75,27 @@ const ICONS: Record<NodeType, LucideIcon> = {
   set_field: PencilIcon,
   webhook: WebhookIcon,
   notify_team: BellIcon,
-  email_address: AtSignIcon,
+  create_record: FilePlus2Icon,
   telegram: SendIcon,
 }
 const DEFAULTS: Record<NodeType, Data> = {
   trigger: { event: "" },
   condition: { match: "all", rules: [{ field: "", op: "eq", value: "" }] },
   wait: { amount: 1, unit: "days" },
-  send_email: { subject: "", body: "" },
+  send_email: { to: "{contact.email}", subject: "", body: "" },
   add_tag: { tag: "" },
   remove_tag: { tag: "" },
   set_field: { field: "", value: "" },
   webhook: { url: "" },
   notify_team: { text: "" },
-  email_address: { to: "", subject: "", body: "" },
+  create_record: { object: "", values: {} },
   telegram: { chat_id: "", text: "" },
 }
 // The sidebar's sections.
 const PALETTE: { section: string; types: NodeType[] }[] = [
   { section: "logic", types: ["condition", "wait"] },
-  { section: "send", types: ["send_email", "email_address", "notify_team", "telegram"] },
-  { section: "data", types: ["add_tag", "remove_tag", "set_field"] },
+  { section: "send", types: ["send_email", "notify_team", "telegram"] },
+  { section: "data", types: ["add_tag", "remove_tag", "set_field", "create_record"] },
   { section: "connect", types: ["webhook"] },
 ]
 
@@ -132,7 +132,15 @@ function StepNode({ type, data, selected }: NodeProps<FlowNode>) {
       {trace && (
         <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-primary">
           <CheckIcon className="size-3" />
-          {trace.branch ? t(trace.branch === "yes" ? "automations.yes" : "automations.no") : trace.wait ? t("automations.wouldWait", { time: duration(trace.wait, t) }) : type === "trigger" ? t("automations.testResult") : t("automations.wouldDo")}
+          <span className="truncate">
+            {trace.branch
+              ? t(trace.branch === "yes" ? "automations.yes" : "automations.no")
+              : trace.wait
+                ? t("automations.wouldWait", { time: duration(trace.wait, t) })
+                : type === "trigger"
+                  ? t("automations.testResult")
+                  : previewLine(trace.preview) || t("automations.wouldDo")}
+          </span>
         </p>
       )}
       {type === "condition" ? (
@@ -152,6 +160,10 @@ function StepNode({ type, data, selected }: NodeProps<FlowNode>) {
 }
 const duration = (ms: number, t: ReturnType<typeof useT>) =>
   ms % 86_400_000 === 0 ? `${ms / 86_400_000} ${t("automations.units.days")}` : ms % 3_600_000 === 0 ? `${ms / 3_600_000} ${t("automations.units.hours")}` : `${ms / 60_000} ${t("automations.units.minutes")}`
+
+// The one line a card shows in a test run: the filled text / subject / tag / "field = value".
+const previewLine = (p?: Record<string, string>) =>
+  !p ? "" : p.field ? `${p.field} = ${p.value || "–"}` : (p.subject ?? p.text ?? p.tag ?? p.to ?? p.url ?? Object.values(p).find(Boolean) ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
 
 const nodeTypes = Object.fromEntries(["trigger", "condition", "wait", ...ACTIONS].map((k) => [k, StepNode]))
 
@@ -173,18 +185,18 @@ function Editor({ id, name: initialName, description: initialDescription, graph,
   const [dirty, setDirty] = useState(false)
   const [pending, start] = useTransition()
   // Test run: pick a real event of the trigger type, play the (unsaved) flow through, show the path.
-  const [test, setTest] = useState<{ samples: { id: number; at: string; label: string }[] | null; eventId: string; trace: TraceStep[] | null; data: Record<string, unknown> | null } | null>(null)
+  const [test, setTest] = useState<{ samples: { id: string; at: string; label: string }[] | null; eventId: string; trace: TraceStep[] | null; data: Record<string, unknown> | null } | null>(null)
   const [testing, startTest] = useTransition()
-  const triggerEvent = String(nodes.find((n) => n.type === "trigger")?.data.event ?? "")
+  const triggerEvent = triggerKey(nodes.find((n) => n.type === "trigger")?.data)
   const openTest = () =>
     startTest(async () => {
       const samples = await testSamples(triggerEvent)
-      setTest({ samples, eventId: samples[0] ? String(samples[0].id) : "", trace: null, data: null })
+      setTest({ samples, eventId: samples[0]?.id ?? "", trace: null, data: null })
     })
   const runTest = () =>
     startTest(async () => {
       if (!test?.eventId) return
-      const r = await testRun({ eventId: Number(test.eventId), graph: current() })
+      const r = await testRun({ eventId: test.eventId, graph: current() })
       if (r.error) toast.error(r.error)
       else setTest({ ...test, trace: r.trace ?? [], data: r.data ?? null })
     })
@@ -317,7 +329,7 @@ function Editor({ id, name: initialName, description: initialDescription, graph,
                 <Label htmlFor="test-sample">{t("automations.testSample")}</Label>
                 <NativeSelect id="test-sample" value={test.eventId} onChange={(e) => setTest({ ...test, eventId: e.target.value, trace: null, data: null })} className="w-full">
                   {test.samples.map((x) => (
-                    <NativeSelectOption key={x.id} value={String(x.id)}>
+                    <NativeSelectOption key={x.id} value={x.id}>
                       {new Date(x.at).toLocaleString()}
                       {x.label && ` · ${x.label}`}
                     </NativeSelectOption>
@@ -498,6 +510,19 @@ function Inspector({
       {type === "condition" && <ConditionForm d={d} options={options} trigger={trigger} canEdit={canEdit} onChange={onChange} />}
       {type === "send_email" && (
         <>
+          {field("to", t("automations.to"), { maxLength: 320, placeholder: "{contact.email}" })}
+          {canEdit && (
+            <div className="flex flex-wrap gap-1">
+              {placeholders
+                .filter((p) => p.endsWith("email"))
+                .map((p) => (
+                  <button key={p} type="button" onClick={() => onChange({ to: `{${p}}` })} className="rounded border px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground hover:bg-muted">
+                    {`{${p}}`}
+                  </button>
+                ))}
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">{t("automations.toHint")}</p>
           {field("subject", t("automations.subject"), { maxLength: 200 })}
           {chips("subject")}
           <div className="grid gap-1">
@@ -508,17 +533,7 @@ function Inspector({
       )}
       {(type === "add_tag" || type === "remove_tag") && <TagPick value={String(d.tag ?? "")} tags={options.tags} creatable={type === "add_tag"} disabled={!canEdit} onChange={(tag) => onChange({ tag })} />}
       {type === "set_field" && <SetField d={d} options={options} trigger={trigger} canEdit={canEdit} onChange={onChange} />}
-      {type === "email_address" && (
-        <>
-          {field("to", t("automations.to"), { maxLength: 320, placeholder: "team@…" })}
-          {field("subject", t("automations.subject"), { maxLength: 200 })}
-          {chips("subject")}
-          <div className="grid gap-1">
-            <Label>{t("automations.body")}</Label>
-            <RichTextEditor name="body" defaultValue={String(d.body ?? "")} placeholders={placeholders} disabled={!canEdit} onChange={(html) => onChange({ body: html })} />
-          </div>
-        </>
-      )}
+      {type === "create_record" && <CreateRecord d={d} options={options} trigger={trigger} canEdit={canEdit} onChange={onChange} />}
       {type === "telegram" && (
         <>
           {!options.telegram.connected && <p className="text-xs text-destructive">{t("automations.telegramOff")}</p>}
@@ -544,13 +559,14 @@ function Inspector({
           {chips("text")}
         </>
       )}
-      {(type === "send_email" || type === "notify_team" || type === "email_address" || type === "telegram") && <p className="text-xs text-muted-foreground">{t("automations.placeholdersHint")}</p>}
+      {(type === "send_email" || type === "notify_team" || type === "telegram") && <p className="text-xs text-muted-foreground">{t("automations.placeholdersHint")}</p>}
     </div>
   )
 }
 
 /** "Ticket sold" or, for record triggers, "Ticket · created". */
 export function triggerLabel(key: string, t: ReturnType<typeof useT>) {
+  if (key === "schedule") return t("automations.schedule")
   const rec = parseRecordTrigger(key)
   return rec ? `${t.dynamic(`automations.objects.${rec.object}`)} · ${t.dynamic(`automations.recordActions.${rec.action}`)}` : t.dynamic(`events.types.${key}`)
 }
@@ -579,7 +595,12 @@ function TriggerForm({ d, options, canEdit, onChange }: { d: Record<string, unkn
                 {options.triggers.map((g) => (
                   <CommandGroup key={g.group} heading={g.group}>
                     {g.items.map((it) => (
-                      <CommandItem key={it.key} value={`${g.group} ${it.label}`} data-checked={it.key === value} onSelect={() => (onChange({ event: it.key, fields: [] }), setOpen(false))}>
+                      <CommandItem
+                        key={it.key}
+                        value={`${g.group} ${it.label}`}
+                        data-checked={it.key === value}
+                        onSelect={() => (onChange(it.key === "schedule" ? { event: "schedule", every: "day", time: "09:00", fields: [] } : { event: it.key, fields: [] }), setOpen(false))}
+                      >
                         {it.label}
                       </CommandItem>
                     ))}
@@ -590,6 +611,7 @@ function TriggerForm({ d, options, canEdit, onChange }: { d: Record<string, unkn
           </PopoverContent>
         </Popover>
       </div>
+      {value === "schedule" && <ScheduleForm d={d} options={options} canEdit={canEdit} onChange={onChange} />}
       {rec?.action === "update" && (
         <fieldset className="grid gap-1">
           <legend className="mb-1 text-sm font-medium">{t("automations.watchFields")}</legend>
@@ -609,6 +631,96 @@ function TriggerForm({ d, options, canEdit, onChange }: { d: Record<string, unkn
               </label>
             ))}
         </fieldset>
+      )}
+    </div>
+  )
+}
+
+// Schedule: when (daily/weekly/monthly at a time) and for what: once, or each record of an object that passes
+// the filters (conditions on its fields, and/or "N days before/after a date", yearly for birthdays).
+function ScheduleForm({ d, options, canEdit, onChange }: { d: Record<string, unknown>; options: EditorOptions; canEdit: boolean; onChange: (p: Data) => void }) {
+  const t = useT()
+  const mods = new Set(options.modules)
+  const object = String(d.object ?? "") as ObjectKey | ""
+  const every = String(d.every ?? "day")
+  const offset = Number(d.offset ?? 0)
+  const dateFields = object ? def(object).fields.filter((f) => f.kind === "date") : []
+  return (
+    <div className="grid gap-3 rounded-md border p-2">
+      <div className="grid grid-cols-2 gap-2">
+        <div className="grid gap-1">
+          <Label htmlFor="sc-every">{t("automations.every")}</Label>
+          <NativeSelect id="sc-every" value={every} disabled={!canEdit} className="w-full" onChange={(e) => onChange({ every: e.target.value, time: d.time ?? "09:00" })}>
+            {["day", "week", "month"].map((x) => (
+              <NativeSelectOption key={x} value={x}>
+                {t.dynamic(`automations.everyOptions.${x}`)}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </div>
+        <div className="grid gap-1">
+          <Label htmlFor="sc-time">{t("automations.at")}</Label>
+          <Input id="sc-time" type="time" value={String(d.time ?? "09:00")} disabled={!canEdit} onChange={(e) => onChange({ time: e.target.value, every })} />
+        </div>
+      </div>
+      {every === "week" && (
+        <NativeSelect value={String(d.weekday ?? 1)} disabled={!canEdit} aria-label={t("automations.fields.now.weekday")} className="w-full" onChange={(e) => onChange({ weekday: Number(e.target.value) })}>
+          {[1, 2, 3, 4, 5, 6, 7].map((w) => (
+            <NativeSelectOption key={w} value={String(w)}>
+              {t.dynamic(`automations.values.${w}`)}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+      )}
+      {every === "month" && (
+        <div className="grid gap-1">
+          <Label htmlFor="sc-md">{t("automations.monthday")}</Label>
+          <Input id="sc-md" type="number" min={1} max={28} value={Number(d.monthday ?? 1)} disabled={!canEdit} onChange={(e) => onChange({ monthday: Math.min(28, Math.max(1, Number(e.target.value) || 1)) })} />
+        </div>
+      )}
+      <div className="grid gap-1">
+        <Label htmlFor="sc-object">{t("automations.forEach")}</Label>
+        <NativeSelect id="sc-object" value={object} disabled={!canEdit} className="w-full" onChange={(e) => onChange({ object: e.target.value, rules: [], date_field: "", offset: 0, yearly: false })}>
+          <NativeSelectOption value="">{t("automations.once")}</NativeSelectOption>
+          {SCHEDULE_OBJECTS.filter((o) => def(o).module === "org" || mods.has(def(o).module)).map((o) => (
+            <NativeSelectOption key={o} value={o}>
+              {t.dynamic(`automations.objects.${o}`)}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+      </div>
+      {object && (
+        <>
+          <p className="text-xs font-medium">{t("automations.onlyThese")}</p>
+          <RulesEditor rules={(d.rules as { field: string; op: string; value: string }[]) ?? []} objects={[object]} options={options} canEdit={canEdit} onChange={(rules) => onChange({ rules })} />
+          {dateFields.length > 0 && (
+            <div className="grid gap-1">
+              <Label htmlFor="sc-date">{t("automations.dateFilter")}</Label>
+              <NativeSelect id="sc-date" value={String(d.date_field ?? "")} disabled={!canEdit} className="w-full" onChange={(e) => onChange({ date_field: e.target.value })}>
+                <NativeSelectOption value="">{t("automations.noDateFilter")}</NativeSelectOption>
+                {dateFields.map((f) => (
+                  <NativeSelectOption key={f.key} value={f.key}>
+                    {t.dynamic(`automations.fields.${object}.${f.key}`)}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+              {d.date_field ? (
+                <div className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-1">
+                  <Input type="number" min={0} value={Math.abs(offset)} disabled={!canEdit} aria-label={t("automations.days")} onChange={(e) => onChange({ offset: (offset < 0 ? -1 : 1) * Math.abs(Math.floor(Number(e.target.value) || 0)) })} />
+                  <NativeSelect value={offset < 0 ? "before" : offset > 0 ? "after" : "on"} disabled={!canEdit} aria-label={t("automations.when")} className="w-full" onChange={(e) => onChange({ offset: e.target.value === "on" ? 0 : (e.target.value === "before" ? -1 : 1) * Math.max(1, Math.abs(offset)) })}>
+                    <NativeSelectOption value="before">{t("automations.daysBefore")}</NativeSelectOption>
+                    <NativeSelectOption value="on">{t("automations.onTheDay")}</NativeSelectOption>
+                    <NativeSelectOption value="after">{t("automations.daysAfter")}</NativeSelectOption>
+                  </NativeSelect>
+                  <label className="col-span-2 flex items-center gap-2 text-sm">
+                    <input type="checkbox" className="size-4" checked={!!d.yearly} disabled={!canEdit} onChange={(e) => onChange({ yearly: e.target.checked })} />
+                    {t("automations.yearly")}
+                  </label>
+                </div>
+              ) : null}
+            </div>
+          )}
+        </>
       )}
     </div>
   )
@@ -669,25 +781,24 @@ function SetField({ d, options, trigger, canEdit, onChange }: { d: Record<string
           ))}
         </NativeSelect>
       )}
-      {f && <ValueInput f={f} value={String(d.value ?? "")} options={options} disabled={!canEdit} onChange={(value) => onChange({ value })} />}
+      {f && <ValueInput f={f} value={String(d.value ?? "")} options={options} dates={dateBases(objectsFor(trigger, new Set(options.modules)), (k) => t.dynamic(k))} disabled={!canEdit} onChange={(value) => onChange({ value })} />}
     </div>
   )
 }
 
-// One rule = object (what the trigger brings) → field → comparison that fits the field → value from real data.
-function ConditionForm({ d, options, trigger, canEdit, onChange }: { d: Record<string, unknown>; options: EditorOptions; trigger: string; canEdit: boolean; onChange: (p: Data) => void }) {
+// Date fields of the run's objects, as bases for calculated dates ("membership end + 6 months").
+function dateBases(objects: ObjectKey[], label: (k: string) => string): Option[] {
+  return objects.flatMap((o) => def(o).fields.filter((f) => f.kind === "date").map((f) => ({ value: `{${o}.${f.key}}`, label: `${label(`automations.objects.${o}`)} · ${label(`automations.fields.${o}.${f.key}`)}` })))
+}
+
+// Condition rows: object → field → comparison that fits → value. Used by conditions and schedule filters.
+function RulesEditor({ rules, objects, options, canEdit, onChange }: { rules: { field: string; op: string; value: string }[]; objects: ObjectKey[]; options: EditorOptions; canEdit: boolean; onChange: (rules: { field: string; op: string; value: string }[]) => void }) {
   const t = useT()
-  const rules = (d.rules as { field: string; op: string; value: string }[]) ?? []
-  const set = (i: number, patch: Partial<(typeof rules)[number]>) => onChange({ rules: rules.map((r, j) => (j === i ? { ...r, ...patch } : r)) })
-  const objects = objectsFor(trigger, new Set(options.modules))
+  const set = (i: number, patch: Partial<(typeof rules)[number]>) => onChange(rules.map((r, j) => (j === i ? { ...r, ...patch } : r)))
   const fieldsFor = (o: string) => fieldsOf(o, options, (k) => t.dynamic(k))
+  const bases = dateBases(objects, (k) => t.dynamic(k))
   return (
     <div className="grid gap-3">
-      <NativeSelect value={String(d.match ?? "all")} disabled={!canEdit} onChange={(e) => onChange({ match: e.target.value })} aria-label={t("automations.match")} className="w-full">
-        <NativeSelectOption value="all">{t("automations.matchAll")}</NativeSelectOption>
-        <NativeSelectOption value="any">{t("automations.matchAny")}</NativeSelectOption>
-      </NativeSelect>
-      {!trigger && <p className="text-xs text-muted-foreground">{t("automations.pickTriggerFirst")}</p>}
       {rules.map((r, i) => {
         const { object, field } = splitPath(r.field)
         const fields = fieldsFor(object)
@@ -695,27 +806,30 @@ function ConditionForm({ d, options, trigger, canEdit, onChange }: { d: Record<s
         const ops = f ? OPS_FOR[f.kind] : []
         return (
           <div key={i} className="grid gap-1 rounded-md border p-2">
-            <NativeSelect value={object} disabled={!canEdit} aria-label={t("automations.object")} className="w-full" onChange={(e) => set(i, { field: `${e.target.value}.`, op: "eq", value: "" })}>
-              <NativeSelectOption value="">{t("automations.pickObject")}</NativeSelectOption>
-              {objects.map((o) => (
-                <NativeSelectOption key={o} value={o}>
-                  {t.dynamic(`automations.objects.${o}`)}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-            {object && (
+            {objects.length > 1 && (
+              <NativeSelect value={object} disabled={!canEdit} aria-label={t("automations.object")} className="w-full" onChange={(e) => set(i, { field: `${e.target.value}.`, op: "eq", value: "" })}>
+                <NativeSelectOption value="">{t("automations.pickObject")}</NativeSelectOption>
+                {objects.map((o) => (
+                  <NativeSelectOption key={o} value={o}>
+                    {t.dynamic(`automations.objects.${o}`)}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            )}
+            {(object || objects.length === 1) && (
               <NativeSelect
                 value={field}
                 disabled={!canEdit}
                 aria-label={t("automations.field")}
                 className="w-full"
                 onChange={(e) => {
-                  const nf = fields.find((x) => x.key === e.target.value)
-                  set(i, { field: `${object}.${e.target.value}`, op: nf ? OPS_FOR[nf.kind][0] : "eq", value: nf?.kind === "bool" ? "true" : "" })
+                  const o = object || objects[0]
+                  const nf = fieldsFor(o).find((x) => x.key === e.target.value)
+                  set(i, { field: `${o}.${e.target.value}`, op: nf ? OPS_FOR[nf.kind][0] : "eq", value: nf?.kind === "bool" ? "true" : "" })
                 }}
               >
                 <NativeSelectOption value="">{t("automations.pickField")}</NativeSelectOption>
-                {fields.map((x) => (
+                {fieldsFor(object || objects[0]).map((x) => (
                   <NativeSelectOption key={x.key} value={x.key}>
                     {x.label}
                   </NativeSelectOption>
@@ -731,9 +845,9 @@ function ConditionForm({ d, options, trigger, canEdit, onChange }: { d: Record<s
                 ))}
               </NativeSelect>
             )}
-            {f && r.op !== "empty" && r.op !== "not_empty" && <ValueInput f={f} value={r.value} options={options} disabled={!canEdit} onChange={(value) => set(i, { value })} />}
-            {canEdit && rules.length > 1 && (
-              <Button type="button" variant="ghost" size="sm" className="justify-self-start" onClick={() => onChange({ rules: rules.filter((_, j) => j !== i) })}>
+            {f && r.op !== "empty" && r.op !== "not_empty" && <ValueInput f={f} value={r.value} options={options} dates={bases} disabled={!canEdit} onChange={(value) => set(i, { value })} />}
+            {canEdit && (
+              <Button type="button" variant="ghost" size="sm" className="justify-self-start" onClick={() => onChange(rules.filter((_, j) => j !== i))}>
                 {t("automations.removeRule")}
               </Button>
             )}
@@ -741,7 +855,7 @@ function ConditionForm({ d, options, trigger, canEdit, onChange }: { d: Record<s
         )
       })}
       {canEdit && rules.length < 20 && (
-        <Button type="button" variant="outline" size="sm" className="justify-self-start" onClick={() => onChange({ rules: [...rules, { field: "", op: "eq", value: "" }] })}>
+        <Button type="button" variant="outline" size="sm" className="justify-self-start" onClick={() => onChange([...rules, { field: objects.length === 1 ? `${objects[0]}.` : "", op: "eq", value: "" }])}>
           {t("automations.addRule")}
         </Button>
       )}
@@ -749,8 +863,108 @@ function ConditionForm({ d, options, trigger, canEdit, onChange }: { d: Record<s
   )
 }
 
+function ConditionForm({ d, options, trigger, canEdit, onChange }: { d: Record<string, unknown>; options: EditorOptions; trigger: string; canEdit: boolean; onChange: (p: Data) => void }) {
+  const t = useT()
+  return (
+    <div className="grid gap-3">
+      <NativeSelect value={String(d.match ?? "all")} disabled={!canEdit} onChange={(e) => onChange({ match: e.target.value })} aria-label={t("automations.match")} className="w-full">
+        <NativeSelectOption value="all">{t("automations.matchAll")}</NativeSelectOption>
+        <NativeSelectOption value="any">{t("automations.matchAny")}</NativeSelectOption>
+      </NativeSelect>
+      {!trigger && <p className="text-xs text-muted-foreground">{t("automations.pickTriggerFirst")}</p>}
+      <RulesEditor rules={(d.rules as { field: string; op: string; value: string }[]) ?? []} objects={objectsFor(trigger, new Set(options.modules))} options={options} canEdit={canEdit} onChange={(rules) => onChange({ rules })} />
+    </div>
+  )
+}
+
+// Create record: object (creatable with what the run has) → its fields; links (e.g. the person) are set automatically.
+function CreateRecord({ d, options, trigger, canEdit, onChange }: { d: Record<string, unknown>; options: EditorOptions; trigger: string; canEdit: boolean; onChange: (p: Data) => void }) {
+  const t = useT()
+  const mods = new Set(options.modules)
+  const objects = creatableFor(trigger, mods)
+  const object = String(d.object ?? "") as ObjectKey | ""
+  const values = (d.values as Record<string, string>) ?? {}
+  const spec = object ? def(object).create : undefined
+  const bases = dateBases(objectsFor(trigger, mods), (k) => t.dynamic(k))
+  return (
+    <div className="grid gap-2">
+      <NativeSelect value={object} disabled={!canEdit} aria-label={t("automations.object")} className="w-full" onChange={(e) => onChange({ object: e.target.value, values: {} })}>
+        <NativeSelectOption value="">{t("automations.pickObject")}</NativeSelectOption>
+        {objects.map((o) => (
+          <NativeSelectOption key={o} value={o}>
+            {t.dynamic(`automations.objects.${o}`)}
+          </NativeSelectOption>
+        ))}
+      </NativeSelect>
+      {spec?.parents && Object.values(spec.parents).length > 0 && (
+        <p className="text-xs text-muted-foreground">{t("automations.linkedTo", { what: Object.values(spec.parents).map((p) => t.dynamic(`automations.objects.${p}`)).join(", ") })}</p>
+      )}
+      {object &&
+        spec?.fields.map((key) => {
+          const f = def(object).fields.find((x) => x.key === key)!
+          return (
+            <div key={key} className="grid gap-1">
+              <Label>{t.dynamic(`automations.fields.${object}.${key}`)}</Label>
+              <ValueInput f={f} value={values[key] ?? ""} options={options} dates={bases} disabled={!canEdit} onChange={(v) => onChange({ values: { ...values, [key]: v } })} />
+            </div>
+          )
+        })}
+    </div>
+  )
+}
+
+// A date: fixed (date picker) or calculated: base (today or a date of the run) ± N days/weeks/months/years.
+// Stored as text: "2026-12-31", "today+10", "{membership.ends_on}+6m".
+function DateValue({ value: full, dates, time, disabled, onChange: emit }: { value: string; dates: Option[]; time?: boolean; disabled: boolean; onChange: (v: string) => void }) {
+  const t = useT()
+  // Timestamps carry " HH:MM" after the date part.
+  const tm = /^(.*?)\s+(\d{2}:\d{2})$/.exec(full)
+  const value = tm ? tm[1] : full
+  const clock = tm ? tm[2] : ""
+  const onChange = (v: string, c = clock) => emit(time && c && v ? `${v} ${c}` : v)
+  const m = /^(today|\{[a-z_.]+\})(?:([+-])(\d+)([dwmy]))?$/.exec(value)
+  const calc = !!m || value === "today"
+  const [base, sign, n, unit] = m ? [m[1], m[2] ?? "+", m[3] ?? "0", m[4] ?? "d"] : ["today", "+", "0", "d"]
+  const build = (b: string, sg: string, num: string, u: string) => onChange(Number(num) ? `${b}${sg}${Math.abs(Math.floor(Number(num)))}${u}` : b)
+  return (
+    <div className="grid gap-1">
+      <NativeSelect value={calc ? "calc" : "fixed"} disabled={disabled} aria-label={t("automations.dateMode")} className="w-full" onChange={(e) => (e.target.value === "calc" ? onChange("today") : onChange(""))}>
+        <NativeSelectOption value="fixed">{t("automations.dateFixed")}</NativeSelectOption>
+        <NativeSelectOption value="calc">{t("automations.dateCalc")}</NativeSelectOption>
+      </NativeSelect>
+      {!calc ? (
+        <Input type="date" value={/^\d{4}-\d{2}-\d{2}$/.test(value) ? value : ""} disabled={disabled} aria-label={t("automations.value")} onChange={(e) => onChange(e.target.value)} />
+      ) : (
+        <div className="grid grid-cols-[minmax(0,1fr)_3.5rem_4rem_minmax(0,1fr)] gap-1">
+          <NativeSelect value={base} disabled={disabled} aria-label={t("automations.dateBase")} className="w-full" onChange={(e) => build(e.target.value, sign, n, unit)}>
+            <NativeSelectOption value="today">{t("automations.today")}</NativeSelectOption>
+            {dates.map((o) => (
+              <NativeSelectOption key={o.value} value={o.value}>
+                {o.label}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+          <NativeSelect value={sign} disabled={disabled} aria-label="±" onChange={(e) => build(base, e.target.value, n, unit)}>
+            <NativeSelectOption value="+">+</NativeSelectOption>
+            <NativeSelectOption value="-">−</NativeSelectOption>
+          </NativeSelect>
+          <Input type="number" min={0} value={n} disabled={disabled} aria-label={t("automations.amount")} onChange={(e) => build(base, sign, e.target.value, unit)} />
+          <NativeSelect value={unit} disabled={disabled} aria-label={t("automations.unit")} onChange={(e) => build(base, sign, n, e.target.value)}>
+            {["d", "w", "m", "y"].map((u) => (
+              <NativeSelectOption key={u} value={u}>
+                {t.dynamic(`automations.dateUnits.${u}`)}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </div>
+      )}
+      {time && <Input type="time" value={clock} disabled={disabled} aria-label={t("automations.at")} onChange={(e) => onChange(value, e.target.value)} />}
+    </div>
+  )
+}
+
 // The value control that fits the field: records/tags/options to pick, yes/no, date, number or text.
-function ValueInput({ f, value, options, disabled, onChange }: { f: Field; value: string; options: EditorOptions; disabled: boolean; onChange: (v: string) => void }) {
+function ValueInput({ f, value, options, dates = [], disabled, onChange }: { f: Field; value: string; options: EditorOptions; dates?: Option[]; disabled: boolean; onChange: (v: string) => void }) {
   const t = useT()
   const pick = (items: Option[]) => (
     <NativeSelect value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)} aria-label={t("automations.value")} className="w-full">
@@ -765,11 +979,12 @@ function ValueInput({ f, value, options, disabled, onChange }: { f: Field; value
   if (f.kind === "bool") return pick([{ value: "true", label: t("automations.yes") }, { value: "false", label: t("automations.no") }])
   if (f.kind === "tags") return <TagPick value={value} tags={options.tags} disabled={disabled} onChange={onChange} />
   if (f.kind === "ref" && f.ref) return pick(options.refs[f.ref] ?? [])
+  if (f.kind === "date") return <DateValue value={value} dates={dates} time={f.time} disabled={disabled} onChange={onChange} />
   if (f.kind === "enum")
     return pick((f.options ?? []).map((o) => ({ value: o, label: t.has(`automations.values.${o}` as never) ? t.dynamic(`automations.values.${o}`) : o })))
   return (
     <Input
-      type={f.kind === "date" ? "date" : f.kind === "number" ? "number" : "text"}
+      type={f.kind === "number" ? "number" : "text"}
       value={value}
       disabled={disabled}
       aria-label={t("automations.value")}

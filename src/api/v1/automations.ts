@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { Graph, triggerOf, validate } from "@/automations/graph"
+import { scheduleNext } from "@/automations/server"
 import type { Json } from "@/lib/supabase/types"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
 import { ts, type Db } from "./shared"
@@ -108,6 +109,7 @@ export const endpoints: Endpoint[] = [
           ...(body.description !== undefined ? { description: body.description } : {}),
           ...(body.graph ? { graph: body.graph as unknown as NonNullable<Json>, trigger_type: (triggerOf(body.graph)?.data.event as string) || null } : {}),
           active,
+          next_run_at: active ? scheduleNext(graph) : null,
         })
         .eq("id", params.id)
         .eq("org_id", orgId)

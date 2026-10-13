@@ -8,9 +8,12 @@ import { tg } from "@/integrations/telegram"
 import { loadFields, parseValue } from "@/lib/custom-fields"
 import { sendOrgEmail } from "@/lib/org-email"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { fromLocalInput } from "@/lib/time"
 import type { Json } from "@/lib/supabase/types"
-import { fill, Graph, NODE_DATA, next, passes, triggerOf, waitMs, type GraphNode, type NodeData, type NodeType } from "./graph"
-import { def, objectsFor, parseRecordTrigger, pickFields, splitPath, type ObjectKey } from "./objects"
+import { syncTickets } from "@/guestlists/server"
+import { fill, Graph, NODE_DATA, next, passes, test, triggerOf, waitMs, type GraphNode, type NodeData, type NodeType } from "./graph"
+import { def, objectsFor, parseRecordTrigger, pickFields, splitPath, type Field, type ObjectKey } from "./objects"
+import { berlinDay, dateMatches, nextRun, resolveDate, type Schedule } from "./schedule"
 
 type Db = ReturnType<typeof createAdminClient>
 type Run = { id: string; org_id: string; workflow_id: string; contact_id: string | null; node_id: string | null; context: Json; log: Json }
@@ -28,6 +31,61 @@ export async function processWorkflowRuns(limit = 25) {
   if (error) throw error
   for (const run of runs ?? []) await step(db, run).catch((e) => finish(db, run, [], { status: "failed", error: String(e instanceof Error ? e.message : e) }))
   return runs?.length ?? 0
+}
+
+// ---------- schedules ----------
+
+/** When a workflow with a schedule trigger runs next (null = not a schedule). Set on save/activate and after each run. */
+export function scheduleNext(graph: unknown, after = new Date()) {
+  const parsed = Graph.safeParse(graph)
+  const d = parsed.success ? triggerOf(parsed.data)?.data : undefined
+  return d?.event === "schedule" && d.every ? nextRun(d as unknown as Schedule, after).toISOString() : null
+}
+
+/**
+ * Due schedules → runs: one run, or one per record of the chosen object that passes the trigger's rules and
+ * date filter ("7 days before the event", "birthday today"). ponytail: up to 5000 records per object and run;
+ * page through them if an org has more.
+ */
+export async function processSchedules() {
+  if (!process.env.SUPABASE_SECRET_KEY) return 0
+  const db = workerDb()
+  const now = new Date()
+  const { data: due } = await db.from("workflows").select("id, org_id, graph, next_run_at").eq("trigger_type", "schedule").eq("active", true).is("deleted_at", null).or(`next_run_at.is.null,next_run_at.lte.${now.toISOString()}`).limit(50)
+  let started = 0
+  for (const wf of due ?? []) {
+    const next = scheduleNext(wf.graph, now)
+    // Newly switched on: only plan the first run.
+    if (wf.next_run_at) started += await startScheduled(db, wf).catch((e) => (console.error("schedule", wf.id, e), 0))
+    await db.from("workflows").update({ next_run_at: next }).eq("id", wf.id)
+  }
+  return started
+}
+
+async function startScheduled(db: Db, wf: { id: string; org_id: string; graph: unknown }) {
+  const g = Graph.parse(wf.graph)
+  const d = (triggerOf(g)?.data ?? {}) as { object?: string; rules?: { field: string; op: never; value: string }[]; date_field?: string; offset?: number; yearly?: boolean }
+  const rows: { context: NonNullable<Json>; contact_id: string | null }[] = []
+  if (!d.object) rows.push({ context: { event: "schedule", payload: {} }, contact_id: null })
+  else {
+    const object = d.object as ObjectKey
+    const { data } = await db.from(def(object).table as "contacts").select("*").eq("org_id", wf.org_id).limit(5000)
+    const today = berlinDay(new Date())
+    for (const raw of (data ?? []) as Row[]) {
+      if (raw.deleted_at) continue
+      const row = pickFields(object, raw)!
+      const ctx = { [object]: row }
+      if (d.rules?.length && !d.rules.every((r) => test(r, ctx))) continue
+      if (d.date_field && !dateMatches(row[d.date_field], d.offset ?? 0, !!d.yearly, today)) continue
+      const contactId = object === "contact" ? (row.id as string) : typeof row.contact_id === "string" ? row.contact_id : null
+      rows.push({ context: { event: `schedule:${object}`, payload: { id: String(row.id) } }, contact_id: contactId })
+    }
+  }
+  for (let i = 0; i < rows.length; i += 500) {
+    const { error } = await db.from("workflow_runs").insert(rows.slice(i, i + 500).map((r) => ({ org_id: wf.org_id, workflow_id: wf.id, ...r })))
+    if (error) throw error
+  }
+  return rows.length
 }
 
 async function step(db: Db, run: Run) {
@@ -92,9 +150,9 @@ export async function context(db: Db, run: Pick<Run, "org_id" | "contact_id" | "
   const payload = base.payload ?? {}
   const event = base.event ?? ""
   const keys = objectsFor(event)
-  const rec = parseRecordTrigger(event)
   const ids: Partial<Record<ObjectKey, string>> = {}
-  if (rec && typeof payload.id === "string") ids[rec.object] = payload.id
+  // Record triggers and schedules over records: the record itself is the first object.
+  if ((parseRecordTrigger(event) || event.startsWith("schedule:")) && typeof payload.id === "string" && keys[0]) ids[keys[0]] = payload.id
   for (const k of keys) {
     const idKey = def(k).idKey
     const v = idKey && payload[idKey]
@@ -166,22 +224,24 @@ async function act(db: Db, run: Run, node: GraphNode, type: NodeType, d: Record<
   }
   switch (type) {
     case "send_email": {
-      const c = needContact()
-      if (!c.email) return "skipped: no email"
-      if (c.unsubscribed_at) return "skipped: unsubscribed"
-      const { error } = await db.from("email_sends").insert({ org_id: run.org_id, workflow_id: run.workflow_id, workflow_node: node.id, contact_id: c.id, to_email: c.email, vars: ctx.payload as NonNullable<Json> })
-      if (error) throw new Error(error.message)
-      return "queued"
-    }
-    case "email_address": {
-      // A fixed address (e.g. the team) or a placeholder that resolves to one; no newsletter footer, not tracked.
-      const to = fill(String(d.to), ctx).trim()
+      // To the run's person ({contact.email}, the default): through the email queue (unsubscribe link, delivery
+      // tracking, unsubscribed people get nothing). To any other address (e.g. the team): sent directly.
+      const toRaw = String(d.to ?? "").trim() || "{contact.email}"
+      if (toRaw === "{contact.email}" || toRaw === "{email}") {
+        const c = needContact()
+        if (!c.email) return "skipped: no email"
+        if (c.unsubscribed_at) return "skipped: unsubscribed"
+        const { error } = await db.from("email_sends").insert({ org_id: run.org_id, workflow_id: run.workflow_id, workflow_node: node.id, contact_id: c.id, to_email: c.email, vars: ctx.payload as NonNullable<Json> })
+        if (error) throw new Error(error.message)
+        return `queued → ${c.email}`
+      }
+      const to = fill(toRaw, ctx).trim()
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) throw new Error("no valid address")
-      const esc = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[x]!)
+      const esc = (x: string) => x.replace(/[&<>"]/g, (y) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[y]!)
       const html = fill(String(d.body), ctx, esc)
       const ok = await sendOrgEmail(run.org_id, { to, subject: fill(String(d.subject), ctx).slice(0, 200), html, text: html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() })
       if (!ok) throw new Error("no email provider connected")
-      return to
+      return `sent → ${to}`
     }
     case "add_tag":
     case "remove_tag": {
@@ -195,6 +255,8 @@ async function act(db: Db, run: Run, node: GraphNode, type: NodeType, d: Record<
     }
     case "set_field":
       return setField(db, run, String(d.field), fill(String(d.value), ctx), ctx)
+    case "create_record":
+      return createRecord(db, run, String(d.object), (d.values ?? {}) as Record<string, string>, ctx)
     case "webhook": {
       const url = String(d.url)
       if (!isAllowedUrl(url)) throw new Error("webhook URL not allowed")
@@ -253,25 +315,74 @@ async function setField(db: Db, run: Run, rawPath: string, raw: string, ctx: Ctx
   }
   const f = d.fields.find((x) => x.key === field && x.write)
   if (!f) throw new Error(`${path} can't be changed`)
-  let value: string | number | boolean | null = raw.trim() === "" ? null : raw.trim()
-  if (value !== null) {
-    if (f.kind === "date" && !/^\d{4}-\d{2}-\d{2}/.test(value as string)) throw new Error(`invalid date for ${path}`)
-    if (f.kind === "number") {
-      value = Number(String(value).replace(",", "."))
-      if (!Number.isFinite(value)) throw new Error(`invalid number for ${path}`)
-    }
-    if (f.kind === "bool") value = ["true", "1", "ja", "yes"].includes(String(value).toLowerCase())
-    if (f.kind === "enum" && !f.options?.includes(String(value))) throw new Error(`invalid value for ${path}`)
-    if (f.kind === "ref" && f.refTable) {
-      const { data: ok } = await db.from(f.refTable as "contacts").select("id").eq("id", String(value)).eq("org_id", run.org_id).maybeSingle()
-      if (!ok) throw new Error(`unknown ${f.key}`)
-    }
-    if (f.kind === "text") value = String(value).slice(0, 2000)
-  }
+  const value = await coerce(db, run.org_id, f, raw, path)
   const { error } = await db.from(d.table as "contacts").update({ [field]: value } as never).eq("id", row.id as string).eq("org_id", run.org_id)
   if (error) throw new Error(error.message)
   row[field] = value
   return `${path} = ${value ?? "–"}`
+}
+
+// A value for a catalog field, checked by its kind (relative dates allowed: "today+10").
+async function coerce(db: Db, orgId: string, f: Field, raw: string, path: string): Promise<string | number | boolean | null> {
+  let value: string | number | boolean | null = raw.trim() === "" ? null : raw.trim()
+  if (value === null) return null
+  if (f.kind === "date") {
+    // "<date or calculation> [HH:MM]": the time only matters for timestamps (event start, shift …), Berlin time.
+    const m = /^(.*?)(?:\s+(\d{1,2}:\d{2}))?$/.exec(value as string)!
+    const day = resolveDate(m[1], berlinDay(new Date())).slice(0, 10)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new Error(`invalid date for ${path}`)
+    value = f.time ? (fromLocalInput(`${day}T${(m[2] ?? "00:00").padStart(5, "0")}`)?.toISOString() ?? null) : day
+    if (!value) throw new Error(`invalid time for ${path}`)
+  }
+  if (f.kind === "number") {
+    value = Number(String(value).replace(",", "."))
+    if (!Number.isFinite(value)) throw new Error(`invalid number for ${path}`)
+  }
+  if (f.kind === "bool") value = ["true", "1", "ja", "yes"].includes(String(value).toLowerCase())
+  if (f.kind === "enum" && !f.options?.includes(String(value))) throw new Error(`invalid value for ${path}`)
+  if (f.kind === "ref" && f.refTable) {
+    const { data: ok } = await db.from(f.refTable as "contacts").select("id").eq("id", String(value)).eq("org_id", orgId).maybeSingle()
+    if (!ok) throw new Error(`unknown ${f.key}`)
+  }
+  if (f.kind === "text") value = String(value).slice(0, 2000)
+  return value
+}
+
+// "Create record": an object the catalog marks creatable, its fields from the step (placeholders + relative dates),
+// links to the run's objects (e.g. the person) set automatically. The DB's own rules apply (member numbers,
+// course places …).
+async function createRecord(db: Db, run: Run, object: string, values: Record<string, string>, ctx: Ctx): Promise<string | void> {
+  const d = def(object as ObjectKey)
+  if (!d?.create) throw new Error(`${object} can't be created`)
+  const row: Row = { org_id: run.org_id }
+  for (const [col, parent] of Object.entries(d.create.parents ?? {})) {
+    const p = ctx[parent] as Row | null
+    if (!p?.id) throw new Error(`no ${parent} in this run`)
+    row[col] = p.id
+  }
+  for (const key of d.create.fields) {
+    const f = d.fields.find((x) => x.key === key)!
+    const v = await coerce(db, run.org_id, f, fill(values[key] ?? "", ctx), `${object}.${key}`)
+    if (v !== null) row[key] = v
+  }
+  // Sensible defaults: a guest is the person of the run, a membership starts today.
+  const person = ctx.contact as { name?: string; email?: string | null } | null
+  if (object === "guest") {
+    row.name ??= person?.name || null
+    row.email ??= person?.email ?? null
+    row.added_via = "automation"
+  }
+  if (object === "membership") row.starts_on ??= berlinDay(new Date())
+  if (object === "event") {
+    // A draft with its own address; publishing stays a human decision.
+    row.status = "draft"
+    const base = String(row.title ?? "event").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "event"
+    row.slug = `${base}-${crypto.randomUUID().slice(0, 4)}`
+  }
+  const { data, error } = await db.from(d.table as "contacts").insert(row as never).select("id").single()
+  if (error) throw new Error(error.message)
+  if (object === "guest" && typeof row.list_id === "string") await syncTickets(row.list_id) // free ticket for the door
+  return `${object} ${data.id}`
 }
 
 async function finish(db: Db, run: Run, log: LogEntry[], patch: { status: string; node_id?: string; resume_at?: string; error?: string }) {

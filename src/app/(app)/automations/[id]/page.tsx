@@ -52,6 +52,7 @@ export default async function WorkflowPage({ params, searchParams }: { params: P
       .map((m) => ({
         group: m === "org" ? t("automations.general") : t.dynamic(`modules.${m}.name`),
         items: [
+          ...(m === "org" ? [{ key: "schedule", label: t("automations.schedule") }] : []),
           ...eventTypes.filter((e) => e.module === m && !e.key.startsWith("workflow.")).map((e) => ({ key: e.key, label: t.dynamic(`events.types.${e.key}`) })),
           ...RECORD_OBJECTS.filter((o) => def(o).module === m).flatMap((o) =>
             RECORD_ACTIONS.map((a) => ({ key: recordTrigger(o, a), label: `${t.dynamic(`automations.objects.${o}`)} · ${t.dynamic(`automations.recordActions.${a}`)}` })),

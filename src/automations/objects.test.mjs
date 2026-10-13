@@ -20,3 +20,11 @@ test("record triggers and the objects they bring", () => {
   assert.deepEqual(objectsFor("record:tickets:insert", new Set(["tickets", "events"])), ["ticket", "event", "ticket_type", "now"])
   assert.deepEqual(pickFields("membership", { id: "m", iban: "DE…", ends_on: null, contact_id: "c", type_id: "t" }), { id: "m", ends_on: null, type_id: "t", contact_id: "c" })
 })
+
+test("schedules and creatable objects", async () => {
+  const { creatableFor } = await import("./objects.ts")
+  assert.deepEqual(objectsFor("schedule"), ["now"])
+  assert.deepEqual(objectsFor("schedule:membership"), ["membership", "contact", "membership_type", "now"])
+  assert.ok(!creatableFor("schedule").includes("note") && creatableFor("schedule").includes("event")) // no person in the run: nothing linked to one
+  assert.ok(creatableFor("contact.created").includes("membership"))
+})

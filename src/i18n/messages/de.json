@@ -2995,20 +2995,22 @@
       "webhook": "Webhook",
       "notify_team": "In-App-Benachrichtigung",
       "email_address": "E-Mail an Adresse",
-      "telegram": "Telegram-Nachricht"
+      "telegram": "Telegram-Nachricht",
+      "create_record": "Datensatz anlegen"
     },
     "help": {
       "trigger": "Womit startet die Automation? Für jedes Ereignis gibt es einen eigenen Durchlauf.",
       "condition": "Verzweigt: Stimmen die Bedingungen, geht es beim Ausgang „ja“ weiter, sonst bei „nein“.",
       "wait": "Pausiert den Durchlauf, danach geht es weiter.",
-      "send_email": "Schickt eine E-Mail an die Person des Ereignisses (mit Abmeldelink; Abgemeldete bekommen nichts).",
+      "send_email": "Schickt eine E-Mail. An die Person des Ablaufs ({contact.email}) mit Abmeldelink und Zustellstatus; an andere Adressen (z. B. euer Team) direkt.",
       "add_tag": "Gibt der Person einen Tag.",
       "remove_tag": "Nimmt der Person einen Tag weg.",
       "set_field": "Ändert ein Feld eines Datensatzes, um den es in diesem Ablauf geht (Person, Mitgliedschaft, Ticketart …).",
       "webhook": "Schickt die Daten per POST an eine https-Adresse (z. B. Zapier, Make, n8n).",
       "notify_team": "Benachrichtigung in der App für alle, die Automationen sehen dürfen.",
       "email_address": "Schickt eine E-Mail an eine feste Adresse (z. B. euer Team-Postfach) – ohne Abmeldelink, nicht für Newsletter.",
-      "telegram": "Schickt eine Nachricht über euren Telegram-Bot in einen Chat."
+      "telegram": "Schickt eine Nachricht über euren Telegram-Bot in einen Chat.",
+      "create_record": "Legt einen neuen Datensatz an (Person, Event als Entwurf, Schicht, Mitgliedschaft, Notiz …). Verknüpfungen zur Person o. Ä. dieses Ablaufs werden automatisch gesetzt."
     },
     "ops": {
       "eq": "ist",
@@ -3096,7 +3098,7 @@
       "waitlist_entry": "Wartelisten-Eintrag",
       "order": "Bestellung",
       "guest_list": "Gästeliste",
-      "guest": "Gast",
+      "guest": "Gästelisten-Eintrag",
       "guest_checkin": "Gäste-Check-in",
       "shift": "Schicht",
       "shift_assignment": "Schicht-Einteilung",
@@ -3164,7 +3166,8 @@
         "title": "Titel",
         "stage": "Bühne",
         "starts_at": "Beginn",
-        "ends_at": "Ende"
+        "ends_at": "Ende",
+        "event_id": "Event"
       },
       "artist": {
         "name": "Name"
@@ -3208,7 +3211,8 @@
         "name": "Name",
         "email": "E-Mail",
         "note": "Notiz",
-        "added_via": "Eingetragen über"
+        "added_via": "Eingetragen über",
+        "list_id": "Gästeliste"
       },
       "guest_checkin": {
         "checked_in_at": "Eingecheckt am"
@@ -3218,7 +3222,8 @@
         "starts_at": "Beginn",
         "ends_at": "Ende",
         "needed": "Benötigt",
-        "open": "offen für Bewerbungen"
+        "open": "offen für Bewerbungen",
+        "event_id": "Event"
       },
       "shift_assignment": {
         "status": "Status"
@@ -3262,11 +3267,13 @@
         "starts_at": "Beginn",
         "ends_at": "Ende",
         "cancelled": "fällt aus",
-        "note": "Notiz"
+        "note": "Notiz",
+        "course_id": "Kurs"
       },
       "participant": {
         "status": "Status",
-        "note": "Notiz"
+        "note": "Notiz",
+        "course_id": "Kurs"
       },
       "attendance": {
         "present": "anwesend"
@@ -3404,9 +3411,41 @@
     "noTrigger": "Nichts gefunden.",
     "watchFields": "Nur bei Änderung von",
     "watchHint": "Nichts angehakt = bei jeder Änderung.",
-    "to": "An (Adresse)",
     "chat": "Chat",
     "pickChat": "Chat wählen…",
-    "telegramOff": "Erst Telegram unter Einstellungen → Integrationen verbinden."
+    "telegramOff": "Erst Telegram unter Einstellungen → Integrationen verbinden.",
+    "toHint": "{contact.email} = die Person dieses Ablaufs (mit Abmeldelink). Eine feste Adresse geht direkt raus.",
+    "linkedTo": "Wird automatisch verknüpft mit: {what}",
+    "schedule": "Zeitplan",
+    "every": "Wie oft",
+    "at": "Uhrzeit",
+    "everyOptions": {
+      "day": "Täglich",
+      "week": "Wöchentlich",
+      "month": "Monatlich"
+    },
+    "monthday": "Am Tag des Monats",
+    "forEach": "Ausführen",
+    "once": "einmal",
+    "onlyThese": "Nur für diese (optional)",
+    "dateFilter": "Nach Datum (optional)",
+    "noDateFilter": "– kein Datumsfilter –",
+    "daysBefore": "Tage vorher",
+    "onTheDay": "am Tag selbst",
+    "daysAfter": "Tage danach",
+    "yearly": "jedes Jahr (z. B. Geburtstag)",
+    "days": "Tage",
+    "dateMode": "Datum",
+    "dateFixed": "Festes Datum",
+    "dateCalc": "Berechnet",
+    "dateBase": "Ausgangsdatum",
+    "today": "Heute",
+    "dateUnits": {
+      "d": "Tage",
+      "w": "Wochen",
+      "m": "Monate",
+      "y": "Jahre"
+    },
+    "to": "An"
   }
 }

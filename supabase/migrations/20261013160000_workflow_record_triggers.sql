@@ -45,3 +45,8 @@ begin
 end $$;
 revoke execute on function public.workflow_runs_from_changes() from public, anon, authenticated;
 create trigger workflow_runs_from_changes after insert on public.audit_log for each row execute function public.workflow_runs_from_changes();
+
+-- Schedules: workflows whose trigger is "schedule" run when next_run_at is due (the minute worker computes the
+-- next time from the trigger's settings after each run).
+alter table public.workflows add column next_run_at timestamptz;
+create index workflows_schedule on public.workflows (next_run_at) where active and deleted_at is null and trigger_type = 'schedule';

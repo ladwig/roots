@@ -9,7 +9,7 @@ import type { OPS } from "./graph"
 export type Kind = "text" | "number" | "date" | "bool" | "tags" | "ref" | "enum"
 export type RefList = "events" | "membership_types" | "forms" | "courses" | "guest_lists" | "tags"
 // write = "change record" may set it (validated by kind; refs must exist in the org).
-export type Field = { key: string; kind: Kind; ref?: RefList; refTable?: string; options?: string[]; write?: true }
+export type Field = { key: string; kind: Kind; ref?: RefList; refTable?: string; options?: string[]; write?: true; time?: true } // time: a timestamp (date + time)
 export type ObjectDef = {
   table: string
   module: string // shown only when the org has it on ("org" = always)
@@ -17,10 +17,14 @@ export type ObjectDef = {
   fields: Field[]
   relations?: Record<string, string> // column → object key (loaded with the record, one hop)
   record?: true // can start workflows when created / changed / deleted
+  // "create record": the fields that can be set, and links to objects of the run (e.g. the person) set automatically
+  create?: { fields: string[]; parents?: Record<string, string> } // column → object key
 }
 
 const text = (key: string, write?: true): Field => ({ key, kind: "text", ...(write ? { write } : {}) })
 const date = (key: string, write?: true): Field => ({ key, kind: "date", ...(write ? { write } : {}) })
+const at = (key: string, write?: true): Field => ({ key, kind: "date", time: true, ...(write ? { write } : {}) }) // timestamp
+const refTo = (key: string, ref: RefList, refTable: string): Field => ({ key, kind: "ref", ref, refTable })
 const num = (key: string, write?: true): Field => ({ key, kind: "number", ...(write ? { write } : {}) })
 const bool = (key: string, write?: true): Field => ({ key, kind: "bool", ...(write ? { write } : {}) })
 const pick = (key: string, options: string[], write?: true): Field => ({ key, kind: "enum", options, ...(write ? { write } : {}) })
@@ -43,8 +47,9 @@ export const OBJECTS = {
       { key: "tags", kind: "tags", ref: "tags" },
       date("unsubscribed_at"),
     ],
+    create: { fields: ["first_name", "last_name", "company", "email", "phone", "city", "country", "birthday"] },
   },
-  note: { table: "contact_notes", module: "crm", record: true, fields: [text("body")], relations: { contact_id: "contact" } },
+  note: { table: "contact_notes", module: "crm", record: true, fields: [text("body")], relations: { contact_id: "contact" }, create: { fields: ["body"], parents: { contact_id: "contact" } } },
   membership: {
     table: "memberships",
     module: "members",
@@ -52,6 +57,7 @@ export const OBJECTS = {
     record: true,
     fields: [{ key: "type_id", kind: "ref", ref: "membership_types", refTable: "membership_types", write: true }, text("member_no"), date("starts_on"), date("ends_on", true), text("note", true)],
     relations: { contact_id: "contact", type_id: "membership_type" },
+    create: { fields: ["type_id", "starts_on", "ends_on", "note"], parents: { contact_id: "contact" } },
   },
   membership_type: { table: "membership_types", module: "members", fields: [text("name"), num("fee_cents"), pick("interval", ["month", "quarter", "half_year", "year", "none"])] },
   due: {
@@ -66,15 +72,23 @@ export const OBJECTS = {
     module: "events",
     idKey: "event_id",
     record: true,
-    fields: [{ key: "id", kind: "ref", ref: "events" }, text("title"), pick("status", ["draft", "published", "cancelled"]), date("starts_at"), date("ends_at"), text("venue_name"), num("capacity")],
+    fields: [{ key: "id", kind: "ref", ref: "events" }, text("title"), pick("status", ["draft", "published", "cancelled"]), at("starts_at"), at("ends_at"), text("venue_name"), num("capacity")],
+    create: { fields: ["title", "starts_at", "ends_at", "venue_name", "capacity"] }, // created as a draft
   },
-  slot: { table: "event_slots", module: "events", record: true, fields: [text("title"), text("stage"), date("starts_at"), date("ends_at")], relations: { event_id: "event", artist_id: "artist" } },
-  artist: { table: "artists", module: "events", record: true, fields: [text("name")], relations: { contact_id: "contact" } },
+  slot: {
+    table: "event_slots",
+    module: "events",
+    record: true,
+    fields: [refTo("event_id", "events", "events"), text("title"), text("stage"), at("starts_at"), at("ends_at")],
+    relations: { event_id: "event", artist_id: "artist" },
+    create: { fields: ["event_id", "title", "stage", "starts_at", "ends_at"] },
+  },
+  artist: { table: "artists", module: "events", record: true, fields: [text("name")], relations: { contact_id: "contact" }, create: { fields: ["name"] } },
   ticket: {
     table: "tickets",
     module: "tickets",
     record: true,
-    fields: [text("code"), pick("status", ["reserved", "valid", "used", "void"]), text("holder_name"), num("price"), date("checked_in_at")],
+    fields: [text("code"), pick("status", ["reserved", "valid", "used", "void"]), text("holder_name"), num("price"), at("checked_in_at")],
     relations: { event_id: "event", order_id: "order", contact_id: "contact", type_id: "ticket_type" },
   },
   ticket_type: { table: "ticket_types", module: "tickets", record: true, fields: [text("name"), num("price"), num("quota"), bool("active", true), bool("hidden", true)], relations: { event_id: "event" } },
@@ -93,12 +107,34 @@ export const OBJECTS = {
     fields: [num("amount_total"), pick("status", ["open", "paid", "cancelled", "refunded"]), pick("source_module", ["tickets", "members", "invoices"]), text("customer_email"), text("customer_name")],
   },
   guest_list: { table: "guest_lists", module: "guestlists", idKey: "list_id", record: true, fields: [{ key: "id", kind: "ref", ref: "guest_lists" }, text("name")], relations: { event_id: "event" } },
-  guest: { table: "guest_entries", module: "guestlists", record: true, fields: [text("name"), text("email"), text("note", true), text("added_via")], relations: { list_id: "guest_list" } },
+  guest: {
+    table: "guest_entries",
+    module: "guestlists",
+    record: true,
+    fields: [{ key: "list_id", kind: "ref", ref: "guest_lists", refTable: "guest_lists" }, text("name"), text("email"), text("note", true), text("added_via")],
+    relations: { list_id: "guest_list" },
+    create: { fields: ["list_id", "name", "email", "note"] },
+  },
   guest_checkin: { table: "guest_checkins", module: "guestlists", record: true, fields: [date("checked_in_at")], relations: { entry_id: "guest", event_id: "event" } },
-  shift: { table: "shifts", module: "shifts", idKey: "shift_id", record: true, fields: [text("title"), date("starts_at"), date("ends_at"), num("needed"), bool("open", true)], relations: { event_id: "event" } },
+  shift: {
+    table: "shifts",
+    module: "shifts",
+    idKey: "shift_id",
+    record: true,
+    fields: [refTo("event_id", "events", "events"), text("title"), at("starts_at"), at("ends_at"), num("needed"), bool("open", true)],
+    relations: { event_id: "event" },
+    create: { fields: ["title", "starts_at", "ends_at", "needed", "event_id"] },
+  },
   shift_assignment: { table: "shift_assignments", module: "shifts", record: true, fields: [pick("status", ["assigned", "applied"])], relations: { shift_id: "shift", staff_id: "staff" } },
   staff: { table: "staff", module: "shifts", record: true, fields: [text("name"), text("email"), text("role_label", true), num("target_hours", true), bool("active", true)], relations: { contact_id: "contact" } },
-  time_entry: { table: "time_entries", module: "shifts", record: true, fields: [date("started_at"), date("ended_at"), num("break_minutes"), date("approved_at"), text("note")], relations: { staff_id: "staff", shift_id: "shift" } },
+  time_entry: {
+    table: "time_entries",
+    module: "shifts",
+    record: true,
+    fields: [at("started_at"), at("ended_at"), num("break_minutes"), date("approved_at"), text("note")],
+    relations: { staff_id: "staff", shift_id: "shift" },
+    create: { fields: ["started_at", "ended_at", "note"], parents: { staff_id: "staff" } },
+  },
   employee: {
     table: "employees",
     module: "hr",
@@ -114,10 +150,31 @@ export const OBJECTS = {
     ],
     relations: { staff_id: "staff" },
   },
-  absence: { table: "absences", module: "hr", record: true, fields: [pick("kind", ["vacation", "sick", "unpaid", "other"]), date("starts_on"), date("ends_on"), bool("half_day")], relations: { employee_id: "employee" } },
+  absence: {
+    table: "absences",
+    module: "hr",
+    record: true,
+    fields: [pick("kind", ["vacation", "sick", "unpaid", "other"]), date("starts_on"), date("ends_on"), bool("half_day")],
+    relations: { employee_id: "employee" },
+    create: { fields: ["kind", "starts_on", "ends_on"], parents: { employee_id: "employee" } },
+  },
   course: { table: "courses", module: "courses", idKey: "course_id", record: true, fields: [{ key: "id", kind: "ref", ref: "courses" }, text("title"), text("instructor"), num("capacity", true)] },
-  course_session: { table: "course_sessions", module: "courses", record: true, fields: [date("starts_at"), date("ends_at"), bool("cancelled", true), text("note", true)], relations: { course_id: "course" } },
-  participant: { table: "course_participants", module: "courses", record: true, fields: [pick("status", ["enrolled", "waiting", "cancelled"], true), text("note", true)], relations: { course_id: "course", contact_id: "contact" } },
+  course_session: {
+    table: "course_sessions",
+    module: "courses",
+    record: true,
+    fields: [refTo("course_id", "courses", "courses"), at("starts_at"), at("ends_at"), bool("cancelled", true), text("note", true)],
+    relations: { course_id: "course" },
+    create: { fields: ["course_id", "starts_at", "ends_at", "note"] },
+  },
+  participant: {
+    table: "course_participants",
+    module: "courses",
+    record: true,
+    fields: [{ key: "course_id", kind: "ref", ref: "courses", refTable: "courses" }, pick("status", ["enrolled", "waiting", "cancelled"], true), text("note", true)],
+    relations: { course_id: "course", contact_id: "contact" },
+    create: { fields: ["course_id", "note"], parents: { contact_id: "contact" } },
+  },
   attendance: { table: "course_attendance", module: "courses", record: true, fields: [bool("present")], relations: { participant_id: "participant", session_id: "course_session" } },
   form: {
     table: "forms",
@@ -209,10 +266,23 @@ export const EVENT_OBJECTS: Record<string, ObjectKey[]> = {
  */
 export function objectsFor(trigger: string, modules?: Set<string>): ObjectKey[] {
   const rec = parseRecordTrigger(trigger)
-  const base: ObjectKey[] = rec ? [rec.object, ...(Object.values(def(rec.object).relations ?? {}) as ObjectKey[])] : (EVENT_OBJECTS[trigger] ?? ["contact"])
+  const sched = /^schedule(?::([a-z_]+))?$/.exec(trigger)
+  const root = rec?.object ?? (sched?.[1] && sched[1] in OBJECTS ? (sched[1] as ObjectKey) : null)
+  const base: ObjectKey[] = root ? [root, ...(Object.values(def(root).relations ?? {}) as ObjectKey[])] : sched ? [] : (EVENT_OBJECTS[trigger] ?? ["contact"])
   const all = [...new Set<ObjectKey>([...base, ...(base.includes("contact") && !base.includes("membership") ? (["membership"] as const) : []), "now"])]
   return all.filter((o) => !modules || def(o).module === "org" || modules.has(def(o).module))
 }
+
+/** Objects "create record" can create in a run of this trigger (their links must be in the run, e.g. the person). */
+export const creatableFor = (trigger: string, modules?: Set<string>) => {
+  const have = new Set(objectsFor(trigger, modules))
+  return (Object.keys(OBJECTS) as ObjectKey[]).filter((o) => {
+    const c = def(o).create
+    return c && (!modules || modules.has(def(o).module)) && Object.values(c.parents ?? {}).every((p) => have.has(p as ObjectKey))
+  })
+}
+/** Objects a schedule can run over (one run per record). */
+export const SCHEDULE_OBJECTS = (Object.keys(OBJECTS) as ObjectKey[]).filter((o) => def(o).record)
 
 /** Objects "change record" can write in a run of this trigger. */
 export const writableFor = (trigger: string, modules?: Set<string>) => objectsFor(trigger, modules).filter((o) => o === "contact" || def(o).fields.some((f) => f.write))
