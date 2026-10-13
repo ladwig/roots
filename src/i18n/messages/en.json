@@ -3499,6 +3499,7 @@
     "oncePerPerson": "Only once per person",
     "oncePerRecord": "Only once per record",
     "againAfter": "Allowed again after",
-    "aggResultOf": "Count/value"
+    "aggResultOf": "Count/value",
+    "rename": "Rename"
   }
 }

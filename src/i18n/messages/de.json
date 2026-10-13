@@ -3499,6 +3499,7 @@
     "oncePerPerson": "Nur einmal pro Person",
     "oncePerRecord": "Nur einmal pro Datensatz",
     "againAfter": "Wieder erlaubt nach",
-    "aggResultOf": "Anzahl/Wert"
+    "aggResultOf": "Anzahl/Wert",
+    "rename": "Umbenennen"
   }
 }

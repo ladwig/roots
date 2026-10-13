@@ -148,7 +148,7 @@ function StepNode({ type, data, selected }: NodeProps<FlowNode>) {
       {type !== "trigger" && <Handle type="target" position={Position.Top} />}
       <div className="flex items-center gap-2">
         <Icon className="size-4 shrink-0 text-muted-foreground" />
-        <span className="font-medium">{t.dynamic(`automations.nodes.${type}`)}</span>
+        <span className="truncate font-medium">{String(data.label ?? "") || t.dynamic(`automations.nodes.${type}`)}</span>
       </div>
       <p className="mt-1 truncate text-xs text-muted-foreground">{summary}</p>
       {trace && (
@@ -321,7 +321,8 @@ function Editor({ id, name: initialName, description: initialDescription, graph,
         `${t(n.type === "aggregate" ? "automations.aggResultOf" : "automations.result")}: ${n.data.object ? t.dynamic(`automations.objects.${n.data.object}`) : t.dynamic(`automations.nodes.${n.type}`)}`
       return data.map((n) => {
         const same = data.filter((x) => base(x) === base(n))
-        return { key: stepKey(n.id), object: n.type === "aggregate" ? "aggregate" : String(n.data.object ?? ""), label: same.length > 1 ? `${base(n)} ${same.indexOf(n) + 1}` : base(n) }
+        const own = String(n.data.label ?? "")
+        return { key: stepKey(n.id), object: n.type === "aggregate" ? "aggregate" : String(n.data.object ?? ""), label: own || (same.length > 1 ? `${base(n)} ${same.indexOf(n) + 1}` : base(n)) }
       })
     })(),
   }
@@ -520,14 +521,14 @@ function Inspector({
     )
   return (
     <div className="grid gap-4">
-      <p className="flex items-center justify-between gap-2 font-medium">
-        {t.dynamic(`automations.nodes.${type}`)}
+      <div className="flex items-center justify-between gap-2 font-medium">
+        <StepTitle value={String(d.label ?? "")} fallback={t.dynamic(`automations.nodes.${type}`)} canEdit={canEdit} onChange={(label) => onChange({ label })} />
         {canEdit && type !== "trigger" && (
           <Button type="button" variant="ghost" size="icon-sm" onClick={onRemove} aria-label={t("automations.removeStep")}>
             <Trash2Icon />
           </Button>
         )}
-      </p>
+      </div>
       <p className="text-xs text-muted-foreground">{t.dynamic(`automations.help.${type}`)}</p>
       {trace !== undefined && <TraceView trace={trace} />}
       {type === "trigger" && <TriggerForm d={d} options={options} canEdit={canEdit} onChange={onChange} />}
@@ -816,6 +817,33 @@ function TraceView({ trace }: { trace: TraceStep | null }) {
           </p>
         ))}
     </div>
+  )
+}
+
+// The step's name: click to rename (shown on the card and, for data steps, wherever their result is picked).
+function StepTitle({ value, fallback, canEdit, onChange }: { value: string; fallback: string; canEdit: boolean; onChange: (v: string) => void }) {
+  const t = useT()
+  const [editing, setEditing] = useState(false)
+  if (editing)
+    return (
+      <Input
+        autoFocus
+        value={value}
+        placeholder={fallback}
+        maxLength={60}
+        aria-label={t("automations.rename")}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={() => setEditing(false)}
+        onKeyDown={(e) => (e.key === "Enter" || e.key === "Escape") && setEditing(false)}
+        className="h-8"
+      />
+    )
+  return canEdit ? (
+    <button type="button" className="truncate rounded px-1 -mx-1 text-left hover:bg-muted" title={t("automations.rename")} onClick={() => setEditing(true)}>
+      {value || fallback}
+    </button>
+  ) : (
+    <span className="truncate">{value || fallback}</span>
   )
 }
 
