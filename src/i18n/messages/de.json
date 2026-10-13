@@ -531,7 +531,8 @@
     "cash_entry_locked": "Gebuchte Einträge lassen sich nicht ändern – bitte stornieren.",
     "cash_month_closed": "Dieser Monat ist abgeschlossen.",
     "cash_month_open": "Der Monat ist noch nicht vorbei.",
-    "wiki_cycle": "Eine Seite kann nicht unter sich selbst liegen."
+    "wiki_cycle": "Eine Seite kann nicht unter sich selbst liegen.",
+    "membership_overlap": "Diese Person hat in diesem Zeitraum schon eine Mitgliedschaft. Beende die bestehende zuerst oder wähle ein späteres Startdatum."
   },
   "admin": {
     "title": "Plattform",

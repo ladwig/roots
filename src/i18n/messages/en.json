@@ -531,7 +531,8 @@
     "cash_entry_locked": "Booked entries can't be changed – reverse them instead.",
     "cash_month_closed": "This month is closed.",
     "cash_month_open": "The month isn't over yet.",
-    "wiki_cycle": "A page can't be placed below itself."
+    "wiki_cycle": "A page can't be placed below itself.",
+    "membership_overlap": "This person already has a membership in that period. End the existing one first or choose a later start date."
   },
   "admin": {
     "title": "Platform",

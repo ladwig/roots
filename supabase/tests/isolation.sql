@@ -583,6 +583,10 @@ begin
     assert v_num = 1 and v_ref = 'M000001', 'first member gets number 1 and a mandate ref';
     insert into public.memberships (org_id, contact_id, type_id) values (org_a, v_max, v_type) returning number into v_num;
     assert v_num = 1, 'rejoining contact keeps its number';
+    begin
+      insert into public.memberships (org_id, contact_id, type_id, starts_on) values (org_a, v_max, v_type, current_date + 30);
+      assert false, 'overlapping memberships of one person are rejected';
+    exception when raise_exception then null; end;
     insert into public.member_dues (org_id, membership_id, kind, description, amount_cents, period_start, due_on) values (org_a, v_m, 'fee', 'Beitrag 2020', 6000, '2020-01-01', '2020-01-15');
     begin
       insert into public.member_dues (org_id, membership_id, kind, description, amount_cents, period_start, due_on) values (org_a, v_m, 'fee', 'again', 6000, '2020-01-01', '2020-01-15');
