@@ -3448,6 +3448,23 @@
       "m": "months",
       "y": "years"
     },
-    "to": "To"
+    "to": "To",
+    "answer": "Answer",
+    "answers": {
+      "first_name": "First name",
+      "last_name": "Last name",
+      "company": "Company",
+      "email": "Email",
+      "phone": "Phone",
+      "street": "Street",
+      "postal_code": "Postcode",
+      "city": "City",
+      "country": "Country",
+      "birthday": "Birthday",
+      "membership.type_id": "Membership type",
+      "membership.starts_on": "Requested start",
+      "membership.iban": "IBAN (masked)",
+      "consents": "Agreed to"
+    }
   }
 }

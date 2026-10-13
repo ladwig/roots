@@ -311,5 +311,27 @@ export function pickFields(object: ObjectKey, row: Record<string, unknown> | nul
   for (const f of def(object).fields) if (f.key in row) out[f.key] = row[f.key]
   for (const col of Object.keys(def(object).relations ?? {})) if (col in row) out[col] = row[col]
   if (object === "contact") out.custom = row.custom ?? {}
+  if (object === "submission") out.answers = answers(row.data)
   return out
+}
+
+// Form answers of a submission as workflow data: person fields flat, custom fields under custom, the chosen
+// membership type/start, accepted consents. Bank details never (IBAN only masked).
+export const ANSWER_FIELDS: Field[] = [
+  ...["first_name", "last_name", "company", "email", "phone", "street", "postal_code", "city", "country"].map((k) => text(k)),
+  date("birthday"),
+  { key: "membership.type_id", kind: "ref", ref: "membership_types", refTable: "membership_types" },
+  date("membership.starts_on"),
+  text("membership.iban"),
+  { key: "consents", kind: "tags" },
+]
+export function answers(data: unknown) {
+  const d = (data ?? {}) as { contact?: Record<string, unknown>; custom?: Record<string, unknown>; membership?: Record<string, unknown> | null; consents?: { label: string; accepted: boolean }[] }
+  const iban = typeof d.membership?.iban === "string" && d.membership.iban ? `${d.membership.iban.slice(0, 4)}…${d.membership.iban.slice(-4)}` : null
+  return {
+    ...(d.contact ?? {}),
+    custom: d.custom ?? {},
+    membership: d.membership ? { type_id: d.membership.type_id ?? null, starts_on: d.membership.starts_on ?? null, iban } : null,
+    consents: (d.consents ?? []).filter((c) => c.accepted).map((c) => c.label),
+  }
 }

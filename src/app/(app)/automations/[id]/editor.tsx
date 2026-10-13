@@ -32,7 +32,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useT } from "@/i18n/client"
 import { cn } from "@/lib/utils"
 import { ACTIONS, triggerKey, validate, WAIT_UNITS, type Graph, type NodeType, type TraceStep } from "@/automations/graph"
-import { creatableFor, def, OBJECTS, objectsFor, OPS_FOR, parseRecordTrigger, SCHEDULE_OBJECTS, splitPath, writableFor, type Field, type Kind, type ObjectKey, type RefList } from "@/automations/objects"
+import { ANSWER_FIELDS, creatableFor, def, OBJECTS, objectsFor, OPS_FOR, parseRecordTrigger, SCHEDULE_OBJECTS, splitPath, writableFor, type Field, type Kind, type ObjectKey, type RefList } from "@/automations/objects"
 import { saveWorkflow, testRun, testSamples } from "../actions"
 
 type Data = Record<string, unknown>
@@ -53,7 +53,7 @@ function fieldsOf(o: string, options: EditorOptions, label: (k: string) => strin
   if (!o || !isObject(o)) return []
   const base = def(o).fields.filter((f) => !write || f.write).map((f) => ({ ...f, label: label(`automations.fields.${o}.${f.key}`) }))
   const custom =
-    o === "contact"
+    o === "contact" || o === "submission"
       ? options.customFields.map((f) => ({
           key: `custom.${f.key}`,
           label: f.label,
@@ -62,7 +62,15 @@ function fieldsOf(o: string, options: EditorOptions, label: (k: string) => strin
           write: true as const,
         }))
       : []
-  return [...base, ...custom]
+  // Form answers of a submission (what was entered), incl. the org's custom fields.
+  const answerFields =
+    o === "submission"
+      ? [
+          ...ANSWER_FIELDS.map((f) => ({ ...f, key: `answers.${f.key}`, label: `${label("automations.answer")}: ${label(`automations.answers.${f.key}`)}` })),
+          ...custom.map((f) => ({ ...f, key: `answers.${f.key}`, label: `${label("automations.answer")}: ${f.label}`, write: undefined })),
+        ]
+      : []
+  return [...base, ...(o === "contact" ? custom : []), ...answerFields]
 }
 
 const ICONS: Record<NodeType, LucideIcon> = {
@@ -467,6 +475,7 @@ function Inspector({
     "org",
     ...objectsFor(trigger, mods).flatMap((o) => def(o).fields.filter((f) => f.kind !== "ref" && f.kind !== "tags" && f.kind !== "bool").map((f) => `${o}.${f.key}`)),
     ...(objectsFor(trigger, mods).includes("contact") ? options.customFields.map((f) => `contact.custom.${f.key}`) : []),
+    ...(objectsFor(trigger, mods).includes("submission") ? ANSWER_FIELDS.filter((f) => f.kind !== "ref" && f.kind !== "tags").map((f) => `submission.answers.${f.key}`) : []),
   ]
   const insert = (k: string, token: string) => onChange({ [k]: `${String(d[k] ?? "")}{${token}}` })
   const chips = (k: string) =>

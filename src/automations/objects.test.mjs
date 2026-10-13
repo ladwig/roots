@@ -28,3 +28,9 @@ test("schedules and creatable objects", async () => {
   assert.ok(!creatableFor("schedule").includes("note") && creatableFor("schedule").includes("event")) // no person in the run: nothing linked to one
   assert.ok(creatableFor("contact.created").includes("membership"))
 })
+
+test("form answers: flat person fields, custom, membership without bank details, accepted consents", async () => {
+  const { pickFields } = await import("./objects.ts")
+  const row = { id: "s", status: "new", data: { contact: { first_name: "Ana" }, custom: { level: "pro" }, membership: { type_id: "t", starts_on: null, iban: "DE02120300000000202051", bic: "X" }, consents: [{ label: "AGB", accepted: true }, { label: "News", accepted: false }] } }
+  assert.deepEqual(pickFields("submission", row).answers, { first_name: "Ana", custom: { level: "pro" }, membership: { type_id: "t", starts_on: null, iban: "DE02…2051" }, consents: ["AGB"] })
+})
