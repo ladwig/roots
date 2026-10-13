@@ -3610,7 +3610,12 @@
     "rename": "Umbenennen",
     "deleteHint": "Personen, Mitgliedschaften, Events u. Ä. kommen in den Papierkorb (30 Tage wiederherstellbar); Verknüpfungen wie Notizen oder Gästelisten-Einträge werden gelöscht. Geld (Tickets, Bestellungen, Beiträge, Rechnungen) wird nie gelöscht.",
     "recordHint": "Startet, wenn ein Datensatz „{object}“ {action} wird – egal ob in der App, per Import oder über die API (nicht durch Automationen).",
-    "scheduleHint": "Startet zu festen Zeiten (täglich, wöchentlich, monatlich) – auf Wunsch einmal pro Datensatz, z. B. für jede Mitgliedschaft, deren Datum heute ist."
+    "scheduleHint": "Startet zu festen Zeiten (täglich, wöchentlich, monatlich) – auf Wunsch einmal pro Datensatz, z. B. für jede Mitgliedschaft, deren Datum heute ist.",
+    "testLoading": "Lädt …",
+    "testStop": "Testlauf beenden",
+    "testOwn": "Eigene Testdaten wählen …",
+    "testNone": "– keine –",
+    "noSamplesOwn": "Für diesen Auslöser ist noch nichts passiert – wähl einfach Datensätze, mit denen du testen willst."
   },
   "numbers": {
     "next": "Nächste Nummer",

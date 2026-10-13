@@ -33,7 +33,7 @@ import { useT } from "@/i18n/client"
 import { cn } from "@/lib/utils"
 import { ACTIONS, DATA_STEPS, stepKey, triggerKey, validate, WAIT_UNITS, type Graph, type NodeType, type TraceStep } from "@/automations/graph"
 import { creatableFor, deletableFor, def, OBJECTS, searchFields, objectsFor, OPS_FOR, parseRecordTrigger, SCHEDULE_OBJECTS, splitPath, writableFor, type Field, type Kind, type ObjectKey, type RefList } from "@/automations/objects"
-import { saveWorkflow, testRun, testSamples } from "../actions"
+import { saveWorkflow, testPickers, testRun, testSamples, type TestPicker } from "../actions"
 
 type Data = Record<string, unknown>
 type FlowNode = Node<Data, NodeType>
@@ -206,18 +206,21 @@ function Editor({ id, name: initialName, description: initialDescription, graph,
   const [dirty, setDirty] = useState(false)
   const [pending, start] = useTransition()
   // Test run: pick a real event of the trigger type, play the (unsaved) flow through, show the path.
-  const [test, setTest] = useState<{ samples: { id: string; at: string; label: string }[] | null; eventId: string; trace: TraceStep[] | null; data: Record<string, unknown> | null } | null>(null)
+  // "f:" = own test data: records picked per object (works before anything has happened).
+  type Test = { samples: { id: string; at: string; label: string }[]; pickers: TestPicker[]; picks: Record<string, string>; eventId: string; trace: TraceStep[] | null; data: Record<string, unknown> | null }
+  const [test, setTest] = useState<Test | null>(null)
   const [testing, startTest] = useTransition()
   const triggerEvent = triggerKey(nodes.find((n) => n.type === "trigger")?.data)
   const openTest = () =>
     startTest(async () => {
-      const samples = await testSamples(triggerEvent)
-      setTest({ samples, eventId: samples[0]?.id ?? "", trace: null, data: null })
+      const [samples, pickers] = await Promise.all([testSamples(triggerEvent), testPickers(triggerEvent)])
+      const picks = Object.fromEntries(pickers.filter((p) => p.options.length).map((p) => [p.object, p.options[0].id]))
+      setTest({ samples, pickers, picks, eventId: samples[0]?.id ?? (pickers.length ? "f:" : ""), trace: null, data: null })
     })
   const runTest = () =>
     startTest(async () => {
       if (!test?.eventId) return
-      const r = await testRun({ eventId: test.eventId, graph: current() })
+      const r = await testRun({ eventId: test.eventId, graph: current(), picks: test.picks })
       if (r.error) toast.error(r.error)
       else setTest({ ...test, trace: r.trace ?? [], data: r.data ?? null })
     })
@@ -337,8 +340,8 @@ function Editor({ id, name: initialName, description: initialDescription, graph,
           <Button type="button" variant="outline" size="sm" onClick={layout} disabled={!canEdit}>
             <LayoutListIcon /> {t("automations.tidy")}
           </Button>
-          <Button type="button" variant="outline" size="sm" onClick={openTest} disabled={testing || !triggerEvent}>
-            <FlaskConicalIcon /> {t("automations.testRun")}
+          <Button type="button" variant={test ? "secondary" : "outline"} size="sm" onClick={() => (test ? setTest(null) : openTest())} disabled={(testing && !test) || !triggerEvent}>
+            <FlaskConicalIcon /> {testing && !test ? t("automations.testLoading") : test ? t("automations.testStop") : t("automations.testRun")}
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={exportJson}>
             <DownloadIcon /> {t("automations.export")}
@@ -359,9 +362,9 @@ function Editor({ id, name: initialName, description: initialDescription, graph,
               <XIcon />
             </Button>
           </div>
-          {test.samples?.length ? (
-            <div className="flex flex-wrap items-end gap-2">
-              <div className="grid min-w-0 flex-1 gap-1">
+          {test.samples.length || test.pickers.length ? (
+            <div className="grid gap-2">
+              <div className="grid gap-1">
                 <Label htmlFor="test-sample">{t("automations.testSample")}</Label>
                 <NativeSelect id="test-sample" value={test.eventId} onChange={(e) => setTest({ ...test, eventId: e.target.value, trace: null, data: null })} className="w-full">
                   {test.samples.map((x) => (
@@ -370,9 +373,33 @@ function Editor({ id, name: initialName, description: initialDescription, graph,
                       {x.label && ` · ${x.label}`}
                     </NativeSelectOption>
                   ))}
+                  {test.pickers.length > 0 && <NativeSelectOption value="f:">{t("automations.testOwn")}</NativeSelectOption>}
                 </NativeSelect>
+                {!test.samples.length && <p className="text-xs text-muted-foreground">{t("automations.noSamplesOwn")}</p>}
               </div>
-              <Button type="button" size="sm" onClick={runTest} disabled={testing}>
+              {test.eventId === "f:" && (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {test.pickers.map((p) => (
+                    <div key={p.object} className="grid gap-1">
+                      <Label htmlFor={`pick-${p.object}`}>{t.dynamic(`automations.objects.${p.object}`)}</Label>
+                      <NativeSelect
+                        id={`pick-${p.object}`}
+                        value={test.picks[p.object] ?? ""}
+                        onChange={(e) => setTest({ ...test, picks: { ...test.picks, [p.object]: e.target.value }, trace: null, data: null })}
+                        className="w-full"
+                      >
+                        <NativeSelectOption value="">{t("automations.testNone")}</NativeSelectOption>
+                        {p.options.map((o) => (
+                          <NativeSelectOption key={o.id} value={o.id}>
+                            {o.label}
+                          </NativeSelectOption>
+                        ))}
+                      </NativeSelect>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <Button type="button" size="sm" onClick={runTest} disabled={testing} className="justify-self-start">
                 {testing ? t("automations.testing") : t("automations.runTest")}
               </Button>
             </div>

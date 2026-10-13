@@ -3610,7 +3610,12 @@
     "rename": "Rename",
     "deleteHint": "People, memberships, events etc. go to the trash (restorable for 30 days); links like notes or guest list entries are deleted. Money (tickets, orders, dues, invoices) is never deleted.",
     "recordHint": "Starts when a \"{object}\" record is {action} – in the app, by import or through the API (not by automations).",
-    "scheduleHint": "Starts at fixed times (daily, weekly, monthly) – optionally once per record, e.g. for every membership whose date is today."
+    "scheduleHint": "Starts at fixed times (daily, weekly, monthly) – optionally once per record, e.g. for every membership whose date is today.",
+    "testLoading": "Loading …",
+    "testStop": "End test run",
+    "testOwn": "Pick own test data …",
+    "testNone": "– none –",
+    "noSamplesOwn": "Nothing has happened for this trigger yet – just pick records to test with."
   },
   "numbers": {
     "next": "Next number",

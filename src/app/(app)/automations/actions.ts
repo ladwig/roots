@@ -7,7 +7,7 @@ import { requirePerm } from "@/lib/context"
 import type { Json } from "@/lib/supabase/types"
 import { back } from "@/lib/url"
 import { Graph, simulate, triggerOf, validate, type TraceStep } from "@/automations/graph"
-import { OBJECTS, parseRecordTrigger, type ObjectKey } from "@/automations/objects"
+import { def, OBJECTS, objectsFor, parseRecordTrigger, type ObjectKey } from "@/automations/objects"
 import { contextForEvent, dataStep, scheduleNext } from "@/automations/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { TEMPLATES } from "@/automations/templates"
@@ -118,6 +118,27 @@ export async function cancelRun(fd: FormData) {
  * Test data for a trigger: module events → its latest hub events ("e:<id>"); record triggers → the latest changes
  * from the change log ("c:<id>"); schedules over records → the newest records of that object ("r:<uuid>").
  */
+export type TestPicker = { object: string; options: { id: string; label: string }[] }
+
+/**
+ * Own test data (nothing has happened yet, or a specific case): per object the trigger brings, the newest records
+ * the tester may see, to build a made-up event from (record triggers: the record itself).
+ */
+export async function testPickers(eventType: string): Promise<TestPicker[]> {
+  const ctx = await requirePerm("automations.view")
+  const rec = parseRecordTrigger(eventType)
+  const keys = rec ? [rec.object] : eventType === "schedule" || eventType.startsWith("schedule:") ? [] : objectsFor(eventType, ctx.modules).filter((o) => def(o).idKey && o !== "tickets")
+  const label = (n: Record<string, unknown>) =>
+    ([n.name, n.title, [n.first_name, n.last_name].filter(Boolean).join(" "), n.company, n.member_no && `Nr. ${n.member_no}`, n.holder_name, n.email, n.description].find((x) => typeof x === "string" && x) as string | undefined) ?? String(n.id).slice(0, 8)
+  return Promise.all(
+    keys.map(async (o) => {
+      // RLS: only what the tester may read anyway. ponytail: newest 30; a search picker if that's too few.
+      const { data } = await ctx.supabase.from(OBJECTS[o].table as "contacts").select("*").eq("org_id", ctx.org.id).order("created_at", { ascending: false }).limit(30)
+      return { object: o, options: ((data ?? []) as Record<string, unknown>[]).filter((r) => !r.deleted_at).map((r) => ({ id: String(r.id), label: label(r) })) }
+    }),
+  )
+}
+
 export async function testSamples(eventType: string): Promise<{ id: string; at: string; label: string }[]> {
   const ctx = await requirePerm("automations.view")
   if (!eventType) return []
@@ -140,7 +161,7 @@ export async function testSamples(eventType: string): Promise<{ id: string; at: 
 }
 
 /** Walk the (unsaved) graph with the data of a real event: path, condition results, filled texts, the data. */
-export async function testRun(input: { eventId: string; graph: unknown }): Promise<{ error?: string; trace?: TraceStep[]; data?: Record<string, unknown> }> {
+export async function testRun(input: { eventId: string; graph: unknown; picks?: Record<string, string> }): Promise<{ error?: string; trace?: TraceStep[]; data?: Record<string, unknown> }> {
   const ctx = await requirePerm("automations.view")
   const t = await getT()
   const parsed = Graph.safeParse(input.graph)
@@ -156,6 +177,15 @@ export async function testRun(input: { eventId: string; graph: unknown }): Promi
     const trig = triggerOf(parsed.data)?.data as { object?: string } | undefined
     if (trig?.object && /^[0-9a-f-]{36}$/.test(ref)) ev = { type: `schedule:${trig.object}`, payload: { id: ref } }
   } else if (kind === "s") ev = { type: "schedule", payload: {} }
+  else if (kind === "f") {
+    // Made-up event from picked records: the ids where a real event of this type carries them.
+    const type = String(triggerOf(parsed.data)?.data.event ?? "")
+    const rec = parseRecordTrigger(type)
+    const picks = Object.fromEntries(Object.entries(input.picks ?? {}).filter(([o, id]) => o in OBJECTS && /^[0-9a-f-]{36}$/.test(id)))
+    const payload: Record<string, unknown> = rec ? { id: picks[rec.object], changed: [] } : {}
+    if (!rec) for (const [o, id] of Object.entries(picks)) payload[def(o as ObjectKey).idKey ?? `${o}_id`] = id
+    ev = type ? { type, payload } : null
+  }
   else ev = (await db.from("hub_events").select("type, payload").eq("id", Number(ref)).eq("org_id", ctx.org.id).maybeSingle()).data
   if (!ev) return { error: t("automations.noSample") }
   const full = await contextForEvent(db, ctx.org.id, ev)
