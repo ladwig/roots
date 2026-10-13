@@ -2917,9 +2917,8 @@
     "blank": "Leer beginnen",
     "create": "Anlegen",
     "import": "Importieren",
-    "importHint": "Eine exportierte Automation (JSON-Datei) hochladen oder einfügen.",
+    "importHint": "Eine exportierte Automation (JSON-Datei) hochladen.",
     "importFile": "JSON-Datei",
-    "importPaste": "…oder JSON hier einfügen",
     "importButton": "Importieren",
     "importInvalid": "Das ist keine gültige exportierte Automation.",
     "activate": "Aktivieren",
@@ -2958,10 +2957,8 @@
     "match": "Bedingungen",
     "matchAll": "Alle Bedingungen müssen stimmen",
     "matchAny": "Mindestens eine muss stimmen",
-    "fieldPlaceholder": "z. B. contact.tags",
     "addRule": "Bedingung hinzufügen",
     "removeRule": "Entfernen",
-    "eventData": "Daten des Ereignisses (payload.…)",
     "started": "Gestartet",
     "person": "Person",
     "steps": "Schritte",
@@ -3005,7 +3002,7 @@
       "send_email": "Schickt eine E-Mail an die Person des Ereignisses (mit Abmeldelink; Abgemeldete bekommen nichts).",
       "add_tag": "Gibt der Person einen Tag.",
       "remove_tag": "Nimmt der Person einen Tag weg.",
-      "set_field": "Setzt ein eigenes Feld der Person.",
+      "set_field": "Ändert ein Feld der Person oder Mitgliedschaft, um die es geht.",
       "webhook": "Schickt die Daten per POST an eine https-Adresse (z. B. Zapier, Make, n8n).",
       "notify_team": "Benachrichtigt alle, die Automationen sehen dürfen (in der App)."
     },
@@ -3019,7 +3016,11 @@
       "lt": "kleiner als",
       "lte": "höchstens",
       "empty": "ist leer",
-      "not_empty": "ist nicht leer"
+      "not_empty": "ist nicht leer",
+      "date_gt": "nach",
+      "date_gte": "am oder nach",
+      "date_lt": "vor",
+      "date_lte": "am oder vor"
     },
     "problems": {
       "noTrigger": "Es fehlt ein Auslöser.",
@@ -3033,17 +3034,6 @@
       "cycle": "Die Automation darf sich nicht im Kreis drehen.",
       "nothingAfterTrigger": "Nach dem Auslöser passiert noch nichts.",
       "duplicateIds": "Doppelte Schritte."
-    },
-    "contactFields": {
-      "first_name": "Vorname",
-      "last_name": "Nachname",
-      "company": "Firma",
-      "email": "E-Mail",
-      "phone": "Telefon",
-      "city": "Ort",
-      "country": "Land",
-      "birthday": "Geburtstag",
-      "tags": "Tags"
     },
     "templates": {
       "welcomeContact": {
@@ -3086,6 +3076,95 @@
         "message": "{name} (VIP) hat Tickets gekauft."
       }
     },
-    "op": "Vergleich"
+    "op": "Vergleich",
+    "objects": {
+      "contact": "Person",
+      "event": "Event",
+      "order": "Bestellung",
+      "membership": "Mitgliedschaft",
+      "form": "Formular",
+      "course": "Kurs",
+      "invoice": "Rechnung/Angebot",
+      "guest_list": "Gästeliste",
+      "shift": "Schicht"
+    },
+    "fields": {
+      "contact": {
+        "first_name": "Vorname",
+        "last_name": "Nachname",
+        "company": "Firma",
+        "email": "E-Mail",
+        "phone": "Telefon",
+        "city": "Ort",
+        "country": "Land",
+        "birthday": "Geburtstag",
+        "tags": "Tags",
+        "unsubscribed": "Vom Newsletter abgemeldet"
+      },
+      "event": {
+        "id": "Event",
+        "title": "Titel",
+        "status": "Status",
+        "starts_at": "Beginn",
+        "venue_name": "Ort"
+      },
+      "order": {
+        "amount": "Betrag (€)",
+        "status": "Status",
+        "source_module": "Bereich"
+      },
+      "membership": {
+        "type_id": "Mitgliedsart",
+        "member_no": "Mitgliedsnummer",
+        "starts_on": "Beginn",
+        "ends_on": "Ende"
+      },
+      "form": {
+        "id": "Formular",
+        "title": "Titel"
+      },
+      "course": {
+        "id": "Kurs",
+        "title": "Titel",
+        "capacity": "Plätze"
+      },
+      "invoice": {
+        "kind": "Art",
+        "number": "Nummer",
+        "amount": "Betrag brutto (€)"
+      },
+      "guest_list": {
+        "id": "Gästeliste",
+        "name": "Name"
+      },
+      "shift": {
+        "title": "Titel",
+        "starts_at": "Beginn"
+      }
+    },
+    "values": {
+      "draft": "Entwurf",
+      "published": "veröffentlicht",
+      "cancelled": "abgesagt/storniert",
+      "open": "offen",
+      "paid": "bezahlt",
+      "refunded": "erstattet",
+      "tickets": "Tickets",
+      "members": "Mitglieder",
+      "invoices": "Rechnungen",
+      "invoice": "Rechnung",
+      "quote": "Angebot",
+      "cancellation": "Storno"
+    },
+    "object": "Worum geht es?",
+    "pickObject": "Objekt wählen…",
+    "pickField": "Feld wählen…",
+    "pickValue": "Wert wählen…",
+    "pickTriggerFirst": "Wähle zuerst einen Auslöser – dann siehst du, welche Daten es gibt.",
+    "insertPlaceholder": "Platzhalter einfügen",
+    "tagPlaceholder": "Tag suchen oder neu eingeben",
+    "newTag": "„{tag}“ wird als neuer Tag angelegt",
+    "unknownTag": "Diesen Tag gibt es noch nicht.",
+    "nothingToSet": "Dieser Auslöser bringt nichts mit, das sich ändern lässt."
   }
 }

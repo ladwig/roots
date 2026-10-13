@@ -22,7 +22,7 @@ export async function createWorkflow(fd: FormData) {
   const { ctx, t } = await manager()
   const from = String(fd.get("template") ?? "")
   const file = fd.get("file")
-  const json = (file instanceof File && file.size ? (file.size < 500_000 ? await file.text() : "") : String(fd.get("json") ?? "")).trim()
+  const json = (file instanceof File && file.size && file.size < 500_000 ? await file.text() : "").trim()
   let name = String(fd.get("name") ?? "").trim().slice(0, 200)
   let graph: Graph = { nodes: [{ id: "trigger", type: "trigger", position: { x: 0, y: 0 }, data: { event: "" } }], edges: [] }
   if (json) {

@@ -75,14 +75,14 @@ function filled(type: NodeType, d: Record<string, unknown>) {
     case "trigger":
       return !!d.event
     case "condition":
-      return (d.rules as { field: string }[]).length > 0 && (d.rules as { field: string }[]).every((r) => r.field)
+      return (d.rules as { field: string }[]).length > 0 && (d.rules as { field: string }[]).every((r) => /^[a-z_]+\.[a-z_]/.test(r.field))
     case "send_email":
       return !!d.subject && !!d.body
     case "add_tag":
     case "remove_tag":
       return !!d.tag
     case "set_field":
-      return !!d.field
+      return /^[a-z_]+\.[a-z_]/.test(String(d.field)) || /^[a-z0-9_]+$/.test(String(d.field)) // "object.field" (or an old custom key)
     case "webhook":
       return /^https:\/\/[^\s]+$/.test(String(d.url))
     case "notify_team":

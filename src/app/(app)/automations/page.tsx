@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { UrlSheet } from "@/components/url-sheet"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
@@ -110,8 +109,7 @@ export default async function AutomationsPage({ searchParams }: PageProps<"/auto
               <Label htmlFor="wf-file" className="sr-only">
                 {t("automations.importFile")}
               </Label>
-              <Input id="wf-file" name="file" type="file" accept="application/json,.json" />
-              <Textarea name="json" rows={4} placeholder={t("automations.importPaste")} aria-label={t("automations.importPaste")} className="font-mono text-xs" />
+              <Input id="wf-file" name="file" type="file" accept="application/json,.json" required />
               <SubmitButton variant="outline" className="justify-self-start">
                 {t("automations.importButton")}
               </SubmitButton>

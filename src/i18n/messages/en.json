@@ -2917,9 +2917,8 @@
     "blank": "Start blank",
     "create": "Create",
     "import": "Import",
-    "importHint": "Upload or paste an exported automation (JSON file).",
+    "importHint": "Upload an exported automation (JSON file).",
     "importFile": "JSON file",
-    "importPaste": "…or paste JSON here",
     "importButton": "Import",
     "importInvalid": "That's not a valid exported automation.",
     "activate": "Activate",
@@ -2958,10 +2957,8 @@
     "match": "Conditions",
     "matchAll": "All conditions must match",
     "matchAny": "At least one must match",
-    "fieldPlaceholder": "e.g. contact.tags",
     "addRule": "Add condition",
     "removeRule": "Remove",
-    "eventData": "Event data (payload.…)",
     "started": "Started",
     "person": "Person",
     "steps": "Steps",
@@ -3005,7 +3002,7 @@
       "send_email": "Emails the person of the event (with unsubscribe link; unsubscribed people get nothing).",
       "add_tag": "Gives the person a tag.",
       "remove_tag": "Takes a tag away from the person.",
-      "set_field": "Sets a custom field of the person.",
+      "set_field": "Changes a field of the person or membership the run is about.",
       "webhook": "POSTs the data to an https address (e.g. Zapier, Make, n8n).",
       "notify_team": "Notifies everyone who may see automations (in the app)."
     },
@@ -3019,7 +3016,11 @@
       "lt": "less than",
       "lte": "at most",
       "empty": "is empty",
-      "not_empty": "is not empty"
+      "not_empty": "is not empty",
+      "date_gt": "after",
+      "date_gte": "on or after",
+      "date_lt": "before",
+      "date_lte": "on or before"
     },
     "problems": {
       "noTrigger": "A trigger is missing.",
@@ -3033,17 +3034,6 @@
       "cycle": "The automation must not go in circles.",
       "nothingAfterTrigger": "Nothing happens after the trigger yet.",
       "duplicateIds": "Duplicate steps."
-    },
-    "contactFields": {
-      "first_name": "First name",
-      "last_name": "Last name",
-      "company": "Company",
-      "email": "Email",
-      "phone": "Phone",
-      "city": "City",
-      "country": "Country",
-      "birthday": "Birthday",
-      "tags": "Tags"
     },
     "templates": {
       "welcomeContact": {
@@ -3086,6 +3076,95 @@
         "message": "{name} (VIP) bought tickets."
       }
     },
-    "op": "Comparison"
+    "op": "Comparison",
+    "objects": {
+      "contact": "Person",
+      "event": "Event",
+      "order": "Order",
+      "membership": "Membership",
+      "form": "Form",
+      "course": "Course",
+      "invoice": "Invoice/quote",
+      "guest_list": "Guest list",
+      "shift": "Shift"
+    },
+    "fields": {
+      "contact": {
+        "first_name": "First name",
+        "last_name": "Last name",
+        "company": "Company",
+        "email": "Email",
+        "phone": "Phone",
+        "city": "City",
+        "country": "Country",
+        "birthday": "Birthday",
+        "tags": "Tags",
+        "unsubscribed": "Unsubscribed from emails"
+      },
+      "event": {
+        "id": "Event",
+        "title": "Title",
+        "status": "Status",
+        "starts_at": "Start",
+        "venue_name": "Venue"
+      },
+      "order": {
+        "amount": "Amount (€)",
+        "status": "Status",
+        "source_module": "Area"
+      },
+      "membership": {
+        "type_id": "Membership type",
+        "member_no": "Member number",
+        "starts_on": "Start",
+        "ends_on": "End"
+      },
+      "form": {
+        "id": "Form",
+        "title": "Title"
+      },
+      "course": {
+        "id": "Course",
+        "title": "Title",
+        "capacity": "Places"
+      },
+      "invoice": {
+        "kind": "Kind",
+        "number": "Number",
+        "amount": "Gross amount (€)"
+      },
+      "guest_list": {
+        "id": "Guest list",
+        "name": "Name"
+      },
+      "shift": {
+        "title": "Title",
+        "starts_at": "Start"
+      }
+    },
+    "values": {
+      "draft": "draft",
+      "published": "published",
+      "cancelled": "cancelled",
+      "open": "open",
+      "paid": "paid",
+      "refunded": "refunded",
+      "tickets": "Tickets",
+      "members": "Members",
+      "invoices": "Invoices",
+      "invoice": "Invoice",
+      "quote": "Quote",
+      "cancellation": "Cancellation"
+    },
+    "object": "What is it about?",
+    "pickObject": "Pick an object…",
+    "pickField": "Pick a field…",
+    "pickValue": "Pick a value…",
+    "pickTriggerFirst": "Pick a trigger first – then you see which data there is.",
+    "insertPlaceholder": "Insert placeholder",
+    "tagPlaceholder": "Search a tag or type a new one",
+    "newTag": "“{tag}” will be created as a new tag",
+    "unknownTag": "This tag doesn't exist yet.",
+    "nothingToSet": "This trigger brings nothing that can be changed."
   }
 }

@@ -15,8 +15,6 @@ import { param } from "@/lib/url"
 import { setActive, trashWorkflow } from "../actions"
 import { WorkflowEditor, type EditorOptions } from "./editor"
 
-const CONTACT_FIELDS = ["first_name", "last_name", "company", "email", "phone", "city", "country", "birthday", "tags"]
-
 // One workflow on the canvas (desktop works best; phones can view and switch it on/off).
 export default async function WorkflowPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { id } = await params
@@ -25,10 +23,19 @@ export default async function WorkflowPage({ params, searchParams }: { params: P
   const t = await getT()
   const sp = await searchParams
   const canEdit = ctx.can("automations.manage")
-  const [{ data: wf }, defs, { data: tagRows }] = await Promise.all([
-    ctx.supabase.from("workflows").select("id, name, description, active, graph").eq("id", id).eq("org_id", ctx.org.id).is("deleted_at", null).maybeSingle(),
-    loadFields(ctx.supabase, ctx.org.id, "contacts"),
-    ctx.supabase.rpc("contact_tags", { p_org: ctx.org.id }),
+  const on = (m: string) => ctx.modules.has(m)
+  const none = Promise.resolve({ data: null })
+  const org = ctx.org.id
+  const [{ data: wf }, defs, { data: tagRows }, { data: events }, { data: types }, { data: forms }, { data: courses }, { data: lists }] = await Promise.all([
+    ctx.supabase.from("workflows").select("id, name, description, active, graph").eq("id", id).eq("org_id", org).is("deleted_at", null).maybeSingle(),
+    loadFields(ctx.supabase, org, "contacts"),
+    ctx.supabase.rpc("contact_tags", { p_org: org }),
+    // Records to pick as condition values (ponytail: newest 200 each; a search picker if orgs have more).
+    on("events") ? ctx.supabase.from("events").select("id, title, starts_at").eq("org_id", org).is("deleted_at", null).order("starts_at", { ascending: false }).limit(200) : none,
+    on("members") ? ctx.supabase.from("membership_types").select("id, name").eq("org_id", org).order("name") : none,
+    on("forms") ? ctx.supabase.from("forms").select("id, title").eq("org_id", org).is("deleted_at", null).order("title").limit(200) : none,
+    on("courses") ? ctx.supabase.from("courses").select("id, title").eq("org_id", org).is("deleted_at", null).order("title").limit(200) : none,
+    on("guestlists") ? ctx.supabase.from("guest_lists").select("id, name").eq("org_id", org).is("deleted_at", null).order("name").limit(200) : none,
   ])
   if (!wf) notFound()
   const parsed = Graph.safeParse(wf.graph)
@@ -38,13 +45,16 @@ export default async function WorkflowPage({ params, searchParams }: { params: P
       .filter((e) => e.module !== "platform" && !e.key.startsWith("workflow.") && (e.module === "org" || ctx.modules.has(e.module)))
       .map((e) => ({ key: e.key, label: t.dynamic(`events.types.${e.key}`) }))
       .sort((a, b) => a.label.localeCompare(b.label, t.locale)),
-    fields: [
-      ...CONTACT_FIELDS.map((f) => ({ value: `contact.${f}`, label: t.dynamic(`automations.contactFields.${f}`) })),
-      ...defs.map((d) => ({ value: `contact.custom.${d.key}`, label: d.label })),
-      { value: "payload.", label: t("automations.eventData") },
-    ],
-    customFields: defs.map((d) => ({ key: d.key, label: d.label })),
-    tags: ((tagRows ?? []) as unknown as string[]).slice(0, 500),
+    customFields: defs.map((d) => ({ key: d.key, label: d.label, type: d.type, options: d.options })),
+    tags: ((tagRows ?? []) as unknown as string[]).sort((a, b) => a.localeCompare(b, t.locale)).slice(0, 500),
+    modules: [...ctx.modules],
+    refs: {
+      events: (events ?? []).map((e) => ({ value: e.id, label: `${e.title} · ${t.date(e.starts_at, { dateStyle: "short" })}` })),
+      membership_types: (types ?? []).map((x) => ({ value: x.id, label: x.name })),
+      forms: (forms ?? []).map((x) => ({ value: x.id, label: x.title })),
+      courses: (courses ?? []).map((x) => ({ value: x.id, label: x.title })),
+      guest_lists: (lists ?? []).map((x) => ({ value: x.id, label: x.name })),
+    },
   }
 
   return (
