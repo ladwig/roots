@@ -208,6 +208,7 @@ export const OBJECTS = {
     record: true,
     fields: [text("title", true), text("description", true), date("due_on", true)],
     relations: { status_id: "task_status" },
+    create: { fields: ["title", "description", "due_on"] }, // into the first column
   },
   task_status: { table: "task_statuses", module: "projects", fields: [text("name"), bool("is_done")] },
   wiki_page: { table: "wiki_pages", remove: "soft", module: "wiki", record: true, fields: [text("title")], relations: { parent_id: "wiki_page" } },

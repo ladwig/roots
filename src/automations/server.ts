@@ -2,6 +2,7 @@
 // until a wait (park until resume_at), the end (done) or an error (failed). Runs from the minute cron and right
 // after actions that emit events. Service role, every query filtered by the run's org. Its client sends
 // x-roots-workflow, so the worker's own writes and events never start workflows (no loops).
+import { createTask } from "@/projects/server"
 import { isAllowedUrl } from "@/events/channels/webhook"
 import { getSecret } from "@/integrations/server"
 import { tg } from "@/integrations/telegram"
@@ -489,6 +490,12 @@ async function createRecord(db: Db, run: Run, object: string, values: Record<str
     row.status = "draft"
     const base = String(row.title ?? "event").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "event"
     row.slug = `${base}-${crypto.randomUUID().slice(0, 4)}`
+  }
+  if (object === "task") {
+    // Same path as the App: first column, at its end.
+    const r = await createTask(db, run.org_id, { title: String(row.title ?? ""), description: (row.description as string | undefined) ?? "", due_on: (row.due_on as string | null | undefined) ?? null })
+    if ("error" in r) throw new Error(r.db?.message ?? r.error)
+    return `task ${r.id}`
   }
   const { data, error } = await db.from(d.table as "contacts").insert(row as never).select("id").single()
   if (error) throw new Error(error.message)
