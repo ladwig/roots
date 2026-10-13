@@ -7,6 +7,7 @@ import { endpoints as events } from "./events"
 import { endpoints as files } from "./files"
 import { endpoints as forms } from "./forms"
 import { endpoints as guestlists } from "./guestlists"
+import { endpoints as hr } from "./hr"
 import { endpoints as invoices } from "./invoices"
 import { endpoints as members } from "./members"
 import { endpoints as payments } from "./payments"
@@ -25,6 +26,7 @@ export const endpoints: Endpoint[] = [
   ...invoices,
   ...payments,
   ...shifts,
+  ...hr,
   ...files,
   ...settings,
 ]

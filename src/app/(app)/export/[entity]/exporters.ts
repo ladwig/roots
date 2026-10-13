@@ -6,6 +6,7 @@ import type { Table } from "@/lib/export"
 import { MEMBER_FIELDS } from "@/members/fields"
 import { monthOf } from "@/lib/time"
 import { minutes } from "@/shifts/time"
+import { payrollMonth } from "@/hr/server"
 
 type Ctx = Awaited<ReturnType<typeof getContext>>
 type T = Awaited<ReturnType<typeof getT>>
@@ -151,6 +152,67 @@ export const EXPORTERS: Record<string, Exporter> = {
             ...consentLabels.map((l) => (d.consents?.find((c) => c.label === l)?.accepted ? "✓" : "")),
           ]
         }),
+      }
+    },
+  },
+  employees: {
+    perm: "hr.view",
+    module: "hr",
+    name: "employees",
+    async load(ctx, t) {
+      const rows = await all((from, to) =>
+        ctx.supabase
+          .from("employees")
+          .select("name, email, phone, job_title, department, employment_type, starts_on, ends_on, pay_type, hourly_rate_cents, monthly_salary_cents, weekly_hours, vacation_days, manager:manager_id(name)")
+          .eq("org_id", ctx.org.id)
+          .is("deleted_at", null)
+          .order("name")
+          .range(from, to),
+      )
+      return {
+        headers: [t("hr.name"), t("hr.email"), t("hr.phone"), t("hr.jobTitle"), t("hr.department"), t("hr.manager"), t("hr.employmentType"), t("hr.startsOn"), t("hr.endsOn"), t("hr.payType"), t("hr.hourlyRate"), t("hr.monthlySalary"), t("hr.weeklyHours"), t("hr.vacationDays")],
+        rows: rows.map((e) => [
+          e.name,
+          e.email,
+          e.phone,
+          e.job_title,
+          e.department,
+          (e.manager as { name: string } | null)?.name ?? "",
+          t.dynamic(`hr.types.${e.employment_type}`),
+          e.starts_on,
+          e.ends_on,
+          t.dynamic(`hr.payTypes.${e.pay_type}`),
+          e.hourly_rate_cents != null ? e.hourly_rate_cents / 100 : "",
+          e.monthly_salary_cents != null ? e.monthly_salary_cents / 100 : "",
+          e.weekly_hours,
+          e.vacation_days,
+        ]),
+      }
+    },
+  },
+  // For the tax advisor / payroll software: approved hours, absences, gross preview (no taxes or contributions).
+  payroll: {
+    perm: "hr.view",
+    module: "hr",
+    name: "payroll",
+    async load(ctx, t, sp) {
+      const month = monthOf(sp.get("month") ?? undefined)
+      const rows = await payrollMonth(ctx.supabase, ctx.org.id, month)
+      return {
+        headers: [t("hr.name"), t("hr.employmentType"), t("time.month"), t("hr.hours"), t("hr.hourlyRate"), t("hr.monthlySalary"), t("hr.grossShort"), t.dynamic("hr.kinds.vacation"), t.dynamic("hr.kinds.sick"), t("hr.otherAbsence"), t("hr.notesShort")],
+        rows: rows.map((r) => [
+          r.name,
+          t.dynamic(`hr.types.${r.employment_type}`),
+          month.month,
+          Math.round((r.approved_minutes / 60) * 100) / 100,
+          r.hourly_rate_cents != null ? r.hourly_rate_cents / 100 : "",
+          r.monthly_salary_cents != null ? r.monthly_salary_cents / 100 : "",
+          r.gross_cents != null ? r.gross_cents / 100 : "",
+          r.vacation_days,
+          r.sick_days,
+          r.other_absence_days,
+          [...r.warnings.map((w) => t.dynamic(`hr.payWarnings.${w}`)), ...(r.unapproved_entries ? [t("time.toApprove", { count: r.unapproved_entries })] : [])].join(", "),
+        ]),
       }
     },
   },

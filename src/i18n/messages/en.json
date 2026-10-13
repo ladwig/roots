@@ -211,10 +211,6 @@
       "name": "Shift planning",
       "description": "Plan shifts and let members sign up and swap."
     },
-    "sites": {
-      "name": "Website",
-      "description": "Your public website on your subdomain, built from blocks."
-    },
     "managedByPlatform": "Modules are switched on for your organisation by the platform.",
     "invoices": {
       "name": "Quotes & invoices",
@@ -231,6 +227,10 @@
     "email": {
       "name": "Email",
       "description": "Newsletters to tags and members, automatic emails on events, through your email provider."
+    },
+    "hr": {
+      "name": "People",
+      "description": "Employees, contracts, personal data, absences, org chart and payroll prep."
     }
   },
   "permissions": {
@@ -250,7 +250,6 @@
     "guestlists.manage": "Manage guest lists and links",
     "shifts.view": "View shifts",
     "shifts.manage": "Plan shifts",
-    "sites.manage": "Edit public pages",
     "invoices.view": "View quotes & invoices",
     "invoices.manage": "Create and issue quotes & invoices",
     "guestlists.checkin": "Check in guests at the door",
@@ -263,7 +262,9 @@
     "forms.manage": "Build forms and handle submissions",
     "email.view": "View campaigns and sends",
     "email.manage": "Manage and send campaigns and automations",
-    "shifts.approve": "Approve time"
+    "shifts.approve": "Approve time",
+    "hr.view": "View people",
+    "hr.manage": "Manage people (incl. personal data)"
   },
   "integrations": {
     "connect": "Connect",
@@ -409,7 +410,11 @@
       "email_campaigns": "Email campaigns",
       "email_automations": "Email automations",
       "letter_templates": "Letter templates",
-      "event_waitlist": "Waiting lists"
+      "event_waitlist": "Waiting lists",
+      "employees": "Employees",
+      "employee_private": "Personal data",
+      "absences": "Absences",
+      "time_entries": "Time entries"
     }
   },
   "errors": {
@@ -2613,5 +2618,131 @@
         "hint": "Running for over 16 hours – probably forgot to clock out."
       }
     }
+  },
+  "hr": {
+    "nav": "People",
+    "title": "People",
+    "tabs": {
+      "people": "Employees",
+      "absences": "Absences",
+      "chart": "Org chart",
+      "payroll": "Payroll prep"
+    },
+    "new": "New person",
+    "create": "Create",
+    "created": "Person created.",
+    "saved": "Saved.",
+    "search": "Search name, role or department…",
+    "empty": "No employees yet.",
+    "noMatch": "Nobody found.",
+    "trash": "Trash",
+    "backToList": "Back to the list",
+    "toTrash": "Move to trash",
+    "trashed": "Moved to trash.",
+    "inTrash": "This person is in the trash and will be deleted for good after 30 days.",
+    "restore": "Restore",
+    "restored": "Restored.",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "jobTitle": "Role",
+    "department": "Department",
+    "manager": "Reports to",
+    "staffLink": "Shift team",
+    "noStaffLink": "– not in the shift team –",
+    "staffTaken": "This shift team member is already linked.",
+    "contract": "Contract",
+    "employmentType": "Employment",
+    "payType": "Pay",
+    "payTypes": {
+      "hourly": "Hourly wage",
+      "monthly": "Monthly salary",
+      "none": "none"
+    },
+    "types": {
+      "full_time": "Full-time",
+      "part_time": "Part-time",
+      "minijob": "Minijob",
+      "working_student": "Working student",
+      "trainee": "Trainee / intern",
+      "freelance": "Freelance",
+      "volunteer": "Volunteer",
+      "other": "Other"
+    },
+    "startsOn": "Start",
+    "endsOn": "End",
+    "hourlyRate": "Hourly wage (€)",
+    "monthlySalary": "Monthly salary (€)",
+    "weeklyHours": "Hours per week",
+    "vacationDays": "Holiday days per year",
+    "notes": "Notes",
+    "since": "Since",
+    "left": "left",
+    "details": "Details & contract",
+    "private": "Personal data",
+    "privateHint": "Only visible to people who manage HR.",
+    "birthday": "Date of birth",
+    "nationality": "Nationality",
+    "street": "Street",
+    "postalCode": "Postcode",
+    "city": "City",
+    "country": "Country",
+    "emergencyContact": "Emergency contact",
+    "taxId": "Tax ID",
+    "taxClass": "Tax class",
+    "socialSecurityNo": "Social security number",
+    "healthInsurance": "Health insurer",
+    "addAbsence": "Add absence",
+    "editAbsence": "Edit absence",
+    "deleteAbsence": "Delete",
+    "absenceSaved": "Absence saved.",
+    "absenceDeleted": "Absence deleted.",
+    "employee": "Person",
+    "pickEmployee": "Pick a person…",
+    "kind": "Type",
+    "kinds": {
+      "vacation": "Holiday",
+      "sick": "Sick",
+      "unpaid": "Unpaid",
+      "other": "Other"
+    },
+    "from": "From",
+    "to": "To",
+    "halfDay": "half day",
+    "halfDayLabel": "Half day (single day only)",
+    "note": "Note",
+    "noAbsences": "No absences this year.",
+    "days": {
+      "one": "{count} day",
+      "other": "{count} days"
+    },
+    "vacationLeft": "Holiday {year}: {left} of {total} days left",
+    "otherAbsence": "Other",
+    "thisMonth": "This month",
+    "approvedHours": "{hours} h approved",
+    "gross": "gross approx. {amount}",
+    "grossShort": "Gross (approx.)",
+    "noHours": "No hours – link the shift team member to take over tracked time.",
+    "toHours": "To the hours",
+    "unapproved": {
+      "one": "{count} time entry isn't approved yet and doesn't count yet.",
+      "other": "{count} time entries aren't approved yet and don't count yet."
+    },
+    "documents": "Documents",
+    "chartHint": "From “reports to” on each person. People who left aren't shown.",
+    "payrollHint": "Prepared for your tax advisor or payroll software: approved hours, absences and an approximate gross (no taxes or contributions).",
+    "hours": "Hours",
+    "rate": "Rate",
+    "notesShort": "Notes",
+    "payWarnings": {
+      "minijob_over": "over the Minijob limit",
+      "below_min_wage": "below minimum wage",
+      "no_rate": "no pay set"
+    },
+    "nameMissing": "Please enter a name.",
+    "endBeforeStart": "The end is before the start.",
+    "amountInvalid": "Please enter a valid amount (e.g. 14.50).",
+    "taxIdInvalid": "The tax ID has 11 digits.",
+    "halfDayOneDay": "A half day only works for a single day."
   }
 }

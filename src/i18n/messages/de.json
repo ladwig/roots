@@ -211,10 +211,6 @@
       "name": "Schichtplanung",
       "description": "Schichten planen, Mitglieder tragen sich ein und tauschen."
     },
-    "sites": {
-      "name": "Öffentliche Seite",
-      "description": "Seiten auf deiner eigenen Subdomain, aus Blöcken gebaut."
-    },
     "managedByPlatform": "Module werden von der Plattform für deine Organisation freigeschaltet.",
     "invoices": {
       "name": "Angebote & Rechnungen",
@@ -231,6 +227,10 @@
     "email": {
       "name": "E-Mail",
       "description": "Newsletter an Tags und Mitglieder, automatische E-Mails bei Ereignissen, über deinen E-Mail-Anbieter."
+    },
+    "hr": {
+      "name": "Personal",
+      "description": "Mitarbeitende, Verträge, persönliche Daten, Abwesenheiten, Organigramm und Lohnvorbereitung."
     }
   },
   "permissions": {
@@ -250,7 +250,6 @@
     "guestlists.manage": "Gästelisten und Links verwalten",
     "shifts.view": "Schichten ansehen",
     "shifts.manage": "Schichten planen",
-    "sites.manage": "Öffentliche Seiten bearbeiten",
     "invoices.view": "Angebote & Rechnungen ansehen",
     "invoices.manage": "Angebote & Rechnungen erstellen und ausstellen",
     "guestlists.checkin": "Gäste am Einlass einchecken",
@@ -263,7 +262,9 @@
     "forms.manage": "Formulare bauen und Einsendungen bearbeiten",
     "email.view": "Kampagnen und Versand ansehen",
     "email.manage": "Kampagnen und Automationen verwalten und versenden",
-    "shifts.approve": "Zeiten freigeben"
+    "shifts.approve": "Zeiten freigeben",
+    "hr.view": "Personal ansehen",
+    "hr.manage": "Personal verwalten (inkl. persönlicher Daten)"
   },
   "integrations": {
     "connect": "Verbinden",
@@ -409,7 +410,11 @@
       "email_campaigns": "E-Mail-Kampagnen",
       "email_automations": "E-Mail-Automationen",
       "letter_templates": "Briefvorlagen",
-      "event_waitlist": "Wartelisten"
+      "event_waitlist": "Wartelisten",
+      "employees": "Mitarbeitende",
+      "employee_private": "Persönliche Daten",
+      "absences": "Abwesenheiten",
+      "time_entries": "Zeiteinträge"
     }
   },
   "errors": {
@@ -2613,5 +2618,131 @@
         "hint": "Läuft seit über 16 Stunden – wahrscheinlich vergessen auszustempeln."
       }
     }
+  },
+  "hr": {
+    "nav": "Personal",
+    "title": "Personal",
+    "tabs": {
+      "people": "Mitarbeitende",
+      "absences": "Abwesenheiten",
+      "chart": "Organigramm",
+      "payroll": "Lohnvorbereitung"
+    },
+    "new": "Neue Person",
+    "create": "Anlegen",
+    "created": "Person angelegt.",
+    "saved": "Gespeichert.",
+    "search": "Name, Funktion oder Abteilung suchen…",
+    "empty": "Noch keine Mitarbeitenden.",
+    "noMatch": "Niemand gefunden.",
+    "trash": "Papierkorb",
+    "backToList": "Zurück zur Liste",
+    "toTrash": "In den Papierkorb",
+    "trashed": "In den Papierkorb gelegt.",
+    "inTrash": "Diese Person liegt im Papierkorb und wird nach 30 Tagen endgültig gelöscht.",
+    "restore": "Wiederherstellen",
+    "restored": "Wiederhergestellt.",
+    "name": "Name",
+    "email": "E-Mail",
+    "phone": "Telefon",
+    "jobTitle": "Funktion",
+    "department": "Abteilung",
+    "manager": "Berichtet an",
+    "staffLink": "Schicht-Team",
+    "noStaffLink": "– nicht im Schicht-Team –",
+    "staffTaken": "Diese Person aus dem Schicht-Team ist schon verknüpft.",
+    "contract": "Vertrag",
+    "employmentType": "Beschäftigung",
+    "payType": "Vergütung",
+    "payTypes": {
+      "hourly": "Stundenlohn",
+      "monthly": "Monatsgehalt",
+      "none": "keine"
+    },
+    "types": {
+      "full_time": "Vollzeit",
+      "part_time": "Teilzeit",
+      "minijob": "Minijob",
+      "working_student": "Werkstudent:in",
+      "trainee": "Azubi / Praktikum",
+      "freelance": "Freie Mitarbeit",
+      "volunteer": "Ehrenamt",
+      "other": "Sonstiges"
+    },
+    "startsOn": "Beginn",
+    "endsOn": "Ende",
+    "hourlyRate": "Stundenlohn (€)",
+    "monthlySalary": "Monatsgehalt (€)",
+    "weeklyHours": "Wochenstunden",
+    "vacationDays": "Urlaubstage pro Jahr",
+    "notes": "Notizen",
+    "since": "Seit",
+    "left": "ausgeschieden",
+    "details": "Daten & Vertrag",
+    "private": "Persönliche Daten",
+    "privateHint": "Nur für Personal-Verwaltende sichtbar.",
+    "birthday": "Geburtsdatum",
+    "nationality": "Staatsangehörigkeit",
+    "street": "Straße",
+    "postalCode": "PLZ",
+    "city": "Ort",
+    "country": "Land",
+    "emergencyContact": "Notfallkontakt",
+    "taxId": "Steuer-ID",
+    "taxClass": "Steuerklasse",
+    "socialSecurityNo": "Sozialversicherungsnummer",
+    "healthInsurance": "Krankenkasse",
+    "addAbsence": "Abwesenheit eintragen",
+    "editAbsence": "Abwesenheit bearbeiten",
+    "deleteAbsence": "Löschen",
+    "absenceSaved": "Abwesenheit gespeichert.",
+    "absenceDeleted": "Abwesenheit gelöscht.",
+    "employee": "Person",
+    "pickEmployee": "Person wählen…",
+    "kind": "Art",
+    "kinds": {
+      "vacation": "Urlaub",
+      "sick": "Krank",
+      "unpaid": "Unbezahlt",
+      "other": "Sonstiges"
+    },
+    "from": "Von",
+    "to": "Bis",
+    "halfDay": "halber Tag",
+    "halfDayLabel": "Halber Tag (nur bei einem Tag)",
+    "note": "Notiz",
+    "noAbsences": "Keine Abwesenheiten dieses Jahr.",
+    "days": {
+      "one": "{count} Tag",
+      "other": "{count} Tage"
+    },
+    "vacationLeft": "Urlaub {year}: noch {left} von {total} Tagen",
+    "otherAbsence": "Sonstige",
+    "thisMonth": "Dieser Monat",
+    "approvedHours": "{hours} h freigegeben",
+    "gross": "brutto ca. {amount}",
+    "grossShort": "Brutto (ca.)",
+    "noHours": "Keine Stunden – mit dem Schicht-Team verknüpfen, um Zeiten zu übernehmen.",
+    "toHours": "Zu den Zeiten",
+    "unapproved": {
+      "one": "{count} Zeiteintrag ist noch nicht freigegeben und zählt noch nicht.",
+      "other": "{count} Zeiteinträge sind noch nicht freigegeben und zählen noch nicht."
+    },
+    "documents": "Dokumente",
+    "chartHint": "Aus „Berichtet an“ bei jeder Person. Ausgeschiedene sind nicht dabei.",
+    "payrollHint": "Vorbereitung für Steuerbüro oder Lohnsoftware: freigegebene Stunden, Abwesenheiten und ein Brutto-Richtwert (ohne Steuern und Abgaben).",
+    "hours": "Stunden",
+    "rate": "Satz",
+    "notesShort": "Hinweise",
+    "payWarnings": {
+      "minijob_over": "über Minijob-Grenze",
+      "below_min_wage": "unter Mindestlohn",
+      "no_rate": "kein Lohn hinterlegt"
+    },
+    "nameMissing": "Bitte gib einen Namen ein.",
+    "endBeforeStart": "Das Ende liegt vor dem Beginn.",
+    "amountInvalid": "Bitte einen gültigen Betrag eingeben (z. B. 14,50).",
+    "taxIdInvalid": "Die Steuer-ID hat 11 Ziffern.",
+    "halfDayOneDay": "Ein halber Tag geht nur bei einem einzelnen Tag."
   }
 }

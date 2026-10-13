@@ -5,7 +5,33 @@ export type Database = {
   
   "public": {
           Tables: {
-            "api_keys": {
+            "absences": {
+                  Row: {
+                    "id": string,"org_id": string,"employee_id": string,"kind": string,"starts_on": string,"ends_on": string,"half_day": boolean,"note": string | null,"created_at": string,"created_by": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: string,"org_id": string,"employee_id": string,"kind": string,"starts_on": string,"ends_on": string,"half_day"?: boolean,"note"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "id"?: string,"org_id"?: string,"employee_id"?: string,"kind"?: string,"starts_on"?: string,"ends_on"?: string,"half_day"?: boolean,"note"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "absences_employee_id_fkey"
+      columns: ["employee_id"]
+isOneToOne: false
+      referencedRelation: "employees"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "absences_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"api_keys": {
                   Row: {
                     "created_at": string,"created_by": string | null,"expires_at": string | null,"id": string,"key_hash": string,"last_used_at": string | null,"name": string,"org_id": string,"permissions": (string)[],"prefix": string,"revoked_at": string | null,"updated_at": string,"updated_by": string | null
                   }
@@ -296,6 +322,64 @@ isOneToOne: false
       columns: ["subscription_id"]
 isOneToOne: false
       referencedRelation: "event_subscriptions"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"employee_private": {
+                  Row: {
+                    "id": string,"org_id": string,"employee_id": string,"birthday": string | null,"street": string | null,"postal_code": string | null,"city": string | null,"country": string | null,"nationality": string | null,"iban": string | null,"bic": string | null,"tax_id": string | null,"tax_class": string | null,"social_security_no": string | null,"health_insurance": string | null,"emergency_contact": string | null,"created_at": string,"created_by": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: string,"org_id": string,"employee_id": string,"birthday"?: string | null,"street"?: string | null,"postal_code"?: string | null,"city"?: string | null,"country"?: string | null,"nationality"?: string | null,"iban"?: string | null,"bic"?: string | null,"tax_id"?: string | null,"tax_class"?: string | null,"social_security_no"?: string | null,"health_insurance"?: string | null,"emergency_contact"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "id"?: string,"org_id"?: string,"employee_id"?: string,"birthday"?: string | null,"street"?: string | null,"postal_code"?: string | null,"city"?: string | null,"country"?: string | null,"nationality"?: string | null,"iban"?: string | null,"bic"?: string | null,"tax_id"?: string | null,"tax_class"?: string | null,"social_security_no"?: string | null,"health_insurance"?: string | null,"emergency_contact"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "employee_private_employee_id_fkey"
+      columns: ["employee_id"]
+isOneToOne: false
+      referencedRelation: "employees"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "employee_private_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"employees": {
+                  Row: {
+                    "id": string,"org_id": string,"staff_id": string | null,"user_id": string | null,"name": string,"email": string | null,"phone": string | null,"job_title": string | null,"department": string | null,"manager_id": string | null,"employment_type": string,"starts_on": string | null,"ends_on": string | null,"pay_type": string,"hourly_rate_cents": number | null,"monthly_salary_cents": number | null,"weekly_hours": number | null,"vacation_days": number | null,"notes": string | null,"deleted_at": string | null,"deleted_by": string | null,"created_at": string,"created_by": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: string,"org_id": string,"staff_id"?: string | null,"user_id"?: string | null,"name": string,"email"?: string | null,"phone"?: string | null,"job_title"?: string | null,"department"?: string | null,"manager_id"?: string | null,"employment_type"?: string,"starts_on"?: string | null,"ends_on"?: string | null,"pay_type"?: string,"hourly_rate_cents"?: number | null,"monthly_salary_cents"?: number | null,"weekly_hours"?: number | null,"vacation_days"?: number | null,"notes"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "id"?: string,"org_id"?: string,"staff_id"?: string | null,"user_id"?: string | null,"name"?: string,"email"?: string | null,"phone"?: string | null,"job_title"?: string | null,"department"?: string | null,"manager_id"?: string | null,"employment_type"?: string,"starts_on"?: string | null,"ends_on"?: string | null,"pay_type"?: string,"hourly_rate_cents"?: number | null,"monthly_salary_cents"?: number | null,"weekly_hours"?: number | null,"vacation_days"?: number | null,"notes"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "employees_manager_id_fkey"
+      columns: ["manager_id"]
+isOneToOne: false
+      referencedRelation: "employees"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "employees_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "employees_staff_id_fkey"
+      columns: ["staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
       referencedColumns: ["id"]
     }
                   ]

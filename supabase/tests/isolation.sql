@@ -720,6 +720,30 @@ begin
   select count(*) into n from public.files where org_id = org_a;              assert n = 0, 'B sees files of A';
   reset role;
 
+  -- HR: personal data + employee documents only for hr.manage; B sees nothing
+  insert into public.org_modules (org_id, module_key) values (org_a, 'hr') on conflict do nothing;
+  declare v_emp uuid;
+  begin
+    perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    insert into public.employees (org_id, name) values (org_a, 'Erika') returning id into v_emp;
+    insert into public.employee_private (org_id, employee_id, iban) values (org_a, v_emp, 'DE02120300000000202051');
+    insert into public.files (org_id, name, path, mime, size, entity, entity_id)
+      values (org_a, 'Vertrag.pdf', 'orgs/' || org_a || '/' || gen_random_uuid() || '.pdf', 'application/pdf', 1, 'employees', v_emp);
+    select count(*) into n from public.files where entity = 'employees';        assert n = 1, 'HR manager sees employee documents';
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.employee_private where org_id = org_a;  assert n = 0, 'member without hr.manage sees personal data';
+    select count(*) into n from public.files where entity = 'employees';        assert n = 0, 'employee documents need hr.manage';
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.employees where org_id = org_a;          assert n = 0, 'B sees employees of A';
+    select count(*) into n from public.absences where org_id = org_a;           assert n = 0, 'B sees absences of A';
+    reset role;
+  end;
+
   -- API keys: the service role gets org rights only with a live key of that org (x-api-key-hash + x-org-id),
   -- only for the key's permissions that its creator (A, owner) still has; never owner rights.
   reset role;

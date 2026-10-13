@@ -21,13 +21,15 @@ const FileMeta = z.object({
   download_url: z.string().nullable().describe("Signed link, valid 10 minutes"),
 })
 const FILE_COLS = "id, name, mime, size, entity, entity_id, folder, created_at, path"
+// Employee documents are HR data (hr.manage only in the App); the files API never shows or changes them.
+const NOT_HR = "entity.is.null,entity.neq.employees"
 type FileRow = { path: string } & Record<string, unknown>
 async function withLinks<R extends FileRow>(db: Db, rows: R[]) {
   const { data: signed } = rows.length ? await db.storage.from("files").createSignedUrls(rows.map((f) => f.path), 600) : { data: [] }
   return rows.map(({ path, ...f }) => ({ ...f, download_url: signed?.find((x) => x.path === path)?.signedUrl ?? null }))
 }
 async function getFile(db: Db, orgId: string, id: string, deleted = false) {
-  let q = db.from("files").select(FILE_COLS).eq("id", id).eq("org_id", orgId)
+  let q = db.from("files").select(FILE_COLS).eq("id", id).eq("org_id", orgId).or(NOT_HR)
   q = deleted ? q.not("deleted_at", "is", null) : q.is("deleted_at", null)
   const { data } = await q.maybeSingle()
   if (!data) throw notFound()
@@ -115,7 +117,7 @@ export const endpoints: Endpoint[] = [
     query: page.extend({ entity: z.string().max(40).optional(), entity_id: uuid.optional(), folder: z.string().max(200).optional() }),
     response: list(FileMeta),
     async handler({ db, orgId, query }) {
-      let q = db.from("files").select(FILE_COLS).eq("org_id", orgId).is("deleted_at", null).order("created_at", { ascending: false }).range(query.offset, query.offset + query.limit)
+      let q = db.from("files").select(FILE_COLS).eq("org_id", orgId).or(NOT_HR).is("deleted_at", null).order("created_at", { ascending: false }).range(query.offset, query.offset + query.limit)
       if (query.entity) q = q.eq("entity", query.entity)
       if (query.entity_id) q = q.eq("entity_id", query.entity_id)
       if (query.folder) q = q.eq("folder", query.folder)
@@ -137,6 +139,7 @@ export const endpoints: Endpoint[] = [
         .from("files")
         .select(`${FILE_COLS}, deleted_at`)
         .eq("org_id", orgId)
+        .or(NOT_HR)
         .not("deleted_at", "is", null)
         .order("deleted_at", { ascending: false })
         .range(query.offset, query.offset + query.limit)
@@ -237,7 +240,7 @@ export const endpoints: Endpoint[] = [
         ...(body.folder !== undefined ? { folder: body.folder || null, entity: null, entity_id: null } : {}),
         ...(body.entity ? { entity: body.entity, entity_id: body.entity_id, folder: null } : {}),
       }
-      const { data, error } = await db.from("files").update(patch).eq("id", params.id).eq("org_id", orgId).is("deleted_at", null).select("id").maybeSingle()
+      const { data, error } = await db.from("files").update(patch).eq("id", params.id).eq("org_id", orgId).or(NOT_HR).is("deleted_at", null).select("id").maybeSingle()
       if (error) throw dbError(error)
       if (!data) throw notFound()
       return getFile(db, orgId, params.id)
