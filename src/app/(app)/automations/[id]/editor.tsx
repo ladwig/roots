@@ -634,6 +634,14 @@ export function triggerLabel(key: string, t: ReturnType<typeof useT>) {
   return rec ? `${t.dynamic(`automations.objects.${rec.object}`)} · ${t.dynamic(`automations.recordActions.${rec.action}`)}` : t.dynamic(`events.types.${key}`)
 }
 
+/** One sentence on what exactly starts the run (shown in the picker and below it). */
+function triggerHint(key: string, t: ReturnType<typeof useT>) {
+  if (key === "schedule") return t("automations.scheduleHint")
+  const rec = parseRecordTrigger(key)
+  if (rec) return t("automations.recordHint", { object: t.dynamic(`automations.objects.${rec.object}`), action: t.dynamic(`automations.recordActions.${rec.action}`) })
+  return t.has(`events.hints.${key}`) ? t.dynamic(`events.hints.${key}`) : ""
+}
+
 // Trigger: search over all triggers of the active modules, grouped by module; "record changed" can watch fields.
 function TriggerForm({ d, options, canEdit, onChange }: { d: Record<string, unknown>; options: EditorOptions; canEdit: boolean; onChange: (p: Data) => void }) {
   const t = useT()
@@ -660,11 +668,14 @@ function TriggerForm({ d, options, canEdit, onChange }: { d: Record<string, unkn
                     {g.items.map((it) => (
                       <CommandItem
                         key={it.key}
-                        value={`${g.group} ${it.label}`}
+                        value={`${g.group} ${it.label} ${triggerHint(it.key, t)}`}
                         data-checked={it.key === value}
                         onSelect={() => (onChange(it.key === "schedule" ? { event: "schedule", every: "day", time: "09:00", fields: [] } : { event: it.key, fields: [] }), setOpen(false))}
                       >
-                        {it.label}
+                        <span className="grid gap-0.5">
+                          <span>{it.label}</span>
+                          {triggerHint(it.key, t) && <span className="line-clamp-2 text-xs text-muted-foreground">{triggerHint(it.key, t)}</span>}
+                        </span>
                       </CommandItem>
                     ))}
                   </CommandGroup>
@@ -673,6 +684,7 @@ function TriggerForm({ d, options, canEdit, onChange }: { d: Record<string, unkn
             </Command>
           </PopoverContent>
         </Popover>
+        {value && triggerHint(value, t) && <p className="text-xs text-muted-foreground">{triggerHint(value, t)}</p>}
       </div>
       {value === "schedule" && <ScheduleForm d={d} options={options} canEdit={canEdit} onChange={onChange} />}
       {value && (
