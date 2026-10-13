@@ -316,15 +316,8 @@ export function pickFields(object: ObjectKey, row: Record<string, unknown> | nul
 }
 
 // Form answers of a submission as workflow data: person fields flat, custom fields under custom, the chosen
-// membership type/start, accepted consents. Bank details never (IBAN only masked).
-export const ANSWER_FIELDS: Field[] = [
-  ...["first_name", "last_name", "company", "email", "phone", "street", "postal_code", "city", "country"].map((k) => text(k)),
-  date("birthday"),
-  { key: "membership.type_id", kind: "ref", ref: "membership_types", refTable: "membership_types" },
-  date("membership.starts_on"),
-  text("membership.iban"),
-  { key: "consents", kind: "tags" },
-]
+// membership type/start, accepted consents. Bank details never (IBAN only masked). Which fields an org's forms
+// have (for the pickers) is read from the forms themselves (automations/[id]/page.tsx).
 export function answers(data: unknown) {
   const d = (data ?? {}) as { contact?: Record<string, unknown>; custom?: Record<string, unknown>; membership?: Record<string, unknown> | null; consents?: { label: string; accepted: boolean }[] }
   const iban = typeof d.membership?.iban === "string" && d.membership.iban ? `${d.membership.iban.slice(0, 4)}…${d.membership.iban.slice(-4)}` : null

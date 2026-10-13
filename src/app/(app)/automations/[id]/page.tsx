@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getT } from "@/i18n/server"
 import { Graph } from "@/automations/graph"
-import { def, RECORD_ACTIONS, RECORD_OBJECTS, recordTrigger } from "@/automations/objects"
+import { def, RECORD_ACTIONS, RECORD_OBJECTS, recordTrigger, type Field, type Kind, type RefList } from "@/automations/objects"
+import { CONTACT_INPUTS, type Element } from "@/forms/elements"
 import { eventTypes } from "@/events/registry"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { modules } from "@/modules/registry"
@@ -19,6 +20,33 @@ import { setActive, trashWorkflow } from "../actions"
 import { WorkflowEditor, type EditorOptions } from "./editor"
 
 // One workflow on the canvas (desktop works best; phones can view and switch it on/off).
+// Every field the org's forms ask for, as answer fields of a submission ("submission.answers.<key>"): label from
+// the form, kind from the field; consents by their text; the mandate only as masked IBAN. Same field in several
+// forms = one entry naming the forms.
+function formAnswers(forms: { title: string; elements: unknown }[], defs: { key: string; label: string; type: string; options: string[] }[], t: Awaited<ReturnType<typeof getT>>) {
+  const out = new Map<string, { key: string; label: string; kind: Kind; ref?: RefList; refTable?: string; options?: string[]; forms: string[] }>()
+  const add = (key: string, label: string, form: string, rest: Omit<Field, "key">) => {
+    const cur = out.get(key)
+    if (cur) cur.forms.push(form)
+    else out.set(key, { key, label, forms: [form], ...rest })
+  }
+  for (const f of forms)
+    for (const el of (f.elements as Element[]) ?? []) {
+      if (el.kind === "consent") add("consents", t("automations.answers.consents"), f.title, { kind: "tags" })
+      if (el.kind === "mandate") add("membership.iban", t("automations.answers.membership.iban"), f.title, { kind: "text" })
+      if (el.kind !== "field") continue
+      if (el.field.startsWith("custom.")) {
+        const d = defs.find((x) => `custom.${x.key}` === el.field)
+        if (d) add(el.field, el.label || d.label, f.title, { kind: d.type === "number" ? "number" : d.type === "date" ? "date" : d.type === "boolean" ? "bool" : d.type === "select" ? "enum" : "text", options: d.options })
+      } else if (el.field === "membership.type") add("membership.type_id", el.label || t("automations.answers.membership.type_id"), f.title, { kind: "ref", ref: "membership_types", refTable: "membership_types" })
+      else if (el.field === "membership.starts_on") add("membership.starts_on", el.label || t("automations.answers.membership.starts_on"), f.title, { kind: "date" })
+      else if (el.field in CONTACT_INPUTS) add(el.field, el.label || t.dynamic(CONTACT_INPUTS[el.field].label), f.title, { kind: CONTACT_INPUTS[el.field].type === "date" ? "date" : "text" })
+    }
+  // Consents: their texts become the pickable values.
+  const consentTexts = [...new Set(forms.flatMap((f) => ((f.elements as Element[]) ?? []).filter((e) => e.kind === "consent").map((e) => (e as { label: string }).label)))]
+  return [...out.values()].map(({ forms: names, ...f }) => ({ ...f, ...(f.key === "consents" ? { options: consentTexts } : {}), label: forms.length > 1 ? `${f.label} (${[...new Set(names)].join(", ")})` : f.label }))
+}
+
 export default async function WorkflowPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { id } = await params
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound()
@@ -36,7 +64,7 @@ export default async function WorkflowPage({ params, searchParams }: { params: P
     // Records to pick as condition values (ponytail: newest 200 each; a search picker if orgs have more).
     on("events") ? ctx.supabase.from("events").select("id, title, starts_at").eq("org_id", org).is("deleted_at", null).order("starts_at", { ascending: false }).limit(200) : none,
     on("members") ? ctx.supabase.from("membership_types").select("id, name").eq("org_id", org).order("name") : none,
-    on("forms") ? ctx.supabase.from("forms").select("id, title").eq("org_id", org).is("deleted_at", null).order("title").limit(200) : none,
+    on("forms") ? ctx.supabase.from("forms").select("id, title, elements").eq("org_id", org).is("deleted_at", null).order("title").limit(200) : none,
     on("courses") ? ctx.supabase.from("courses").select("id, title").eq("org_id", org).is("deleted_at", null).order("title").limit(200) : none,
     on("guestlists") ? ctx.supabase.from("guest_lists").select("id, name").eq("org_id", org).is("deleted_at", null).order("name").limit(200) : none,
   ])
@@ -67,6 +95,7 @@ export default async function WorkflowPage({ params, searchParams }: { params: P
     customFields: defs.map((d) => ({ key: d.key, label: d.label, type: d.type, options: d.options })),
     tags: ((tagRows ?? []) as unknown as string[]).sort((a, b) => a.localeCompare(b, t.locale)).slice(0, 500),
     modules: [...ctx.modules],
+    answers: formAnswers(forms ?? [], defs, t),
     refs: {
       events: (events ?? []).map((e) => ({ value: e.id, label: `${e.title} · ${t.date(e.starts_at, { dateStyle: "short" })}` })),
       membership_types: (types ?? []).map((x) => ({ value: x.id, label: x.name })),
