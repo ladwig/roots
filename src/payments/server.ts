@@ -151,6 +151,8 @@ async function fulfil(orderId: string) {
     .eq("id", orderId)
     .single()
   if (!order) return
+  // TODO: a crash between this claim and onPaid leaves fulfilled_at set forever (paid, tickets never issued, no retry).
+  // issueTickets already mails once on its own (status reserved → valid), so go back to: onPaid, then set fulfilled_at.
   // Claim atomically: only the caller that flips fulfilled_at runs onPaid (webhook vs. reconcileOrder race).
   const { data: claimed } = await db()
     .from("pay_orders")

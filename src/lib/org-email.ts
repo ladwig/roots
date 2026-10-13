@@ -9,6 +9,7 @@ import { resend } from "@/integrations/resend"
 export type OrgEmail = Omit<Mail, "from">
 
 // A function, not a constant: integrations → payments → tickets → here is an import cycle.
+// TODO: sendOrgEmail calls this twice; call it once at the top and reuse the list.
 const emailProviders = () => integrations.filter((i) => i.email)
 
 export async function sendOrgEmail(orgId: string, mail: OrgEmail): Promise<boolean> {

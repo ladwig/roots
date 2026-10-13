@@ -8,6 +8,7 @@ const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 const ticketCode = () => Array.from(randomBytes(10), (b) => ALPHABET[b % 32]).join("")
 export const linkToken = () => Array.from(randomBytes(24), (b) => "abcdefghijklmnopqrstuvwxyz0123456789"[b % 36]).join("")
 
+// TODO: no test. Add one that syncs a list with two entries (and once concurrently): one live ticket each, orders paid.
 /** Bring the entries' tickets in line with the list (create missing, rename changed). Idempotent. */
 export async function syncTickets(listId: string) {
   const { data: list } = await db().from("guest_lists").select("id, org_id, event_id, ticket_type_id, name, deleted_at").eq("id", listId).maybeSingle()
@@ -39,6 +40,8 @@ export async function syncTickets(listId: string) {
     .insert(missing.map((e) => ({ org_id: list.org_id, event_id: list.event_id!, type_id: list.ticket_type_id!, order_id: orderOf.get(e.id)!, code: ticketCode(), holder_name: e.name, status: "valid", price: 0, guest_entry_id: e.id })))
     .select("id, guest_entry_id")
   if (tErr) {
+    // TODO: a conflict on one entry drops the whole batch, so entries only this run saw get no ticket (two link sign-ups
+    // at once). Retry once after cancelling, and find missing entries by live tickets.guest_entry_id, not entries.ticket_id.
     // 23505 = a concurrent run already issued these tickets (unique index): drop our orders and let that run win.
     await db().from("pay_orders").update({ status: "cancelled" }).in("id", [...orderOf.values()])
     if (tErr.code === "23505") return
