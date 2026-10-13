@@ -1,7 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { FilePlusIcon, HistoryIcon } from "lucide-react"
-import { FileList } from "@/components/file-list"
 import { Markdown } from "@/components/markdown"
 import { Notice } from "@/components/notice"
 import { PageCrumbs } from "@/components/page-crumbs"
@@ -17,7 +16,7 @@ import { TreeNav } from "../tree-nav"
 import { WikiEditor } from "./editor"
 
 // One wiki page: tree on the left (drag & drop to move), the page – editable in place for writers, read-only text for
-// readers – sub-pages, attachments, history (?history=1).
+// readers – sub-pages, history (?history=1). Files live inline in the text (images, file cards).
 export default async function WikiPageView({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<SearchParams> }) {
   const { id } = await params
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound()
@@ -106,10 +105,6 @@ export default async function WikiPageView({ params, searchParams }: { params: P
                   </ul>
                 </section>
               )}
-              <section id="files" className="grid scroll-mt-20 gap-2">
-                <h2 className="text-sm font-medium">{t("wiki.attachments")}</h2>
-                <FileList ctx={ctx} entity="wiki_pages" entityId={page.id} back={`/wiki/${page.id}#files`} />
-              </section>
               {canManage && (
                 <form action={trashPageAction}>
                   <input type="hidden" name="id" value={page.id} />

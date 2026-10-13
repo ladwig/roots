@@ -1,3 +1,4 @@
+import { FileTextIcon } from "lucide-react"
 import ReactMarkdown, { type Components } from "react-markdown"
 import remarkGfm from "remark-gfm"
 
@@ -11,9 +12,18 @@ const components: Components = {
   p: (p) => <p className="my-2 leading-relaxed" {...p} />,
   ul: (p) => <ul className="my-2 list-disc space-y-1 pl-6 [&:has(input)]:list-none [&:has(input)]:pl-1" {...p} />,
   ol: (p) => <ol className="my-2 list-decimal space-y-1 pl-6" {...p} />,
-  a: ({ href = "", ...p }) => (
-    <a href={href} className="text-primary underline underline-offset-4" {...(/^https?:/.test(href) ? { target: "_blank", rel: "noreferrer" } : {})} {...p} />
-  ),
+  a: ({ href = "", children, ...p }) =>
+    /^\/files\/[0-9a-f-]{36}$/.test(href) ? (
+      // An uploaded file (PDF, document …): a card in the text.
+      <a href={href} target="_blank" rel="noreferrer" className="my-1 inline-flex max-w-full items-center gap-2 rounded-lg border px-3 py-2 align-middle hover:bg-muted" {...p}>
+        <FileTextIcon className="size-4 shrink-0 text-muted-foreground" />
+        <span className="truncate">{children}</span>
+      </a>
+    ) : (
+      <a href={href} className="text-primary underline underline-offset-4" {...(/^https?:/.test(href) ? { target: "_blank", rel: "noreferrer" } : {})} {...p}>
+        {children}
+      </a>
+    ),
   blockquote: (p) => <blockquote className="my-3 border-l-2 pl-4 text-muted-foreground" {...p} />,
   hr: () => <hr className="my-6 border-border" />,
   code: ({ className, ...p }) => <code className={className ? `${className} block` : "rounded bg-muted px-1 py-0.5 font-mono text-[0.9em]"} {...p} />,

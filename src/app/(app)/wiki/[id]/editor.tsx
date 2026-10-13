@@ -174,6 +174,7 @@ export function WikiEditor({ page, orgId }: { page: { id: string; title: string;
           "[&_p]:my-1.5 [&_ul]:my-1.5 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-1.5 [&_ol]:list-decimal [&_ol]:pl-6 [&_li_p]:my-0.5",
           "[&_ul[data-type=taskList]]:list-none [&_ul[data-type=taskList]]:pl-1 [&_ul[data-type=taskList]_li]:flex [&_ul[data-type=taskList]_li]:items-start [&_ul[data-type=taskList]_li]:gap-2 [&_ul[data-type=taskList]_li>label]:mt-1 [&_ul[data-type=taskList]_input]:size-4",
           "[&_blockquote]:my-2 [&_blockquote]:border-l-2 [&_blockquote]:pl-4 [&_blockquote]:text-muted-foreground [&_hr]:my-6 [&_hr]:border-border",
+          "[&_a[href^='/files/']]:inline-flex [&_a[href^='/files/']]:rounded-lg [&_a[href^='/files/']]:border [&_a[href^='/files/']]:px-3 [&_a[href^='/files/']]:py-1.5 [&_a[href^='/files/']]:text-foreground [&_a[href^='/files/']]:no-underline",
           "[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.9em]",
           "[&_pre]:my-3 [&_pre]:rounded-lg [&_pre]:bg-muted [&_pre]:p-3 [&_pre]:font-mono [&_pre]:text-sm [&_pre_code]:bg-transparent [&_pre_code]:p-0",
           "[&_img]:my-3 [&_img]:max-w-full [&_img]:rounded-lg [&_img.ProseMirror-selectednode]:ring-2 [&_img.ProseMirror-selectednode]:ring-primary",
