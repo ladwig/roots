@@ -633,7 +633,10 @@
       "dark": "Dunkel",
       "system": "System"
     },
-    "memberArea": "Mein Mitgliederbereich"
+    "memberArea": "Mein Mitgliederbereich",
+    "orgs": "Deine Organisationen",
+    "currentOrg": "Aktiv",
+    "orgsHint": "Wechseln über das Menü oben in der Seitenleiste."
   },
   "payments": {
     "nav": "Zahlungen",
@@ -2035,7 +2038,11 @@
     "feeFrom": "ab {fee}",
     "feeBelowMinimum": "Der Beitrag liegt unter dem Mindestbeitrag dieser Mitgliedsart ({min} €).",
     "numberRange": "Mitgliedsnummern",
-    "numberRangeHint": "Gilt für neue Mitglieder; wer wieder eintritt, behält seine Nummer. Datum = Eintrittsdatum."
+    "numberRangeHint": "Gilt für neue Mitglieder; wer wieder eintritt, behält seine Nummer. Datum = Eintrittsdatum.",
+    "typeDefault": "{value} (Mitgliedsart)",
+    "paymentAutoSepa": "SEPA-Lastschrift (automatisch, Mandat vorhanden)",
+    "paymentAutoTransfer": "Überweisung (automatisch, kein Mandat)",
+    "markOpen": "Wieder offen"
   },
   "forms": {
     "nav": "Formulare",

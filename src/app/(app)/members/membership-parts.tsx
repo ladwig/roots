@@ -22,6 +22,9 @@ export function Field({ id, label, ...props }: { id: string; label: string } & R
 }
 
 export function MembershipFields({ t, types, m, defs }: { t: T; types: Type[]; m?: Tables<"memberships">; defs: FieldDef[] }) {
+  // What applies when the own fields stay empty: the (selected) type's fee and rhythm, the payment way of the mandate.
+  const type = types.find((x) => x.id === m?.type_id) ?? types.find((x) => x.active) ?? types[0]
+  const ofType = (v: string) => t("membership.typeDefault", { value: v })
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -44,11 +47,11 @@ export function MembershipFields({ t, types, m, defs }: { t: T; types: Type[]; m
         <legend className="mb-1 font-medium">{t("membership.feeOwn")}</legend>
         <p className="text-xs text-muted-foreground">{t("membership.feeOwnHint")}</p>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field id="m-fee" name="fee" type="number" min="0" step="0.01" label={t("membership.fee")} placeholder={t("membership.feeOfType")} defaultValue={m?.fee_cents != null ? (m.fee_cents / 100).toFixed(2) : ""} />
+          <Field id="m-fee" name="fee" type="number" min="0" step="0.01" label={t("membership.fee")} placeholder={type ? ofType(type.fee_is_minimum ? t("membership.feeFrom", { fee: t.money(type.fee_cents) }) : t.money(type.fee_cents)) : t("membership.feeOfType")} defaultValue={m?.fee_cents != null ? (m.fee_cents / 100).toFixed(2) : ""} />
           <div className="grid gap-2">
             <Label htmlFor="m-interval">{t("membership.interval")}</Label>
             <NativeSelect id="m-interval" name="fee_interval" defaultValue={m?.fee_interval ?? ""} className="w-full">
-              <NativeSelectOption value="">{t("membership.feeOfType")}</NativeSelectOption>
+              <NativeSelectOption value="">{type ? ofType(t(`membership.intervals.${type.interval as Interval}`)) : t("membership.feeOfType")}</NativeSelectOption>
               {INTERVALS.map((i) => (
                 <NativeSelectOption key={i} value={i}>
                   {t(`membership.intervals.${i}`)}
@@ -59,7 +62,7 @@ export function MembershipFields({ t, types, m, defs }: { t: T; types: Type[]; m
           <div className="grid gap-2">
             <Label htmlFor="m-method">{t("membership.paymentMethod")}</Label>
             <NativeSelect id="m-method" name="payment_method" defaultValue={m?.payment_method ?? ""} className="w-full">
-              <NativeSelectOption value="">{t("membership.paymentAuto")}</NativeSelectOption>
+              <NativeSelectOption value="">{m?.iban ? t("membership.paymentAutoSepa") : t("membership.paymentAutoTransfer")}</NativeSelectOption>
               {PAYMENT_METHODS.map((p) => (
                 <NativeSelectOption key={p} value={p}>
                   {t.dynamic(`membership.paymentMethods.${p}`)}

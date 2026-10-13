@@ -633,7 +633,10 @@
       "dark": "Dark",
       "system": "System"
     },
-    "memberArea": "My member area"
+    "memberArea": "My member area",
+    "orgs": "Your organisations",
+    "currentOrg": "Active",
+    "orgsHint": "Switch with the menu at the top of the sidebar."
   },
   "payments": {
     "nav": "Payments",
@@ -2035,7 +2038,11 @@
     "feeFrom": "from {fee}",
     "feeBelowMinimum": "The fee is below this membership type's minimum ({min} €).",
     "numberRange": "Member numbers",
-    "numberRangeHint": "Applies to new members; people who rejoin keep their number. Date = start date."
+    "numberRangeHint": "Applies to new members; people who rejoin keep their number. Date = start date.",
+    "typeDefault": "{value} (membership type)",
+    "paymentAutoSepa": "SEPA direct debit (automatic, mandate on file)",
+    "paymentAutoTransfer": "Bank transfer (automatic, no mandate)",
+    "markOpen": "Mark open again"
   },
   "forms": {
     "nav": "Forms",

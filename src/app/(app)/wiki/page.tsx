@@ -28,7 +28,13 @@ export default async function WikiPage({ searchParams }: { searchParams: Promise
   ])
   // A snippet around the hit (plain text, Markdown marks stripped).
   const snippet = (body: string) => {
-    const text = body.replace(/[#*_>`|[\]()-]+/g, " ").replace(/\s+/g, " ").trim()
+    // Plain text: images and file addresses out, links as their text, Markdown marks out.
+    const text = body
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+      .replace(/[#*_>`|[\]()-]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
     const at = q ? text.toLowerCase().indexOf(q.toLowerCase()) : 0
     return text.slice(Math.max(0, at - 60), Math.max(0, at - 60) + 180)
   }

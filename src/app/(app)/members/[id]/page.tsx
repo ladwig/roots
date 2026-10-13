@@ -41,7 +41,7 @@ async function MembershipBody({
 }) {
   const { data: dues } = await ctx.supabase
     .from("member_dues")
-    .select("id, description, amount_cents, due_on, status, paid_on")
+    .select("id, description, amount_cents, due_on, status, paid_on, run_id")
     .eq("org_id", ctx.org.id)
     .eq("membership_id", m.id)
     .order("due_on", { ascending: false })
@@ -178,6 +178,17 @@ async function MembershipBody({
                     <input type="hidden" name="back" value={here} />
                     <SubmitButton size="sm" variant="ghost">
                       {t("membership.remind")}
+                    </SubmitButton>
+                  </form>
+                )}
+                {canManage && d.status === "paid" && !d.run_id && (
+                  // Marked paid by hand (not collected by SEPA): can be undone after a misclick.
+                  <form action={setDueStatus}>
+                    <input type="hidden" name="id" value={d.id} />
+                    <input type="hidden" name="status" value="open" />
+                    <input type="hidden" name="back" value={here} />
+                    <SubmitButton size="sm" variant="ghost">
+                      {t("membership.markOpen")}
                     </SubmitButton>
                   </form>
                 )}

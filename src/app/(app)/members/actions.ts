@@ -222,11 +222,13 @@ export async function setDueStatus(fd: FormData) {
   const back_ = String(fd.get("back") ?? "")
   const to = back_.startsWith("/members") ? back_ : DUES
   if (!status) back(to, { error: t("errors.not_allowed") })
-  const { error } = await ctx.supabase
+  let update = ctx.supabase
     .from("member_dues")
     .update({ status, paid_on: status === "paid" ? today() : null })
     .eq("id", str(fd, "id", 36) ?? "")
     .eq("org_id", ctx.org.id)
+  if (status === "open") update = update.is("run_id", null) // collected by a SEPA run: stays paid (cancel the run instead)
+  const { error } = await update
   back(to, error ? { error: dbError(t, error) } : { ok: t("membership.dueUpdated") })
 }
 
