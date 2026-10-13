@@ -1815,14 +1815,14 @@ isOneToOne: false
                   ]
                 },"wiki_pages": {
                   Row: {
-                    "body": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"id": string,"org_id": string,"parent_id": string | null,"position": number,"role_ids": (string)[],"title": string,"updated_at": string,"updated_by": string | null,"visibility": string | null
+                    "body": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"icon": string | null,"id": string,"org_id": string,"parent_id": string | null,"position": number,"role_ids": (string)[],"title": string,"updated_at": string,"updated_by": string | null,"visibility": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "body"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"org_id": string,"parent_id"?: string | null,"position"?: number,"role_ids"?: (string)[],"title": string,"updated_at"?: string,"updated_by"?: string | null,"visibility"?: string | null
+                    "body"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"icon"?: string | null,"id"?: string,"org_id": string,"parent_id"?: string | null,"position"?: number,"role_ids"?: (string)[],"title": string,"updated_at"?: string,"updated_by"?: string | null,"visibility"?: string | null
                   }
                   Update: {
-                    "body"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"org_id"?: string,"parent_id"?: string | null,"position"?: number,"role_ids"?: (string)[],"title"?: string,"updated_at"?: string,"updated_by"?: string | null,"visibility"?: string | null
+                    "body"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"icon"?: string | null,"id"?: string,"org_id"?: string,"parent_id"?: string | null,"position"?: number,"role_ids"?: (string)[],"title"?: string,"updated_at"?: string,"updated_by"?: string | null,"visibility"?: string | null
                   }
                   Relationships: [
                     {

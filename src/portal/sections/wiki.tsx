@@ -19,6 +19,7 @@ export async function WikiSection({ orgId, site }: SectionProps) {
         {pages.map((p) => (
           <li key={p.id}>
             <Link href={sitePath(site, `/portal/wiki/${p.id}`)} className="text-sm underline-offset-4 hover:underline">
+              {p.icon && `${p.icon} `}
               {p.title}
             </Link>
           </li>

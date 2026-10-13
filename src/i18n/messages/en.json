@@ -3984,6 +3984,14 @@
       "full": "Full width",
       "open": "Open original",
       "remove": "Remove"
-    }
+    },
+    "icon": {
+      "add": "Add icon",
+      "change": "Change icon",
+      "own": "Paste your own emoji",
+      "set": "Set",
+      "remove": "Remove icon"
+    },
+    "iconInvalid": "Please pick an emoji."
   }
 }

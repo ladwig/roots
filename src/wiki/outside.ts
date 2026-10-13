@@ -6,8 +6,8 @@ import { createPublicClient } from "@/lib/supabase/server"
 import { getPortalContact } from "@/portal/session"
 
 export type Level = "public" | "members"
-export type OutsidePage = { id: string; title: string; body: string; updated_at: string; children: { id: string; title: string }[]; path: { id: string; title: string }[] }
-export type OutsideEntry = { id: string; title: string; updated_at: string }
+export type OutsidePage = { id: string; icon: string | null; title: string; body: string; updated_at: string; children: { id: string; icon: string | null; title: string }[]; path: { id: string; title: string }[] }
+export type OutsideEntry = { id: string; icon: string | null; title: string; updated_at: string }
 
 const client = (level: Level) => (level === "public" ? createPublicClient() : createAdminClient())
 

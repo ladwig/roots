@@ -6,7 +6,7 @@ import { VISIBILITIES } from "./tree"
 type Db = SupabaseClient<Database>
 export type WikiFail = { error: string; db?: { code?: string; message: string } }
 const dbFail = (e: { code?: string; message: string }): WikiFail => ({ error: "db", db: e })
-export const WIKI_COLS = "id, parent_id, title, body, position, visibility, role_ids, created_at, updated_at"
+export const WIKI_COLS = "id, parent_id, icon, title, body, position, visibility, role_ids, created_at, updated_at"
 
 export function readPage(i: { title?: string; body?: string }) {
   const title = (i.title ?? "").trim().slice(0, 200)
@@ -72,6 +72,15 @@ export async function setVisibility(db: Db, orgId: string, id: string, visibilit
     if ((data?.length ?? 0) !== ids.length) return { error: "errors.invalid_input" }
   }
   const { data, error } = await db.from("wiki_pages").update({ visibility, role_ids: ids }).eq("id", id).eq("org_id", orgId).is("deleted_at", null).select("id").maybeSingle()
+  if (error) return dbFail(error)
+  return data ? { id } : { error: "errors.not_allowed" }
+}
+
+/** Page icon: one emoji (or null to remove). */
+export async function setIcon(db: Db, orgId: string, id: string, icon: string | null): Promise<WikiFail | { id: string }> {
+  const v = icon?.trim() || null
+  if (v && (v.length > 16 || !/\p{Extended_Pictographic}|\p{Regional_Indicator}/u.test(v))) return { error: "wiki.iconInvalid" }
+  const { data, error } = await db.from("wiki_pages").update({ icon: v }).eq("id", id).eq("org_id", orgId).is("deleted_at", null).select("id").maybeSingle()
   if (error) return dbFail(error)
   return data ? { id } : { error: "errors.not_allowed" }
 }

@@ -1,14 +1,14 @@
-"use client";
+"use client"
 
-import { useEffect, useRef, useState, useTransition } from "react";
-import Image from "@tiptap/extension-image";
-import { TaskItem, TaskList } from "@tiptap/extension-list";
-import { TableKit } from "@tiptap/extension-table";
-import { Placeholder } from "@tiptap/extensions";
-import { Markdown } from "@tiptap/markdown";
-import { EditorContent, useEditor, type Editor } from "@tiptap/react";
-import { BubbleMenu } from "@tiptap/react/menus";
-import StarterKit from "@tiptap/starter-kit";
+import { useEffect, useRef, useState, useTransition } from "react"
+import Image from "@tiptap/extension-image"
+import { TaskItem, TaskList } from "@tiptap/extension-list"
+import { TableKit } from "@tiptap/extension-table"
+import { Placeholder } from "@tiptap/extensions"
+import { Markdown } from "@tiptap/markdown"
+import { EditorContent, useEditor, type Editor } from "@tiptap/react"
+import { BubbleMenu } from "@tiptap/react/menus"
+import StarterKit from "@tiptap/starter-kit"
 import {
   BoldIcon,
   CodeIcon,
@@ -31,32 +31,33 @@ import {
   TableIcon,
   Trash2Icon,
   type LucideIcon,
-} from "lucide-react";
-import { toast } from "sonner";
-import { uploadFiles } from "@/components/file-upload";
-import { Button } from "@/components/ui/button";
-import { useT } from "@/i18n/client";
-import { cn } from "@/lib/utils";
-import { autosavePage } from "../actions";
+} from "lucide-react"
+import { toast } from "sonner"
+import { uploadFiles } from "@/components/file-upload"
+import { Button } from "@/components/ui/button"
+import { useT } from "@/i18n/client"
+import { cn } from "@/lib/utils"
+import { autosavePage } from "../actions"
+import { IconPicker } from "./icon-picker"
 
-type Block = { key: string; icon: LucideIcon; run: (e: Editor) => void };
+type Block = { key: string; icon: LucideIcon; run: (e: Editor) => void }
 
 // Images with resize handles; the width is kept in Markdown as "#w=<px>" on the address (Markdown has no width).
 const WikiImage = Image.extend({
   parseMarkdown: (token, helpers) => {
-    const href = String(token.href ?? "");
-    const w = /#w=(\d+)$/.exec(href);
+    const href = String(token.href ?? "")
+    const w = /#w=(\d+)$/.exec(href)
     return helpers.createNode("image", {
       src: href.replace(/#w=\d+$/, ""),
       alt: token.text,
       title: token.title,
       width: w ? Number(w[1]) : null,
-    });
+    })
   },
   renderMarkdown: (node) => {
-    const a = node.attrs ?? {};
-    const w = a.width ? `#w=${Math.round(Number(a.width))}` : "";
-    return `![${a.alt ?? ""}](${a.src ?? ""}${w}${a.title ? ` "${a.title}"` : ""})`;
+    const a = node.attrs ?? {}
+    const w = a.width ? `#w=${Math.round(Number(a.width))}` : ""
+    return `![${a.alt ?? ""}](${a.src ?? ""}${w}${a.title ? ` "${a.title}"` : ""})`
   },
 }).configure({
   resize: {
@@ -66,91 +67,87 @@ const WikiImage = Image.extend({
     minHeight: 40,
     alwaysPreserveAspectRatio: true,
   },
-});
+})
 // The mounted editor per page: an upload inserts into the editor that is on screen when it finishes, even if the
 // component was rebuilt meanwhile.
-const live = new Map<string, Editor>();
+const live = new Map<string, Editor>()
 type Slash = {
-  from: number;
-  to: number;
-  query: string;
-  x: number;
-  y: number;
-  index: number;
-};
+  from: number
+  to: number
+  query: string
+  x: number
+  y: number
+  index: number
+}
 
 // Notion-like page editor: big title, write straight into the formatted page. Markdown shortcuts while typing
 // ("# ", "- ", "[] ", "> ", "```", "**…**", "---"), "/" opens the block menu, selected text gets a format bar,
 // images and files are dropped or pasted where they belong. Saves itself while you type (⌘S saves now); the
 // page is stored as Markdown, so view, search, API and history stay as they are.
-export function WikiEditor({
-  page,
-  orgId,
-}: {
-  page: { id: string; title: string; body: string };
-  orgId: string;
-}) {
-  const t = useT();
-  const [title, setTitle] = useState(
-    page.title === t("wiki.untitled") ? "" : page.title,
-  );
-  const [state, setState] = useState<"saved" | "dirty" | "saving" | "error">(
-    "saved",
-  );
-  const [uploading, setUploading] = useState(0);
-  const [slash, setSlash] = useState<Slash | null>(null);
-  const [, startSave] = useTransition();
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const editorRef = useRef<Editor | null>(null);
-  const latest = useRef({ title, slash });
+// Size buttons: the resizable image view ignores later width changes, so set the attributes and the image itself.
+function sizeImage(editor: Editor, width: number | null) {
+  const pos = editor.state.selection.from
+  editor.chain().focus().updateAttributes("image", { width, height: null }).run()
+  const dom = editor.view.nodeDOM(pos) as HTMLElement | null
+  const img = dom instanceof HTMLImageElement ? dom : dom?.querySelector("img")
+  if (img) {
+    img.style.width = width ? `${width}px` : ""
+    img.style.height = ""
+  }
+}
+
+export function WikiEditor({ page, orgId }: { page: { id: string; title: string; body: string; icon: string | null }; orgId: string }) {
+  const t = useT()
+  const [title, setTitle] = useState(page.title === t("wiki.untitled") ? "" : page.title)
+  const [state, setState] = useState<"saved" | "dirty" | "saving" | "error">("saved")
+  const [uploading, setUploading] = useState(0)
+  const [slash, setSlash] = useState<Slash | null>(null)
+  const [, startSave] = useTransition()
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const editorRef = useRef<Editor | null>(null)
+  const latest = useRef({ title, slash })
   useEffect(() => {
-    latest.current = { title, slash };
-  });
+    latest.current = { title, slash }
+  })
 
   const save = (editor: Editor | null) => {
-    if (timer.current) clearTimeout(timer.current);
-    if (!editor) return;
-    setState("saving");
+    if (timer.current) clearTimeout(timer.current)
+    if (!editor) return
+    setState("saving")
     startSave(async () => {
       const r = await autosavePage({
         id: page.id,
         title: latest.current.title.trim() || t("wiki.untitled"),
         body: editor.getMarkdown(),
-      });
+      })
       if (r.error) {
-        setState("error");
-        toast.error(r.error);
-      } else setState((s) => (s === "saving" ? "saved" : s));
-    });
-  };
+        setState("error")
+        toast.error(r.error)
+      } else setState((s) => (s === "saving" ? "saved" : s))
+    })
+  }
   const later = (editor: Editor | null) => {
-    setState("dirty");
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => save(editor), 1200);
-  };
+    setState("dirty")
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = setTimeout(() => save(editor), 1200)
+  }
 
   // Upload, then images as image blocks, other files as links – at `pos` (drop point / cursor). Inserts into the
   // editor as it is after the upload (not the one from before the file dialog), falls back to the end of the page.
   const attach = async (_e: Editor, files: File[], pos: number) => {
-    if (!files.length) return;
-    setUploading((n) => n + files.length);
-    let done: Awaited<ReturnType<typeof uploadFiles>> = [];
+    if (!files.length) return
+    setUploading((n) => n + files.length)
+    let done: Awaited<ReturnType<typeof uploadFiles>> = []
     try {
-      done = await uploadFiles(
-        orgId,
-        files,
-        { entity: "wiki_pages", entityId: page.id },
-        t,
-      );
+      done = await uploadFiles(orgId, files, { entity: "wiki_pages", entityId: page.id }, t)
     } finally {
-      setUploading((n) => n - files.length);
+      setUploading((n) => n - files.length)
     }
     // No router.refresh() here: refreshing this page can remount the editor and drop what was just inserted.
     // The attachments list catches up on the next visit.
-    const editor = live.get(page.id) ?? editorRef.current;
-    if (!done.length) return toast.error(`${t("wiki.insertFailed")} (upload)`);
-    if (!editor || editor.isDestroyed)
-      return toast.error(`${t("wiki.insertFailed")} (editor)`);
+    const editor = live.get(page.id) ?? editorRef.current
+    if (!done.length) return toast.error(`${t("wiki.insertFailed")} (upload)`)
+    if (!editor || editor.isDestroyed) return toast.error(`${t("wiki.insertFailed")} (editor)`)
     const nodes = done.map((f) =>
       f.mime.startsWith("image/")
         ? { type: "image", attrs: { src: `/files/${f.id}`, alt: f.name } }
@@ -164,35 +161,35 @@ export function WikiEditor({
               },
             ],
           },
-    );
-    const end = editor.state.doc.content.size;
-    let ok = false;
+    )
+    const end = editor.state.doc.content.size
+    let ok = false
     try {
       ok =
         editor
           .chain()
           .insertContentAt(Math.min(Math.max(pos, 0), end), nodes)
-          .run() || editor.chain().insertContentAt(end, nodes).run();
+          .run() || editor.chain().insertContentAt(end, nodes).run()
     } catch (err) {
-      console.error(err);
+      console.error(err)
     }
     if (ok)
-      save(editor); // store it right away
-    else toast.error(`${t("wiki.insertFailed")} (insert)`);
-  };
+      save(editor) // store it right away
+    else toast.error(`${t("wiki.insertFailed")} (insert)`)
+  }
   const pickFiles = (editor: Editor) => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.multiple = true;
-    input.hidden = true;
-    document.body.append(input); // Safari only fires change for inputs in the page
-    const pos = editor.state.selection.from;
+    const input = document.createElement("input")
+    input.type = "file"
+    input.multiple = true
+    input.hidden = true
+    document.body.append(input) // Safari only fires change for inputs in the page
+    const pos = editor.state.selection.from
     input.onchange = () => {
-      attach(editor, [...(input.files ?? [])], pos);
-      input.remove();
-    };
-    input.click();
-  };
+      attach(editor, [...(input.files ?? [])], pos)
+      input.remove()
+    }
+    input.click()
+  }
 
   const blocks: Block[] = [
     {
@@ -243,12 +240,7 @@ export function WikiEditor({
     {
       key: "table",
       icon: TableIcon,
-      run: (e) =>
-        e
-          .chain()
-          .focus()
-          .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-          .run(),
+      run: (e) => e.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
     },
     {
       key: "divider",
@@ -256,26 +248,17 @@ export function WikiEditor({
       run: (e) => e.chain().focus().setHorizontalRule().run(),
     },
     { key: "image", icon: ImageIcon, run: (e) => pickFiles(e) },
-  ];
-  const label = (k: string) => t.dynamic(`wiki.blocks.${k}`);
-  const matches = (q: string) =>
-    blocks.filter(
-      (b) =>
-        !q ||
-        label(b.key).toLowerCase().includes(q.toLowerCase()) ||
-        b.key.includes(q.toLowerCase()),
-    );
+  ]
+  const label = (k: string) => t.dynamic(`wiki.blocks.${k}`)
+  const matches = (q: string) => blocks.filter((b) => !q || label(b.key).toLowerCase().includes(q.toLowerCase()) || b.key.includes(q.toLowerCase()))
 
   // "/" at the start of an empty-ish paragraph opens the block menu at the cursor.
   const watchSlash = (e: Editor) => {
-    const { $from, empty } = e.state.selection;
-    const before = $from.parent.textBetween(0, $from.parentOffset, "\n", "\n");
-    const m =
-      empty && $from.parent.type.name === "paragraph"
-        ? /^\/([\p{L}\d]*)$/u.exec(before)
-        : null;
-    if (!m) return setSlash(null);
-    const c = e.view.coordsAtPos($from.pos);
+    const { $from, empty } = e.state.selection
+    const before = $from.parent.textBetween(0, $from.parentOffset, "\n", "\n")
+    const m = empty && $from.parent.type.name === "paragraph" ? /^\/([\p{L}\d]*)$/u.exec(before) : null
+    if (!m) return setSlash(null)
+    const c = e.view.coordsAtPos($from.pos)
     setSlash((s) => ({
       from: $from.start(),
       to: $from.pos,
@@ -283,13 +266,13 @@ export function WikiEditor({
       x: c.left,
       y: c.bottom,
       index: s && s.query === m[1] ? s.index : 0,
-    }));
-  };
+    }))
+  }
   const runSlash = (e: Editor, s: Slash, b: Block) => {
-    e.chain().focus().deleteRange({ from: s.from, to: s.to }).run();
-    setSlash(null);
-    b.run(e);
-  };
+    e.chain().focus().deleteRange({ from: s.from, to: s.to }).run()
+    setSlash(null)
+    b.run(e)
+  }
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -303,10 +286,7 @@ export function WikiEditor({
       TaskItem.configure({ nested: true }),
       TableKit.configure({ table: { resizable: false } }),
       Placeholder.configure({
-        placeholder: ({ node }) =>
-          node.type.name === "heading"
-            ? t("wiki.headingPlaceholder")
-            : t("wiki.typePlaceholder"),
+        placeholder: ({ node }) => (node.type.name === "heading" ? t("wiki.headingPlaceholder") : t("wiki.typePlaceholder")),
       }),
       Markdown,
     ],
@@ -331,108 +311,90 @@ export function WikiEditor({
         ),
       },
       handleKeyDown: (view, event) => {
-        const s = latest.current.slash;
-        if (
-          (event.metaKey || event.ctrlKey) &&
-          event.key.toLowerCase() === "s"
-        ) {
-          event.preventDefault();
-          save(editorRef.current);
-          return true;
+        const s = latest.current.slash
+        if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
+          event.preventDefault()
+          save(editorRef.current)
+          return true
         }
-        if (!s || !editorRef.current) return false;
-        const list = matches(s.query);
+        if (!s || !editorRef.current) return false
+        const list = matches(s.query)
         if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-          event.preventDefault();
-          const n = list.length || 1;
+          event.preventDefault()
+          const n = list.length || 1
           setSlash({
             ...s,
             index: (s.index + (event.key === "ArrowDown" ? 1 : n - 1)) % n,
-          });
-          return true;
+          })
+          return true
         }
         if (event.key === "Enter" && list[s.index]) {
-          event.preventDefault();
-          runSlash(editorRef.current, s, list[s.index]);
-          return true;
+          event.preventDefault()
+          runSlash(editorRef.current, s, list[s.index])
+          return true
         }
         if (event.key === "Escape") {
-          setSlash(null);
-          return true;
+          setSlash(null)
+          return true
         }
-        return false;
+        return false
       },
       handleDrop: (view, event, _slice, moved) => {
-        const files = [...(event.dataTransfer?.files ?? [])];
-        if (moved || !files.length || !editorRef.current) return false;
-        event.preventDefault();
-        const pos =
-          view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos ??
-          view.state.selection.from;
-        attach(editorRef.current, files, pos);
-        return true;
+        const files = [...(event.dataTransfer?.files ?? [])]
+        if (moved || !files.length || !editorRef.current) return false
+        event.preventDefault()
+        const pos = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos ?? view.state.selection.from
+        attach(editorRef.current, files, pos)
+        return true
       },
       handlePaste: (view, event) => {
-        const files = [...(event.clipboardData?.files ?? [])];
-        if (!files.length || !editorRef.current) return false;
-        event.preventDefault();
-        attach(editorRef.current, files, view.state.selection.from);
-        return true;
+        const files = [...(event.clipboardData?.files ?? [])]
+        if (!files.length || !editorRef.current) return false
+        event.preventDefault()
+        attach(editorRef.current, files, view.state.selection.from)
+        return true
       },
     },
     onUpdate: ({ editor }) => {
-      watchSlash(editor);
-      later(editor);
+      watchSlash(editor)
+      later(editor)
     },
     onSelectionUpdate: ({ editor }) => watchSlash(editor),
-  });
+  })
   useEffect(() => {
-    editorRef.current = editor;
-    if (!editor) return;
-    live.set(page.id, editor);
+    editorRef.current = editor
+    if (!editor) return
+    live.set(page.id, editor)
     return () => {
-      if (live.get(page.id) === editor) live.delete(page.id);
-    };
-  }, [editor, page.id]);
+      if (live.get(page.id) === editor) live.delete(page.id)
+    }
+  }, [editor, page.id])
 
   useEffect(() => {
-    if (state !== "dirty" && state !== "saving") return;
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [state]);
+    if (state !== "dirty" && state !== "saving") return
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault()
+    window.addEventListener("beforeunload", warn)
+    return () => window.removeEventListener("beforeunload", warn)
+  }, [state])
 
-  const list = slash ? matches(slash.query) : [];
+  const list = slash ? matches(slash.query) : []
   const mark = (on: boolean, l: string, Icon: LucideIcon, run: () => void) => (
-    <Button
-      type="button"
-      size="icon-sm"
-      variant={on ? "secondary" : "ghost"}
-      aria-label={l}
-      title={l}
-      onMouseDown={(e) => e.preventDefault()}
-      onClick={run}
-    >
+    <Button type="button" size="icon-sm" variant={on ? "secondary" : "ghost"} aria-label={l} title={l} onMouseDown={(e) => e.preventDefault()} onClick={run}>
       <Icon />
     </Button>
-  );
+  )
 
   return (
     <div className="grid max-w-3xl gap-4">
-      <div
-        className="flex min-h-5 items-center justify-end gap-2 text-xs text-muted-foreground"
-        aria-live="polite"
-      >
+      <div className="flex min-h-5 items-center justify-end gap-2 text-xs text-muted-foreground" aria-live="polite">
         {uploading > 0 && (
           <span className="flex items-center gap-1.5">
-            <Loader2Icon className="size-3.5 animate-spin" />{" "}
-            {t("wiki.uploading", { count: uploading })}
+            <Loader2Icon className="size-3.5 animate-spin" /> {t("wiki.uploading", { count: uploading })}
           </span>
         )}
-        <span className={state === "error" ? "text-destructive" : ""}>
-          {t.dynamic(`wiki.state.${state}`)}
-        </span>
+        <span className={state === "error" ? "text-destructive" : ""}>{t.dynamic(`wiki.state.${state}`)}</span>
       </div>
+      <IconPicker pageId={page.id} icon={page.icon} />
       <textarea
         value={title}
         rows={1}
@@ -441,17 +403,14 @@ export function WikiEditor({
         aria-label={t("wiki.pageTitle")}
         onChange={(e) => (setTitle(e.target.value), later(editor))}
         onKeyDown={(e) => {
-          if (e.key !== "Enter") return;
-          e.preventDefault();
-          editor?.commands.focus("start");
+          if (e.key !== "Enter") return
+          e.preventDefault()
+          editor?.commands.focus("start")
         }}
         className="field-sizing-content resize-none bg-transparent font-heading text-4xl font-semibold outline-none placeholder:text-muted-foreground/50"
       />
       {editor && (
-        <BubbleMenu
-          editor={editor}
-          className="flex gap-0.5 rounded-lg border bg-popover p-1 shadow-md"
-        >
+        <BubbleMenu editor={editor} className="flex gap-0.5 rounded-lg border bg-popover p-1 shadow-md">
           {editor.isActive("image") ? (
             // An image is selected: size, open the original, remove.
             <>
@@ -467,71 +426,27 @@ export function WikiEditor({
                   key={k}
                   type="button"
                   size="sm"
-                  variant={
-                    (editor.getAttributes("image").width ?? null) === w
-                      ? "secondary"
-                      : "ghost"
-                  }
+                  variant={(editor.getAttributes("image").width ?? null) === w ? "secondary" : "ghost"}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() =>
-                    editor
-                      .chain()
-                      .focus()
-                      .updateAttributes("image", { width: w })
-                      .run()
-                  }
+                  onClick={() => sizeImage(editor, w)}
                 >
                   {t.dynamic(`wiki.image.${k}`)}
                 </Button>
               ))}
-              {mark(false, t("wiki.image.open"), ExternalLinkIcon, () =>
-                window.open(
-                  String(editor.getAttributes("image").src ?? ""),
-                  "_blank",
-                  "noopener",
-                ),
-              )}
-              {mark(false, t("wiki.image.remove"), Trash2Icon, () =>
-                editor.chain().focus().deleteSelection().run(),
-              )}
+              {mark(false, t("wiki.image.open"), ExternalLinkIcon, () => window.open(String(editor.getAttributes("image").src ?? ""), "_blank", "noopener"))}
+              {mark(false, t("wiki.image.remove"), Trash2Icon, () => editor.chain().focus().deleteSelection().run())}
             </>
           ) : (
             <>
-              {mark(
-                editor.isActive("bold"),
-                t("wiki.tools.bold"),
-                BoldIcon,
-                () => editor.chain().focus().toggleBold().run(),
-              )}
-              {mark(
-                editor.isActive("italic"),
-                t("wiki.tools.italic"),
-                ItalicIcon,
-                () => editor.chain().focus().toggleItalic().run(),
-              )}
-              {mark(
-                editor.isActive("strike"),
-                t("wiki.tools.strike"),
-                StrikethroughIcon,
-                () => editor.chain().focus().toggleStrike().run(),
-              )}
-              {mark(
-                editor.isActive("code"),
-                t("wiki.tools.code"),
-                CodeIcon,
-                () => editor.chain().focus().toggleCode().run(),
-              )}
-              {mark(
-                editor.isActive("link"),
-                t("wiki.tools.link"),
-                LinkIcon,
-                () => {
-                  if (editor.isActive("link"))
-                    return editor.chain().focus().unsetLink().run();
-                  const href = window.prompt(t("wiki.linkPrompt"), "https://");
-                  if (href) editor.chain().focus().setLink({ href }).run();
-                },
-              )}
+              {mark(editor.isActive("bold"), t("wiki.tools.bold"), BoldIcon, () => editor.chain().focus().toggleBold().run())}
+              {mark(editor.isActive("italic"), t("wiki.tools.italic"), ItalicIcon, () => editor.chain().focus().toggleItalic().run())}
+              {mark(editor.isActive("strike"), t("wiki.tools.strike"), StrikethroughIcon, () => editor.chain().focus().toggleStrike().run())}
+              {mark(editor.isActive("code"), t("wiki.tools.code"), CodeIcon, () => editor.chain().focus().toggleCode().run())}
+              {mark(editor.isActive("link"), t("wiki.tools.link"), LinkIcon, () => {
+                if (editor.isActive("link")) return editor.chain().focus().unsetLink().run()
+                const href = window.prompt(t("wiki.linkPrompt"), "https://")
+                if (href) editor.chain().focus().setLink({ href }).run()
+              })}
             </>
           )}
         </BubbleMenu>
@@ -561,5 +476,5 @@ export function WikiEditor({
       )}
       <p className="text-xs text-muted-foreground">{t("wiki.editorHint")}</p>
     </div>
-  );
+  )
 }

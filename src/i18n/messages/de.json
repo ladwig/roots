@@ -3984,6 +3984,14 @@
       "full": "Volle Breite",
       "open": "Original öffnen",
       "remove": "Entfernen"
-    }
+    },
+    "icon": {
+      "add": "Icon hinzufügen",
+      "change": "Icon ändern",
+      "own": "Eigenes Emoji einfügen",
+      "set": "Setzen",
+      "remove": "Icon entfernen"
+    },
+    "iconInvalid": "Bitte ein Emoji wählen."
   }
 }

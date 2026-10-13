@@ -1,5 +1,5 @@
 // Wiki page tree: flat rows → nested, path to a page. Pure (node --test).
-export type PageRow = { id: string; parent_id: string | null; title: string; position: number; visibility?: string | null }
+export type PageRow = { id: string; parent_id: string | null; title: string; position: number; visibility?: string | null; icon?: string | null }
 export const VISIBILITIES = ["team", "roles", "members", "public"] as const
 export type Node = PageRow & { children: Node[] }
 

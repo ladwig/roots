@@ -19,11 +19,11 @@ export default async function WikiPage({ searchParams }: { searchParams: Promise
   const canManage = ctx.can("wiki.manage")
   const trash = canManage && param(sp, "status") === "trash"
   const q = param(sp, "q")?.replace(/[%,()*\\]/g, " ").trim()
-  let list = ctx.supabase.from("wiki_pages").select("id, title, body, updated_at").eq("org_id", ctx.org.id).order("updated_at", { ascending: false }).limit(q ? 50 : 15)
+  let list = ctx.supabase.from("wiki_pages").select("id, icon, title, body, updated_at").eq("org_id", ctx.org.id).order("updated_at", { ascending: false }).limit(q ? 50 : 15)
   list = trash ? list.not("deleted_at", "is", null) : list.is("deleted_at", null)
   if (q) list = list.or(`title.ilike.%${q}%,body.ilike.%${q}%`)
   const [{ data: rows }, { data: pages }] = await Promise.all([
-    ctx.supabase.from("wiki_pages").select("id, parent_id, title, position, visibility").eq("org_id", ctx.org.id).is("deleted_at", null).limit(2000),
+    ctx.supabase.from("wiki_pages").select("id, parent_id, icon, title, position, visibility").eq("org_id", ctx.org.id).is("deleted_at", null).limit(2000),
     list,
   ])
   // A snippet around the hit (plain text, Markdown marks stripped).
@@ -64,7 +64,10 @@ export default async function WikiPage({ searchParams }: { searchParams: Promise
             {(pages ?? []).map((p) => (
               <li key={p.id} className="flex flex-wrap items-start justify-between gap-2 rounded-lg border px-3 py-2">
                 <Link href={`/wiki/${p.id}`} className="grid min-w-0 flex-1 underline-offset-4 hover:underline">
-                  <span className="font-medium">{p.title}</span>
+                  <span className="font-medium">
+                    {p.icon && `${p.icon} `}
+                    {p.title}
+                  </span>
                   {p.body && <span className="truncate text-xs text-muted-foreground">{snippet(p.body)}</span>}
                 </Link>
                 <span className="flex items-center gap-2 text-xs text-muted-foreground">

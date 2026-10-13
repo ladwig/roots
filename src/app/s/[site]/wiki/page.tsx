@@ -23,6 +23,7 @@ export default async function PublicWiki({ params }: { params: Promise<{ site: s
         {pages.map((p) => (
           <li key={p.id}>
             <Link href={sitePath(site, `/wiki/${p.id}`)} className="block rounded-lg border px-4 py-3 hover:bg-muted">
+              {p.icon && `${p.icon} `}
               {p.title}
             </Link>
           </li>

@@ -79,6 +79,7 @@ export function TreeNav({ rows, current, label, movable }: { rows: PageRow[]; cu
               const I = v === "roles" ? LockIcon : v === "members" ? IdCardIcon : v === "public" ? GlobeIcon : null
               return I && <I className="mr-1 inline size-3 align-[-1px]" aria-label={t.dynamic(`wiki.share.short.${v}`)} />
             })()}
+            {n.icon && <span className="mr-1">{n.icon}</span>}
             {n.title}
           </Link>
           {n.children.length > 0 && level(n.children, depth + 1)}

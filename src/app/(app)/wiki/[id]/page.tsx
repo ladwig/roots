@@ -30,7 +30,7 @@ export default async function WikiPageView({ params, searchParams }: { params: P
   const versionId = param(sp, "version")
   const [{ data: page }, { data: rows }, { data: versions }, { data: version }, { data: roles }] = await Promise.all([
     ctx.supabase.from("wiki_pages").select("*").eq("id", id).eq("org_id", ctx.org.id).maybeSingle(),
-    ctx.supabase.from("wiki_pages").select("id, parent_id, title, position, visibility").eq("org_id", ctx.org.id).is("deleted_at", null).limit(2000),
+    ctx.supabase.from("wiki_pages").select("id, parent_id, icon, title, position, visibility").eq("org_id", ctx.org.id).is("deleted_at", null).limit(2000),
     showHistory ? ctx.supabase.from("wiki_page_versions").select("id, title, created_at, created_by").eq("page_id", id).order("created_at", { ascending: false }).limit(100) : Promise.resolve({ data: null }),
     versionId && /^[0-9a-f-]{36}$/.test(versionId) ? ctx.supabase.from("wiki_page_versions").select("id, title, body, created_at").eq("id", versionId).eq("page_id", id).maybeSingle() : Promise.resolve({ data: null }),
     ctx.supabase.from("roles").select("id, name, is_owner").is("org_id", null).order("is_owner", { ascending: false }),
@@ -66,6 +66,7 @@ export default async function WikiPageView({ params, searchParams }: { params: P
                   <span />
                 ) : (
                   <div className="grid gap-1">
+                    {page.icon && <span className="text-5xl leading-none">{page.icon}</span>}
                     <h1 className="font-heading text-2xl font-semibold break-words">{page.title}</h1>
                     <p className="text-xs text-muted-foreground">{t("wiki.updated", { date: t.date(page.updated_at, { dateStyle: "medium", timeStyle: "short" }) })}</p>
                   </div>
@@ -112,6 +113,7 @@ export default async function WikiPageView({ params, searchParams }: { params: P
                     {children.map((c) => (
                       <li key={c.id}>
                         <Link href={`/wiki/${c.id}`} className="block truncate rounded-lg border px-3 py-2 text-sm hover:bg-muted">
+                          {c.icon && `${c.icon} `}
                           {c.title}
                         </Link>
                       </li>

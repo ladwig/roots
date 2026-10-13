@@ -5,7 +5,7 @@ import { getT } from "@/i18n/server"
 import { dbError, type T } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { back } from "@/lib/url"
-import { createPage, movePage, restoreVersion, savePage, setVisibility, type WikiFail } from "@/wiki/server"
+import { createPage, movePage, restoreVersion, savePage, setIcon, setVisibility, type WikiFail } from "@/wiki/server"
 
 const UUID = /^[0-9a-f-]{36}$/
 const id = (fd: FormData, key: string) => (UUID.test(String(fd.get(key) ?? "")) ? String(fd.get(key)) : null)
@@ -75,4 +75,12 @@ export async function setVisibilityAction(fd: FormData) {
   const roles = fd.getAll("role_ids").map(String).filter((r) => UUID.test(r))
   const r = await setVisibility(ctx.supabase, ctx.org.id, page, visibility, roles)
   back(`/wiki/${page}`, "error" in r ? { error: message(t, r) } : { ok: t("wiki.share.saved") })
+}
+
+/** Page icon (emoji) from the picker; null removes it. */
+export async function setIconAction(input: { id: string; icon: string | null }): Promise<{ error?: string }> {
+  const { ctx, t } = await editor()
+  if (!UUID.test(input.id)) return { error: t("errors.invalid_input") }
+  const r = await setIcon(ctx.supabase, ctx.org.id, input.id, input.icon)
+  return "error" in r ? { error: message(t, r) } : {}
 }
