@@ -1938,9 +1938,10 @@
     "notPaused": "Die Mitgliedschaft ist nicht pausiert.",
     "card": "Mitgliedsausweis",
     "cardQr": "QR-Code des Mitgliedsausweises",
-    "cardHint": "Am Einlass scannen oder den Code eintippen. Steht auch im Mitgliederbereich.",
+    "cardHint": "Am Einlass scannen oder Code bzw. Mitgliedsnummer eintippen. Das Mitglied sieht den Ausweis auch im Mitgliederbereich (Login per E-Mail) und kann ihn dort selbst drucken.",
     "cardReset": "Neuen Code erzeugen (alter wird ungültig)",
-    "cardResetDone": "Neuer Ausweis-Code erzeugt."
+    "cardResetDone": "Neuer Ausweis-Code erzeugt.",
+    "cardPrint": "Ausweis drucken"
   },
   "forms": {
     "nav": "Formulare",
@@ -2206,7 +2207,7 @@
     "whatAddress": "Kontaktdaten",
     "whatBank": "Bankverbindung",
     "portalLink": "Mitgliederbereich für deine Mitglieder: {url}",
-    "cardHint": "Dein Mitgliedsausweis: am Einlass vorzeigen."
+    "cardHint": "Dein Mitgliedsausweis: am Einlass auf dem Handy zeigen oder ausdrucken."
   },
   "tags": {
     "remove": "{tag} entfernen",

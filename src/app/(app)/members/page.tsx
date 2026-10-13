@@ -20,7 +20,7 @@ import { requirePerm } from "@/lib/context"
 import type { Tables } from "@/lib/supabase/types"
 import { pageParam, param, withParams, type SearchParams } from "@/lib/url"
 import { earliestEnd, isPaused, type Interval } from "@/members/dues"
-import { MemberQr } from "@/members/member-qr"
+import { IdCard } from "@/members/id-card"
 import { endMembership, pauseMembership, resetMemberCode, restoreMembership, resumeMembership, saveMembership, sendReminders, setDueStatus, trashMembership } from "./actions"
 
 type Ctx = Awaited<ReturnType<typeof requirePerm>>
@@ -272,10 +272,12 @@ async function EditMembership({
         </Button>
       )}
       {m.contacts?.member_code && !m.deleted_at && (
-        <details className="rounded-lg border px-3 py-2 text-sm">
-          <summary className="cursor-pointer font-medium">{t("membership.card")}</summary>
-          <div className="grid gap-3 pt-3">
-            <MemberQr code={m.contacts.member_code} label={t("membership.cardQr")} />
+        <section className="grid gap-3 text-sm" aria-labelledby="m-card">
+          <h3 id="m-card" className="font-medium">
+            {t("membership.card")}
+          </h3>
+          <div className="grid gap-3">
+            <IdCard t={t} org={ctx.org.name} name={name} number={m.member_no} type={type?.name ?? null} code={m.contacts.member_code} />
             <p className="text-muted-foreground">{t("membership.cardHint")}</p>
             {canManage && (
               <form action={resetMemberCode}>
@@ -287,7 +289,7 @@ async function EditMembership({
               </form>
             )}
           </div>
-        </details>
+        </section>
       )}
       {m.deleted_at && (
         <>

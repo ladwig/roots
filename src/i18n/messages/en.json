@@ -1938,9 +1938,10 @@
     "notPaused": "The membership isn't paused.",
     "card": "Member card",
     "cardQr": "Member card QR code",
-    "cardHint": "Scan at the door or type the code. Also shown in the member area.",
+    "cardHint": "Scan at the door or type the code or member number. Members also see the card in the member area (email login) and can print it there.",
     "cardReset": "New code (old one stops working)",
-    "cardResetDone": "New card code created."
+    "cardResetDone": "New card code created.",
+    "cardPrint": "Print card"
   },
   "forms": {
     "nav": "Forms",
@@ -2206,7 +2207,7 @@
     "whatAddress": "contact details",
     "whatBank": "bank details",
     "portalLink": "Member area for your members: {url}",
-    "cardHint": "Your member card: show it at the door."
+    "cardHint": "Your member card: show it on your phone at the door or print it."
   },
   "tags": {
     "remove": "Remove {tag}",

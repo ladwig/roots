@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { earliestEnd, type Interval } from "@/members/dues"
-import { MemberQr } from "@/members/member-qr"
+import { IdCard } from "@/members/id-card"
 import type { SectionProps } from "../sections"
 
 const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
@@ -58,9 +58,17 @@ export async function MembersSection({ orgId, orgName, site, contact }: SectionP
           <dd>{m.iban ? t("portal.debitFrom", { iban: `${m.iban.slice(0, 4)} •••• ${m.iban.slice(-4)}` }) : t("portal.noDebit")}</dd>
         </dl>
         {card?.member_code && !ended && (
-          <div className="grid justify-items-center gap-2 rounded-lg border p-4">
-            <MemberQr code={card.member_code} label={t("membership.cardQr")} />
-            <p className="text-center text-sm text-muted-foreground">{t("portal.cardHint")}</p>
+          <div className="grid gap-2">
+            <h3 className="font-medium">{t("membership.card")}</h3>
+            <p className="text-sm text-muted-foreground">{t("portal.cardHint")}</p>
+            <IdCard
+              t={t}
+              org={orgName}
+              name={[contact.first_name, contact.last_name].filter(Boolean).join(" ")}
+              number={m.member_no}
+              type={m.types?.name ?? null}
+              code={card.member_code}
+            />
           </div>
         )}
       </div>
