@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { getT } from "@/i18n/server"
 import { DeviceBrowser, DevicePhone } from "../_components/devices"
 import { AREAS, SIGNUP, SiteFrame, type Area } from "../_components/frame"
-import { ContactsMock, FormMailMock, InvoiceMock, LineupMock, MembersMock, PortalMock, ScannerMock, ShiftsMock } from "../_components/mocks"
+import { ContactsMock, FormMailMock, InvoiceMock, LineupMock, MembersMock, PayrollMock, PortalMock, ScannerMock, ShiftsMock } from "../_components/mocks"
 import { FeatureText, HalftoneBand, ModuleRow, Painting, Tag } from "../_components/ui"
 
 // /product: every area of roots with its own anchor (linked from the "Produkt" menu). Look: docs/design/site.md.
@@ -38,6 +38,11 @@ const VISUALS: Record<Area, React.ReactNode> = {
       <ShiftsMock />
     </DeviceBrowser>,
   ),
+  hr: panel(
+    <DeviceBrowser url="app.roots.de/hr/payroll">
+      <PayrollMock />
+    </DeviceBrowser>,
+  ),
   invoices: panel(<InvoiceMock />),
   forms: panel(
     <DeviceBrowser url="tsv-sued.roots.de/f/mitglied-werden">
@@ -62,7 +67,7 @@ const VISUALS: Record<Area, React.ReactNode> = {
 
 export default async function ProductPage() {
   const t = await getT()
-  const modules = ["crm", "members", "events", "tickets", "guestlists", "shifts", "forms", "email", "invoices", "files", "portal", "api"] as const
+  const modules = ["crm", "members", "events", "tickets", "guestlists", "shifts", "hr", "forms", "email", "invoices", "files", "portal", "api"] as const
   return (
     <SiteFrame>
       <header className="wrap grid gap-8 pt-[clamp(48px,7vw,104px)] pb-[clamp(56px,7vw,104px)]">

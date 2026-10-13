@@ -1,5 +1,5 @@
 import { DeviceBrowser, DeviceLaptop, DevicePhone } from "@/app/site/_components/devices"
-import { DashboardMock, FormMailMock, InvoiceMock, MembersMock, ScannerMock, ShiftsMock } from "@/app/site/_components/mocks"
+import { DashboardMock, FormMailMock, InvoiceMock, MembersMock, PayrollMock, ScannerMock, ShiftsMock } from "@/app/site/_components/mocks"
 import { SiteShell } from "@/app/site/_components/site-shell"
 import { FaqItem, FeatureText, HalftoneBand, InlineCta, ModuleRow, Painting, Pill, SectionHead, Tag, ValueCard } from "@/app/site/_components/ui"
 import { WireContours, WirePanels, WireSpheres } from "@/app/site/_components/wireframes"
@@ -154,6 +154,11 @@ export default function SiteStyle() {
             <div className="rounded-[10px] bg-[var(--paper-2)] p-6">
               <DeviceBrowser url="app.roots.de/shifts">
                 <ShiftsMock />
+              </DeviceBrowser>
+            </div>
+            <div className="rounded-[10px] bg-[var(--paper-2)] p-6">
+              <DeviceBrowser url="app.roots.de/hr/payroll">
+                <PayrollMock />
               </DeviceBrowser>
             </div>
             <div className="rounded-[10px] bg-[var(--paper-2)] p-6">

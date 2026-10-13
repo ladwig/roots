@@ -2190,18 +2190,18 @@
       "tickets": {
         "label": "Tickets und Einlass",
         "title": "Verkaufen, einlassen, abrechnen.",
-        "text": "Ticketarten, Preisstufen und Rabattcodes. Das Geld geht direkt auf euer Stripe- oder SumUp-Konto, der Einlass läuft über jedes Handy.",
+        "text": "Ticketarten, Preisstufen und Rabattcodes – oder kostenlose Anmeldungen mit Platzlimit. Das Geld geht direkt auf euer Stripe- oder SumUp-Konto, der Einlass läuft über jedes Handy.",
         "b1": "QR-Tickets als PDF und per E-Mail",
         "b2": "Scanner, der auch ohne Netz funktioniert",
-        "b3": "Gästelisten und Artists am selben Einlass"
+        "b3": "Warteliste, wenn alles ausgebucht ist"
       },
       "shifts": {
-        "label": "Schichten",
+        "label": "Schichten & Zeiterfassung",
         "title": "Dienstpläne, die sich selbst füllen.",
-        "text": "Tresen, Einlass, Aufbau oder Training im Kalender planen. Das Team trägt sich ein, Stunden werden mitgezählt.",
-        "b1": "Planen per Ziehen und Ablegen",
-        "b2": "Wiederkehrende Schichten, etwa jeden zweiten Donnerstag",
-        "b3": "Check-in und Stundenkonto"
+        "text": "Tresen, Einlass, Aufbau oder Training im Kalender planen. Das Team trägt sich ein, stempelt ein und aus – Pausen nach Gesetz, Freigabe pro Monat.",
+        "b1": "Planen per Ziehen und Ablegen, auch wiederkehrend",
+        "b2": "Ein- und Ausstempeln, mit oder ohne Schicht",
+        "b3": "Hinweise zu Pausen und Ruhezeiten, Stundenexport"
       },
       "forms": {
         "label": "Formulare und E-Mail",
@@ -2242,6 +2242,14 @@
         "b1": "Anmeldung ohne Passwort",
         "b2": "Neue Bankverbindung mit SEPA-Mandat",
         "b3": "Kündigung mit frühestem Termin"
+      },
+      "hr": {
+        "label": "Personal",
+        "title": "Wer bei euch arbeitet – und zu welchen Bedingungen.",
+        "text": "Verträge, Stundenlohn oder Gehalt, Urlaub und Krankheit, Organigramm. Die freigegebenen Stunden aus der Zeiterfassung werden zur Lohnvorbereitung fürs Steuerbüro.",
+        "b1": "Persönliche Daten nur für die, die sie brauchen",
+        "b2": "Abwesenheiten im Kalender, Resturlaub automatisch",
+        "b3": "Hinweise bei Minijob-Grenze und Mindestlohn"
       }
     },
     "manifesto": {
@@ -2270,7 +2278,7 @@
       },
       "tickets": {
         "name": "Tickets",
-        "text": "Verkauf über euer Zahlungskonto, QR-Tickets und Einlass per Handy."
+        "text": "Verkauf oder kostenlose Anmeldung, Platzlimit, Warteliste, QR-Tickets und Einlass per Handy."
       },
       "guestlists": {
         "name": "Gästelisten",
@@ -2278,7 +2286,7 @@
       },
       "shifts": {
         "name": "Schichten",
-        "text": "Dienstpläne, Positionen, Orte, Selbsteintragung und Stundenkonto."
+        "text": "Dienstpläne, Positionen, Selbsteintragung, Zeiterfassung mit Freigabe."
       },
       "forms": {
         "name": "Formulare",
@@ -2294,7 +2302,7 @@
       },
       "files": {
         "name": "Dateien",
-        "text": "Dokumente an jedem Datensatz, privat gespeichert pro Organisation."
+        "text": "Dokumente an jedem Datensatz und Briefvorlagen, die sich selbst ausfüllen."
       },
       "portal": {
         "name": "Mitgliederbereich",
@@ -2302,7 +2310,11 @@
       },
       "api": {
         "name": "Offene API",
-        "text": "Schnittstelle und Export für alles, was ihr anbinden wollt."
+        "text": "Jedes Modul per API, plus eine öffentliche API für eure eigene Website oder App."
+      },
+      "hr": {
+        "name": "Personal",
+        "text": "Verträge, persönliche Daten, Abwesenheiten, Organigramm und Lohnvorbereitung."
       }
     },
     "events": {
@@ -2361,7 +2373,11 @@
         "q": "Was kostet roots nach der Beta?",
         "a": "Ihr zahlt pro Modul, das ihr nutzt. Die Preise stehen vor dem Ende der Beta fest, niemand wird ungefragt umgestellt."
       },
-      "heading": "Häufige Fragen"
+      "heading": "Häufige Fragen",
+      "q6": {
+        "q": "Können wir unsere eigene Website behalten?",
+        "a": "Ja. Über die öffentliche API zeigt eure Website Events, Tickets und Formulare direkt an – Kauf und Anmeldung laufen über roots. Oder ihr nutzt einfach unsere fertigen Seiten."
+      }
     },
     "final": {
       "title": "Fangt heute an,",
@@ -2414,8 +2430,8 @@
           "text": "Line-up, Timetable und Tür"
         },
         "shifts": {
-          "title": "Schichten",
-          "text": "Dienstpläne, die sich selbst füllen"
+          "title": "Schichten & Zeiten",
+          "text": "Dienstpläne und Zeiterfassung"
         },
         "invoices": {
           "title": "Rechnungen",
@@ -2432,6 +2448,10 @@
         "portal": {
           "title": "Mitgliederbereich",
           "text": "Selbstservice per Link statt Passwort"
+        },
+        "hr": {
+          "title": "Personal",
+          "text": "Verträge, Abwesenheiten, Lohnvorbereitung"
         }
       }
     },

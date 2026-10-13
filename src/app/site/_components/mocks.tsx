@@ -438,3 +438,42 @@ export function PortalMock() {
     </div>
   )
 }
+
+/** HR: payroll preparation for a month – approved hours, absences, gross, a Minijob warning. */
+export function PayrollMock() {
+  const rows: [string, string, string, string, string, boolean?][] = [
+    ["Lena Krüger", "Teilzeit", "86,5 h", "Urlaub 3", "1.297 €"],
+    ["Murat Yılmaz", "Minijob", "44,0 h", "–", "616 €", true],
+    ["Sophie Wagner", "Vollzeit", "Gehalt", "Krank 1", "3.100 €"],
+    ["Jonas Becker", "Werkstudent", "62,0 h", "–", "930 €"],
+  ]
+  return (
+    <div className="relative p-[1.4em] text-[clamp(8px,0.9vw,12.5px)]">
+      <div className="mb-[1em] flex items-center justify-between">
+        <div className="text-[1.5em] font-semibold tracking-tight">Lohnvorbereitung · Oktober</div>
+        <span className="rounded-full border border-black/10 px-[0.9em] py-[0.35em]">Fürs Steuerbüro exportieren</span>
+      </div>
+      <div className="overflow-hidden rounded-[0.8em] border border-black/5 bg-white">
+        {rows.map(([name, type, hours, absent, gross, warn], i) => (
+          <div key={name} className={cn("grid grid-cols-[1.5fr_1fr_0.8fr_0.9fr_0.9fr] items-center gap-[0.5em] px-[1em] py-[0.7em]", i && "border-t border-black/5")}>
+            <span className="grid">
+              <span className="font-medium">{name}</span>
+              <span className="text-black/45">{type}</span>
+            </span>
+            <span className="tabular-nums">{hours}</span>
+            <span className="text-black/60">{absent}</span>
+            <span className="tabular-nums">{gross}</span>
+            <span>{warn ? <Badge tone="pink">über Minijob-Grenze</Badge> : <Badge tone="moss">freigegeben</Badge>}</span>
+          </div>
+        ))}
+      </div>
+      <div className="anim-drop absolute right-[1.4em] bottom-[1.4em] flex items-center gap-[0.6em] rounded-[0.9em] bg-[#0c0d0b] px-[1em] py-[0.8em] text-white shadow-xl" style={delay(1)}>
+        <span className="grid size-[2em] place-items-center rounded-full bg-[#dfe7c6] text-[#0c0d0b]">✓</span>
+        <span>
+          <span className="block font-medium">Stunden freigegeben</span>
+          <span className="text-white/60">aus der Zeiterfassung · 236,5 h</span>
+        </span>
+      </div>
+    </div>
+  )
+}

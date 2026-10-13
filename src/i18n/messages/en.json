@@ -2190,18 +2190,18 @@
       "tickets": {
         "label": "Tickets and door",
         "title": "Sell, check in, settle up.",
-        "text": "Ticket types, price tiers and promo codes. Money goes straight to your Stripe or SumUp account, the door runs on any phone.",
+        "text": "Ticket types, price tiers and discount codes – or free sign-ups with a limit. The money goes straight to your Stripe or SumUp account, entry works on any phone.",
         "b1": "QR tickets as PDF and by email",
         "b2": "A scanner that works without signal",
-        "b3": "Guest lists and artists at the same door"
+        "b3": "Waiting list when everything is booked"
       },
       "shifts": {
-        "label": "Shifts",
+        "label": "Shifts & time tracking",
         "title": "Rotas that fill themselves.",
-        "text": "Plan bar, door, setup or training in the calendar. The team signs up, hours are counted along the way.",
-        "b1": "Plan by drag and drop",
-        "b2": "Recurring shifts, e.g. every second Thursday",
-        "b3": "Check-in and hours account"
+        "text": "Plan bar, door, setup or training in the calendar. The team signs up, clocks in and out – legal breaks, approval per month.",
+        "b1": "Drag and drop planning, recurring too",
+        "b2": "Clock in and out, with or without a shift",
+        "b3": "Hints on breaks and rest periods, hours export"
       },
       "forms": {
         "label": "Forms and email",
@@ -2242,6 +2242,14 @@
         "b1": "Sign-in without password",
         "b2": "New bank details with SEPA mandate",
         "b3": "Cancellation with the earliest date"
+      },
+      "hr": {
+        "label": "People",
+        "title": "Who works with you – and on what terms.",
+        "text": "Contracts, hourly wage or salary, holidays and sick days, org chart. Approved hours from time tracking become payroll prep for your tax advisor.",
+        "b1": "Personal data only for those who need it",
+        "b2": "Absences in a calendar, holiday left calculated",
+        "b3": "Hints for the Minijob limit and minimum wage"
       }
     },
     "manifesto": {
@@ -2270,7 +2278,7 @@
       },
       "tickets": {
         "name": "Tickets",
-        "text": "Sales through your payment account, QR tickets and phone check-in."
+        "text": "Sales or free sign-ups, capacity, waiting list, QR tickets and entry by phone."
       },
       "guestlists": {
         "name": "Guest lists",
@@ -2278,7 +2286,7 @@
       },
       "shifts": {
         "name": "Shifts",
-        "text": "Rotas, positions, locations, self sign-up and hours."
+        "text": "Rotas, positions, self sign-up, time tracking with approval."
       },
       "forms": {
         "name": "Forms",
@@ -2294,7 +2302,7 @@
       },
       "files": {
         "name": "Files",
-        "text": "Documents on every record, stored privately per organisation."
+        "text": "Documents on every record and letter templates that fill themselves."
       },
       "portal": {
         "name": "Member area",
@@ -2302,7 +2310,11 @@
       },
       "api": {
         "name": "Open API",
-        "text": "An interface and exports for everything you want to connect."
+        "text": "Every module via API, plus a public API for your own website or app."
+      },
+      "hr": {
+        "name": "People",
+        "text": "Contracts, personal data, absences, org chart and payroll prep."
       }
     },
     "events": {
@@ -2361,7 +2373,11 @@
         "q": "What will roots cost after the beta?",
         "a": "You pay per module you use. Prices are set before the beta ends, nobody is switched over without being asked."
       },
-      "heading": "Frequently asked"
+      "heading": "Frequently asked",
+      "q6": {
+        "q": "Can we keep our own website?",
+        "a": "Yes. With the public API your website shows events, tickets and forms directly – buying and signing up run through roots. Or simply use our ready-made pages."
+      }
     },
     "final": {
       "title": "Start today,",
@@ -2414,8 +2430,8 @@
           "text": "Line-up, timetable and door"
         },
         "shifts": {
-          "title": "Shifts",
-          "text": "Rotas that fill themselves"
+          "title": "Shifts & time",
+          "text": "Rotas and time tracking"
         },
         "invoices": {
           "title": "Invoices",
@@ -2432,6 +2448,10 @@
         "portal": {
           "title": "Member area",
           "text": "Self-service by link instead of password"
+        },
+        "hr": {
+          "title": "People",
+          "text": "Contracts, absences, payroll prep"
         }
       }
     },

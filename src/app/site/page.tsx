@@ -45,7 +45,7 @@ export default async function Landing() {
     { key: "invoices", mock: <InvoiceMock /> },
   ]
   const audiences = ["a1", "a2", "a3", "a4", "a5", "a6"] as const
-  const faqs = ["q1", "q2", "q3", "q4", "q5"] as const
+  const faqs = ["q1", "q2", "q3", "q4", "q5", "q6"] as const
 
   return (
     <>
