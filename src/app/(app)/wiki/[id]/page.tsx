@@ -71,6 +71,17 @@ export default async function WikiPageView({ params, searchParams }: { params: P
                   </div>
                 )}
                 <div className="flex flex-wrap gap-2">
+                  {canManage && (
+                    <form action={newPageAction}>
+                      <input type="hidden" name="parent_id" value={page.id} />
+                      <SubmitButton size="sm" variant="outline">
+                        <FilePlusIcon /> {t("wiki.subPage")}
+                      </SubmitButton>
+                    </form>
+                  )}
+                  <Button render={<Link href={`/wiki/${page.id}${withParams(sp, { history: "1" })}`} />} nativeButton={false} size="sm" variant="outline">
+                    <HistoryIcon /> {t("wiki.history")}
+                  </Button>
                   <ShareButton
                     pageId={page.id}
                     canManage={canManage}
@@ -83,17 +94,6 @@ export default async function WikiPageView({ params, searchParams }: { params: P
                     })()}
                     roles={(roles ?? []).filter((r) => !r.is_owner).map((r) => ({ id: r.id, label: t.pick(r.name as Record<string, string>) }))}
                   />
-                  {canManage && (
-                    <form action={newPageAction}>
-                      <input type="hidden" name="parent_id" value={page.id} />
-                      <SubmitButton size="sm" variant="outline">
-                        <FilePlusIcon /> {t("wiki.subPage")}
-                      </SubmitButton>
-                    </form>
-                  )}
-                  <Button render={<Link href={`/wiki/${page.id}${withParams(sp, { history: "1" })}`} />} nativeButton={false} size="sm" variant="outline">
-                    <HistoryIcon /> {t("wiki.history")}
-                  </Button>
                 </div>
               </header>
               {editing ? (
