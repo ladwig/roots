@@ -235,6 +235,10 @@
     "courses": {
       "name": "Courses",
       "description": "Courses with dates, participants, waiting list and attendance."
+    },
+    "automations": {
+      "name": "Automations",
+      "description": "Build flows on a canvas: triggers, conditions, waits, emails, tags, webhooks – with templates and JSON export."
     }
   },
   "permissions": {
@@ -270,7 +274,9 @@
     "hr.view": "View people",
     "hr.manage": "Manage people (incl. personal data)",
     "courses.view": "View courses",
-    "courses.manage": "Manage courses"
+    "courses.manage": "Manage courses",
+    "automations.view": "View automations",
+    "automations.manage": "Edit automations"
   },
   "integrations": {
     "connect": "Connect",
@@ -424,7 +430,9 @@
       "courses": "Courses",
       "course_sessions": "Course dates",
       "course_participants": "Course participants",
-      "course_attendance": "Attendance"
+      "course_attendance": "Attendance",
+      "workflows": "Automations",
+      "workflow_runs": "Automation runs"
     }
   },
   "errors": {
@@ -742,7 +750,8 @@
       "memberships.imported": "Members imported",
       "membership.self_updated": "Member changed their details",
       "course.enrolled": "Enrolled in a course",
-      "course.moved_up": "Moved up from the waiting list"
+      "course.moved_up": "Moved up from the waiting list",
+      "workflow.notified": "Message from an automation"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -772,7 +781,8 @@
       "memberships.imported": "📥 {count} members imported",
       "membership.self_updated": "✏️ {name} changed their {what} in the member area",
       "course.enrolled": "🎓 New in the course “{title}”",
-      "course.moved_up": "🎓 Moved up from the waiting list: “{title}”"
+      "course.moved_up": "🎓 Moved up from the waiting list: “{title}”",
+      "workflow.notified": "⚙️ {text}"
     }
   },
   "inbox": {
@@ -2333,6 +2343,10 @@
       "courses": {
         "name": "Courses",
         "text": "Courses with dates, participants, an automatic waiting list and attendance."
+      },
+      "automations": {
+        "name": "Automations",
+        "text": "Build flows on a canvas: when this happens, send an email, set a tag, call a webhook – with templates."
       }
     },
     "events": {
@@ -2881,5 +2895,197 @@
     "rangeInvalid": "Please pick a valid from and until date.",
     "seriesEmpty": "None of the chosen weekdays falls in this period.",
     "tooManyDates": "That would be over 200 dates – please shorten the period."
+  },
+  "automations": {
+    "nav": "Automations",
+    "title": "Automations",
+    "intro": "When something happens, roots does the rest: check conditions, wait, send emails, set tags, tell the team.",
+    "new": "New automation",
+    "empty": "No automations yet.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Welcome new members",
+    "untitled": "New automation",
+    "when": "Trigger",
+    "status": "Status",
+    "on": "on",
+    "off": "off",
+    "runs": "Runs",
+    "waitingCount": "{count} waiting",
+    "failedCount": "{count} failed",
+    "fromTemplate": "From a template",
+    "use": "Use",
+    "blank": "Start blank",
+    "create": "Create",
+    "import": "Import",
+    "importHint": "Upload or paste an exported automation (JSON file).",
+    "importFile": "JSON file",
+    "importPaste": "…or paste JSON here",
+    "importButton": "Import",
+    "importInvalid": "That's not a valid exported automation.",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "activated": "Automation is on.",
+    "deactivated": "Automation is off.",
+    "activeHint": "Active: changes apply to the next steps, also of runs that are waiting right now.",
+    "fixBeforeActivate": "Please fix the marked hints first.",
+    "fixBeforeSave": "An active automation must be complete – please fix the hints or deactivate it first.",
+    "graphInvalid": "The automation is damaged and can't be saved.",
+    "toTrash": "Move to trash",
+    "trashed": "Automation moved to trash.",
+    "tidy": "Tidy up",
+    "export": "Export",
+    "saving": "Saving…",
+    "saved": "Saved.",
+    "savedDraft": "Saved as draft – fix the hints before activating.",
+    "descriptionPlaceholder": "What is this automation for? (optional)",
+    "addStep": "Add a step",
+    "settings": "Settings",
+    "selectHint": "Pick a step on the canvas to set it up. Connect steps by dragging from the bottom dot to the next step.",
+    "removeStep": "Remove step",
+    "yes": "yes",
+    "no": "no",
+    "event": "When this happens",
+    "pickEvent": "Pick an event…",
+    "amount": "Duration",
+    "unit": "Unit",
+    "subject": "Subject",
+    "body": "Text",
+    "tag": "Tag",
+    "field": "Field",
+    "value": "Value",
+    "text": "Message",
+    "placeholdersHint": "Placeholders: {first_name}, {name}, {email}, {org} and data of the event, e.g. {title}.",
+    "match": "Conditions",
+    "matchAll": "All conditions must match",
+    "matchAny": "At least one must match",
+    "fieldPlaceholder": "e.g. contact.tags",
+    "addRule": "Add condition",
+    "removeRule": "Remove",
+    "eventData": "Event data (payload.…)",
+    "started": "Started",
+    "person": "Person",
+    "steps": "Steps",
+    "stepCount": {
+      "one": "{count} step",
+      "other": "{count} steps"
+    },
+    "until": "until {when}",
+    "noRuns": "No runs yet.",
+    "cancel": "Cancel",
+    "runCancelled": "Run cancelled.",
+    "all": "All",
+    "runStatus": {
+      "queued": "waiting to start",
+      "running": "running",
+      "waiting": "waiting",
+      "done": "done",
+      "failed": "failed",
+      "cancelled": "cancelled"
+    },
+    "units": {
+      "minutes": "minutes",
+      "hours": "hours",
+      "days": "days"
+    },
+    "nodes": {
+      "trigger": "Trigger",
+      "condition": "Condition",
+      "wait": "Wait",
+      "send_email": "Send email",
+      "add_tag": "Add tag",
+      "remove_tag": "Remove tag",
+      "set_field": "Set field",
+      "webhook": "Webhook",
+      "notify_team": "Notify team"
+    },
+    "help": {
+      "trigger": "What starts the automation? Every event gets its own run.",
+      "condition": "Branches: if the conditions match it continues at “yes”, otherwise at “no”.",
+      "wait": "Pauses the run, then it continues.",
+      "send_email": "Emails the person of the event (with unsubscribe link; unsubscribed people get nothing).",
+      "add_tag": "Gives the person a tag.",
+      "remove_tag": "Takes a tag away from the person.",
+      "set_field": "Sets a custom field of the person.",
+      "webhook": "POSTs the data to an https address (e.g. Zapier, Make, n8n).",
+      "notify_team": "Notifies everyone who may see automations (in the app)."
+    },
+    "ops": {
+      "eq": "is",
+      "neq": "is not",
+      "contains": "contains",
+      "not_contains": "doesn't contain",
+      "gt": "greater than",
+      "gte": "at least",
+      "lt": "less than",
+      "lte": "at most",
+      "empty": "is empty",
+      "not_empty": "is not empty"
+    },
+    "problems": {
+      "noTrigger": "A trigger is missing.",
+      "oneTrigger": "Only one trigger per automation.",
+      "incomplete": "A step isn't fully set up yet.",
+      "branches": "A condition needs labelled outputs (yes/no).",
+      "oneNext": "A step can only have one next step – use a condition to branch.",
+      "intoTrigger": "Nothing can lead into the trigger.",
+      "danglingEdge": "A connection leads nowhere.",
+      "unreachable": "A step isn't connected.",
+      "cycle": "The automation must not go in circles.",
+      "nothingAfterTrigger": "Nothing happens after the trigger yet.",
+      "duplicateIds": "Duplicate steps."
+    },
+    "contactFields": {
+      "first_name": "First name",
+      "last_name": "Last name",
+      "company": "Company",
+      "email": "Email",
+      "phone": "Phone",
+      "city": "City",
+      "country": "Country",
+      "birthday": "Birthday",
+      "tags": "Tags"
+    },
+    "templates": {
+      "welcomeContact": {
+        "name": "Welcome email",
+        "text": "New contact → a welcome after one hour.",
+        "subject": "Welcome to {org}",
+        "body": "Hi {first_name}, great to have you! If you have questions, just reply to this email."
+      },
+      "welcomeMember": {
+        "name": "Welcome new members",
+        "text": "Membership starts → tag, welcome, check in after 30 days.",
+        "tag": "Member",
+        "subject": "Welcome to the club, {first_name}!",
+        "body": "Hi {first_name}, great that you're a member of {org}. Your member number is {number}."
+      },
+      "memberCheckIn": {
+        "subject": "How do you like {org}?",
+        "body": "Hi {first_name}, you've been with us for a month – how is it going? Feel free to reply to this email."
+      },
+      "missYou": {
+        "name": "We miss you",
+        "text": "Membership ends → a friendly message after 60 days.",
+        "subject": "We miss you, {first_name}",
+        "body": "Hi {first_name}, if you'd like to come back: we're always happy to see you at {org}."
+      },
+      "formToTeam": {
+        "name": "Tell the team about new submissions",
+        "text": "Form submitted → message to the team.",
+        "message": "New submission in the form “{form}”."
+      },
+      "courseMovedUp": {
+        "name": "Confirm a course place",
+        "text": "Moved up from the waiting list → email to the person.",
+        "subject": "You've got a place in “{title}”",
+        "body": "Hi {first_name}, good news: a place in “{title}” became free – you're in now."
+      },
+      "vipBuyer": {
+        "name": "VIP buys tickets",
+        "text": "Ticket sold and the person has the tag VIP → tell the team.",
+        "message": "{name} (VIP) bought tickets."
+      }
+    },
+    "op": "Comparison"
   }
 }

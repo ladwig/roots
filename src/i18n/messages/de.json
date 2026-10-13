@@ -235,6 +235,10 @@
     "courses": {
       "name": "Kurse",
       "description": "Kurse mit Terminen, Teilnehmenden, Warteliste und Anwesenheit."
+    },
+    "automations": {
+      "name": "Automationen",
+      "description": "Abläufe auf einer Fläche bauen: Auslöser, Bedingungen, Warten, E-Mails, Tags, Webhooks – mit Vorlagen und JSON-Export."
     }
   },
   "permissions": {
@@ -270,7 +274,9 @@
     "hr.view": "Personal ansehen",
     "hr.manage": "Personal verwalten (inkl. persönlicher Daten)",
     "courses.view": "Kurse ansehen",
-    "courses.manage": "Kurse verwalten"
+    "courses.manage": "Kurse verwalten",
+    "automations.view": "Automationen ansehen",
+    "automations.manage": "Automationen bearbeiten"
   },
   "integrations": {
     "connect": "Verbinden",
@@ -424,7 +430,9 @@
       "courses": "Kurse",
       "course_sessions": "Kurstermine",
       "course_participants": "Kursteilnehmende",
-      "course_attendance": "Anwesenheit"
+      "course_attendance": "Anwesenheit",
+      "workflows": "Automationen",
+      "workflow_runs": "Automations-Durchläufe"
     }
   },
   "errors": {
@@ -742,7 +750,8 @@
       "memberships.imported": "Mitglieder importiert",
       "membership.self_updated": "Mitglied hat Daten geändert",
       "course.enrolled": "Anmeldung zu Kurs",
-      "course.moved_up": "Nachgerückt von der Warteliste"
+      "course.moved_up": "Nachgerückt von der Warteliste",
+      "workflow.notified": "Nachricht aus einer Automation"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -772,7 +781,8 @@
       "memberships.imported": "📥 {count} Mitglieder importiert",
       "membership.self_updated": "✏️ {name} hat {what} im Mitgliederbereich geändert",
       "course.enrolled": "🎓 Neu im Kurs „{title}“",
-      "course.moved_up": "🎓 Von der Warteliste nachgerückt: „{title}“"
+      "course.moved_up": "🎓 Von der Warteliste nachgerückt: „{title}“",
+      "workflow.notified": "⚙️ {text}"
     }
   },
   "inbox": {
@@ -2333,6 +2343,10 @@
       "courses": {
         "name": "Kurse",
         "text": "Kurse mit Terminen, Teilnehmenden, automatischer Warteliste und Anwesenheit."
+      },
+      "automations": {
+        "name": "Automationen",
+        "text": "Abläufe auf einer Fläche bauen: wenn das passiert, dann E-Mail, Tag, Webhook – mit Vorlagen."
       }
     },
     "events": {
@@ -2881,5 +2895,197 @@
     "rangeInvalid": "Bitte ein gültiges Ab- und Bis-Datum wählen.",
     "seriesEmpty": "In diesem Zeitraum liegt keiner der gewählten Wochentage.",
     "tooManyDates": "Das wären über 200 Termine – bitte den Zeitraum verkürzen."
+  },
+  "automations": {
+    "nav": "Automationen",
+    "title": "Automationen",
+    "intro": "Wenn etwas passiert, erledigt roots den Rest: Bedingungen prüfen, warten, E-Mails senden, Tags setzen, das Team informieren.",
+    "new": "Neue Automation",
+    "empty": "Noch keine Automationen.",
+    "name": "Name",
+    "namePlaceholder": "z. B. Willkommen für neue Mitglieder",
+    "untitled": "Neue Automation",
+    "when": "Auslöser",
+    "status": "Status",
+    "on": "aktiv",
+    "off": "aus",
+    "runs": "Durchläufe",
+    "waitingCount": "{count} wartend",
+    "failedCount": "{count} Fehler",
+    "fromTemplate": "Aus einer Vorlage",
+    "use": "Verwenden",
+    "blank": "Leer beginnen",
+    "create": "Anlegen",
+    "import": "Importieren",
+    "importHint": "Eine exportierte Automation (JSON-Datei) hochladen oder einfügen.",
+    "importFile": "JSON-Datei",
+    "importPaste": "…oder JSON hier einfügen",
+    "importButton": "Importieren",
+    "importInvalid": "Das ist keine gültige exportierte Automation.",
+    "activate": "Aktivieren",
+    "deactivate": "Deaktivieren",
+    "activated": "Automation ist aktiv.",
+    "deactivated": "Automation ist aus.",
+    "activeHint": "Aktiv: Änderungen gelten für neue Schritte, auch bei Durchläufen, die gerade warten.",
+    "fixBeforeActivate": "Bitte erst die markierten Hinweise beheben.",
+    "fixBeforeSave": "Eine aktive Automation muss vollständig sein – bitte die Hinweise beheben oder sie erst deaktivieren.",
+    "graphInvalid": "Die Automation ist beschädigt und kann nicht gespeichert werden.",
+    "toTrash": "In den Papierkorb",
+    "trashed": "Automation in den Papierkorb gelegt.",
+    "tidy": "Aufräumen",
+    "export": "Exportieren",
+    "saving": "Speichert…",
+    "saved": "Gespeichert.",
+    "savedDraft": "Als Entwurf gespeichert – vor dem Aktivieren die Hinweise beheben.",
+    "descriptionPlaceholder": "Wofür ist diese Automation? (optional)",
+    "addStep": "Schritt hinzufügen",
+    "settings": "Einstellungen",
+    "selectHint": "Wähle einen Schritt auf der Fläche, um ihn einzustellen. Verbinde Schritte, indem du vom unteren Punkt zum nächsten Schritt ziehst.",
+    "removeStep": "Schritt entfernen",
+    "yes": "ja",
+    "no": "nein",
+    "event": "Wenn das passiert",
+    "pickEvent": "Ereignis wählen…",
+    "amount": "Dauer",
+    "unit": "Einheit",
+    "subject": "Betreff",
+    "body": "Text",
+    "tag": "Tag",
+    "field": "Feld",
+    "value": "Wert",
+    "text": "Nachricht",
+    "placeholdersHint": "Platzhalter: {first_name}, {name}, {email}, {org} und Daten des Ereignisses, z. B. {title}.",
+    "match": "Bedingungen",
+    "matchAll": "Alle Bedingungen müssen stimmen",
+    "matchAny": "Mindestens eine muss stimmen",
+    "fieldPlaceholder": "z. B. contact.tags",
+    "addRule": "Bedingung hinzufügen",
+    "removeRule": "Entfernen",
+    "eventData": "Daten des Ereignisses (payload.…)",
+    "started": "Gestartet",
+    "person": "Person",
+    "steps": "Schritte",
+    "stepCount": {
+      "one": "{count} Schritt",
+      "other": "{count} Schritte"
+    },
+    "until": "bis {when}",
+    "noRuns": "Noch keine Durchläufe.",
+    "cancel": "Abbrechen",
+    "runCancelled": "Durchlauf abgebrochen.",
+    "all": "Alle",
+    "runStatus": {
+      "queued": "wartet auf Start",
+      "running": "läuft",
+      "waiting": "wartet",
+      "done": "fertig",
+      "failed": "Fehler",
+      "cancelled": "abgebrochen"
+    },
+    "units": {
+      "minutes": "Minuten",
+      "hours": "Stunden",
+      "days": "Tage"
+    },
+    "nodes": {
+      "trigger": "Auslöser",
+      "condition": "Bedingung",
+      "wait": "Warten",
+      "send_email": "E-Mail senden",
+      "add_tag": "Tag hinzufügen",
+      "remove_tag": "Tag entfernen",
+      "set_field": "Feld setzen",
+      "webhook": "Webhook",
+      "notify_team": "Team benachrichtigen"
+    },
+    "help": {
+      "trigger": "Womit startet die Automation? Für jedes Ereignis gibt es einen eigenen Durchlauf.",
+      "condition": "Verzweigt: Stimmen die Bedingungen, geht es beim Ausgang „ja“ weiter, sonst bei „nein“.",
+      "wait": "Pausiert den Durchlauf, danach geht es weiter.",
+      "send_email": "Schickt eine E-Mail an die Person des Ereignisses (mit Abmeldelink; Abgemeldete bekommen nichts).",
+      "add_tag": "Gibt der Person einen Tag.",
+      "remove_tag": "Nimmt der Person einen Tag weg.",
+      "set_field": "Setzt ein eigenes Feld der Person.",
+      "webhook": "Schickt die Daten per POST an eine https-Adresse (z. B. Zapier, Make, n8n).",
+      "notify_team": "Benachrichtigt alle, die Automationen sehen dürfen (in der App)."
+    },
+    "ops": {
+      "eq": "ist",
+      "neq": "ist nicht",
+      "contains": "enthält",
+      "not_contains": "enthält nicht",
+      "gt": "größer als",
+      "gte": "mindestens",
+      "lt": "kleiner als",
+      "lte": "höchstens",
+      "empty": "ist leer",
+      "not_empty": "ist nicht leer"
+    },
+    "problems": {
+      "noTrigger": "Es fehlt ein Auslöser.",
+      "oneTrigger": "Nur ein Auslöser pro Automation.",
+      "incomplete": "Ein Schritt ist noch nicht fertig eingestellt.",
+      "branches": "Eine Bedingung braucht beschriftete Ausgänge (ja/nein).",
+      "oneNext": "Ein Schritt kann nur einen nächsten Schritt haben – für Verzweigungen eine Bedingung nutzen.",
+      "intoTrigger": "In den Auslöser kann nichts hineinführen.",
+      "danglingEdge": "Eine Verbindung führt ins Leere.",
+      "unreachable": "Ein Schritt ist mit nichts verbunden.",
+      "cycle": "Die Automation darf sich nicht im Kreis drehen.",
+      "nothingAfterTrigger": "Nach dem Auslöser passiert noch nichts.",
+      "duplicateIds": "Doppelte Schritte."
+    },
+    "contactFields": {
+      "first_name": "Vorname",
+      "last_name": "Nachname",
+      "company": "Firma",
+      "email": "E-Mail",
+      "phone": "Telefon",
+      "city": "Ort",
+      "country": "Land",
+      "birthday": "Geburtstag",
+      "tags": "Tags"
+    },
+    "templates": {
+      "welcomeContact": {
+        "name": "Willkommens-E-Mail",
+        "text": "Neuer Kontakt → nach einer Stunde eine Begrüßung.",
+        "subject": "Willkommen bei {org}",
+        "body": "Hallo {first_name}, schön, dass du da bist! Bei Fragen antworte einfach auf diese E-Mail."
+      },
+      "welcomeMember": {
+        "name": "Neue Mitglieder begrüßen",
+        "text": "Mitgliedschaft beginnt → Tag, Begrüßung, nach 30 Tagen nachfragen.",
+        "tag": "Mitglied",
+        "subject": "Willkommen im Verein, {first_name}!",
+        "body": "Hallo {first_name}, schön, dass du Mitglied bei {org} bist. Deine Mitgliedsnummer ist {number}."
+      },
+      "memberCheckIn": {
+        "subject": "Wie gefällt es dir bei {org}?",
+        "body": "Hallo {first_name}, du bist jetzt einen Monat dabei – wie läuft es? Antworte gern einfach auf diese E-Mail."
+      },
+      "missYou": {
+        "name": "Wir vermissen dich",
+        "text": "Mitgliedschaft endet → nach 60 Tagen eine freundliche Nachricht.",
+        "subject": "Wir vermissen dich, {first_name}",
+        "body": "Hallo {first_name}, falls du zurückkommen möchtest: Wir freuen uns jederzeit über dich bei {org}."
+      },
+      "formToTeam": {
+        "name": "Team bei neuen Einsendungen informieren",
+        "text": "Formular eingeschickt → Nachricht ans Team.",
+        "message": "Neue Einsendung im Formular „{form}“."
+      },
+      "courseMovedUp": {
+        "name": "Platz im Kurs bestätigen",
+        "text": "Von der Warteliste nachgerückt → E-Mail an die Person.",
+        "subject": "Du hast einen Platz in „{title}“",
+        "body": "Hallo {first_name}, gute Nachricht: Für „{title}“ ist ein Platz frei geworden – du bist jetzt dabei."
+      },
+      "vipBuyer": {
+        "name": "VIP kauft Tickets",
+        "text": "Ticket verkauft und die Person hat den Tag VIP → Team informieren.",
+        "message": "{name} (VIP) hat Tickets gekauft."
+      }
+    },
+    "op": "Vergleich"
   }
 }

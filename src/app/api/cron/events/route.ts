@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { generateAllSeries } from "@/shifts/server"
 import { pollTelegram } from "@/integrations/telegram"
 import { deliverDue } from "@/events/worker"
+import { processWorkflowRuns } from "@/automations/server"
 import { processEmailQueue } from "@/email/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { offerWaitlist } from "@/tickets/waitlist"
@@ -17,6 +18,8 @@ export async function GET(request: Request) {
     sent += n
     if (n === 0) break
   }
+  // Workflows (runs started by new events, waits that are due), before the email queue so their mails go out now.
+  for (let round = 0; round < 5; round++) if ((await processWorkflowRuns().catch((e) => (console.error(e), 0))) === 0) break
   // Email module queue (campaigns + automations), after the events so automations of new events are queued.
   const emails = await processEmailQueue().catch((e) => (console.error(e), 0))
   await generateAllSeries().catch(console.error) // recurring shifts stay 8 weeks ahead

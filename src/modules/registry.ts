@@ -4,7 +4,7 @@
 // Permission keys start with the module key ("events.manage"), so a role can grant a whole module with "events.*".
 // ponytail: one file while modules are just definitions; move each to src/modules/<key>/ once it has code.
 
-import { BriefcaseBusinessIcon, GraduationCapIcon, CalendarClockIcon, CalendarDaysIcon, ClipboardListIcon, ContactIcon, CreditCardIcon, FileTextIcon, IdCardIcon, ListChecksIcon, MailIcon, ScanLineIcon, type LucideIcon } from "lucide-react"
+import { BriefcaseBusinessIcon, GraduationCapIcon, WorkflowIcon, CalendarClockIcon, CalendarDaysIcon, ClipboardListIcon, ContactIcon, CreditCardIcon, FileTextIcon, IdCardIcon, ListChecksIcon, MailIcon, ScanLineIcon, type LucideIcon } from "lucide-react"
 
 export type NavItem = { href: string; label: string; icon: LucideIcon; permission?: string | string[]; newTab?: boolean } // label = message key; several permissions = any of them
 export type ModuleDef = {
@@ -78,6 +78,11 @@ export const modules: ModuleDef[] = [
     requires: { modules: ["crm"] },
     permissions: ["email.view", "email.manage"],
     nav: [{ href: "/email", label: "email.nav", icon: MailIcon, permission: "email.view" }],
+  },
+  {
+    key: "automations",
+    permissions: ["automations.view", "automations.manage"],
+    nav: [{ href: "/automations", label: "automations.nav", icon: WorkflowIcon, permission: "automations.view" }],
   },
   {
     key: "courses",

@@ -1,6 +1,7 @@
 // API v1 endpoints, one file per module. Every handler filters by orgId (see core.ts). Add an endpoint = one entry
 // in the module's file; a new module file = one line here.
 import type { Endpoint } from "../core"
+import { endpoints as automations } from "./automations"
 import { endpoints as contacts } from "./contacts"
 import { endpoints as courses } from "./courses"
 import { endpoints as email } from "./email"
@@ -29,6 +30,7 @@ export const endpoints: Endpoint[] = [
   ...shifts,
   ...hr,
   ...courses,
+  ...automations,
   ...files,
   ...settings,
 ]

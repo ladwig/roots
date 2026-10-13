@@ -772,6 +772,24 @@ begin
     reset role;
   end;
 
+  -- Automations: an event of the trigger type starts one run per active workflow; B sees nothing
+  insert into public.org_modules (org_id, module_key) values (org_a, 'automations') on conflict do nothing;
+  declare v_wf uuid;
+  begin
+    perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    insert into public.workflows (org_id, name, active, trigger_type, graph) values (org_a, 'Test', true, 'iso.tested', '{"nodes": [], "edges": []}') returning id into v_wf;
+    reset role;
+    perform public.emit_event(org_a, 'iso.tested', '{"x": 1}'::jsonb);
+    perform public.emit_event(org_a, 'workflow.notified', '{"x": 1}'::jsonb);
+    select count(*) into n from public.workflow_runs where workflow_id = v_wf;        assert n = 1, 'an event starts one run (workflow events start none)';
+    perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.workflows where org_id = org_a;               assert n = 0, 'B sees workflows of A';
+    select count(*) into n from public.workflow_runs where org_id = org_a;           assert n = 0, 'B sees workflow runs of A';
+    reset role;
+  end;
+
   -- API keys: the service role gets org rights only with a live key of that org (x-api-key-hash + x-org-id),
   -- only for the key's permissions that its creator (A, owner) still has; never owner rights.
   reset role;

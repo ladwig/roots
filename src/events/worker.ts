@@ -53,4 +53,9 @@ export async function deliverDue(limit = 25) {
 }
 
 /** Call after an action that may have emitted events: routes and delivers once the response is sent. */
-export const deliverSoon = () => after(() => deliverDue().catch(console.error))
+export const deliverSoon = () =>
+  after(async () => {
+    await deliverDue().catch(console.error)
+    // Workflows started by the same events run right away too (not only on the next minute).
+    await import("@/automations/server").then((m) => m.processWorkflowRuns()).catch(console.error)
+  })

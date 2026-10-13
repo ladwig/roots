@@ -361,14 +361,14 @@ isOneToOne: false
                   ]
                 },"email_sends": {
                   Row: {
-                    "automation_id": string | null,"campaign_id": string | null,"claimed_at": string | null,"contact_id": string | null,"created_at": string,"delivery": string | null,"delivery_at": string | null,"error": string | null,"id": string,"org_id": string,"send_after": string,"sent_at": string | null,"status": string,"to_email": string,"vars": NonNullable<Json>
+                    "automation_id": string | null,"campaign_id": string | null,"workflow_id": string | null,"workflow_node": string | null,"claimed_at": string | null,"contact_id": string | null,"created_at": string,"delivery": string | null,"delivery_at": string | null,"error": string | null,"id": string,"org_id": string,"send_after": string,"sent_at": string | null,"status": string,"to_email": string,"vars": NonNullable<Json>
                   }
                   ComputedFields: never
                   Insert: {
-                    "automation_id"?: string | null,"campaign_id"?: string | null,"claimed_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"delivery"?: string | null,"delivery_at"?: string | null,"error"?: string | null,"id"?: string,"org_id": string,"send_after"?: string,"sent_at"?: string | null,"status"?: string,"to_email": string,"vars"?: NonNullable<Json>
+                    "automation_id"?: string | null,"campaign_id"?: string | null,"workflow_id"?: string | null,"workflow_node"?: string | null,"claimed_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"delivery"?: string | null,"delivery_at"?: string | null,"error"?: string | null,"id"?: string,"org_id": string,"send_after"?: string,"sent_at"?: string | null,"status"?: string,"to_email": string,"vars"?: NonNullable<Json>
                   }
                   Update: {
-                    "automation_id"?: string | null,"campaign_id"?: string | null,"claimed_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"delivery"?: string | null,"delivery_at"?: string | null,"error"?: string | null,"id"?: string,"org_id"?: string,"send_after"?: string,"sent_at"?: string | null,"status"?: string,"to_email"?: string,"vars"?: NonNullable<Json>
+                    "automation_id"?: string | null,"campaign_id"?: string | null,"workflow_id"?: string | null,"workflow_node"?: string | null,"claimed_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"delivery"?: string | null,"delivery_at"?: string | null,"error"?: string | null,"id"?: string,"org_id"?: string,"send_after"?: string,"sent_at"?: string | null,"status"?: string,"to_email"?: string,"vars"?: NonNullable<Json>
                   }
                   Relationships: [
                     {
@@ -1641,6 +1641,52 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"workflow_runs": {
+                  Row: {
+                    "id": string,"org_id": string,"workflow_id": string,"event_id": number | null,"contact_id": string | null,"status": string,"node_id": string | null,"resume_at": string,"context": Json,"log": Json,"error": string | null,"created_at": string,"created_by": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: string,"org_id": string,"workflow_id": string,"event_id"?: number | null,"contact_id"?: string | null,"status"?: string,"node_id"?: string | null,"resume_at"?: string,"context"?: Json,"log"?: Json,"error"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "id"?: string,"org_id"?: string,"workflow_id"?: string,"event_id"?: number | null,"contact_id"?: string | null,"status"?: string,"node_id"?: string | null,"resume_at"?: string,"context"?: Json,"log"?: Json,"error"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "workflow_runs_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "workflow_runs_workflow_id_fkey"
+      columns: ["workflow_id"]
+isOneToOne: false
+      referencedRelation: "workflows"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"workflows": {
+                  Row: {
+                    "id": string,"org_id": string,"name": string,"description": string | null,"active": boolean,"trigger_type": string | null,"graph": Json,"deleted_at": string | null,"deleted_by": string | null,"created_at": string,"created_by": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: string,"org_id": string,"name": string,"description"?: string | null,"active"?: boolean,"trigger_type"?: string | null,"graph"?: Json,"deleted_at"?: string | null,"deleted_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "id"?: string,"org_id"?: string,"name"?: string,"description"?: string | null,"active"?: boolean,"trigger_type"?: string | null,"graph"?: Json,"deleted_at"?: string | null,"deleted_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "workflows_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"time_entries": {
                   Row: {
                     "approved_at": string | null,"approved_by": string | null,"break_minutes": number | null,"created_at": string,"created_by": string | null,"ended_at": string | null,"id": string,"note": string | null,"org_id": string,"shift_id": string | null,"staff_id": string,"started_at": string,"updated_at": string,"updated_by": string | null
@@ -1721,10 +1767,15 @@ isOneToOne: false
               "checked_in_at": string,"holder_name": string,"result": string,"type_name": string
             }[]
                            },
+"claim_workflow_runs":
+{ Args: { "p_limit"?: number }; Returns: Database["public"]["Tables"]["workflow_runs"]["Row"][]
+                           },
 "claim_email_sends":
 { Args: { "p_limit"?: number }; Returns: {
               "automation_id": string | null,
 "campaign_id": string | null,
+"workflow_id": string | null,
+"workflow_node": string | null,
 "claimed_at": string | null,
 "contact_id": string | null,
 "created_at": string,

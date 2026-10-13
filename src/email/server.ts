@@ -66,15 +66,22 @@ export async function processEmailQueue(limit = 100) {
   const { data: batch } = await db.rpc("claim_email_sends", { p_limit: limit })
   let sent = 0
   if (batch?.length) {
-    const ids = (k: "campaign_id" | "automation_id" | "contact_id" | "org_id") => [...new Set(batch.map((s) => s[k]).filter((v): v is string => !!v))]
-    const [{ data: campaigns }, { data: automations }, { data: contacts }, { data: orgs }] = await Promise.all([
+    const ids = (k: "campaign_id" | "automation_id" | "workflow_id" | "contact_id" | "org_id") => [...new Set(batch.map((s) => s[k]).filter((v): v is string => !!v))]
+    const [{ data: campaigns }, { data: automations }, { data: workflows }, { data: contacts }, { data: orgs }] = await Promise.all([
       db.from("email_campaigns").select("id, subject, body, format, deleted_at").in("id", ids("campaign_id")),
       db.from("email_automations").select("id, subject, body, format, active").in("id", ids("automation_id")),
+      db.from("workflows").select("id, graph, deleted_at").in("id", ids("workflow_id")),
       db.from("contacts").select("id, first_name, last_name, company, email, unsubscribed_at, deleted_at").in("id", ids("contact_id")),
       db.from("orgs").select("id, name").in("id", ids("org_id")),
     ])
     for (const s of batch) {
-      const tpl = s.campaign_id ? campaigns?.find((c) => c.id === s.campaign_id && !c.deleted_at) : automations?.find((a) => a.id === s.automation_id && a.active)
+      // Workflow mails: subject + body (rich text) live on the send_email node of the workflow's graph.
+      const wfNode = (workflows?.find((w) => w.id === s.workflow_id && !w.deleted_at)?.graph as { nodes?: { id: string; data: { subject?: string; body?: string } }[] } | undefined)?.nodes?.find((n) => n.id === s.workflow_node)
+      const tpl = s.campaign_id
+        ? campaigns?.find((c) => c.id === s.campaign_id && !c.deleted_at)
+        : s.workflow_id
+          ? wfNode && { subject: wfNode.data.subject ?? "", body: wfNode.data.body ?? "", format: "rich" }
+          : automations?.find((a) => a.id === s.automation_id && a.active)
       const contact = contacts?.find((c) => c.id === s.contact_id) ?? null
       const org = orgs?.find((o) => o.id === s.org_id)?.name ?? ""
       if (!tpl || contact?.unsubscribed_at || contact?.deleted_at) {
