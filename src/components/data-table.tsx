@@ -1,6 +1,5 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { withParams, type SearchParams } from "@/lib/url"
 
@@ -99,17 +98,6 @@ export function DataTable<R>({
 }
 
 // GET form: ?q=… (resets paging).
-export function SearchBox({ q, label, keep }: { q?: string; label: string; keep?: Record<string, string> }) {
-  return (
-    <form role="search" className="w-full sm:max-w-xs">
-      {Object.entries(keep ?? {}).map(([k, v]) => (
-        <input key={k} type="hidden" name={k} value={v} />
-      ))}
-      <Input type="search" name="q" defaultValue={q} placeholder={label} aria-label={label} />
-    </form>
-  )
-}
-
 export function Pager({
   sp,
   page,
@@ -150,3 +138,5 @@ export function Pager({
 export const PAGE_SIZE = 50
 // Range for a page, fetching one extra row to know whether there's a next page.
 export const pageRange = (page: number) => [(page - 1) * PAGE_SIZE, page * PAGE_SIZE] as const
+
+export { SearchBox } from "./search-box"
