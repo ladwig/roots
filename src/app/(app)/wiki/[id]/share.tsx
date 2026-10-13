@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { CheckIcon, LinkIcon, LockIcon, Share2Icon, UsersIcon } from "lucide-react"
+import { CheckIcon, GlobeIcon, IdCardIcon, LinkIcon, LockIcon, Share2Icon, UsersIcon } from "lucide-react"
 import { SubmitButton } from "@/components/submit-button"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -19,6 +19,7 @@ export function ShareButton({
   inherited,
   hasParent,
   roles,
+  publicUrl,
 }: {
   pageId: string
   canManage: boolean
@@ -27,16 +28,18 @@ export function ShareButton({
   inherited: { visibility: string; fromTitle: string | null } // what applies when `own` is null
   hasParent: boolean
   roles: Role[]
+  publicUrl: string // where the page is when released publicly
 }) {
   const t = useT()
   const [choice, setChoice] = useState(own ?? (hasParent ? "" : "team"))
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState("")
   const effective = own ?? inherited.visibility
-  const copy = async () => {
-    await navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}`)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+  const copy = async (what: string, url: string) => {
+    await navigator.clipboard.writeText(url)
+    setCopied(what)
+    setTimeout(() => setCopied(""), 1500)
   }
+  const Icon = { roles: LockIcon, members: IdCardIcon, public: GlobeIcon }[effective] ?? UsersIcon
   const option = (value: string, label: string, hint?: string) => (
     <label className="flex items-start gap-2 text-sm">
       <input type="radio" name="visibility" value={value} checked={choice === value} onChange={() => setChoice(value)} className="mt-0.5 size-4" disabled={!canManage} />
@@ -50,7 +53,7 @@ export function ShareButton({
   return (
     <Popover>
       <PopoverTrigger render={<Button type="button" size="sm" variant="outline" />}>
-        {effective === "roles" ? <LockIcon /> : <Share2Icon />} {t("wiki.share.button")}
+        {effective === "team" ? <Share2Icon /> : <Icon />} {t("wiki.share.button")}
       </PopoverTrigger>
       <PopoverContent align="end" className="grid w-80 gap-4">
         <form action={setVisibilityAction} className="grid gap-3">
@@ -75,20 +78,30 @@ export function ShareButton({
               ))}
             </fieldset>
           )}
+          <p className="mt-1 text-sm font-medium">{t("wiki.share.outside")}</p>
+          {option("members", t("wiki.share.members"), t("wiki.share.membersHint"))}
+          {option("public", t("wiki.share.public"), t("wiki.share.publicHint"))}
           {canManage && (
             <SubmitButton size="sm" className="justify-self-start">
               {t("common.save")}
             </SubmitButton>
           )}
         </form>
-        <div className="flex items-center justify-between gap-2 border-t pt-3">
+        <div className="grid gap-1 border-t pt-3">
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            {effective === "roles" ? <LockIcon className="size-3.5" /> : <UsersIcon className="size-3.5" />}
+            <Icon className="size-3.5" />
             {t.dynamic(`wiki.share.short.${effective}`)}
           </span>
-          <Button type="button" size="sm" variant="ghost" onClick={copy}>
-            {copied ? <CheckIcon /> : <LinkIcon />} {copied ? t("wiki.share.copied") : t("wiki.share.copy")}
-          </Button>
+          <div className="flex flex-wrap gap-1">
+            <Button type="button" size="sm" variant="ghost" onClick={() => copy("app", `${window.location.origin}${window.location.pathname}`)}>
+              {copied === "app" ? <CheckIcon /> : <LinkIcon />} {copied === "app" ? t("wiki.share.copied") : t("wiki.share.copy")}
+            </Button>
+            {effective === "public" && (
+              <Button type="button" size="sm" variant="ghost" onClick={() => copy("public", publicUrl)}>
+                {copied === "public" ? <CheckIcon /> : <GlobeIcon />} {copied === "public" ? t("wiki.share.copied") : t("wiki.share.copyPublic")}
+              </Button>
+            )}
+          </div>
         </div>
       </PopoverContent>
     </Popover>

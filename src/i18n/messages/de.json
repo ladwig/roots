@@ -3957,11 +3957,22 @@
       "rolesHint": "Plus alle, die das Wiki bearbeiten dürfen",
       "short": {
         "team": "Team",
-        "roles": "Nur bestimmte Rollen"
+        "roles": "Nur bestimmte Rollen",
+        "members": "Vereinsmitglieder",
+        "public": "Öffentlich"
       },
       "saved": "Sichtbarkeit gespeichert.",
       "copy": "Link kopieren",
-      "copied": "Kopiert"
+      "copied": "Kopiert",
+      "outside": "Außerhalb des Teams",
+      "members": "Vereinsmitglieder",
+      "membersHint": "Im Mitgliederbereich (Login per E-Mail) – plus das Team",
+      "public": "Öffentlich",
+      "publicHint": "Für alle mit dem Link, auf eurer öffentlichen Seite – plus Mitglieder und Team",
+      "copyPublic": "Öffentlichen Link kopieren"
+    },
+    "outside": {
+      "title": "Wissen"
     }
   }
 }

@@ -3957,11 +3957,22 @@
       "rolesHint": "Plus everyone who may edit the wiki",
       "short": {
         "team": "Team",
-        "roles": "Certain roles only"
+        "roles": "Certain roles only",
+        "members": "Club members",
+        "public": "Public"
       },
       "saved": "Visibility saved.",
       "copy": "Copy link",
-      "copied": "Copied"
+      "copied": "Copied",
+      "outside": "Outside the team",
+      "members": "Club members",
+      "membersHint": "In the member area (email login) – plus the team",
+      "public": "Public",
+      "publicHint": "For anyone with the link, on your public page – plus members and team",
+      "copyPublic": "Copy public link"
+    },
+    "outside": {
+      "title": "Knowledge"
     }
   }
 }

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { UrlSheet } from "@/components/url-sheet"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
-import { param, withParams, type SearchParams } from "@/lib/url"
+import { param, siteUrl, withParams, type SearchParams } from "@/lib/url"
 import { effectiveVisibility, pathTo } from "@/wiki/tree"
 import { newPageAction, restorePageAction, restoreVersionAction, trashPageAction } from "../actions"
 import { TreeNav } from "../tree-nav"
@@ -93,6 +93,7 @@ export default async function WikiPageView({ params, searchParams }: { params: P
                       return { visibility: e.visibility, fromTitle: all.find((r) => r.id === e.from)?.title ?? null }
                     })()}
                     roles={(roles ?? []).filter((r) => !r.is_owner).map((r) => ({ id: r.id, label: t.pick(r.name as Record<string, string>) }))}
+                    publicUrl={siteUrl(ctx.org.slug, `/wiki/${page.id}`)}
                   />
                 </div>
               </header>

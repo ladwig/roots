@@ -5,6 +5,7 @@
 // ponytail: no rate limit beyond what the shared functions do (portal link flood guard, reservation expiry,
 // form honeypot is UI-only); add a per-IP limit (Vercel Firewall rule on /api/public) if it gets abused.
 import { z } from "zod"
+import { outsideIndex, outsidePage } from "@/wiki/outside"
 import { submitPublicForm } from "@/forms/public"
 import type { PublicForm } from "@/app/s/[site]/f/[slug]/data"
 import { addViaLink } from "@/guestlists/server"
@@ -102,6 +103,40 @@ async function publicForm(org: Org, slug: string) {
 }
 
 export const publicEndpoints: PublicEndpoint[] = [
+  endpoint({
+    method: "GET",
+    path: "/{org}/wiki",
+    tag: "Wiki",
+    summary: "Publicly released wiki pages (start pages)",
+    description: "Pages the organisation released publicly whose parent isn't public; their public sub-pages are listed in the single page.",
+    response: z.object({ data: z.array(z.object({ id: z.string(), title: z.string(), updated_at: ts, url: z.string() })) }),
+    maxAge: 60,
+    async handler({ org }) {
+      return { data: (await outsideIndex(org.id, "public")).map((p) => ({ ...p, url: siteUrl(org.slug, `/wiki/${p.id}`) })) }
+    },
+  }),
+  endpoint({
+    method: "GET",
+    path: "/{org}/wiki/{id}",
+    tag: "Wiki",
+    summary: "One public wiki page",
+    description: "`body` is Markdown; file and image links point to the hosted file route (`/wiki/file/<id>` on the public site).",
+    response: z.object({
+      id: z.string(),
+      title: z.string(),
+      body: z.string(),
+      updated_at: ts,
+      children: z.array(z.object({ id: z.string(), title: z.string() })),
+      path: z.array(z.object({ id: z.string(), title: z.string() })),
+    }),
+    maxAge: 60,
+    async handler({ org, params }) {
+      const page = await outsidePage(org.id, params.id, "public")
+      if (!page) throw notFound()
+      // Files as absolute links to the public file route.
+      return { ...page, body: page.body.replace(/\]\(\/files\/([0-9a-f-]{36})\)/g, (_m, id: string) => `](${siteUrl(org.slug, `/wiki/file/${id}`)})`) }
+    },
+  }),
   endpoint({
     method: "GET",
     path: "/{org}",

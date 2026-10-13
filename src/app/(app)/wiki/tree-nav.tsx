@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { LockIcon } from "lucide-react"
+import { GlobeIcon, IdCardIcon, LockIcon } from "lucide-react"
 import { toast } from "sonner"
 import { useT } from "@/i18n/client"
 import { cn } from "@/lib/utils"
@@ -74,7 +74,11 @@ export function TreeNav({ rows, current, label, movable }: { rows: PageRow[]; cu
               over?.id === n.id && over.zone === "inside" && "bg-primary/10 text-foreground",
             )}
           >
-            {effectiveVisibility(rows, n.id).visibility === "roles" && <LockIcon className="mr-1 inline size-3 align-[-1px]" aria-label={t("wiki.share.short.roles")} />}
+            {(() => {
+              const v = effectiveVisibility(rows, n.id).visibility
+              const I = v === "roles" ? LockIcon : v === "members" ? IdCardIcon : v === "public" ? GlobeIcon : null
+              return I && <I className="mr-1 inline size-3 align-[-1px]" aria-label={t.dynamic(`wiki.share.short.${v}`)} />
+            })()}
             {n.title}
           </Link>
           {n.children.length > 0 && level(n.children, depth + 1)}

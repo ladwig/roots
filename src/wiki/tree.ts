@@ -1,6 +1,6 @@
 // Wiki page tree: flat rows → nested, path to a page. Pure (node --test).
 export type PageRow = { id: string; parent_id: string | null; title: string; position: number; visibility?: string | null }
-export const VISIBILITIES = ["team", "roles"] as const // later: "members", "public"
+export const VISIBILITIES = ["team", "roles", "members", "public"] as const
 export type Node = PageRow & { children: Node[] }
 
 /** Nested by parent; pages whose parent isn't there (deleted, no access) become top-level. Sorted by position, title. */

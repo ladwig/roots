@@ -2286,6 +2286,18 @@ isOneToOne: false
               "from_page": string,"role_ids": (string)[],"visibility": string
             }[]
                            },
+"wiki_open":
+{ Args: { "p_level": string,"p_page": string }; Returns: boolean
+                           },
+"wiki_outside_file":
+{ Args: { "p_file": string,"p_level": string,"p_org": string }; Returns: string
+                           },
+"wiki_outside_index":
+{ Args: { "p_level": string,"p_org": string }; Returns: Json
+                           },
+"wiki_outside_page":
+{ Args: { "p_level": string,"p_org": string,"p_page": string }; Returns: Json
+                           },
 "wiki_readable":
 { Args: { "p_org": string,"p_page": string }; Returns: boolean
                            }
