@@ -137,6 +137,110 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"course_attendance": {
+                  Row: {
+                    "id": string,"org_id": string,"session_id": string,"participant_id": string,"present": boolean,"created_at": string,"created_by": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: string,"org_id": string,"session_id": string,"participant_id": string,"present": boolean,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "id"?: string,"org_id"?: string,"session_id"?: string,"participant_id"?: string,"present"?: boolean,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "course_attendance_participant_id_fkey"
+      columns: ["participant_id"]
+isOneToOne: false
+      referencedRelation: "course_participants"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "course_attendance_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "course_sessions"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"course_participants": {
+                  Row: {
+                    "id": string,"org_id": string,"course_id": string,"contact_id": string,"status": string,"note": string | null,"created_at": string,"created_by": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: string,"org_id": string,"course_id": string,"contact_id": string,"status"?: string,"note"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "id"?: string,"org_id"?: string,"course_id"?: string,"contact_id"?: string,"status"?: string,"note"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "course_participants_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "course_participants_course_id_fkey"
+      columns: ["course_id"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"course_sessions": {
+                  Row: {
+                    "id": string,"org_id": string,"course_id": string,"starts_at": string,"ends_at": string,"location_id": string | null,"cancelled": boolean,"note": string | null,"created_at": string,"created_by": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: string,"org_id": string,"course_id": string,"starts_at": string,"ends_at": string,"location_id"?: string | null,"cancelled"?: boolean,"note"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "id"?: string,"org_id"?: string,"course_id"?: string,"starts_at"?: string,"ends_at"?: string,"location_id"?: string | null,"cancelled"?: boolean,"note"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "course_sessions_course_id_fkey"
+      columns: ["course_id"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "course_sessions_location_id_fkey"
+      columns: ["location_id"]
+isOneToOne: false
+      referencedRelation: "locations"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"courses": {
+                  Row: {
+                    "id": string,"org_id": string,"title": string,"description": string | null,"location_id": string | null,"instructor": string | null,"capacity": number | null,"track_attendance": boolean,"deleted_at": string | null,"deleted_by": string | null,"created_at": string,"created_by": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: string,"org_id": string,"title": string,"description"?: string | null,"location_id"?: string | null,"instructor"?: string | null,"capacity"?: number | null,"track_attendance"?: boolean,"deleted_at"?: string | null,"deleted_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "id"?: string,"org_id"?: string,"title"?: string,"description"?: string | null,"location_id"?: string | null,"instructor"?: string | null,"capacity"?: number | null,"track_attendance"?: boolean,"deleted_at"?: string | null,"deleted_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "courses_location_id_fkey"
+      columns: ["location_id"]
+isOneToOne: false
+      referencedRelation: "locations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "courses_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"custom_fields": {
                   Row: {
                     "created_at": string,"created_by": string | null,"entity": string,"id": string,"key": string,"label": string,"options": (string)[],"org_id": string,"position": number,"required": boolean,"type": string,"updated_at": string,"updated_by": string | null

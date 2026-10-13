@@ -231,6 +231,10 @@
     "hr": {
       "name": "People",
       "description": "Employees, contracts, personal data, absences, org chart and payroll prep."
+    },
+    "courses": {
+      "name": "Courses",
+      "description": "Courses with dates, participants, waiting list and attendance."
     }
   },
   "permissions": {
@@ -264,7 +268,9 @@
     "email.manage": "Manage and send campaigns and automations",
     "shifts.approve": "Approve time",
     "hr.view": "View people",
-    "hr.manage": "Manage people (incl. personal data)"
+    "hr.manage": "Manage people (incl. personal data)",
+    "courses.view": "View courses",
+    "courses.manage": "Manage courses"
   },
   "integrations": {
     "connect": "Connect",
@@ -414,7 +420,11 @@
       "employees": "Employees",
       "employee_private": "Personal data",
       "absences": "Absences",
-      "time_entries": "Time entries"
+      "time_entries": "Time entries",
+      "courses": "Courses",
+      "course_sessions": "Course dates",
+      "course_participants": "Course participants",
+      "course_attendance": "Attendance"
     }
   },
   "errors": {
@@ -730,7 +740,9 @@
       "membership.ended": "Membership ends",
       "form.submitted": "Form submitted",
       "memberships.imported": "Members imported",
-      "membership.self_updated": "Member changed their details"
+      "membership.self_updated": "Member changed their details",
+      "course.enrolled": "Enrolled in a course",
+      "course.moved_up": "Moved up from the waiting list"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -758,7 +770,9 @@
       "membership.ended": "👋 Membership of {name} ends on {ends_on}",
       "form.submitted": "📝 New submission “{form}”: {name}",
       "memberships.imported": "📥 {count} members imported",
-      "membership.self_updated": "✏️ {name} changed their {what} in the member area"
+      "membership.self_updated": "✏️ {name} changed their {what} in the member area",
+      "course.enrolled": "🎓 New in the course “{title}”",
+      "course.moved_up": "🎓 Moved up from the waiting list: “{title}”"
     }
   },
   "inbox": {
@@ -2315,6 +2329,10 @@
       "hr": {
         "name": "People",
         "text": "Contracts, personal data, absences, org chart and payroll prep."
+      },
+      "courses": {
+        "name": "Courses",
+        "text": "Courses with dates, participants, an automatic waiting list and attendance."
       }
     },
     "events": {
@@ -2764,5 +2782,104 @@
     "amountInvalid": "Please enter a valid amount (e.g. 14.50).",
     "taxIdInvalid": "The tax ID has 11 digits.",
     "halfDayOneDay": "A half day only works for a single day."
+  },
+  "courses": {
+    "nav": "Courses",
+    "title": "Courses",
+    "new": "New course",
+    "create": "Create course",
+    "created": "Course created – now add its dates.",
+    "saved": "Saved.",
+    "search": "Search course or instructor…",
+    "empty": "No courses yet.",
+    "noMatch": "No course found.",
+    "trash": "Trash",
+    "backToList": "Back to the list",
+    "toTrash": "Move to trash",
+    "trashed": "Course moved to trash.",
+    "inTrash": "This course is in the trash and will be deleted for good after 30 days.",
+    "restore": "Restore",
+    "restored": "Restored.",
+    "titleLabel": "Course",
+    "titlePlaceholder": "e.g. Yoga for beginners",
+    "instructor": "Instructor",
+    "capacity": "Places",
+    "unlimited": "unlimited",
+    "location": "Location",
+    "description": "Description",
+    "trackAttendance": "Track attendance",
+    "details": "Course details",
+    "nextDate": "Next date",
+    "places": "Taken",
+    "full": "full",
+    "waitingCount": "{count} waiting",
+    "placesOf": "{taken} of {total} places taken",
+    "participantsCount": {
+      "one": "{count} participant",
+      "other": "{count} participants"
+    },
+    "participants": "Participants",
+    "addPerson": "Add a person",
+    "searchContact": "Search contacts…",
+    "note": "Note",
+    "add": "Add",
+    "added": "Added.",
+    "addedWaiting": "The course is full – put on the waiting list.",
+    "alreadyIn": "This person is already in the course.",
+    "pickContact": "Please pick a contact.",
+    "remove": "Remove",
+    "cancelledParticipant": "Removed. The next one on the waiting list moves up.",
+    "reEnrol": "Add again",
+    "noParticipants": "Nobody signed up yet.",
+    "waitingList": "Waiting list",
+    "cancelledCount": {
+      "one": "{count} cancellation",
+      "other": "{count} cancellations"
+    },
+    "rate": "{rate} % present",
+    "status": "Status",
+    "statuses": {
+      "enrolled": "enrolled",
+      "waiting": "waiting list",
+      "cancelled": "cancelled"
+    },
+    "dates": "Dates",
+    "noDates": "No dates yet.",
+    "addSeries": "Recurring dates",
+    "addOne": "Single date",
+    "weekdays": "Weekdays",
+    "startTime": "Start",
+    "endTime": "End",
+    "from": "From",
+    "to": "Until",
+    "every": "Every",
+    "weeks": "week(s)",
+    "everyWeeks": "Interval in weeks",
+    "createDates": "Create dates",
+    "datesAdded": {
+      "one": "{count} date created.",
+      "other": "{count} dates created."
+    },
+    "start": "Start",
+    "end": "End",
+    "cancelledDate": "cancelled",
+    "presentOf": "{present} of {total} present",
+    "attendance": "Attendance",
+    "saveAttendance": "Save attendance",
+    "attendanceSaved": "Attendance saved.",
+    "editDate": "Change date",
+    "dateNotePlaceholder": "e.g. room 2 or substitute instructor",
+    "cancelDate": "This date is cancelled",
+    "dateIsCancelled": "This date is cancelled.",
+    "deleteDate": "Delete date",
+    "dateDeleted": "Date deleted.",
+    "dateTaken": "There's already a date at this time.",
+    "titleMissing": "Please give the course a name.",
+    "capacityInvalid": "Places: a whole number from 1 (or empty for unlimited).",
+    "endBeforeStart": "The end must be after the start.",
+    "pickWeekday": "Please pick at least one weekday.",
+    "rangeInvalid": "Please pick a valid from and until date.",
+    "seriesEmpty": "None of the chosen weekdays falls in this period.",
+    "tooManyDates": "That would be over 200 dates – please shorten the period."
   }
 }

@@ -2,6 +2,7 @@
 // in the module's file; a new module file = one line here.
 import type { Endpoint } from "../core"
 import { endpoints as contacts } from "./contacts"
+import { endpoints as courses } from "./courses"
 import { endpoints as email } from "./email"
 import { endpoints as events } from "./events"
 import { endpoints as files } from "./files"
@@ -27,6 +28,7 @@ export const endpoints: Endpoint[] = [
   ...payments,
   ...shifts,
   ...hr,
+  ...courses,
   ...files,
   ...settings,
 ]

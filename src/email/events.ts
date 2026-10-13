@@ -5,4 +5,6 @@ export const AUTOMATION_EVENTS: { type: string; module: string; vars: string[] }
   { type: "membership.started", module: "members", vars: ["number", "starts_at"] },
   { type: "membership.ended", module: "members", vars: ["number", "ends_on"] },
   { type: "form.submitted", module: "forms", vars: ["form"] },
+  { type: "course.enrolled", module: "courses", vars: ["title"] },
+  { type: "course.moved_up", module: "courses", vars: ["title"] },
 ]

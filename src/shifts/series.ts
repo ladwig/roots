@@ -24,5 +24,3 @@ export function occurrences(s: Series, from: string, to: string) {
   }
   return out
 }
-
-/** Worked minutes of an assignment: from check-in to check-out (or the planned end if not checked out). */

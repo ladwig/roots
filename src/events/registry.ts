@@ -39,6 +39,8 @@ export const eventTypes: EventType[] = [
   { key: "membership.self_updated", module: "members", audience: { permission: "members.manage", defaults: ["in_app"] }, href: (p) => `/members?edit=${p.membership_id}` },
   { key: "membership.ended", module: "members", audience: { permission: "members.manage", defaults: ["in_app"] }, href: (p) => `/members?edit=${p.membership_id}` },
   { key: "form.submitted", module: "forms", audience: { permission: "forms.manage", defaults: ["in_app"] }, href: (p) => `/forms/${p.form_id}/submissions?sub=${p.submission_id}` },
+  { key: "course.enrolled", module: "courses", audience: { permission: "courses.manage", defaults: [] }, href: (p) => `/courses/${p.course_id}#participants` },
+  { key: "course.moved_up", module: "courses", audience: { permission: "courses.manage", defaults: ["in_app"] }, href: (p) => `/courses/${p.course_id}#participants` },
   { key: "org.created", module: "platform", audience: { platform: true, defaults: ["in_app", "email"] }, href: (p) => `/admin/orgs?edit=${p.org_id}` },
 ]
 

@@ -231,6 +231,10 @@
     "hr": {
       "name": "Personal",
       "description": "Mitarbeitende, Verträge, persönliche Daten, Abwesenheiten, Organigramm und Lohnvorbereitung."
+    },
+    "courses": {
+      "name": "Kurse",
+      "description": "Kurse mit Terminen, Teilnehmenden, Warteliste und Anwesenheit."
     }
   },
   "permissions": {
@@ -264,7 +268,9 @@
     "email.manage": "Kampagnen und Automationen verwalten und versenden",
     "shifts.approve": "Zeiten freigeben",
     "hr.view": "Personal ansehen",
-    "hr.manage": "Personal verwalten (inkl. persönlicher Daten)"
+    "hr.manage": "Personal verwalten (inkl. persönlicher Daten)",
+    "courses.view": "Kurse ansehen",
+    "courses.manage": "Kurse verwalten"
   },
   "integrations": {
     "connect": "Verbinden",
@@ -414,7 +420,11 @@
       "employees": "Mitarbeitende",
       "employee_private": "Persönliche Daten",
       "absences": "Abwesenheiten",
-      "time_entries": "Zeiteinträge"
+      "time_entries": "Zeiteinträge",
+      "courses": "Kurse",
+      "course_sessions": "Kurstermine",
+      "course_participants": "Kursteilnehmende",
+      "course_attendance": "Anwesenheit"
     }
   },
   "errors": {
@@ -730,7 +740,9 @@
       "membership.ended": "Mitgliedschaft endet",
       "form.submitted": "Formular eingegangen",
       "memberships.imported": "Mitglieder importiert",
-      "membership.self_updated": "Mitglied hat Daten geändert"
+      "membership.self_updated": "Mitglied hat Daten geändert",
+      "course.enrolled": "Anmeldung zu Kurs",
+      "course.moved_up": "Nachgerückt von der Warteliste"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -758,7 +770,9 @@
       "membership.ended": "👋 Mitgliedschaft von {name} endet am {ends_on}",
       "form.submitted": "📝 Neue Einsendung „{form}“: {name}",
       "memberships.imported": "📥 {count} Mitglieder importiert",
-      "membership.self_updated": "✏️ {name} hat {what} im Mitgliederbereich geändert"
+      "membership.self_updated": "✏️ {name} hat {what} im Mitgliederbereich geändert",
+      "course.enrolled": "🎓 Neu im Kurs „{title}“",
+      "course.moved_up": "🎓 Von der Warteliste nachgerückt: „{title}“"
     }
   },
   "inbox": {
@@ -2315,6 +2329,10 @@
       "hr": {
         "name": "Personal",
         "text": "Verträge, persönliche Daten, Abwesenheiten, Organigramm und Lohnvorbereitung."
+      },
+      "courses": {
+        "name": "Kurse",
+        "text": "Kurse mit Terminen, Teilnehmenden, automatischer Warteliste und Anwesenheit."
       }
     },
     "events": {
@@ -2764,5 +2782,104 @@
     "amountInvalid": "Bitte einen gültigen Betrag eingeben (z. B. 14,50).",
     "taxIdInvalid": "Die Steuer-ID hat 11 Ziffern.",
     "halfDayOneDay": "Ein halber Tag geht nur bei einem einzelnen Tag."
+  },
+  "courses": {
+    "nav": "Kurse",
+    "title": "Kurse",
+    "new": "Neuer Kurs",
+    "create": "Kurs anlegen",
+    "created": "Kurs angelegt – jetzt Termine eintragen.",
+    "saved": "Gespeichert.",
+    "search": "Kurs oder Leitung suchen…",
+    "empty": "Noch keine Kurse.",
+    "noMatch": "Kein Kurs gefunden.",
+    "trash": "Papierkorb",
+    "backToList": "Zurück zur Liste",
+    "toTrash": "In den Papierkorb",
+    "trashed": "Kurs in den Papierkorb gelegt.",
+    "inTrash": "Dieser Kurs liegt im Papierkorb und wird nach 30 Tagen endgültig gelöscht.",
+    "restore": "Wiederherstellen",
+    "restored": "Wiederhergestellt.",
+    "titleLabel": "Kurs",
+    "titlePlaceholder": "z. B. Yoga für Einsteiger",
+    "instructor": "Leitung",
+    "capacity": "Plätze",
+    "unlimited": "unbegrenzt",
+    "location": "Ort",
+    "description": "Beschreibung",
+    "trackAttendance": "Anwesenheit erfassen",
+    "details": "Kursdaten",
+    "nextDate": "Nächster Termin",
+    "places": "Belegt",
+    "full": "voll",
+    "waitingCount": "{count} warten",
+    "placesOf": "{taken} von {total} Plätzen belegt",
+    "participantsCount": {
+      "one": "{count} Teilnehmer:in",
+      "other": "{count} Teilnehmende"
+    },
+    "participants": "Teilnehmende",
+    "addPerson": "Person hinzufügen",
+    "searchContact": "Kontakt suchen…",
+    "note": "Notiz",
+    "add": "Hinzufügen",
+    "added": "Hinzugefügt.",
+    "addedWaiting": "Der Kurs ist voll – auf die Warteliste gesetzt.",
+    "alreadyIn": "Diese Person ist schon im Kurs.",
+    "pickContact": "Bitte wähle einen Kontakt.",
+    "remove": "Abmelden",
+    "cancelledParticipant": "Abgemeldet. Wer auf der Warteliste steht, rückt nach.",
+    "reEnrol": "Wieder aufnehmen",
+    "noParticipants": "Noch niemand angemeldet.",
+    "waitingList": "Warteliste",
+    "cancelledCount": {
+      "one": "{count} Abmeldung",
+      "other": "{count} Abmeldungen"
+    },
+    "rate": "{rate} % da",
+    "status": "Status",
+    "statuses": {
+      "enrolled": "angemeldet",
+      "waiting": "Warteliste",
+      "cancelled": "abgemeldet"
+    },
+    "dates": "Termine",
+    "noDates": "Noch keine Termine.",
+    "addSeries": "Regelmäßige Termine",
+    "addOne": "Einzelner Termin",
+    "weekdays": "Wochentage",
+    "startTime": "Beginn",
+    "endTime": "Ende",
+    "from": "Ab",
+    "to": "Bis",
+    "every": "Alle",
+    "weeks": "Woche(n)",
+    "everyWeeks": "Rhythmus in Wochen",
+    "createDates": "Termine anlegen",
+    "datesAdded": {
+      "one": "{count} Termin angelegt.",
+      "other": "{count} Termine angelegt."
+    },
+    "start": "Beginn",
+    "end": "Ende",
+    "cancelledDate": "fällt aus",
+    "presentOf": "{present} von {total} da",
+    "attendance": "Anwesenheit",
+    "saveAttendance": "Anwesenheit speichern",
+    "attendanceSaved": "Anwesenheit gespeichert.",
+    "editDate": "Termin ändern",
+    "dateNotePlaceholder": "z. B. Raum 2 oder Ersatz-Leitung",
+    "cancelDate": "Termin fällt aus",
+    "dateIsCancelled": "Dieser Termin fällt aus.",
+    "deleteDate": "Termin löschen",
+    "dateDeleted": "Termin gelöscht.",
+    "dateTaken": "Zu dieser Zeit gibt es schon einen Termin.",
+    "titleMissing": "Bitte gib dem Kurs einen Namen.",
+    "capacityInvalid": "Plätze: eine ganze Zahl ab 1 (oder leer für unbegrenzt).",
+    "endBeforeStart": "Das Ende muss nach dem Beginn liegen.",
+    "pickWeekday": "Bitte wähle mindestens einen Wochentag.",
+    "rangeInvalid": "Bitte ein gültiges Ab- und Bis-Datum wählen.",
+    "seriesEmpty": "In diesem Zeitraum liegt keiner der gewählten Wochentage.",
+    "tooManyDates": "Das wären über 200 Termine – bitte den Zeitraum verkürzen."
   }
 }

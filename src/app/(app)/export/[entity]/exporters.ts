@@ -155,6 +155,27 @@ export const EXPORTERS: Record<string, Exporter> = {
       }
     },
   },
+  "course-participants": {
+    perm: "courses.view",
+    module: "courses",
+    name: "participants",
+    async load(ctx, t, sp) {
+      const course = sp.get("course") ?? ""
+      const rows = await all((from, to) =>
+        ctx.supabase
+          .from("course_participants")
+          .select("status, note, created_at, contacts(first_name, last_name, company, email, phone, street, postal_code, city, country, birthday, tags)")
+          .eq("org_id", ctx.org.id)
+          .eq("course_id", course)
+          .order("created_at")
+          .range(from, to),
+      )
+      return {
+        headers: [...CONTACT_FIELDS.map((f) => label(t, f.label)), t("courses.status"), t("courses.note")],
+        rows: rows.map((r) => [...contactCells(r.contacts), t.dynamic(`courses.statuses.${r.status}`), r.note ?? ""]),
+      }
+    },
+  },
   employees: {
     perm: "hr.view",
     module: "hr",

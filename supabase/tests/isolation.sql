@@ -744,6 +744,34 @@ begin
     reset role;
   end;
 
+  -- Courses: places + waiting list in the DB (full → waiting; someone leaves → next moves up); B sees nothing
+  insert into public.org_modules (org_id, module_key) values (org_a, 'courses') on conflict do nothing;
+  insert into public.org_modules (org_id, module_key) values (org_a, 'crm') on conflict do nothing;
+  declare v_course uuid; v_p1 uuid; v_c1 uuid; v_c2 uuid; v_status text;
+  begin
+    perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    insert into public.contacts (org_id, first_name, email) values (org_a, 'Kurs 1', 'kurs1@x.de') returning id into v_c1;
+    insert into public.contacts (org_id, first_name, email) values (org_a, 'Kurs 2', 'kurs2@x.de') returning id into v_c2;
+    insert into public.courses (org_id, title, capacity) values (org_a, 'Yoga', 1) returning id into v_course;
+    insert into public.course_participants (org_id, course_id, contact_id) values (org_a, v_course, v_c1) returning id into v_p1;
+    insert into public.course_participants (org_id, course_id, contact_id) values (org_a, v_course, v_c2) returning status into v_status;
+    assert v_status = 'waiting', 'full course puts the next one on the waiting list';
+    update public.course_participants set status = 'cancelled' where id = v_p1;
+    select status into v_status from public.course_participants where course_id = v_course and contact_id = v_c2;
+    assert v_status = 'enrolled', 'a freed place goes to the waiting list';
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.courses where org_id = org_a;              assert n = 0, 'B sees courses of A';
+    select count(*) into n from public.course_participants where org_id = org_a;  assert n = 0, 'B sees course participants of A';
+    begin
+      insert into public.course_participants (org_id, course_id, contact_id) values (org_b, v_course, v_c1);
+      assert false, 'B must not add to a course of A';
+    exception when insufficient_privilege then null; end;
+    reset role;
+  end;
+
   -- API keys: the service role gets org rights only with a live key of that org (x-api-key-hash + x-org-id),
   -- only for the key's permissions that its creator (A, owner) still has; never owner rights.
   reset role;
