@@ -11,7 +11,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { fromLocalInput } from "@/lib/time"
 import type { Json } from "@/lib/supabase/types"
 import { syncTickets } from "@/guestlists/server"
-import { aggregate, fill, Graph, NODE_DATA, next, passes, pickFirst, query, stepKey, test, triggerOf, waitMs, type GraphNode, type NodeData, type NodeType } from "./graph"
+import { aggregate, calc, fill, Graph, NODE_DATA, next, passes, pickFirst, query, stepKey, test, triggerOf, waitMs, type GraphNode, type NodeData, type NodeType } from "./graph"
 import { def, objectsFor, parseRecordTrigger, pickFields, splitPath, type Field, type ObjectKey } from "./objects"
 import { berlinDay, dateMatches, nextRun, resolveDate, type Schedule } from "./schedule"
 
@@ -390,15 +390,16 @@ async function setField(db: Db, run: Run, rawPath: string, raw: string, ctx: Ctx
   const type = (object.startsWith("step_") ? String(row.__object ?? "") : object) as ObjectKey
   const d = def(type)
   if (!d) throw new Error(`${object} can't be changed`)
-  if (type === "contact" && field.startsWith("custom.")) {
+  if ((type === "contact" || type === "event") && field.startsWith("custom.")) {
     // Same rules as every other way of entering custom values (type, options).
-    const fdef = (await loadFields(db, run.org_id, "contacts")).find((f) => f.key === field.slice(7))
+    const table = type === "contact" ? "contacts" : "events"
+    const fdef = (await loadFields(db, run.org_id, table)).find((f) => f.key === field.slice(7))
     if (!fdef) throw new Error(`unknown field ${field}`)
-    const parsed = parseValue(fdef, raw)
+    const parsed = parseValue(fdef, fdef.type === "number" ? calc(raw) : raw)
     if (parsed.error) throw new Error(`invalid value for ${fdef.key}`)
     const custom = { ...((row.custom as Row) ?? {}), [fdef.key]: parsed.value ?? null }
     if (parsed.value === undefined) delete custom[fdef.key]
-    const { error } = await db.from("contacts").update({ custom: custom as NonNullable<Json> }).eq("id", row.id as string).eq("org_id", run.org_id)
+    const { error } = await db.from(table).update({ custom: custom as NonNullable<Json> }).eq("id", row.id as string).eq("org_id", run.org_id)
     if (error) throw new Error(error.message)
     row.custom = custom
     return
@@ -425,7 +426,7 @@ async function coerce(db: Db, orgId: string, f: Field, raw: string, path: string
     if (!value) throw new Error(`invalid time for ${path}`)
   }
   if (f.kind === "number") {
-    value = Number(String(value).replace(",", "."))
+    value = Number(calc(String(value)).replace(",", "."))
     if (!Number.isFinite(value)) throw new Error(`invalid number for ${path}`)
   }
   if (f.kind === "bool") value = ["true", "1", "ja", "yes"].includes(String(value).toLowerCase())

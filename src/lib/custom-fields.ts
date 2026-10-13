@@ -2,7 +2,7 @@
 // One validator for every way data comes in (form, CSV import, API), so values always have the right shape.
 // New entity: add it to the DB check on custom_fields.entity, give its table a `custom jsonb` column, add it below.
 
-export const CUSTOM_ENTITIES = { contacts: { module: "crm" } } as const
+export const CUSTOM_ENTITIES = { contacts: { module: "crm" }, events: { module: "events" } } as const
 export type CustomEntity = keyof typeof CUSTOM_ENTITIES
 export const FIELD_TYPES = ["text", "number", "date", "boolean", "select", "email", "url"] as const
 export type FieldType = (typeof FIELD_TYPES)[number]
@@ -62,6 +62,13 @@ export function readCustom(defs: FieldDef[], get: (key: string) => string): { cu
   }
   return { custom }
 }
+
+// Values given as an object (API: { key: value }) → validated values, through the same parser as text input.
+export const readCustomObject = (defs: FieldDef[], values: Record<string, CustomValue | null> | undefined) =>
+  readCustom(defs, (k) => {
+    const v = values?.[k]
+    return v == null ? "" : typeof v === "boolean" ? (v ? "1" : "") : String(v)
+  })
 
 // Stored value → text for inputs / display.
 export const formatValue = (v: CustomValue | undefined) => (v === undefined ? "" : typeof v === "boolean" ? (v ? "1" : "") : String(v))

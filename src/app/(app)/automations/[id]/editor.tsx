@@ -40,7 +40,7 @@ type FlowNode = Node<Data, NodeType>
 type Option = { value: string; label: string }
 export type EditorOptions = {
   triggers: { group: string; items: { key: string; label: string }[] }[] // by module: its events + "record created/changed/deleted"
-  customFields: { key: string; label: string; type: string; options: string[] }[]
+  customFields: Record<string, { key: string; label: string; type: string; options: string[] }[]> // per object (contact, event)
   tags: string[]
   refs: Partial<Record<RefList, Option[]>> // pickable records (events, membership types, forms, courses, guest lists)
   modules: string[] // the org's active modules: objects/actions of others aren't offered
@@ -51,7 +51,7 @@ export type EditorOptions = {
 
 const isObject = (o: string): o is ObjectKey => o in OBJECTS
 const objectLabel = (o: string, options: EditorOptions, label: (k: string) => string) => options.steps?.find((x) => x.key === o)?.label ?? label(`automations.objects.${o}`)
-// Fields of an object as the pickers show them (catalog + the contacts' custom fields); `write` = only settable ones.
+// Fields of an object as the pickers show them (catalog + the org's custom fields of contacts/events); `write` = only settable ones.
 function fieldsOf(o: string, options: EditorOptions, label: (k: string) => string, write = false, search = false): (Field & { label: string })[] {
   const step = options.steps?.find((x) => x.key === o)
   if (step)
@@ -67,19 +67,16 @@ function fieldsOf(o: string, options: EditorOptions, label: (k: string) => strin
   if (search && !write)
     return searchFields(o).map((f) => ({ ...f, label: f.kind === "link" ? label(`automations.objects.${f.target}`) : label(`automations.fields.${o}.${f.key}`) }))
   const base = def(o).fields.filter((f) => !write || f.write).map((f) => ({ ...f, label: label(`automations.fields.${o}.${f.key}`) }))
-  const custom =
-    o === "contact"
-      ? options.customFields.map((f) => ({
-          key: `custom.${f.key}`,
-          label: f.label,
-          kind: (f.type === "number" ? "number" : f.type === "date" ? "date" : f.type === "boolean" ? "bool" : f.type === "select" ? "enum" : "text") as Kind,
-          options: f.options,
-          write: true as const,
-        }))
-      : []
+  const custom = (options.customFields[o] ?? []).map((f) => ({
+    key: `custom.${f.key}`,
+    label: f.label,
+    kind: (f.type === "number" ? "number" : f.type === "date" ? "date" : f.type === "boolean" ? "bool" : f.type === "select" ? "enum" : "text") as Kind,
+    options: f.options,
+    write: true as const,
+  }))
   // Form answers of a submission (what was entered), incl. the org's custom fields.
   const answerFields = o === "submission" ? options.answers.map((f) => ({ ...f, key: `answers.${f.key}`, label: `${label("automations.answer")}: ${f.label}` })) : []
-  return [...base, ...(o === "contact" ? custom : []), ...answerFields]
+  return [...base, ...custom, ...answerFields]
 }
 
 const ICONS: Record<NodeType, LucideIcon> = {
@@ -506,7 +503,7 @@ function Inspector({
     "name",
     "org",
     ...objectsFor(trigger, mods).flatMap((o) => def(o).fields.filter((f) => f.kind !== "ref" && f.kind !== "tags" && f.kind !== "bool").map((f) => `${o}.${f.key}`)),
-    ...(objectsFor(trigger, mods).includes("contact") ? options.customFields.map((f) => `contact.custom.${f.key}`) : []),
+    ...objectsFor(trigger, mods).flatMap((o) => (options.customFields[o] ?? []).map((f) => `${o}.custom.${f.key}`)),
     ...stepKeys.flatMap((k) => fieldsOf(k, options, (x) => t.dynamic(x)).filter((f) => f.kind !== "link" && f.kind !== "ref" && f.kind !== "tags").map((f) => `${k}.${f.key}`)),
     ...(objectsFor(trigger, mods).includes("submission") ? options.answers.filter((f) => f.kind !== "ref" && f.kind !== "tags" && f.kind !== "bool").map((f) => `submission.answers.${f.key}`) : []),
   ]

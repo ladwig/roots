@@ -7,6 +7,7 @@ import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { removeImage, replaceImage } from "@/lib/images"
 import { fromLocalInput } from "@/lib/time"
+import { loadFields, readCustom } from "@/lib/custom-fields"
 import { refreshPublic } from "@/lib/public-cache"
 import { back } from "@/lib/url"
 import { checkEvent, EVENT_STATUSES, insertEvent } from "./fields"
@@ -47,11 +48,18 @@ function readEvent(fd: FormData) {
   return error ? { error } : { row, slug }
 }
 
+// The org's custom fields for events (names "custom.<key>").
+async function readEventCustom(ctx: Awaited<ReturnType<typeof manager>>["ctx"], fd: FormData) {
+  return readCustom(await loadFields(ctx.supabase, ctx.org.id, "events"), (k) => String(fd.get(`custom.${k}`) ?? ""))
+}
+
 export async function createEvent(fd: FormData) {
   const { ctx, t } = await manager()
   const r = readEvent(fd)
   if ("error" in r) back(`${PATH}?new=event`, { error: t.dynamic(r.error!) })
-  const res = await insertEvent(ctx.supabase, { ...r.row!, org_id: ctx.org.id }, r.slug ?? null)
+  const c = await readEventCustom(ctx, fd)
+  if ("error" in c) back(`${PATH}?new=event`, { error: `${c.field}: ${t.dynamic(c.error)}` })
+  const res = await insertEvent(ctx.supabase, { ...r.row!, custom: c.custom, org_id: ctx.org.id }, r.slug ?? null)
   if (res.error) back(`${PATH}?new=event`, { error: res.error.code === "23505" ? t("errors.slug_taken") : dbError(t, res.error) })
   refreshPublic(ctx.org.id) // public pages show this
   back(`${PATH}?edit=${res.data!.id}`, { ok: t("eventsPage.created") })
@@ -63,9 +71,11 @@ export async function updateEvent(fd: FormData) {
   const r = readEvent(fd)
   const here = `${PATH}?edit=${id}`
   if ("error" in r) back(here, { error: t.dynamic(r.error!) })
+  const c = await readEventCustom(ctx, fd)
+  if ("error" in c) back(here, { error: `${c.field}: ${t.dynamic(c.error)}` })
   const { error, count } = await ctx.supabase
     .from("events")
-    .update({ ...r.row!, ...(r.slug ? { slug: r.slug } : {}) }, { count: "exact" })
+    .update({ ...r.row!, custom: c.custom, ...(r.slug ? { slug: r.slug } : {}) }, { count: "exact" })
     .eq("id", id)
     .eq("org_id", ctx.org.id)
   if (error || !count)

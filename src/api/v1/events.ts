@@ -1,12 +1,16 @@
 import { z } from "zod"
 import { checkEvent, EVENT_SLUG, EVENT_STATUSES, insertEvent, TICKET_NAMES } from "@/app/(app)/events/fields"
 import { deliverSoon } from "@/events/worker"
+import { messages } from "@/i18n/config"
+import { createT } from "@/i18n/translate"
+import { loadFields, readCustomObject } from "@/lib/custom-fields"
 import { imageUrl, removeImage } from "@/lib/images"
 import { refreshPublicFromApi } from "@/lib/public-cache"
 import type { TablesUpdate } from "@/lib/supabase/types"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
-import { putImage, ts, type Db } from "./shared"
+import { Custom, putImage, ts, type Db } from "./shared"
 
+const en = createT("en", messages.en)
 const dt = z.iso.datetime({ offset: true }).describe("ISO 8601 time")
 const ok = z.object({ ok: z.literal(true) })
 
@@ -25,13 +29,14 @@ export const Event = z.object({
   image_url: z.string().nullable(),
   ticket_names: z.enum(TICKET_NAMES).describe("Ask buyers for a name per ticket"),
   max_tickets_per_order: z.number().int(),
+  custom: Custom,
   published_at: ts.nullable(),
   deleted_at: ts.nullable().describe("Set while in the trash"),
   created_at: ts,
   updated_at: ts,
 })
 export const EVENT_COLS =
-  "id, title, slug, status, starts_at, ends_at, location_id, venue_name, venue_address, description, capacity, image_path, ticket_names, max_tickets_per_order, published_at, deleted_at, created_at, updated_at"
+  "id, title, slug, status, starts_at, ends_at, location_id, venue_name, venue_address, description, capacity, image_path, ticket_names, max_tickets_per_order, custom, published_at, deleted_at, created_at, updated_at"
 const eventOut = <T extends { image_path: string | null }>({ image_path, ...e }: T) => ({ ...e, image_url: imageUrl(image_path) ?? null })
 
 const EventFields = z.object({
@@ -47,6 +52,7 @@ const EventFields = z.object({
   capacity: z.number().int().min(1).nullable(),
   ticket_names: z.enum(TICKET_NAMES),
   max_tickets_per_order: z.number().int().min(1).max(100),
+  custom: Custom.describe("Custom fields of the org for events: { key: value } (validated like in the App; on update merged)"),
 })
 
 // Messages for the shared field checks (keys from the App's validators).
@@ -57,6 +63,12 @@ const INVALID: Record<string, [string, string]> = {
   "tickets.codeValue": ["invalid_value", "value: percent 1–100, amount in cents ≥ 0, none 0."],
 }
 export const invalid = (key: string) => new ApiError(422, ...(INVALID[key] ?? INVALID["errors.invalid_input"]))
+// Custom field values through the same validator as the App's form.
+async function eventCustom(db: Db, orgId: string, values: Record<string, string | number | boolean> | undefined) {
+  const r = readCustomObject(await loadFields(db, orgId, "events"), values)
+  if ("error" in r) throw new ApiError(422, r.error.replace(/^errors\./, ""), `${r.field}: ${en.dynamic(r.error)}`)
+  return r.custom
+}
 const slugTaken = () => new ApiError(409, "slug_taken", "Another event already uses this address (slug).")
 
 // Body → row: strings trimmed ("" = null), times normalised to UTC.
@@ -235,8 +247,8 @@ export const endpoints: Endpoint[] = [
     response: Event,
     status: 201,
     async handler({ db, orgId, body }) {
-      const { slug, ...rest } = body
-      const row = clean(rest)
+      const { slug, custom, ...rest } = body
+      const row = { ...clean(rest), custom: await eventCustom(db, orgId, custom) }
       const err = checkEvent({ ends_at: null, capacity: null, ...row, title: row.title ?? null, starts_at: row.starts_at! }, slug)
       if (err) throw invalid(err)
       await locationOf(db, orgId, row.location_id)
@@ -258,9 +270,10 @@ export const endpoints: Endpoint[] = [
     body: EventFields.partial().strict(),
     response: Event,
     async handler({ db, orgId, params, body }) {
-      const { data: old } = await db.from("events").select("title, starts_at, ends_at, capacity").eq("id", params.id).eq("org_id", orgId).is("deleted_at", null).maybeSingle()
+      const { data: old } = await db.from("events").select("title, starts_at, ends_at, capacity, custom").eq("id", params.id).eq("org_id", orgId).is("deleted_at", null).maybeSingle()
       if (!old) throw notFound()
-      const row = clean(body)
+      const { custom, ...fields } = body
+      const row = { ...clean(fields), ...(custom && { custom: await eventCustom(db, orgId, { ...(old.custom as Record<string, string>), ...custom }) }) }
       const err = checkEvent({ ...old, ...row, title: row.title === undefined ? old.title : row.title, starts_at: row.starts_at ?? old.starts_at }, body.slug)
       if (err) throw invalid(err)
       await locationOf(db, orgId, row.location_id)

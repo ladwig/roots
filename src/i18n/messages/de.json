@@ -927,7 +927,8 @@
     "delete": "Feld löschen",
     "deleteHint": "Das Feld verschwindet aus Formularen. Gespeicherte Werte bleiben erhalten und sind wieder da, wenn du ein Feld mit derselben Bezeichnung anlegst.",
     "entities": {
-      "contacts": "Kontakte"
+      "contacts": "Kontakte",
+      "events": "Veranstaltungen"
     },
     "types": {
       "text": "Text",

@@ -261,6 +261,15 @@ export function pickFirst(rows: Record<string, unknown>[], sort: string, dir: "a
   return sorted[0] ?? null
 }
 
+/** Number fields: "{contact.custom.visits}+1" (after filling) → "4". An empty value (placeholder left over) counts as 0. */
+export function calc(raw: string) {
+  const m = /^\s*(\{[^}]*\}|-?\d+(?:[.,]\d+)?)\s*([+-])\s*(\d+(?:[.,]\d+)?)\s*$/.exec(raw)
+  if (!m) return raw
+  const num = (s: string) => (s.startsWith("{") ? 0 : Number(s.replace(",", ".")))
+  const r = m[2] === "+" ? num(m[1]) + num(m[3]) : num(m[1]) - num(m[3])
+  return String(Math.round(r * 100) / 100)
+}
+
 /** {first_name}, {payload.title}, {contact.city} … in texts of actions. Unknown placeholders stay as they are. */
 export const fill = (template: string, ctx: Record<string, unknown>, escape = (s: string) => s) =>
   template.replace(/\{([a-z_][a-z0-9_.]*)\}/gi, (m, key: string) => {

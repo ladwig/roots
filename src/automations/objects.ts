@@ -328,7 +328,7 @@ export function pickFields(object: ObjectKey, row: Record<string, unknown> | nul
   const out: Record<string, unknown> = { id: row.id }
   for (const f of def(object).fields) if (f.key in row) out[f.key] = row[f.key]
   for (const col of Object.keys(def(object).relations ?? {})) if (col in row) out[col] = row[col]
-  if (object === "contact") out.custom = row.custom ?? {}
+  if (object === "contact" || object === "event") out.custom = row.custom ?? {} // the org's custom fields
   if (object === "submission") out.answers = answers(row.data)
   return out
 }

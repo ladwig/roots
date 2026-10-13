@@ -13,6 +13,8 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Separator } from "@/components/ui/separator"
 import { getT } from "@/i18n/server"
 import type { T } from "@/i18n/translate"
+import { CustomFieldInputs } from "@/components/custom-field-inputs"
+import { loadFields, type CustomValues } from "@/lib/custom-fields"
 import { getContext, requirePerm } from "@/lib/context"
 import { toLocalInput } from "@/lib/time"
 import { pageParam, param, siteUrl, withParams, type SearchParams } from "@/lib/url"
@@ -154,7 +156,10 @@ function StatusBadge({ t, status }: { t: T; status: string }) {
 
 async function EventForm({ t, action, ev, disabled }: { t: T; action: (fd: FormData) => Promise<void>; ev?: Ev; disabled?: boolean }) {
   const ctx = await getContext()
-  const { data: locations } = await ctx.supabase.from("locations").select("id, name").eq("org_id", ctx.org.id).order("name")
+  const [{ data: locations }, defs] = await Promise.all([
+    ctx.supabase.from("locations").select("id, name").eq("org_id", ctx.org.id).order("name"),
+    loadFields(ctx.supabase, ctx.org.id, "events"),
+  ])
   return (
     <form action={action} className="grid gap-4">
       {ev && <input type="hidden" name="id" value={ev.id} />}
@@ -215,6 +220,7 @@ async function EventForm({ t, action, ev, disabled }: { t: T; action: (fd: FormD
           <Label htmlFor="ev-capacity">{t("eventsPage.capacity")}</Label>
           <Input id="ev-capacity" name="capacity" type="number" min={1} step={1} defaultValue={ev?.capacity ?? ""} className="sm:max-w-40" />
         </div>
+        <CustomFieldInputs defs={defs} values={ev?.custom as CustomValues | undefined} idPrefix="ev-custom" />
         <div className="grid gap-2">
           <Label htmlFor="ev-slug">{t("eventsPage.slug")}</Label>
           <div className="flex items-center gap-1 text-sm text-muted-foreground">

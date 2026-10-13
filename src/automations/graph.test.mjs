@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { test as it } from "node:test"
-import { fill, next, passes, test, validate, waitMs } from "./graph.ts"
+import { calc, fill, next, passes, test, validate, waitMs } from "./graph.ts"
 
 const n = (id, type, data = {}) => ({ id, type, position: { x: 0, y: 0 }, data })
 const e = (source, target, sourceHandle) => ({ id: `${source}-${target}`, source, target, sourceHandle })
@@ -68,4 +68,11 @@ it("data steps: filter with run values, count/sum, first by sort", async () => {
   assert.equal(aggregate(mine, "count", ""), 2)
   assert.equal(aggregate(mine, "sum", "amount_cents"), 1200)
   assert.equal(pickFirst(mine, "due_on", "desc").id, "b")
+})
+
+it("number fields count up: {x}+1, empty = 0", () => {
+  assert.equal(calc("3+1"), "4")
+  assert.equal(calc("{contact.custom.visits}+1"), "1") // nothing stored yet
+  assert.equal(calc("10 - 2,5"), "7.5")
+  assert.equal(calc("hello"), "hello")
 })
