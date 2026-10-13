@@ -20,7 +20,8 @@ import { requirePerm } from "@/lib/context"
 import type { Tables } from "@/lib/supabase/types"
 import { pageParam, param, withParams, type SearchParams } from "@/lib/url"
 import { earliestEnd, isPaused, type Interval } from "@/members/dues"
-import { endMembership, pauseMembership, restoreMembership, resumeMembership, saveMembership, sendReminders, setDueStatus, trashMembership } from "./actions"
+import { MemberQr } from "@/members/member-qr"
+import { endMembership, pauseMembership, resetMemberCode, restoreMembership, resumeMembership, saveMembership, sendReminders, setDueStatus, trashMembership } from "./actions"
 
 type Ctx = Awaited<ReturnType<typeof requirePerm>>
 type Type = Pick<Tables<"membership_types">, "id" | "name" | "fee_cents" | "interval" | "notice_months" | "active">
@@ -55,7 +56,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
     ctx.supabase.from("membership_types").select("id, name, fee_cents, interval, notice_months, active").eq("org_id", ctx.org.id).order("name"),
     ctx.supabase.from("memberships").select("id", { count: "exact", head: true }).eq("org_id", ctx.org.id).is("deleted_at", null).lte("starts_on", now).or(`ends_on.is.null,ends_on.gte.${now}`),
     editId
-      ? ctx.supabase.from("memberships").select("*, contacts(id, first_name, last_name, company, email)").eq("id", editId).eq("org_id", ctx.org.id).maybeSingle()
+      ? ctx.supabase.from("memberships").select("*, contacts(id, first_name, last_name, company, email, member_code)").eq("id", editId).eq("org_id", ctx.org.id).maybeSingle()
       : Promise.resolve({ data: null }),
     creating && param(sp, "contact")
       ? ctx.supabase.from("contacts").select("id, first_name, last_name, company, email").eq("id", param(sp, "contact")!).eq("org_id", ctx.org.id).maybeSingle()
@@ -246,7 +247,7 @@ async function EditMembership({
 }: {
   t: T
   ctx: Ctx
-  m: Tables<"memberships"> & { contacts: { id: string; first_name: string | null; last_name: string | null; company: string | null; email: string | null } | null }
+  m: Tables<"memberships"> & { contacts: { id: string; first_name: string | null; last_name: string | null; company: string | null; email: string | null; member_code: string | null } | null }
   types: Type[]
   sp: SearchParams
   canManage: boolean
@@ -269,6 +270,24 @@ async function EditMembership({
         <Button render={<Link href={`/contacts/${m.contacts.id}`} />} nativeButton={false} size="sm" variant="outline" className="justify-self-start">
           {t("membership.openContact")}
         </Button>
+      )}
+      {m.contacts?.member_code && !m.deleted_at && (
+        <details className="rounded-lg border px-3 py-2 text-sm">
+          <summary className="cursor-pointer font-medium">{t("membership.card")}</summary>
+          <div className="grid gap-3 pt-3">
+            <MemberQr code={m.contacts.member_code} label={t("membership.cardQr")} />
+            <p className="text-muted-foreground">{t("membership.cardHint")}</p>
+            {canManage && (
+              <form action={resetMemberCode}>
+                <input type="hidden" name="id" value={m.id} />
+                <input type="hidden" name="contact" value={m.contacts.id} />
+                <SubmitButton size="sm" variant="outline">
+                  {t("membership.cardReset")}
+                </SubmitButton>
+              </form>
+            )}
+          </div>
+        </details>
       )}
       {m.deleted_at && (
         <>

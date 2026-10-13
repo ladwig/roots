@@ -101,6 +101,14 @@ export async function resumeMembership(fd: FormData) {
   back(here, { ok: t("membership.resumed") })
 }
 
+/** Lost card: new member code, the old one stops working at the door. */
+export async function resetMemberCode(fd: FormData) {
+  const { ctx, t } = await manager()
+  const here = `${PATH}?edit=${str(fd, "id", 36) ?? ""}`
+  const { error } = await ctx.supabase.rpc("reset_member_code", { p_contact: str(fd, "contact", 36) ?? "" })
+  back(here, error ? { error: dbError(t, error) } : { ok: t("membership.cardResetDone") })
+}
+
 export async function trashMembership(fd: FormData) {
   const { ctx, t } = await manager()
   const id = str(fd, "id", 36) ?? ""

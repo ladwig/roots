@@ -751,7 +751,8 @@
       "membership.self_updated": "Mitglied hat Daten geändert",
       "course.enrolled": "Anmeldung zu Kurs",
       "course.moved_up": "Nachgerückt von der Warteliste",
-      "workflow.notified": "Nachricht aus einer Automation"
+      "workflow.notified": "Nachricht aus einer Automation",
+      "membership.checked_in": "Mitglied eingelassen"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -782,7 +783,8 @@
       "membership.self_updated": "✏️ {name} hat {what} im Mitgliederbereich geändert",
       "course.enrolled": "🎓 Neu im Kurs „{title}“",
       "course.moved_up": "🎓 Von der Warteliste nachgerückt: „{title}“",
-      "workflow.notified": "⚙️ {text}"
+      "workflow.notified": "⚙️ {text}",
+      "membership.checked_in": "🚪 {name} ist da ({title}, Besuch {visits})"
     }
   },
   "inbox": {
@@ -1520,7 +1522,8 @@
     "tab": {
       "scan": "Scannen",
       "guests": "Gäste",
-      "tickets": "Tickets"
+      "tickets": "Tickets",
+      "members": "Mitglieder"
     },
     "searchGuests": "Name suchen…",
     "searchTickets": "Name oder Code suchen…",
@@ -1535,7 +1538,34 @@
     "already": "Schon eingecheckt.",
     "undo": "Rückgängig",
     "undone": "Check-in zurückgenommen.",
-    "inSince": "drin seit {time}"
+    "inSince": "drin seit {time}",
+    "searchMembers": "Mitglied suchen (Name, Nr., E-Mail)",
+    "inside": "Drin: {count}",
+    "member": {
+      "member": "Mitglied",
+      "ok": "Eingelassen",
+      "already": "Schon drin",
+      "full": "Ausverkauft",
+      "not_member": "Kein Mitglied",
+      "invalid": "Unbekannte Karte",
+      "state": {
+        "upcoming": "Noch nicht begonnen",
+        "ended": "Ausgetreten",
+        "active": "Aktiv"
+      },
+      "overdue": {
+        "one": "{count} Beitrag offen ({amount})",
+        "other": "{count} Beiträge offen ({amount})"
+      },
+      "visits": {
+        "one": "{count} Besuch",
+        "other": "{count} Besuche"
+      },
+      "lastVisit": "Zuletzt da: {date}",
+      "admit": "Einlassen",
+      "admitting": "Einlassen …",
+      "noneFound": "Kein Mitglied gefunden."
+    }
   },
   "shifts": {
     "nav": "Schichten",
@@ -1905,7 +1935,12 @@
     "paused": "Mitgliedschaft pausiert.",
     "resumed": "Pause beendet.",
     "pauseInvalid": "Das Ende der Pause liegt vor dem Beginn.",
-    "notPaused": "Die Mitgliedschaft ist nicht pausiert."
+    "notPaused": "Die Mitgliedschaft ist nicht pausiert.",
+    "card": "Mitgliedsausweis",
+    "cardQr": "QR-Code des Mitgliedsausweises",
+    "cardHint": "Am Einlass scannen oder den Code eintippen. Steht auch im Mitgliederbereich.",
+    "cardReset": "Neuen Code erzeugen (alter wird ungültig)",
+    "cardResetDone": "Neuer Ausweis-Code erzeugt."
   },
   "forms": {
     "nav": "Formulare",
@@ -2170,7 +2205,8 @@
     "cancelled": "Gekündigt. Deine Mitgliedschaft endet am {date}.",
     "whatAddress": "Kontaktdaten",
     "whatBank": "Bankverbindung",
-    "portalLink": "Mitgliederbereich für deine Mitglieder: {url}"
+    "portalLink": "Mitgliederbereich für deine Mitglieder: {url}",
+    "cardHint": "Dein Mitgliedsausweis: am Einlass vorzeigen."
   },
   "tags": {
     "remove": "{tag} entfernen",

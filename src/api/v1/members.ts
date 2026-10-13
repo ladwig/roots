@@ -4,6 +4,7 @@ import { messages } from "@/i18n/config"
 import { createT } from "@/i18n/translate"
 import * as members from "@/members/server"
 import { isPaused } from "@/members/dues"
+import { memberDoor } from "@/members/door"
 import { BIC, compact, CREDITOR_ID, IBAN, type Fail } from "@/members/server"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
 import { ImportResult, trashRow } from "./contacts"
@@ -448,6 +449,44 @@ export const endpoints: Endpoint[] = [
       const r = await members.resumeMembership(db, orgId, params.id)
       if ("error" in r) fail(r)
       return getMembership(db, orgId, params.id)
+    },
+  }),
+  endpoint({
+    method: "POST",
+    path: "/events/{id}/member-check-in",
+    permission: "tickets.scan",
+    tag: "Members",
+    summary: "Member check-in at the door",
+    description:
+      "Find a member by `code` (the 12-character member card code) or `contact_id`. Without `admit` it only looks them up (`member`). With `admit: true` they are let in: a used, free ticket of the event's member ticket type (counts against capacity), event `membership.checked_in`. Results: `ok`, `member`, `already` (in since `checked_in_at`), `full`, `not_member`, `invalid`. Needs the members and tickets modules.",
+    body: z.object({ code: z.string().max(40).optional(), contact_id: uuid.optional(), admit: z.boolean().optional() }).strict(),
+    response: z.object({
+      result: z.enum(["invalid", "not_member", "member", "ok", "already", "full"]),
+      contact_id: uuid.optional(),
+      name: z.string().nullable().optional(),
+      membership_id: uuid.nullable().optional(),
+      member_no: z.string().nullable().optional(),
+      type: z.string().nullable().optional(),
+      state: z.enum(["none", "upcoming", "ended", "active"]).optional(),
+      ends_on: day.nullable().optional(),
+      paused: z.boolean().optional(),
+      paused_until: day.nullable().optional(),
+      overdue_count: z.number().int().optional(),
+      overdue_cents: z.number().int().optional(),
+      visits: z.number().int().optional().describe("Member check-ins so far (all events)"),
+      last_visit: ts.nullable().optional(),
+      checked_in_at: ts.nullable().optional(),
+    }),
+    async handler({ db, orgId, params, body }) {
+      const { data: ev } = await db.from("events").select("id").eq("id", params.id).eq("org_id", orgId).is("deleted_at", null).maybeSingle()
+      if (!ev) throw notFound()
+      if (!body.code && !body.contact_id) throw new ApiError(400, "invalid_input", "Send `code` or `contact_id`.")
+      try {
+        const code = body.code?.toUpperCase().replace(/[^A-Z0-9]/g, "")
+        return await memberDoor(db, params.id, { code, contactId: body.contact_id }, body.admit ?? false)
+      } catch (e) {
+        throw dbError(e as { message: string; code?: string })
+      }
     },
   }),
   endpoint({

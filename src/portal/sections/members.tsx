@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { earliestEnd, type Interval } from "@/members/dues"
+import { MemberQr } from "@/members/member-qr"
 import type { SectionProps } from "../sections"
 
 const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
@@ -13,7 +14,7 @@ const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/B
 export async function MembersSection({ orgId, orgName, site, contact }: SectionProps) {
   const t = await getT()
   const db = createAdminClient()
-  const [{ data: m }, { data: creditor }] = await Promise.all([
+  const [{ data: m }, { data: creditor }, { data: card }] = await Promise.all([
     db
       .from("memberships")
       .select("id, member_no, starts_on, ends_on, iban, account_holder, types:membership_types(name, fee_cents, interval, notice_months)")
@@ -24,6 +25,7 @@ export async function MembersSection({ orgId, orgName, site, contact }: SectionP
       .limit(1)
       .maybeSingle(),
     db.from("member_settings").select("creditor_name, creditor_id").eq("org_id", orgId).maybeSingle(),
+    db.from("contacts").select("member_code").eq("id", contact.id).eq("org_id", orgId).maybeSingle(),
   ])
   if (!m) return null
   const { data: dues } = await db.from("member_dues").select("id, description, amount_cents, due_on, status").eq("org_id", orgId).eq("membership_id", m.id).neq("status", "cancelled").order("due_on", { ascending: false }).limit(20)
@@ -55,6 +57,12 @@ export async function MembersSection({ orgId, orgName, site, contact }: SectionP
           <dt className="text-muted-foreground">{t("portal.payment")}</dt>
           <dd>{m.iban ? t("portal.debitFrom", { iban: `${m.iban.slice(0, 4)} •••• ${m.iban.slice(-4)}` }) : t("portal.noDebit")}</dd>
         </dl>
+        {card?.member_code && !ended && (
+          <div className="grid justify-items-center gap-2 rounded-lg border p-4">
+            <MemberQr code={card.member_code} label={t("membership.cardQr")} />
+            <p className="text-center text-sm text-muted-foreground">{t("portal.cardHint")}</p>
+          </div>
+        )}
       </div>
 
       {!!dues?.length && (

@@ -7,7 +7,9 @@ import { Badge } from "@/components/ui/badge"
 import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
 import { param, withParams } from "@/lib/url"
-import { guestCheckIn, ticketDoorCheckIn } from "./actions"
+import { memberDoor, type MemberAtDoor } from "@/members/door"
+import { guestCheckIn, memberDoorCheckIn, ticketDoorCheckIn } from "./actions"
+import { MemberCard } from "./member-card"
 import { Scanner } from "./scanner"
 
 // Door: pick the event (today's first), then scan QR codes, check guest lists, or look up tickets by name.
@@ -29,7 +31,8 @@ export default async function DoorPage({ searchParams }: PageProps<"/scan">) {
     .order("starts_at")
     .limit(20)
   const current = events?.find((e) => e.id === param(sp, "event")) ?? events?.find((e) => e.starts_at >= since)
-  const tabs = [...(canScan ? ["scan", "tickets"] : []), ...(canGuests ? ["guests"] : [])]
+  const canMembers = canScan && ctx.modules.has("members")
+  const tabs = [...(canScan ? ["scan", "tickets"] : []), ...(canMembers ? ["members"] : []), ...(canGuests ? ["guests"] : [])]
   const tab = tabs.find((x) => x === param(sp, "tab")) ?? tabs[0]
   const q = param(sp, "q")
     ?.replace(/[%,()*]/g, "")
@@ -73,6 +76,7 @@ export default async function DoorPage({ searchParams }: PageProps<"/scan">) {
           {tab === "scan" && <Scanner key={current.id} eventId={current.id} />}
           {tab === "guests" && <Guests eventId={current.id} q={q} list={param(sp, "list")} sp={sp} chip={chip} />}
           {tab === "tickets" && <Tickets eventId={current.id} q={q} />}
+          {tab === "members" && <Members eventId={current.id} q={q} who={param(sp, "who")} sp={sp} />}
         </>
       )}
     </div>
@@ -208,6 +212,49 @@ async function Tickets({ eventId, q }: { eventId: string; q?: string }) {
           },
         ]}
       />
+    </section>
+  )
+}
+
+// Members by name (forgot the card): pick one → the same card as the scanner, with "Einlassen".
+async function Members({ eventId, q, who, sp }: { eventId: string; q?: string; who?: string; sp: Record<string, string | string[] | undefined> }) {
+  const ctx = await getContext()
+  const t = await getT()
+  const valid = !!who && /^[0-9a-f-]{36}$/.test(who)
+  const [{ data: found }, member] = await Promise.all([
+    q ? ctx.supabase.rpc("member_door_search", { p_event: eventId, p_q: q }) : Promise.resolve({ data: [] }),
+    valid ? memberDoor(ctx.supabase, eventId, { contactId: who }, false).catch((): MemberAtDoor => ({ result: "invalid" })) : null,
+  ])
+  return (
+    <section className="grid gap-3">
+      <SearchBox q={q} label={t("door.searchMembers")} keep={{ event: eventId, tab: "members" }} />
+      {member && (
+        <MemberCard t={t} m={member}>
+          <form action={memberDoorCheckIn}>
+            <input type="hidden" name="event" value={eventId} />
+            <input type="hidden" name="contact" value={who} />
+            <input type="hidden" name="q" value={q ?? ""} />
+            <SubmitButton size="lg">{t("door.member.admit")}</SubmitButton>
+          </form>
+        </MemberCard>
+      )}
+      {q && (
+        <ul className="grid gap-1">
+          {(found ?? []).map((m) => (
+            <li key={m.contact_id}>
+              <Link
+                href={withParams(sp, { who: m.contact_id })}
+                aria-current={m.contact_id === who ? "true" : undefined}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-muted aria-[current=true]:bg-muted"
+              >
+                <span className="font-medium">{m.name}</span>
+                {m.member_no && <span className="text-muted-foreground">{t("membership.numberShort", { number: m.member_no })}</span>}
+              </Link>
+            </li>
+          ))}
+          {!found?.length && <li className="text-sm text-muted-foreground">{t("door.member.noneFound")}</li>}
+        </ul>
+      )}
     </section>
   )
 }

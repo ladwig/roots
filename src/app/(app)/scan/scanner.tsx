@@ -6,14 +6,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useT } from "@/i18n/client"
 import { cn } from "@/lib/utils"
-import { checkIn, scanList, syncCheckIns, type ScanEntry, type ScanResult } from "./actions"
+import { admitMember, checkIn, scanList, syncCheckIns, type ScanEntry, type ScanResult } from "./actions"
+import { MemberCard } from "./member-card"
 import { SubmitButton } from "@/components/submit-button"
 
 type Detector = { detect(source: CanvasImageSource): Promise<{ rawValue: string }[]> }
 
 // Camera QR scanning: native BarcodeDetector (Chrome/Android) or jsQR (Safari/iPhone), plus typing the code.
 // Offline: the ticket list is kept on the device (localStorage); without connection codes are checked against it and
-// check-ins queue up until the device is online again. ponytail: two offline devices can both let in the same ticket
+// check-ins queue up until the device is online again. Member cards (12-character codes) are looked up online only. ponytail: two offline devices can both let in the same ticket
 // (reported as conflict on sync); the page must stay open (no service worker yet).
 type Store = { list: Record<string, ScanEntry>; at: string; queue: string[] }
 const KEY = (eventId: string) => `roots-scan-${eventId}`
@@ -162,6 +163,17 @@ export function Scanner({ eventId }: { eventId: string }) {
   const tone = last?.result === "ok" ? "border-primary bg-primary/15" : last?.result === "used" ? "border-border bg-muted" : "border-destructive bg-destructive/10"
 
   const count = Object.keys(store.list).length
+  // Who's in, per ticket type (from the device list; member check-ins appear after the next refresh).
+  const inside = Object.values(store.list).filter((e) => e.status === "used")
+  const byType = Object.entries(Object.groupBy(inside, (e) => e.type ?? "–")).map(([type, list]) => `${type} ${list!.length}`)
+  function admit(contactId: string) {
+    start(async () => {
+      const r = await admitMember(eventId, contactId)
+      setLast((l) => l && (r.result === "error" ? { ...l, result: "error", message: r.message, member: undefined } : { ...l, member: r }))
+      navigator.vibrate?.(r.result === "ok" ? 80 : [80, 60, 80])
+      if (r.result === "ok") refresh()
+    })
+  }
   return (
     <div className="grid gap-4">
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -179,7 +191,14 @@ export function Scanner({ eventId }: { eventId: string }) {
         </Button>
         {syncNote && <span>{syncNote}</span>}
       </div>
-      {last && (
+      {inside.length > 0 && <p className="text-sm">{t("door.inside", { count: inside.length })}{byType.length > 1 && ` · ${byType.join(" · ")}`}</p>}
+      {last?.member ? (
+        <MemberCard t={t} m={last.member}>
+          <Button type="button" size="lg" disabled={pending} onClick={() => admit(last.member!.contact_id!)} className="justify-self-start">
+            {pending ? t("door.member.admitting") : t("door.member.admit")}
+          </Button>
+        </MemberCard>
+      ) : last && (
         <div role="status" aria-live="assertive" className={cn("grid gap-1 rounded-xl border-2 p-4", tone)}>
           <p className="text-2xl font-semibold">{t.dynamic(`tickets.scanResult.${last.result}`)}</p>
           <p className="font-mono text-sm">{last.code}</p>

@@ -4,8 +4,9 @@ import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { back } from "@/lib/url"
+import { isMemberCode, memberDoor, type MemberAtDoor } from "@/members/door"
 
-export type ScanResult = { result: "ok" | "used" | "invalid" | "error"; holder?: string | null; type?: string | null; at?: string | null; message?: string }
+export type ScanResult = { result: "ok" | "used" | "invalid" | "error"; holder?: string | null; type?: string | null; at?: string | null; message?: string; member?: MemberAtDoor }
 
 // Called by the scanner page for every code (camera or typed).
 export async function checkIn(eventId: string, code: string): Promise<ScanResult> {
@@ -13,9 +14,30 @@ export async function checkIn(eventId: string, code: string): Promise<ScanResult
   const t = await getT()
   const clean = String(code).trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 20)
   if (!/^[0-9a-f-]{36}$/.test(eventId) || !clean) return { result: "invalid" }
+  if (isMemberCode(clean) && ctx.modules.has("members")) {
+    // A member card: show who it is; letting in is a second step (admitMember).
+    try {
+      const member = await memberDoor(ctx.supabase, eventId, { code: clean }, false)
+      return member.result === "invalid" ? { result: "invalid" } : { result: "ok", member }
+    } catch (e) {
+      return { result: "error", message: (e as { message?: string }).message === "not_allowed" ? t("errors.not_allowed") : t("tickets.scanFailed") }
+    }
+  }
   const { data, error } = await ctx.supabase.rpc("check_in_ticket", { p_event: eventId, p_code: clean }).maybeSingle()
   if (error || !data) return { result: "error", message: error?.message === "not_allowed" ? t("errors.not_allowed") : t("tickets.scanFailed") }
   return { result: data.result as ScanResult["result"], holder: data.holder_name, type: data.type_name, at: data.checked_in_at }
+}
+
+/** Let a looked-up member in (scanner card button). */
+export async function admitMember(eventId: string, contactId: string): Promise<MemberAtDoor | { result: "error"; message: string }> {
+  const ctx = await requirePerm("tickets.scan")
+  const t = await getT()
+  if (!/^[0-9a-f-]{36}$/.test(eventId) || !/^[0-9a-f-]{36}$/.test(contactId)) return { result: "invalid" }
+  try {
+    return await memberDoor(ctx.supabase, eventId, { contactId }, true)
+  } catch {
+    return { result: "error", message: t("tickets.scanFailed") }
+  }
 }
 
 export type ScanEntry = { code: string; status: "valid" | "used"; holder: string | null; type: string | null }
@@ -75,4 +97,22 @@ export async function ticketDoorCheckIn(fd: FormData) {
   const r = await checkIn(event, String(fd.get("code") ?? ""))
   if (r.result === "ok") back(here, { ok: t("door.checkedIn", { name: r.holder ?? String(fd.get("code")) }) })
   back(here, { error: r.message ?? t.dynamic(`tickets.scanResult.${r.result}`) })
+}
+
+// Door → Mitglieder tab (search by name): look up = link, let in = this form.
+export async function memberDoorCheckIn(fd: FormData) {
+  const ctx = await requirePerm("tickets.scan")
+  const t = await getT()
+  const event = String(fd.get("event") ?? "")
+  const contact = String(fd.get("contact") ?? "")
+  const here = `/scan?${new URLSearchParams({ event, tab: "members", q: String(fd.get("q") ?? ""), who: contact })}`
+  if (!/^[0-9a-f-]{36}$/.test(event) || !/^[0-9a-f-]{36}$/.test(contact)) back(here, { error: t("errors.invalid_input") })
+  let r: MemberAtDoor
+  try {
+    r = await memberDoor(ctx.supabase, event, { contactId: contact }, true)
+  } catch (e) {
+    back(here, { error: dbError(t, e as { message: string }) })
+  }
+  if (r!.result === "ok") back(here, { ok: t("door.checkedIn", { name: r!.name ?? "" }) })
+  back(here, { error: t.dynamic(`door.member.${r!.result}`) })
 }

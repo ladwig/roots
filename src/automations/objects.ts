@@ -256,6 +256,7 @@ export const EVENT_OBJECTS: Record<string, ObjectKey[]> = {
   "membership.started": ["membership", "contact"],
   "membership.self_updated": ["membership", "contact"],
   "membership.ended": ["membership", "contact"],
+  "membership.checked_in": ["membership", "contact", "event"],
   "form.submitted": ["submission", "form", "contact"],
   "course.enrolled": ["course", "contact"],
   "course.moved_up": ["course", "contact"],

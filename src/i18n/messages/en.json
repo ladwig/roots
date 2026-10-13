@@ -751,7 +751,8 @@
       "membership.self_updated": "Member changed their details",
       "course.enrolled": "Enrolled in a course",
       "course.moved_up": "Moved up from the waiting list",
-      "workflow.notified": "Message from an automation"
+      "workflow.notified": "Message from an automation",
+      "membership.checked_in": "Member let in"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -782,7 +783,8 @@
       "membership.self_updated": "✏️ {name} changed their {what} in the member area",
       "course.enrolled": "🎓 New in the course “{title}”",
       "course.moved_up": "🎓 Moved up from the waiting list: “{title}”",
-      "workflow.notified": "⚙️ {text}"
+      "workflow.notified": "⚙️ {text}",
+      "membership.checked_in": "🚪 {name} is here ({title}, visit {visits})"
     }
   },
   "inbox": {
@@ -1520,7 +1522,8 @@
     "tab": {
       "scan": "Scan",
       "guests": "Guests",
-      "tickets": "Tickets"
+      "tickets": "Tickets",
+      "members": "Members"
     },
     "searchGuests": "Search name…",
     "searchTickets": "Search name or code…",
@@ -1535,7 +1538,34 @@
     "already": "Already checked in.",
     "undo": "Undo",
     "undone": "Check-in undone.",
-    "inSince": "in since {time}"
+    "inSince": "in since {time}",
+    "searchMembers": "Find member (name, no., email)",
+    "inside": "Inside: {count}",
+    "member": {
+      "member": "Member",
+      "ok": "Let in",
+      "already": "Already inside",
+      "full": "Sold out",
+      "not_member": "Not a member",
+      "invalid": "Unknown card",
+      "state": {
+        "upcoming": "Not started yet",
+        "ended": "Left",
+        "active": "Active"
+      },
+      "overdue": {
+        "one": "{count} fee open ({amount})",
+        "other": "{count} fees open ({amount})"
+      },
+      "visits": {
+        "one": "{count} visit",
+        "other": "{count} visits"
+      },
+      "lastVisit": "Last visit: {date}",
+      "admit": "Let in",
+      "admitting": "Letting in …",
+      "noneFound": "No member found."
+    }
   },
   "shifts": {
     "nav": "Shifts",
@@ -1905,7 +1935,12 @@
     "paused": "Membership paused.",
     "resumed": "Pause ended.",
     "pauseInvalid": "The pause ends before it starts.",
-    "notPaused": "The membership isn't paused."
+    "notPaused": "The membership isn't paused.",
+    "card": "Member card",
+    "cardQr": "Member card QR code",
+    "cardHint": "Scan at the door or type the code. Also shown in the member area.",
+    "cardReset": "New code (old one stops working)",
+    "cardResetDone": "New card code created."
   },
   "forms": {
     "nav": "Forms",
@@ -2170,7 +2205,8 @@
     "cancelled": "Cancelled. Your membership ends on {date}.",
     "whatAddress": "contact details",
     "whatBank": "bank details",
-    "portalLink": "Member area for your members: {url}"
+    "portalLink": "Member area for your members: {url}",
+    "cardHint": "Your member card: show it at the door."
   },
   "tags": {
     "remove": "Remove {tag}",
