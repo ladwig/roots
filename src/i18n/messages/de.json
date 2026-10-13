@@ -3679,7 +3679,7 @@
         "other": "{count} Mitglieder"
       },
       "byType": "Aktive nach Mitgliedsart",
-      "perMonth": "Eintritte pro Monat (− Austritte)"
+      "perMonth": "Eintritte und Austritte pro Monat"
     },
     "events": {
       "title": "Veranstaltungen & Einlass",
@@ -3693,7 +3693,8 @@
       "membersByType": "Eingelassene Mitglieder nach Mitgliedsart",
       "event": "Veranstaltung",
       "occupancy": "Auslastung",
-      "none": "Keine Veranstaltungen in diesem Zeitraum."
+      "none": "Keine Veranstaltungen in diesem Zeitraum.",
+      "perEvent": "Eingelassen pro Veranstaltung"
     },
     "payments": {
       "title": "Umsatz",

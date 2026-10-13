@@ -3679,7 +3679,7 @@
         "other": "{count} members"
       },
       "byType": "Active by membership type",
-      "perMonth": "Joined per month (− left)"
+    "perMonth": "Joined and left per month",
     },
     "events": {
       "title": "Events & door",
@@ -3693,7 +3693,8 @@
       "membersByType": "Admitted members by membership type",
       "event": "Event",
       "occupancy": "Occupancy",
-      "none": "No events in this period."
+      "none": "No events in this period.",
+      "perEvent": "Admitted per event"
     },
     "payments": {
       "title": "Revenue",

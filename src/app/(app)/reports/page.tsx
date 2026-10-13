@@ -10,6 +10,7 @@ import { requirePerm } from "@/lib/context"
 import { param } from "@/lib/url"
 import { PRESETS, period } from "@/reports/period"
 import { loadReport } from "@/reports/server"
+import { GroupedBars, StackedBars } from "./charts"
 
 // Reports: KPIs per area for a period (presets or own range, in the URL). Each area only for those who may see it.
 export default async function ReportsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -42,7 +43,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
             </Link>
           ))}
         </nav>
-        <form className="flex flex-wrap items-end gap-3" action="/reports">
+        <form key={`${p.from}:${p.to}`} className="flex flex-wrap items-end gap-3" action="/reports">
           <div className="grid gap-1">
             <Label htmlFor="r-from">{t("reports.from")}</Label>
             <Input id="r-from" name="from" type="date" defaultValue={p.from} className="w-40" />
@@ -78,11 +79,16 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
           <div className="grid gap-6 md:grid-cols-2">
             <Bars title={t("reports.members.byType")} rows={r.members.by_type.map((x) => ({ label: x.type, value: x.active }))} t={t} />
             {r.members.months.length > 1 && (
-              <Bars
-                title={t("reports.members.perMonth")}
-                rows={r.members.months.map((m) => ({ label: t.date(`${m.month}-01`, { month: "short", year: "2-digit" }), value: m.joined, extra: m.left ? `−${m.left}` : undefined }))}
-                t={t}
-              />
+              <div className="grid content-start gap-2">
+                <h3 className="text-sm text-muted-foreground">{t("reports.members.perMonth")}</h3>
+                <GroupedBars
+                  data={r.members.months.map((m) => ({ label: t.date(`${m.month}-01`, { month: "short", year: "2-digit" }), joined: m.joined, left: m.left }))}
+                  series={[
+                    { key: "joined", label: t("reports.members.joined") },
+                    { key: "left", label: t("reports.members.left") },
+                  ]}
+                />
+              </div>
             )}
           </div>
         </Section>
@@ -101,6 +107,18 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
           </Tiles>
           {Object.keys(e.members_by_type).length > 0 && (
             <Bars title={t("reports.events.membersByType")} rows={Object.entries(e.members_by_type).map(([label, value]) => ({ label, value }))} t={t} />
+          )}
+          {e.list.length > 1 && (
+            <div className="grid gap-2">
+              <h3 className="text-sm text-muted-foreground">{t("reports.events.perEvent")}</h3>
+              <StackedBars
+                data={[...e.list].reverse().map((x) => ({ label: t.date(x.starts_at, { day: "2-digit", month: "2-digit" }), tickets: x.tickets_in, members: x.members_in, guests: x.guests_in }))}
+                series={[
+                  ...(e.tickets ? [{ key: "tickets", label: t("reports.events.ticketsIn") }, { key: "members", label: t("reports.events.membersIn") }] : []),
+                  ...(e.guests ? [{ key: "guests", label: t("reports.events.guestsIn") }] : []),
+                ]}
+              />
+            </div>
           )}
           <DataTable
             rows={e.list}
