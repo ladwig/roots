@@ -29,6 +29,33 @@ async function compress(file: File): Promise<File> {
   }
 }
 
+type T = ReturnType<typeof useT>
+
+/** Upload to Storage (photos compressed) and register the rows; returns the stored files (id for /files/<id>). */
+export async function uploadFiles(orgId: string, list: File[], target: { entity?: string; entityId?: string; folder?: string }, t: T) {
+  const supabase = createClient()
+  const done: UploadedFile[] = []
+  for (const original of list) {
+    const file = await compress(original)
+    if (file.size > MAX_FILE_BYTES) {
+      toast.error(t("files.tooLarge", { name: file.name }))
+      continue
+    }
+    const ext = (file.name.split(".").pop() ?? "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 10) || "bin"
+    const path = `orgs/${orgId}/${crypto.randomUUID()}.${ext}`
+    const { error } = await supabase.storage.from("files").upload(path, file, { contentType: file.type || "application/octet-stream" })
+    if (error) toast.error(t("files.uploadFailed", { name: file.name }))
+    else done.push({ name: file.name, path, mime: file.type, size: file.size })
+  }
+  if (!done.length) return []
+  const r = await registerFiles(done, target)
+  if (r.error) {
+    toast.error(r.error)
+    return []
+  }
+  return done.map((f, i) => ({ ...f, id: r.ids?.[i] ?? "" })).filter((f) => f.id)
+}
+
 /** Upload button for any record (entity + entityId) or the Files page (folder). Uploads go straight to Storage. */
 export function FileUpload({ orgId, entity, entityId, folder }: { orgId: string; entity?: string; entityId?: string; folder?: string }) {
   const t = useT()
@@ -40,25 +67,9 @@ export function FileUpload({ orgId, entity, entityId, folder }: { orgId: string;
     const files = [...(list ?? [])]
     if (!files.length) return
     start(async () => {
-      const supabase = createClient()
-      const done: UploadedFile[] = []
-      for (const original of files) {
-        const file = await compress(original)
-        if (file.size > MAX_FILE_BYTES) {
-          toast.error(t("files.tooLarge", { name: file.name }))
-          continue
-        }
-        const ext = (file.name.split(".").pop() ?? "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 10) || "bin"
-        const path = `orgs/${orgId}/${crypto.randomUUID()}.${ext}`
-        const { error } = await supabase.storage.from("files").upload(path, file, { contentType: file.type || "application/octet-stream" })
-        if (error) toast.error(t("files.uploadFailed", { name: file.name }))
-        else done.push({ name: file.name, path, mime: file.type, size: file.size })
-      }
+      const done = await uploadFiles(orgId, files, { entity, entityId, folder }, t)
       if (input.current) input.current.value = ""
-      if (!done.length) return
-      const r = await registerFiles(done, { entity, entityId, folder })
-      if (r.error) toast.error(r.error)
-      else toast.success(t("files.uploaded", { count: done.length }))
+      if (done.length) toast.success(t("files.uploaded", { count: done.length }))
       router.refresh()
     })
   }

@@ -62,7 +62,7 @@ export default async function WikiPageView({ params, searchParams }: { params: P
               )}
             </div>
           ) : editing ? (
-            <WikiEditor page={page} parents={flat(buildTree(all))} />
+            <WikiEditor page={page} parents={flat(buildTree(all))} orgId={ctx.org.id} />
           ) : (
             <>
               <header className="flex flex-wrap items-start justify-between gap-3">

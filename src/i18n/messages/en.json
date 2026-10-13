@@ -3912,7 +3912,7 @@
     "topLevel": "– top level –",
     "toolbar": "Formatting",
     "body": "Text (Markdown)",
-    "bodyPlaceholder": "Start writing … Markdown works: **bold**, _italic_, ## Heading, - list, - [ ] task, [link](https://…)",
+    "bodyPlaceholder": "Start writing … Markdown works: **bold**, _italic_, ## Heading, - list, - [ ] task, [link](https://…). Drop or paste images and files right here.",
     "preview": "Preview",
     "unsaved": "Unsaved changes",
     "shortcuts": "⌘B bold · ⌘I italic · ⌘K link · ⌘S save",
@@ -3932,7 +3932,9 @@
       "linkText": "Link text",
       "code": "Code",
       "table": "Table",
-      "column": "Column"
-    }
+      "column": "Column",
+      "image": "Insert image or file"
+    },
+    "uploading": "Uploading {count} …"
   }
 }

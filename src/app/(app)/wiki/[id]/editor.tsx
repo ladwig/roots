@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { BoldIcon, CodeIcon, Heading2Icon, ItalicIcon, LinkIcon, ListChecksIcon, ListIcon, ListOrderedIcon, QuoteIcon, TableIcon } from "lucide-react"
+import { BoldIcon, CodeIcon, Heading2Icon, ImageIcon, ItalicIcon, LinkIcon, Loader2Icon, ListChecksIcon, ListIcon, ListOrderedIcon, QuoteIcon, TableIcon } from "lucide-react"
+import { uploadFiles } from "@/components/file-upload"
 import { Markdown } from "@/components/markdown"
 import { SubmitButton } from "@/components/submit-button"
 import { Button } from "@/components/ui/button"
@@ -15,11 +16,14 @@ import { savePageAction } from "../actions"
 type Parent = { id: string; label: string }
 
 // Markdown editor: toolbar + shortcuts (⌘B, ⌘I, ⌘K link, ⌘S save), live preview next to it (below on phones).
-// Posts like a normal form; warns before leaving with unsaved changes.
-export function WikiEditor({ page, parents }: { page: { id: string; title: string; body: string; parent_id: string | null }; parents: Parent[] }) {
+// Images/files: drop them on the text, paste them, or use the image button – they become attachments of the page
+// (private Files, photos compressed) and a link at the cursor. Posts like a normal form; warns about unsaved changes.
+export function WikiEditor({ page, parents, orgId }: { page: { id: string; title: string; body: string; parent_id: string | null }; parents: Parent[]; orgId: string }) {
   const t = useT()
   const [body, setBody] = useState(page.body)
   const [dirty, setDirty] = useState(false)
+  const [uploading, setUploading] = useState(0)
+  const [over, setOver] = useState(false)
   const form = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
@@ -43,6 +47,24 @@ export function WikiEditor({ page, parents }: { page: { id: string; title: strin
       el.setSelectionRange(a + s, a + e)
     })
   }
+  // Upload, then put ![name](/files/<id>) (images) or [name](/files/<id>) where the cursor was.
+  const attach = async (files: File[]) => {
+    if (!files.length) return
+    const el = document.getElementById("w-body") as HTMLTextAreaElement
+    const at = el.selectionStart
+    setUploading((n) => n + files.length)
+    const done = await uploadFiles(orgId, files, { entity: "wiki_pages", entityId: page.id }, t)
+    setUploading((n) => n - files.length)
+    if (!done.length) return
+    const md = done.map((f) => `${f.mime.startsWith("image/") ? "!" : ""}[${f.name.replace(/[[\]]/g, "")}](/files/${f.id})`).join("\n\n")
+    setBody((b) => {
+      const pos = Math.min(at, b.length)
+      const before = b.slice(0, pos)
+      return `${before}${before && !before.endsWith("\n") ? "\n\n" : ""}${md}\n${b.slice(pos)}`
+    })
+    setDirty(true)
+  }
+  const fromTransfer = (d: DataTransfer | null) => [...(d?.files ?? [])]
   const wrap = (mark: string, fallback: string) => edit((s) => `${mark}${s || fallback}${mark}`, (o) => [mark.length, o.length - mark.length])
   const lines = (prefix: string | ((i: number) => string)) =>
     edit((s) => (s || t("wiki.listItem")).split("\n").map((l, i) => (typeof prefix === "string" ? prefix : prefix(i)) + l).join("\n"))
@@ -57,6 +79,7 @@ export function WikiEditor({ page, parents }: { page: { id: string; title: strin
     { label: t("wiki.tools.link"), icon: LinkIcon, run: () => edit((s) => `[${s || t("wiki.tools.linkText")}](https://)`, (o) => [o.length - 9, o.length - 1]) },
     { label: t("wiki.tools.code"), icon: CodeIcon, run: () => edit((s) => (s.includes("\n") ? `\n\`\`\`\n${s}\n\`\`\`\n` : `\`${s || "code"}\``)) },
     { label: t("wiki.tools.table"), icon: TableIcon, run: () => edit(() => `\n| ${t("wiki.tools.column")} 1 | ${t("wiki.tools.column")} 2 |\n| --- | --- |\n|  |  |\n`) },
+    { label: t("wiki.tools.image"), icon: ImageIcon, run: () => document.getElementById("w-pick")?.click() },
   ]
   const keys = (e: React.KeyboardEvent) => {
     if (!(e.metaKey || e.ctrlKey)) return
@@ -97,6 +120,12 @@ export function WikiEditor({ page, parents }: { page: { id: string; title: strin
             <TooltipContent>{label}</TooltipContent>
           </Tooltip>
         ))}
+        <input id="w-pick" type="file" multiple hidden onChange={(e) => (attach([...(e.target.files ?? [])]), (e.target.value = ""))} />
+        {uploading > 0 && (
+          <span className="ml-auto flex items-center gap-1.5 px-2 text-xs text-muted-foreground" aria-live="polite">
+            <Loader2Icon className="size-3.5 animate-spin" /> {t("wiki.uploading", { count: uploading })}
+          </span>
+        )}
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <textarea
@@ -105,18 +134,38 @@ export function WikiEditor({ page, parents }: { page: { id: string; title: strin
           value={body}
           onChange={(e) => (setBody(e.target.value), setDirty(true))}
           onKeyDown={keys}
+          onPaste={(e) => {
+            const files = fromTransfer(e.clipboardData)
+            if (!files.length) return
+            e.preventDefault()
+            attach(files)
+          }}
+          onDragOver={(e) => {
+            if (!e.dataTransfer.types.includes("Files")) return
+            e.preventDefault()
+            setOver(true)
+          }}
+          onDragLeave={() => setOver(false)}
+          onDrop={(e) => {
+            setOver(false)
+            const files = fromTransfer(e.dataTransfer)
+            if (!files.length) return
+            e.preventDefault()
+            attach(files)
+          }}
+          data-over={over || undefined}
           maxLength={200000}
           rows={24}
           aria-label={t("wiki.body")}
           placeholder={t("wiki.bodyPlaceholder")}
-          className="min-h-[60vh] rounded-lg border border-input bg-transparent px-3 py-2 font-mono text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+          className="min-h-[60vh] rounded-lg border border-input bg-transparent px-3 py-2 font-mono text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 data-[over]:border-primary data-[over]:bg-primary/5 dark:bg-input/30"
         />
         <div className="min-h-40 rounded-lg border px-4 py-3" aria-label={t("wiki.preview")}>
           {body.trim() ? <Markdown>{body}</Markdown> : <p className="text-sm text-muted-foreground">{t("wiki.preview")}</p>}
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <SubmitButton>{t("common.save")}</SubmitButton>
+        <SubmitButton disabled={uploading > 0}>{t("common.save")}</SubmitButton>
         <span className="text-xs text-muted-foreground">{dirty ? t("wiki.unsaved") : t("wiki.shortcuts")}</span>
       </div>
     </form>

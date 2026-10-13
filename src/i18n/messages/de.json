@@ -3912,7 +3912,7 @@
     "topLevel": "– oberste Ebene –",
     "toolbar": "Formatierung",
     "body": "Text (Markdown)",
-    "bodyPlaceholder": "Schreib los … Markdown geht: **fett**, _kursiv_, ## Überschrift, - Liste, - [ ] Aufgabe, [Link](https://…)",
+    "bodyPlaceholder": "Schreib los … Markdown geht: **fett**, _kursiv_, ## Überschrift, - Liste, - [ ] Aufgabe, [Link](https://…). Bilder und Dateien einfach hineinziehen oder einfügen.",
     "preview": "Vorschau",
     "unsaved": "Ungespeicherte Änderungen",
     "shortcuts": "⌘B fett · ⌘I kursiv · ⌘K Link · ⌘S speichern",
@@ -3932,7 +3932,9 @@
       "linkText": "Linktext",
       "code": "Code",
       "table": "Tabelle",
-      "column": "Spalte"
-    }
+      "column": "Spalte",
+      "image": "Bild oder Datei einfügen"
+    },
+    "uploading": "{count} wird hochgeladen …"
   }
 }

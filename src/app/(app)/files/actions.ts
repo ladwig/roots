@@ -18,7 +18,7 @@ const backTo = (fd: FormData) => {
 export type UploadedFile = { name: string; path: string; mime: string; size: number }
 
 /** Called by <FileUpload> after the browser put the objects into Storage. */
-export async function registerFiles(files: UploadedFile[], target: { entity?: string; entityId?: string; folder?: string }) {
+export async function registerFiles(files: UploadedFile[], target: { entity?: string; entityId?: string; folder?: string }): Promise<{ error?: string; ids?: string[] }> {
   const ctx = await getContext()
   const t = await getT()
   if (!ctx.can("org.files.manage")) return { error: t("errors.not_allowed") }
@@ -36,8 +36,9 @@ export async function registerFiles(files: UploadedFile[], target: { entity?: st
   }))
   if (!rows.length || rows.length > 50 || rows.some((r) => !FILE_PATH.test(r.path) || !r.path.startsWith(`orgs/${ctx.org.id}/`)))
     return { error: t("errors.not_allowed") }
-  const { error } = await ctx.supabase.from("files").insert(rows)
-  return error ? { error: dbError(t, error) } : {}
+  const { data, error } = await ctx.supabase.from("files").insert(rows).select("id, path")
+  // ids in the order of the given files (the editor links them right away)
+  return error ? { error: dbError(t, error) } : { ids: rows.map((r) => data?.find((d) => d.path === r.path)?.id ?? "") }
 }
 
 export async function updateFile(fd: FormData) {
