@@ -18,7 +18,7 @@ import {
   type Node,
   type NodeProps,
 } from "@xyflow/react"
-import { BellIcon, ClockIcon, DownloadIcon, GitForkIcon, LayoutListIcon, MailIcon, PencilIcon, SaveIcon, TagIcon, TagsIcon, Trash2Icon, WebhookIcon, ZapIcon, type LucideIcon } from "lucide-react"
+import { BellIcon, CheckIcon, ClockIcon, DownloadIcon, FlaskConicalIcon, XIcon, GitForkIcon, LayoutListIcon, MailIcon, PencilIcon, SaveIcon, TagIcon, TagsIcon, Trash2Icon, WebhookIcon, ZapIcon, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 import { RichTextEditor } from "@/components/rich-text-editor"
 import { Badge } from "@/components/ui/badge"
@@ -29,9 +29,9 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
 import { useT } from "@/i18n/client"
 import { cn } from "@/lib/utils"
-import { ACTIONS, validate, WAIT_UNITS, type Graph, type NodeType } from "@/automations/graph"
+import { ACTIONS, validate, WAIT_UNITS, type Graph, type NodeType, type TraceStep } from "@/automations/graph"
 import { OBJECTS, objectsFor, OPS_FOR, splitPath, WRITABLE, type Field, type Kind, type ObjectKey, type RefList } from "@/automations/objects"
-import { saveWorkflow } from "../actions"
+import { saveWorkflow, testRun, testSamples } from "../actions"
 
 type Data = Record<string, unknown>
 type FlowNode = Node<Data, NodeType>
@@ -96,14 +96,30 @@ function StepNode({ type, data, selected }: NodeProps<FlowNode>) {
     return String(d.subject ?? d.tag ?? d.field ?? d.url ?? d.text ?? "") || "–"
   })()
   const problem = Boolean(data.__problem)
+  const trace = data.__trace as TraceStep | null | undefined // undefined = no test run, null = not reached
   return (
-    <div className={cn("w-64 rounded-lg border bg-card px-3 py-2 text-sm shadow-sm", selected && "ring-2 ring-ring", problem && "border-destructive", type === "trigger" && "border-primary")}>
+    <div
+      className={cn(
+        "w-64 rounded-lg border bg-card px-3 py-2 text-sm shadow-sm",
+        selected && "ring-2 ring-ring",
+        problem && "border-destructive",
+        type === "trigger" && "border-primary",
+        trace && "border-primary bg-primary/5",
+        trace === null && "opacity-50",
+      )}
+    >
       {type !== "trigger" && <Handle type="target" position={Position.Top} />}
       <div className="flex items-center gap-2">
         <Icon className="size-4 shrink-0 text-muted-foreground" />
         <span className="font-medium">{t.dynamic(`automations.nodes.${type}`)}</span>
       </div>
       <p className="mt-1 truncate text-xs text-muted-foreground">{summary}</p>
+      {trace && (
+        <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-primary">
+          <CheckIcon className="size-3" />
+          {trace.branch ? t(trace.branch === "yes" ? "automations.yes" : "automations.no") : trace.wait ? t("automations.wouldWait", { time: duration(trace.wait, t) }) : type === "trigger" ? t("automations.testResult") : t("automations.wouldDo")}
+        </p>
+      )}
       {type === "condition" ? (
         <>
           <Handle type="source" id="yes" position={Position.Bottom} style={{ left: "30%" }} />
@@ -119,6 +135,9 @@ function StepNode({ type, data, selected }: NodeProps<FlowNode>) {
     </div>
   )
 }
+const duration = (ms: number, t: ReturnType<typeof useT>) =>
+  ms % 86_400_000 === 0 ? `${ms / 86_400_000} ${t("automations.units.days")}` : ms % 3_600_000 === 0 ? `${ms / 3_600_000} ${t("automations.units.hours")}` : `${ms / 60_000} ${t("automations.units.minutes")}`
+
 const nodeTypes = Object.fromEntries(["trigger", "condition", "wait", ...ACTIONS].map((k) => [k, StepNode]))
 
 export function WorkflowEditor(props: { id: string; name: string; description: string; graph: Graph; options: EditorOptions; canEdit: boolean }) {
@@ -138,6 +157,22 @@ function Editor({ id, name: initialName, description: initialDescription, graph,
   const [selected, setSelected] = useState<string | null>(null)
   const [dirty, setDirty] = useState(false)
   const [pending, start] = useTransition()
+  // Test run: pick a real event of the trigger type, play the (unsaved) flow through, show the path.
+  const [test, setTest] = useState<{ samples: { id: number; at: string; label: string }[] | null; eventId: string; trace: TraceStep[] | null; data: Record<string, unknown> | null } | null>(null)
+  const [testing, startTest] = useTransition()
+  const triggerEvent = String(nodes.find((n) => n.type === "trigger")?.data.event ?? "")
+  const openTest = () =>
+    startTest(async () => {
+      const samples = await testSamples(triggerEvent)
+      setTest({ samples, eventId: samples[0] ? String(samples[0].id) : "", trace: null, data: null })
+    })
+  const runTest = () =>
+    startTest(async () => {
+      if (!test?.eventId) return
+      const r = await testRun({ eventId: Number(test.eventId), graph: current() })
+      if (r.error) toast.error(r.error)
+      else setTest({ ...test, trace: r.trace ?? [], data: r.data ?? null })
+    })
 
   const current = (): Graph => ({
     nodes: nodes.map((n) => ({ id: n.id, type: n.type as NodeType, position: { x: Math.round(n.position.x), y: Math.round(n.position.y) }, data: Object.fromEntries(Object.entries(n.data).filter(([k]) => !k.startsWith("__"))) })),
@@ -145,7 +180,15 @@ function Editor({ id, name: initialName, description: initialDescription, graph,
   })
   const problems = useMemo(() => validate(current()), [nodes, edges]) // eslint-disable-line react-hooks/exhaustive-deps
   const flagged = new Set(problems.map((p) => p.node).filter(Boolean))
-  const shown = nodes.map((n) => (flagged.has(n.id) !== Boolean(n.data.__problem) ? { ...n, data: { ...n.data, __problem: flagged.has(n.id) } } : n))
+  const traced = new Map((test?.trace ?? []).map((st) => [st.node, st]))
+  const shown = nodes.map((n) => ({ ...n, data: { ...n.data, __problem: flagged.has(n.id), __trace: test?.trace ? (traced.get(n.id) ?? null) : undefined } }))
+  const shownEdges = test?.trace
+    ? edges.map((e) => {
+        const from = traced.get(e.source)
+        const taken = !!from && traced.has(e.target) && (!from.branch || from.branch === e.sourceHandle)
+        return taken ? { ...e, animated: true, style: { stroke: "var(--primary)", strokeWidth: 2 } } : e
+      })
+    : edges
 
   const onConnect = useCallback(
     (c: Connection) => {
@@ -231,6 +274,9 @@ function Editor({ id, name: initialName, description: initialDescription, graph,
           <Button type="button" variant="outline" size="sm" onClick={layout} disabled={!canEdit}>
             <LayoutListIcon /> {t("automations.tidy")}
           </Button>
+          <Button type="button" variant="outline" size="sm" onClick={openTest} disabled={testing || !triggerEvent}>
+            <FlaskConicalIcon /> {t("automations.testRun")}
+          </Button>
           <Button type="button" variant="outline" size="sm" onClick={exportJson}>
             <DownloadIcon /> {t("automations.export")}
           </Button>
@@ -242,6 +288,42 @@ function Editor({ id, name: initialName, description: initialDescription, graph,
         </div>
       </div>
       <Textarea value={description} disabled={!canEdit} maxLength={2000} rows={1} placeholder={t("automations.descriptionPlaceholder")} onChange={(e) => (setDescription(e.target.value), setDirty(true))} />
+      {test && (
+        <section className="grid gap-2 rounded-lg border border-primary/40 p-3" aria-label={t("automations.testRun")}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm text-muted-foreground">{t("automations.testHint")}</p>
+            <Button type="button" variant="ghost" size="icon-sm" aria-label={t("automations.closeTest")} onClick={() => setTest(null)}>
+              <XIcon />
+            </Button>
+          </div>
+          {test.samples?.length ? (
+            <div className="flex flex-wrap items-end gap-2">
+              <div className="grid min-w-0 flex-1 gap-1">
+                <Label htmlFor="test-sample">{t("automations.testSample")}</Label>
+                <NativeSelect id="test-sample" value={test.eventId} onChange={(e) => setTest({ ...test, eventId: e.target.value, trace: null, data: null })} className="w-full">
+                  {test.samples.map((x) => (
+                    <NativeSelectOption key={x.id} value={String(x.id)}>
+                      {new Date(x.at).toLocaleString()}
+                      {x.label && ` · ${x.label}`}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </div>
+              <Button type="button" size="sm" onClick={runTest} disabled={testing}>
+                {testing ? t("automations.testing") : t("automations.runTest")}
+              </Button>
+            </div>
+          ) : (
+            <p className="text-sm">{t("automations.noSamples")}</p>
+          )}
+          {test.data && (
+            <details className="text-xs">
+              <summary className="cursor-pointer">{t("automations.testData")}</summary>
+              <pre className="mt-1 max-h-64 overflow-auto rounded bg-muted p-2">{JSON.stringify(test.data, null, 2)}</pre>
+            </details>
+          )}
+        </section>
+      )}
       {problems.length > 0 && (
         <ul className="flex flex-wrap gap-2" aria-live="polite">
           {[...new Set(problems.map((p) => p.key))].map((k) => (
@@ -270,7 +352,7 @@ function Editor({ id, name: initialName, description: initialDescription, graph,
         <div className="h-[70dvh] min-h-[460px] overflow-hidden rounded-lg border">
           <ReactFlow
             nodes={shown}
-            edges={edges}
+            edges={shownEdges}
             nodeTypes={nodeTypes}
             onNodesChange={(c) => (onNodesChange(c.filter((x) => x.type !== "remove" || nodes.find((n) => n.id === x.id)?.type !== "trigger")), c.some((x) => x.type !== "select" && x.type !== "dimensions") && setDirty(true))}
             onEdgesChange={(c) => (onEdgesChange(c), c.some((x) => x.type === "remove") && setDirty(true))}
@@ -294,7 +376,8 @@ function Editor({ id, name: initialName, description: initialDescription, graph,
               key={sel.id}
               node={sel}
               options={options}
-              trigger={String(nodes.find((n) => n.type === "trigger")?.data.event ?? "")}
+              trigger={triggerEvent}
+              trace={test?.trace ? (traced.get(sel.id) ?? null) : undefined}
               canEdit={canEdit}
               onChange={(p) => update(sel.id, p)}
               onRemove={() => remove(sel.id)}
@@ -309,7 +392,23 @@ function Editor({ id, name: initialName, description: initialDescription, graph,
 }
 
 // Settings of the selected step.
-function Inspector({ node, options, trigger, canEdit, onChange, onRemove }: { node: FlowNode; options: EditorOptions; trigger: string; canEdit: boolean; onChange: (p: Data) => void; onRemove: () => void }) {
+function Inspector({
+  node,
+  options,
+  trigger,
+  trace,
+  canEdit,
+  onChange,
+  onRemove,
+}: {
+  node: FlowNode
+  options: EditorOptions
+  trigger: string
+  trace?: TraceStep | null
+  canEdit: boolean
+  onChange: (p: Data) => void
+  onRemove: () => void
+}) {
   const t = useT()
   const d = node.data as Record<string, unknown>
   const type = node.type as NodeType
@@ -350,6 +449,7 @@ function Inspector({ node, options, trigger, canEdit, onChange, onRemove }: { no
         )}
       </p>
       <p className="text-xs text-muted-foreground">{t.dynamic(`automations.help.${type}`)}</p>
+      {trace !== undefined && <TraceView trace={trace} />}
       {type === "trigger" && (
         <div className="grid gap-1">
           <Label htmlFor="in-event">{t("automations.event")}</Label>
@@ -399,6 +499,32 @@ function Inspector({ node, options, trigger, canEdit, onChange, onRemove }: { no
         </>
       )}
       {(type === "send_email" || type === "notify_team") && <p className="text-xs text-muted-foreground">{t("automations.placeholdersHint")}</p>}
+    </div>
+  )
+}
+
+// What this step did in the test run: condition rules (value seen vs expected), filled texts, wait.
+function TraceView({ trace }: { trace: TraceStep | null }) {
+  const t = useT()
+  if (!trace) return <p className="rounded-md bg-muted px-2 py-1 text-xs">{t("automations.notReached")}</p>
+  const show = (v: unknown) => (v == null || v === "" ? "–" : Array.isArray(v) ? v.join(", ") : typeof v === "object" ? JSON.stringify(v) : String(v))
+  return (
+    <div className="grid gap-1 rounded-md border border-primary/40 bg-primary/5 p-2 text-xs">
+      <p className="font-medium">{t("automations.testResult")}</p>
+      {trace.rules?.map((r, i) => (
+        <p key={i} className={r.ok ? "" : "text-destructive"}>
+          {r.ok ? "✓" : "✗"} {r.field}: {t("automations.actual")} „{show(r.actual)}“ · {t("automations.expected")} {t.dynamic(`automations.ops.${r.op}`)} „{r.expected}“
+        </p>
+      ))}
+      {trace.branch && <p>→ {t(trace.branch === "yes" ? "automations.yes" : "automations.no")}</p>}
+      {trace.wait != null && <p>{t("automations.wouldWait", { time: duration(trace.wait, t) })}</p>}
+      {trace.preview &&
+        Object.entries(trace.preview).map(([k, v]) => (
+          <p key={k} className="break-words">
+            <span className="text-muted-foreground">{k}: </span>
+            {k === "body" ? v.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() : v}
+          </p>
+        ))}
     </div>
   )
 }

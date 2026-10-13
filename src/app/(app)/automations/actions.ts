@@ -6,7 +6,10 @@ import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import type { Json } from "@/lib/supabase/types"
 import { back } from "@/lib/url"
-import { Graph, triggerOf, validate } from "@/automations/graph"
+import { Graph, simulate, triggerOf, validate, type TraceStep } from "@/automations/graph"
+import { OBJECTS, type ObjectKey } from "@/automations/objects"
+import { contextForEvent } from "@/automations/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { TEMPLATES } from "@/automations/templates"
 
 const UUID = /^[0-9a-f-]{36}$/
@@ -105,4 +108,34 @@ export async function cancelRun(fd: FormData) {
   const { error } = await ctx.supabase.from("workflow_runs").update({ status: "cancelled" }).eq("id", String(fd.get("id") ?? "")).eq("org_id", ctx.org.id).in("status", ["queued", "waiting"])
   if (error) back(`/automations/${wf}/runs`, { error: dbError(t, error) })
   back(`/automations/${wf}/runs`, { ok: t("automations.runCancelled") })
+}
+
+// ---------- test run (nothing is sent or changed) ----------
+
+/** The latest real events of a trigger type in this org, to test with. */
+export async function testSamples(eventType: string): Promise<{ id: number; at: string; label: string }[]> {
+  const ctx = await requirePerm("automations.view")
+  if (!eventType) return []
+  // hub_events aren't readable for members; read with the service role, strictly this org.
+  const { data } = await createAdminClient().from("hub_events").select("id, created_at, payload").eq("org_id", ctx.org.id).eq("type", eventType).order("id", { ascending: false }).limit(20)
+  return (data ?? []).map((e) => {
+    const p = (e.payload ?? {}) as Record<string, unknown>
+    const label = [p.name, p.title, p.email, p.number].find((x) => typeof x === "string" && x) as string | undefined
+    return { id: e.id, at: e.created_at, label: label ?? "" }
+  })
+}
+
+/** Walk the (unsaved) graph with the data of a real event: path, condition results, filled texts, the data. */
+export async function testRun(input: { eventId: number; graph: unknown }): Promise<{ error?: string; trace?: TraceStep[]; data?: Record<string, unknown> }> {
+  const ctx = await requirePerm("automations.view")
+  const t = await getT()
+  const parsed = Graph.safeParse(input.graph)
+  if (!parsed.success) return { error: t("automations.graphInvalid") }
+  const db = createAdminClient()
+  const { data: ev } = await db.from("hub_events").select("type, payload").eq("id", input.eventId).eq("org_id", ctx.org.id).maybeSingle()
+  if (!ev) return { error: t("automations.noSample") }
+  const full = await contextForEvent(db, ctx.org.id, ev)
+  // Only data the tester may see anyway (person data needs crm.view, memberships members.view …).
+  const data = Object.fromEntries(Object.entries(full).filter(([k]) => !(k in OBJECTS) || ctx.can(`${OBJECTS[k as ObjectKey].module}.view`)))
+  return { trace: simulate(parsed.data, data), data }
 }

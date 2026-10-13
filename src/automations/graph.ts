@@ -173,3 +173,46 @@ export const fill = (template: string, ctx: Record<string, unknown>, escape = (s
     const v = resolve(ctx, short[key] ?? (key.includes(".") ? key : `payload.${key}`))
     return v == null || typeof v === "object" ? m : escape(String(v))
   })
+
+// ---------- test run ----------
+
+export type TraceStep = {
+  node: string
+  type: NodeType
+  branch?: "yes" | "no"
+  rules?: { field: string; op: string; expected: string; actual: unknown; ok: boolean }[]
+  preview?: Record<string, string> // what the action would do, placeholders filled
+  wait?: number // ms the real run would pause here
+}
+
+/** Walk the flow with real data without doing anything: path, condition results, filled texts. */
+export function simulate(g: Graph, ctx: Record<string, unknown>, maxSteps = 100): TraceStep[] {
+  const trace: TraceStep[] = []
+  const trigger = triggerOf(g)
+  if (!trigger) return trace
+  trace.push({ node: trigger.id, type: "trigger" })
+  let node = next(g, trigger.id)
+  for (let i = 0; node && i < maxSteps; i++) {
+    const parsed = NODE_DATA[node.type].safeParse(node.data)
+    const d = (parsed.success ? parsed.data : node.data) as Record<string, unknown>
+    if (node.type === "condition") {
+      const c = d as NodeData<"condition">
+      const rules = (c.rules ?? []).map((r) => ({ field: r.field, op: r.op, expected: r.value, actual: resolve(ctx, r.field) ?? null, ok: test(r, ctx) }))
+      const yes = c.match === "any" ? rules.some((r) => r.ok) : rules.every((r) => r.ok)
+      trace.push({ node: node.id, type: "condition", branch: yes ? "yes" : "no", rules })
+      node = next(g, node.id, yes ? "yes" : "no")
+      continue
+    }
+    const step: TraceStep = { node: node.id, type: node.type }
+    if (node.type === "wait") step.wait = waitMs(d as NodeData<"wait">)
+    else
+      step.preview = Object.fromEntries(
+        Object.entries(d)
+          .filter(([, v]) => typeof v === "string")
+          .map(([k, v]) => [k, k === "field" ? String(v) : fill(String(v), ctx)]),
+      )
+    trace.push(step)
+    node = next(g, node.id)
+  }
+  return trace
+}

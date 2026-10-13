@@ -3165,6 +3165,22 @@
     "tagPlaceholder": "Tag suchen oder neu eingeben",
     "newTag": "„{tag}“ wird als neuer Tag angelegt",
     "unknownTag": "Diesen Tag gibt es noch nicht.",
-    "nothingToSet": "Dieser Auslöser bringt nichts mit, das sich ändern lässt."
+    "nothingToSet": "Dieser Auslöser bringt nichts mit, das sich ändern lässt.",
+    "noSample": "Dieses Ereignis gibt es nicht (mehr).",
+    "testRun": "Testlauf",
+    "testHint": "Spielt die Automation mit echten Daten durch – es wird nichts gesendet und nichts geändert.",
+    "testSample": "Mit diesen Daten testen",
+    "noSamples": "Für diesen Auslöser gab es noch kein Ereignis – sobald eines passiert, kannst du damit testen.",
+    "runTest": "Durchspielen",
+    "testing": "Spielt durch…",
+    "testData": "Daten des Testlaufs",
+    "testResult": "Im Testlauf",
+    "wouldDo": "würde ausgeführt",
+    "wouldWait": "würde {time} warten",
+    "notReached": "nicht erreicht",
+    "closeTest": "Test schließen",
+    "expected": "erwartet",
+    "actual": "tatsächlich",
+    "pickTriggerFirstTest": "Wähle zuerst einen Auslöser."
   }
 }

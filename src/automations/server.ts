@@ -62,7 +62,7 @@ async function step(db: Db, run: Run) {
 
 // The run's data: trigger payload, the objects the trigger brings (src/automations/objects.ts) as they are now,
 // the person (from the run, or via the membership/invoice), the org.
-async function context(db: Db, run: Run): Promise<Ctx> {
+export async function context(db: Db, run: Pick<Run, "org_id" | "contact_id" | "context">): Promise<Ctx> {
   const base = (run.context ?? {}) as { event?: string; payload?: Record<string, unknown> }
   const payload = base.payload ?? {}
   const idOf = (k: ObjectKey) => {
@@ -102,6 +102,15 @@ async function context(db: Db, run: Run): Promise<Ctx> {
     shift,
     org: { name: org?.name ?? "" },
   }
+}
+
+/** Data of a test run: the same objects a real run of this hub event would see (contact via id or email). */
+export async function contextForEvent(db: Db, orgId: string, event: { type: string; payload: unknown }) {
+  const payload = (event.payload ?? {}) as Record<string, unknown>
+  let contactId = typeof payload.contact_id === "string" && /^[0-9a-f-]{36}$/.test(payload.contact_id) ? payload.contact_id : null
+  if (!contactId && typeof payload.email === "string" && payload.email)
+    contactId = (await db.from("contacts").select("id").eq("org_id", orgId).eq("email", payload.email.toLowerCase()).is("deleted_at", null).maybeSingle()).data?.id ?? null
+  return context(db, { org_id: orgId, contact_id: contactId, context: { event: event.type, payload } as NonNullable<Json> })
 }
 
 async function act(db: Db, run: Run, node: GraphNode, type: NodeType, d: Record<string, unknown>, ctx: Ctx): Promise<string | void> {

@@ -42,3 +42,15 @@ it("conditions and placeholders", () => {
   assert.equal(passes({ match: "any", rules: [{ field: "contact.city", op: "eq", value: "Hamburg" }, { field: "payload.title", op: "eq", value: "yoga" }] }, ctx), true)
   assert.equal(fill("Hi {first_name}, {title} · {contact.city} {unknown}", ctx), "Hi Ana, Yoga · Berlin {unknown}")
 })
+
+it("test run walks the path with real data", async () => {
+  const { simulate } = await import("./graph.ts")
+  const ctx = { contact: { first_name: "Ana", tags: ["VIP"] } }
+  const trace = simulate(good, ctx)
+  assert.deepEqual(trace.map((s) => s.node), ["t", "c", "w", "m"])
+  assert.equal(trace[1].branch, "yes")
+  assert.equal(trace[1].rules[0].ok, true)
+  assert.equal(trace[2].wait, 172_800_000)
+  assert.equal(trace[3].preview.subject, "Hallo Ana")
+  assert.deepEqual(simulate(good, { contact: { tags: [] } }).map((s) => s.node), ["t", "c", "x"])
+})

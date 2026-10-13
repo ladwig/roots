@@ -3165,6 +3165,22 @@
     "tagPlaceholder": "Search a tag or type a new one",
     "newTag": "“{tag}” will be created as a new tag",
     "unknownTag": "This tag doesn't exist yet.",
-    "nothingToSet": "This trigger brings nothing that can be changed."
+    "nothingToSet": "This trigger brings nothing that can be changed.",
+    "noSample": "This event doesn't exist (any more).",
+    "testRun": "Test run",
+    "testHint": "Plays the automation through with real data – nothing is sent or changed.",
+    "testSample": "Test with this data",
+    "noSamples": "There's been no event for this trigger yet – as soon as one happens you can test with it.",
+    "runTest": "Play through",
+    "testing": "Playing through…",
+    "testData": "Data of the test run",
+    "testResult": "In the test run",
+    "wouldDo": "would run",
+    "wouldWait": "would wait {time}",
+    "notReached": "not reached",
+    "closeTest": "Close test",
+    "expected": "expected",
+    "actual": "actual",
+    "pickTriggerFirstTest": "Pick a trigger first."
   }
 }
