@@ -239,6 +239,10 @@
     "automations": {
       "name": "Automationen",
       "description": "Abläufe auf einer Fläche bauen: Auslöser, Bedingungen, Warten, E-Mails, Tags, Webhooks – mit Vorlagen und JSON-Export."
+    },
+    "reports": {
+      "name": "Auswertungen",
+      "description": "Kennzahlen pro Zeitraum: Mitglieder, Einlass, Umsatz, Schichten, Rechnungen."
     }
   },
   "permissions": {
@@ -276,7 +280,8 @@
     "courses.view": "Kurse ansehen",
     "courses.manage": "Kurse verwalten",
     "automations.view": "Automationen ansehen",
-    "automations.manage": "Automationen bearbeiten"
+    "automations.manage": "Automationen bearbeiten",
+    "reports.view": "Auswertungen ansehen"
   },
   "integrations": {
     "connect": "Verbinden",
@@ -2460,6 +2465,10 @@
       "automations": {
         "name": "Automationen",
         "text": "Abläufe auf einer Fläche: wenn etwas passiert oder zu festen Zeiten, dann E-Mail, Feld ändern, Datensatz anlegen, Webhook – mit Vorlagen und Testlauf."
+      },
+      "reports": {
+        "name": "Auswertungen",
+        "text": "Kennzahlen für jeden Zeitraum: Mitglieder, Einlass nach Mitgliedsart, Umsatz, Schichten und Rechnungen."
       }
     },
     "events": {
@@ -3636,5 +3645,100 @@
     "preview": "Nächste: {example}",
     "help": "Platzhalter: {NNNN} laufende Nummer (Anzahl N = Stellen), {YYYY} / {YY} Jahr, {MM} Monat, {BYYYY} / {BY} Geburtsjahr, {RAND6} 6 Zufallszeichen. {N…} oder {RAND…} ist Pflicht.",
     "invalid": "Das Format braucht {N} (laufende Nummer) oder {RAND6} (Zufall); sonst nur A–Z, 0–9 und - _ / . #"
+  },
+  "reports": {
+    "nav": "Auswertungen",
+    "title": "Auswertungen",
+    "period": "Zeitraum",
+    "from": "Von",
+    "to": "Bis",
+    "show": "Anzeigen",
+    "range": "{from} – {to}",
+    "today": "Stand heute",
+    "more": "Weitere Zahlen",
+    "presets": {
+      "30d": "Letzte 30 Tage",
+      "month": "Dieser Monat",
+      "last_month": "Letzter Monat",
+      "quarter": "Dieses Quartal",
+      "year": "Dieses Jahr",
+      "last_year": "Letztes Jahr"
+    },
+    "members": {
+      "title": "Mitglieder",
+      "active": "Aktive Mitglieder",
+      "joined": "Eintritte",
+      "left": "Austritte",
+      "paused": "Pausiert",
+      "feeFree": "Beitragsfrei",
+      "duesPaid": "Beiträge bezahlt",
+      "duesOpen": "Beiträge offen",
+      "duesOverdue": "Beiträge überfällig",
+      "overduePeople": {
+        "one": "{count} Mitglied",
+        "other": "{count} Mitglieder"
+      },
+      "byType": "Aktive nach Mitgliedsart",
+      "perMonth": "Eintritte pro Monat (− Austritte)"
+    },
+    "events": {
+      "title": "Veranstaltungen & Einlass",
+      "count": "Veranstaltungen",
+      "sold": "Tickets verkauft",
+      "revenue": "Ticketumsatz",
+      "admitted": "Eingelassen",
+      "ticketsIn": "mit Ticket",
+      "membersIn": "Mitglieder",
+      "guestsIn": "Gäste",
+      "membersByType": "Eingelassene Mitglieder nach Mitgliedsart",
+      "event": "Veranstaltung",
+      "occupancy": "Auslastung",
+      "none": "Keine Veranstaltungen in diesem Zeitraum."
+    },
+    "payments": {
+      "title": "Umsatz",
+      "gross": "Eingegangen",
+      "orders": "Bezahlte Bestellungen"
+    },
+    "sources": {
+      "tickets": "davon Tickets",
+      "members": "davon Mitglieder",
+      "invoices": "davon Rechnungen",
+      "guestlists": "davon Gästelisten"
+    },
+    "invoices": {
+      "title": "Rechnungen",
+      "issued": "Ausgestellt",
+      "count": {
+        "one": "{count} Rechnung",
+        "other": "{count} Rechnungen"
+      },
+      "paid": "Bezahlt",
+      "open": "Offen",
+      "overdue": "Überfällig"
+    },
+    "shifts": {
+      "title": "Schichten",
+      "count": "Schichten",
+      "filled": "Besetzt",
+      "slots": "{assigned} von {needed} Plätzen",
+      "hours": "Gearbeitete Stunden"
+    },
+    "contacts": {
+      "new": "Neue Kontakte",
+      "total": "{count} insgesamt"
+    },
+    "forms": {
+      "submissions": "Formular-Einsendungen"
+    },
+    "courses": {
+      "enrolled": "Kursteilnahmen",
+      "waiting": "{count} auf Wartelisten"
+    },
+    "email": {
+      "sent": "E-Mails verschickt",
+      "delivered": "{rate} zugestellt",
+      "bounced": "Unzustellbar / Spam"
+    }
   }
 }

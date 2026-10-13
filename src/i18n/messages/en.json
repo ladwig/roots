@@ -239,6 +239,10 @@
     "automations": {
       "name": "Automations",
       "description": "Build flows on a canvas: triggers, conditions, waits, emails, tags, webhooks – with templates and JSON export."
+    },
+    "reports": {
+      "name": "Reports",
+      "description": "KPIs per period: members, door, revenue, shifts, invoices."
     }
   },
   "permissions": {
@@ -276,7 +280,8 @@
     "courses.view": "View courses",
     "courses.manage": "Manage courses",
     "automations.view": "View automations",
-    "automations.manage": "Edit automations"
+    "automations.manage": "Edit automations",
+    "reports.view": "View reports"
   },
   "integrations": {
     "connect": "Connect",
@@ -2460,6 +2465,10 @@
       "automations": {
         "name": "Automations",
         "text": "Flows on a canvas: when something happens or at set times, send an email, change a field, create a record, call a webhook – with templates and test runs."
+      },
+      "reports": {
+        "name": "Reports",
+        "text": "KPIs for any period: members, door by membership type, revenue, shifts and invoices."
       }
     },
     "events": {
@@ -3636,5 +3645,100 @@
     "preview": "Next: {example}",
     "help": "Placeholders: {NNNN} running number (N count = digits), {YYYY} / {YY} year, {MM} month, {BYYYY} / {BY} birth year, {RAND6} 6 random characters. {N…} or {RAND…} is required.",
     "invalid": "The format needs {N} (running number) or {RAND6} (random); otherwise only A–Z, 0–9 and - _ / . #"
+  },
+  "reports": {
+    "nav": "Reports",
+    "title": "Reports",
+    "period": "Period",
+    "from": "From",
+    "to": "To",
+    "show": "Show",
+    "range": "{from} – {to}",
+    "today": "As of today",
+    "more": "More numbers",
+    "presets": {
+      "30d": "Last 30 days",
+      "month": "This month",
+      "last_month": "Last month",
+      "quarter": "This quarter",
+      "year": "This year",
+      "last_year": "Last year"
+    },
+    "members": {
+      "title": "Members",
+      "active": "Active members",
+      "joined": "Joined",
+      "left": "Left",
+      "paused": "Paused",
+      "feeFree": "Fee-free",
+      "duesPaid": "Dues paid",
+      "duesOpen": "Dues open",
+      "duesOverdue": "Dues overdue",
+      "overduePeople": {
+        "one": "{count} member",
+        "other": "{count} members"
+      },
+      "byType": "Active by membership type",
+      "perMonth": "Joined per month (− left)"
+    },
+    "events": {
+      "title": "Events & door",
+      "count": "Events",
+      "sold": "Tickets sold",
+      "revenue": "Ticket revenue",
+      "admitted": "Admitted",
+      "ticketsIn": "with ticket",
+      "membersIn": "Members",
+      "guestsIn": "Guests",
+      "membersByType": "Admitted members by membership type",
+      "event": "Event",
+      "occupancy": "Occupancy",
+      "none": "No events in this period."
+    },
+    "payments": {
+      "title": "Revenue",
+      "gross": "Received",
+      "orders": "Paid orders"
+    },
+    "sources": {
+      "tickets": "of which tickets",
+      "members": "of which members",
+      "invoices": "of which invoices",
+      "guestlists": "of which guest lists"
+    },
+    "invoices": {
+      "title": "Invoices",
+      "issued": "Issued",
+      "count": {
+        "one": "{count} invoice",
+        "other": "{count} invoices"
+      },
+      "paid": "Paid",
+      "open": "Open",
+      "overdue": "Overdue"
+    },
+    "shifts": {
+      "title": "Shifts",
+      "count": "Shifts",
+      "filled": "Filled",
+      "slots": "{assigned} of {needed} places",
+      "hours": "Hours worked"
+    },
+    "contacts": {
+      "new": "New contacts",
+      "total": "{count} in total"
+    },
+    "forms": {
+      "submissions": "Form submissions"
+    },
+    "courses": {
+      "enrolled": "Course enrolments",
+      "waiting": "{count} on waiting lists"
+    },
+    "email": {
+      "sent": "Emails sent",
+      "delivered": "{rate} delivered",
+      "bounced": "Bounced / spam"
+    }
   }
 }

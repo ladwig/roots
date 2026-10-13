@@ -2020,6 +2020,12 @@ isOneToOne: false
 "purge_portal_tokens":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
+"report_can":
+{ Args: { "p_module": string,"p_org": string }; Returns: boolean
+                           },
+"report_kpis":
+{ Args: { "p_from": string,"p_org": string,"p_to": string }; Returns: Json
+                           },
 "request_api_key":
 { Args: Record<PropertyKey, never>; Returns: {
               "created_at": string,
