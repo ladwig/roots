@@ -1939,8 +1939,8 @@
     "card": "Member card",
     "cardQr": "Member card QR code",
     "cardHint": "Scan at the door or type the code or member number. Members also see the card in the member area (email login) and can print it there.",
-    "cardReset": "New code (old one stops working)",
-    "cardResetDone": "New card code created.",
+    "cardReset": "New card (old one stops working)",
+    "cardResetDone": "New card created. The old one no longer works.",
     "cardPrint": "Print card"
   },
   "forms": {

@@ -1939,8 +1939,8 @@
     "card": "Mitgliedskarte",
     "cardQr": "QR-Code der Mitgliedskarte",
     "cardHint": "Am Einlass scannen oder Code bzw. Mitgliedsnummer eintippen. Das Mitglied sieht die Karte auch im Mitgliederbereich (Login per E-Mail) und kann ihn dort selbst drucken.",
-    "cardReset": "Neuen Code erzeugen (alter wird ungültig)",
-    "cardResetDone": "Neuer Karten-Code erzeugt.",
+    "cardReset": "Neue Karte (alte wird ungültig)",
+    "cardResetDone": "Neue Karte erstellt. Die alte gilt nicht mehr.",
     "cardPrint": "Karte drucken"
   },
   "forms": {
