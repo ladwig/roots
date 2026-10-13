@@ -11,7 +11,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { fromLocalInput } from "@/lib/time"
 import type { Json } from "@/lib/supabase/types"
 import { syncTickets } from "@/guestlists/server"
-import { fill, Graph, NODE_DATA, next, passes, test, triggerOf, waitMs, type GraphNode, type NodeData, type NodeType } from "./graph"
+import { aggregate, fill, Graph, NODE_DATA, next, passes, pickFirst, query, stepKey, test, triggerOf, waitMs, type GraphNode, type NodeData, type NodeType } from "./graph"
 import { def, objectsFor, parseRecordTrigger, pickFields, splitPath, type Field, type ObjectKey } from "./objects"
 import { berlinDay, dateMatches, nextRun, resolveDate, type Schedule } from "./schedule"
 
@@ -100,7 +100,12 @@ async function step(db: Db, run: Run) {
   const changed = ((run.context as { payload?: { changed?: string[] } })?.payload?.changed ?? []) as string[]
   if (!run.node_id && watch.length && changed.length && !watch.some((f) => changed.includes(f)))
     return finish(db, run, [{ at: new Date().toISOString(), node: trigger!.id, type: "trigger", ok: true, note: "skipped: other fields changed" }], { status: "done" })
+  // Only once (per person / per record), optionally again after N days.
+  const once = trigger?.data.once as string | undefined
+  if (!run.node_id && once && (await ranBefore(db, run, once, Number(trigger?.data.again_after_days ?? 0))))
+    return finish(db, run, [{ at: new Date().toISOString(), node: trigger!.id, type: "trigger", ok: true, note: "skipped: already ran" }], { status: "done" })
   const ctx = await context(db, run)
+  const steps: Row = { ...(((run.context as { steps?: Row })?.steps ?? {}) as Row) } // data step results, kept across waits
   const log: LogEntry[] = []
   let node: GraphNode | null = run.node_id ? (g.nodes.find((n) => n.id === run.node_id) ?? null) : next(g, trigger?.id ?? "")
   for (let i = 0; i < MAX_STEPS && node; i++) {
@@ -108,10 +113,33 @@ async function step(db: Db, run: Run) {
     const data = NODE_DATA[type].parse(node.data) as Record<string, unknown>
     const at = new Date().toISOString()
     if (type === "wait") {
+      const w = data as NodeData<"wait">
       const after = next(g, node.id)
-      log.push({ at, node: node.id, type, ok: true })
-      if (!after) return finish(db, run, log, { status: "done" })
-      return finish(db, run, log, { status: "waiting", node_id: after.id, resume_at: new Date(Date.now() + waitMs(data as NodeData<"wait">)).toISOString() })
+      const until = w.mode === "until" ? untilDate(w.until, ctx) : new Date(Date.now() + waitMs(w))
+      if (!until) {
+        log.push({ at, node: node.id, type, ok: false, note: "no valid date" })
+        return finish(db, run, log, { status: "failed", node_id: node.id, error: "wait: no valid date" }, steps)
+      }
+      log.push({ at, node: node.id, type, ok: true, note: until.toISOString() })
+      if (!after) return finish(db, run, log, { status: "done" }, steps)
+      if (until.getTime() <= Date.now()) {
+        node = after // the date has passed: go on right away
+        continue
+      }
+      return finish(db, run, log, { status: "waiting", node_id: after.id, resume_at: until.toISOString() }, steps)
+    }
+    if (type === "find_record" || type === "aggregate") {
+      try {
+        const result = await dataStep(db, run.org_id, data, ctx)
+        ctx[stepKey(node.id)] = result
+        steps[stepKey(node.id)] = result
+        log.push({ at, node: node.id, type, ok: true, note: result == null ? "nothing found" : type === "aggregate" ? String((result as Row).value) : String((result as Row).id) })
+      } catch (e) {
+        log.push({ at, node: node.id, type, ok: false, note: String(e instanceof Error ? e.message : e).slice(0, 300) })
+        return finish(db, run, log, { status: "failed", node_id: node.id, error: String(e instanceof Error ? e.message : e).slice(0, 2000) }, steps)
+      }
+      node = next(g, node.id)
+      continue
     }
     if (type === "condition") {
       const yes = passes(data as NodeData<"condition">, ctx)
@@ -124,11 +152,11 @@ async function step(db: Db, run: Run) {
       log.push({ at, node: node.id, type, ok: true, ...(note ? { note } : {}) })
     } catch (e) {
       log.push({ at, node: node.id, type, ok: false, note: String(e instanceof Error ? e.message : e).slice(0, 300) })
-      return finish(db, run, log, { status: "failed", node_id: node.id, error: String(e instanceof Error ? e.message : e).slice(0, 2000) })
+      return finish(db, run, log, { status: "failed", node_id: node.id, error: String(e instanceof Error ? e.message : e).slice(0, 2000) }, steps)
     }
     node = next(g, node.id)
   }
-  return finish(db, run, log, node ? { status: "waiting", node_id: node.id, resume_at: new Date().toISOString() } : { status: "done" })
+  return finish(db, run, log, node ? { status: "waiting", node_id: node.id, resume_at: new Date().toISOString() } : { status: "done" }, steps)
 }
 
 // ---------- the run's data ----------
@@ -194,6 +222,7 @@ export async function context(db: Db, run: Pick<Run, "org_id" | "contact_id" | "
   const parts = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Berlin", weekday: "short", hour: "2-digit", hourCycle: "h23" }).formatToParts(new Date()).map((p) => [p.type, p.value]))
   const name = contact ? [contact.first_name, contact.last_name].filter(Boolean).join(" ") || (contact.company as string) || (contact.email as string) || "" : ""
   return {
+    ...(((base as { steps?: Row }).steps ?? {}) as Row),
     ...out,
     event,
     payload,
@@ -212,6 +241,49 @@ export async function contextForEvent(db: Db, orgId: string, event: { type: stri
   if (!contactId && typeof payload.email === "string" && payload.email)
     contactId = (await db.from("contacts").select("id").eq("org_id", orgId).eq("email", payload.email.toLowerCase()).is("deleted_at", null).maybeSingle()).data?.id ?? null
   return context(db, { org_id: orgId, contact_id: contactId, context: { event: event.type, payload } as NonNullable<Json> })
+}
+
+// ---------- data steps, waits, once ----------
+
+/**
+ * Find record / count & calculate: rows of the object (org only, catalog fields), filtered by the step's rules
+ * (values may use the run: "{contact.id}", "today-90"), then the first by sort, or the aggregate as { value }.
+ * Read only (also used by the test run). ponytail: up to 5000 rows per object; filter in SQL if orgs grow past it.
+ */
+export async function dataStep(db: Db, orgId: string, d: Record<string, unknown>, ctx: Row) {
+  const object = String(d.object) as ObjectKey
+  const table = def(object)?.table
+  if (!table) throw new Error(`unknown object ${d.object}`)
+  const { data, error } = await db.from(table as "contacts").select("*").eq("org_id", orgId).limit(5000)
+  if (error) throw new Error(error.message)
+  const rows = ((data ?? []) as Row[]).filter((r) => !r.deleted_at).map((r) => pickFields(object, r)!)
+  const hits = query(rows, object, (d.rules ?? []) as never, ctx)
+  if (d.op !== undefined) return { value: aggregate(hits, d.op as "count", String(d.field ?? "").replace(`${object}.`, "")), count: hits.length }
+  const first = pickFirst(hits, String(d.sort ?? "").replace(`${object}.`, ""), d.dir === "asc" ? "asc" : "desc")
+  return first && { ...first, __object: object } // "change record" on a found record needs its type
+}
+
+// "Wait until": a date (fixed/calculated) with optional " HH:MM", Berlin time.
+function untilDate(raw: string, ctx: Row) {
+  const m = /^(.*?)(?:\s+(\d{1,2}:\d{2}))?$/.exec(fill(raw, ctx).trim())!
+  const day = resolveDate(m[1], berlinDay(new Date())).slice(0, 10)
+  return /^\d{4}-\d{2}-\d{2}$/.test(day) ? fromLocalInput(`${day}T${(m[2] ?? "00:00").padStart(5, "0")}`) : null
+}
+
+// Has this workflow already run for this person / record (within the last N days, 0 = ever)?
+async function ranBefore(db: Db, run: Run, per: string, days: number) {
+  let q = db.from("workflow_runs").select("id", { count: "exact", head: true }).eq("workflow_id", run.workflow_id).neq("id", run.id).neq("status", "cancelled")
+  if (per === "contact") {
+    if (!run.contact_id) return false
+    q = q.eq("contact_id", run.contact_id)
+  } else {
+    const id = (run.context as { payload?: Row })?.payload?.id
+    if (typeof id !== "string") return false
+    q = q.eq("context->payload->>id", id)
+  }
+  if (days > 0) q = q.gte("created_at", new Date(Date.now() - days * 86_400_000).toISOString())
+  const { count } = await q
+  return (count ?? 0) > 0
 }
 
 // ---------- actions ----------
@@ -299,8 +371,11 @@ async function setField(db: Db, run: Run, rawPath: string, raw: string, ctx: Ctx
   if (!(object in ctx)) throw new Error(`${object} isn't part of this run`)
   const row = ctx[object] as Row | null
   if (!row?.id) throw new Error(`no ${object} in this run`)
-  const d = def(object as ObjectKey)
-  if (object === "contact" && field.startsWith("custom.")) {
+  // A record found by "find record" (step_…) carries its type.
+  const type = (object.startsWith("step_") ? String(row.__object ?? "") : object) as ObjectKey
+  const d = def(type)
+  if (!d) throw new Error(`${object} can't be changed`)
+  if (type === "contact" && field.startsWith("custom.")) {
     // Same rules as every other way of entering custom values (type, options).
     const fdef = (await loadFields(db, run.org_id, "contacts")).find((f) => f.key === field.slice(7))
     if (!fdef) throw new Error(`unknown field ${field}`)
@@ -385,10 +460,14 @@ async function createRecord(db: Db, run: Run, object: string, values: Record<str
   return `${object} ${data.id}`
 }
 
-async function finish(db: Db, run: Run, log: LogEntry[], patch: { status: string; node_id?: string; resume_at?: string; error?: string }) {
+async function finish(db: Db, run: Run, log: LogEntry[], patch: { status: string; node_id?: string; resume_at?: string; error?: string }, steps?: Row) {
   await db
     .from("workflow_runs")
-    .update({ ...patch, log: [...((run.log as LogEntry[]) ?? []), ...log].slice(-200) as unknown as NonNullable<Json> })
+    .update({
+      ...patch,
+      log: [...((run.log as LogEntry[]) ?? []), ...log].slice(-200) as unknown as NonNullable<Json>,
+      ...(steps && Object.keys(steps).length ? { context: { ...((run.context as Row) ?? {}), steps } as NonNullable<Json> } : {}),
+    })
     .eq("id", run.id)
     .eq("status", "running") // a run cancelled meanwhile stays cancelled
 }

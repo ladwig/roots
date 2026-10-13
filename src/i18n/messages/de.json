@@ -2998,12 +2998,14 @@
       "notify_team": "In-App-Benachrichtigung",
       "email_address": "E-Mail an Adresse",
       "telegram": "Telegram-Nachricht",
-      "create_record": "Datensatz anlegen"
+      "create_record": "Datensatz anlegen",
+      "find_record": "Datensatz suchen",
+      "aggregate": "Zählen & berechnen"
     },
     "help": {
       "trigger": "Womit startet die Automation? Für jedes Ereignis gibt es einen eigenen Durchlauf.",
       "condition": "Verzweigt: Stimmen die Bedingungen, geht es beim Ausgang „ja“ weiter, sonst bei „nein“.",
-      "wait": "Pausiert den Durchlauf, danach geht es weiter.",
+      "wait": "Pausiert den Ablauf für eine Dauer oder bis zu einem Datum, danach geht es weiter.",
       "send_email": "Schickt eine E-Mail. An die Person des Ablaufs ({contact.email}) mit Abmeldelink und Zustellstatus; an andere Adressen (z. B. euer Team) direkt.",
       "add_tag": "Gibt der Person einen Tag.",
       "remove_tag": "Nimmt der Person einen Tag weg.",
@@ -3012,7 +3014,9 @@
       "notify_team": "Benachrichtigung in der App für alle, die Automationen sehen dürfen.",
       "email_address": "Schickt eine E-Mail an eine feste Adresse (z. B. euer Team-Postfach) – ohne Abmeldelink, nicht für Newsletter.",
       "telegram": "Schickt eine Nachricht über euren Telegram-Bot in einen Chat.",
-      "create_record": "Legt einen neuen Datensatz an (Person, Event als Entwurf, Schicht, Mitgliedschaft, Notiz …). Verknüpfungen zur Person o. Ä. dieses Ablaufs werden automatisch gesetzt."
+      "create_record": "Legt einen neuen Datensatz an (Person, Event als Entwurf, Schicht, Mitgliedschaft, Notiz …). Verknüpfungen zur Person o. Ä. dieses Ablaufs werden automatisch gesetzt.",
+      "find_record": "Sucht einen Datensatz (z. B. die neueste Mitgliedschaft dieser Person, das nächste Event). Das Ergebnis können alle folgenden Schritte nutzen.",
+      "aggregate": "Zählt Datensätze oder rechnet über ein Zahlenfeld (Summe, Durchschnitt, kleinster/größter Wert) – z. B. Check-ins dieser Person in den letzten 90 Tagen."
     },
     "ops": {
       "eq": "ist",
@@ -3401,7 +3405,8 @@
       "logic": "Logik",
       "send": "Senden & benachrichtigen",
       "data": "Daten ändern",
-      "connect": "Verbinden"
+      "connect": "Verbinden",
+      "query": "Daten abfragen"
     },
     "recordActions": {
       "insert": "erstellt",
@@ -3465,6 +3470,36 @@
       "membership.starts_on": "Gewünschter Beginn",
       "membership.iban": "IBAN (gekürzt)",
       "consents": "Zugestimmt"
-    }
+    },
+    "aggResult": "Ergebnis",
+    "aggCount": "Anzahl Treffer",
+    "result": "Ergebnis",
+    "thisRuns": "{what} dieses Ablaufs",
+    "waitMode": "Warten",
+    "waitFor": "Für eine Dauer",
+    "waitUntil": "Bis zu einem Datum",
+    "stepName": "Name des Ergebnisses",
+    "stepNamePlaceholder": "z. B. Aktive Mitgliedschaft",
+    "where": "Welche Datensätze?",
+    "aggOp": "Berechnung",
+    "aggOps": {
+      "count": "Anzahl",
+      "sum": "Summe",
+      "avg": "Durchschnitt",
+      "min": "Kleinster Wert",
+      "max": "Größter Wert"
+    },
+    "sortBy": "Sortieren nach",
+    "sortDir": "Reihenfolge",
+    "anyOrder": "– beliebig –",
+    "newestFirst": "absteigend",
+    "oldestFirst": "aufsteigend",
+    "aggHint": "Das Ergebnis (Zahl) steht den folgenden Schritten zur Verfügung, z. B. in einer Bedingung „mindestens 4“.",
+    "findHint": "Der erste Treffer steht den folgenden Schritten zur Verfügung – auch zum Ändern. Nichts gefunden = leer (mit einer Bedingung „ist leer“ prüfen).",
+    "onceLabel": "Mehrfach ausführen?",
+    "onceNo": "Jedes Mal",
+    "oncePerPerson": "Nur einmal pro Person",
+    "oncePerRecord": "Nur einmal pro Datensatz",
+    "againAfter": "Wieder erlaubt nach"
   }
 }

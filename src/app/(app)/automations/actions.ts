@@ -8,7 +8,7 @@ import type { Json } from "@/lib/supabase/types"
 import { back } from "@/lib/url"
 import { Graph, simulate, triggerOf, validate, type TraceStep } from "@/automations/graph"
 import { OBJECTS, parseRecordTrigger, type ObjectKey } from "@/automations/objects"
-import { contextForEvent, scheduleNext } from "@/automations/server"
+import { contextForEvent, dataStep, scheduleNext } from "@/automations/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { TEMPLATES } from "@/automations/templates"
 
@@ -161,5 +161,7 @@ export async function testRun(input: { eventId: string; graph: unknown }): Promi
   const full = await contextForEvent(db, ctx.org.id, ev)
   // Only data the tester may see anyway (person data needs crm.view, memberships members.view …).
   const data = Object.fromEntries(Object.entries(full).filter(([k]) => !(k in OBJECTS) || ctx.can(`${OBJECTS[k as ObjectKey].module}.view`)))
-  return { trace: simulate(parsed.data, data), data }
+  // Data steps really read (search/count, nothing changes), so later steps see real results.
+  const trace = await simulate(parsed.data, data, (_node, d, c) => dataStep(db, ctx.org.id, d, c))
+  return { trace, data }
 }

@@ -2998,12 +2998,14 @@
       "notify_team": "In-app notification",
       "email_address": "Email to an address",
       "telegram": "Telegram message",
-      "create_record": "Create record"
+      "create_record": "Create record",
+      "find_record": "Find record",
+      "aggregate": "Count & calculate"
     },
     "help": {
       "trigger": "What starts the automation? Every event gets its own run.",
       "condition": "Branches: if the conditions match it continues at “yes”, otherwise at “no”.",
-      "wait": "Pauses the run, then it continues.",
+      "wait": "Pauses the run for a duration or until a date, then it continues.",
       "send_email": "Sends an email. To this run's person ({contact.email}) with unsubscribe link and delivery status; to other addresses (e.g. your team) directly.",
       "add_tag": "Gives the person a tag.",
       "remove_tag": "Takes a tag away from the person.",
@@ -3012,7 +3014,9 @@
       "notify_team": "An in-app notification for everyone who may see automations.",
       "email_address": "Sends an email to a fixed address (e.g. your team inbox) – no unsubscribe link, not for newsletters.",
       "telegram": "Sends a message through your Telegram bot to a chat.",
-      "create_record": "Creates a new record (person, event as draft, shift, membership, note …). Links to this run's person etc. are set automatically."
+      "create_record": "Creates a new record (person, event as draft, shift, membership, note …). Links to this run's person etc. are set automatically.",
+      "find_record": "Finds a record (e.g. this person's newest membership, the next event). All later steps can use the result.",
+      "aggregate": "Counts records or calculates over a number field (sum, average, smallest/largest) – e.g. this person's check-ins in the last 90 days."
     },
     "ops": {
       "eq": "is",
@@ -3401,7 +3405,8 @@
       "logic": "Logic",
       "send": "Send & notify",
       "data": "Change data",
-      "connect": "Connect"
+      "connect": "Connect",
+      "query": "Look up data"
     },
     "recordActions": {
       "insert": "created",
@@ -3465,6 +3470,36 @@
       "membership.starts_on": "Requested start",
       "membership.iban": "IBAN (masked)",
       "consents": "Agreed to"
-    }
+    },
+    "aggResult": "Result",
+    "aggCount": "Number of matches",
+    "result": "Result",
+    "thisRuns": "{what} of this run",
+    "waitMode": "Wait",
+    "waitFor": "For a duration",
+    "waitUntil": "Until a date",
+    "stepName": "Name of the result",
+    "stepNamePlaceholder": "e.g. Active membership",
+    "where": "Which records?",
+    "aggOp": "Calculation",
+    "aggOps": {
+      "count": "Count",
+      "sum": "Sum",
+      "avg": "Average",
+      "min": "Smallest value",
+      "max": "Largest value"
+    },
+    "sortBy": "Sort by",
+    "sortDir": "Order",
+    "anyOrder": "– any –",
+    "newestFirst": "descending",
+    "oldestFirst": "ascending",
+    "aggHint": "The result (a number) is available to the following steps, e.g. in a condition “at least 4”.",
+    "findHint": "The first match is available to the following steps – also for changing it. Nothing found = empty (check with a condition “is empty”).",
+    "onceLabel": "Run more than once?",
+    "onceNo": "Every time",
+    "oncePerPerson": "Only once per person",
+    "oncePerRecord": "Only once per record",
+    "againAfter": "Allowed again after"
   }
 }

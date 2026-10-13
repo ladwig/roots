@@ -6,10 +6,10 @@
 // Pure: the editor, the worker and the tests share it.
 import type { OPS } from "./graph"
 
-export type Kind = "text" | "number" | "date" | "bool" | "tags" | "ref" | "enum"
+export type Kind = "text" | "number" | "date" | "bool" | "tags" | "ref" | "enum" | "link" // link = relation to another object (value: its id, e.g. "{contact.id}")
 export type RefList = "events" | "membership_types" | "forms" | "courses" | "guest_lists" | "tags"
 // write = "change record" may set it (validated by kind; refs must exist in the org).
-export type Field = { key: string; kind: Kind; ref?: RefList; refTable?: string; options?: string[]; write?: true; time?: true } // time: a timestamp (date + time)
+export type Field = { key: string; kind: Kind; ref?: RefList; refTable?: string; options?: string[]; write?: true; time?: true; target?: string } // target: object of a link // time: a timestamp (date + time)
 export type ObjectDef = {
   table: string
   module: string // shown only when the org has it on ("org" = always)
@@ -296,7 +296,16 @@ export const OPS_FOR: Record<Kind, (typeof OPS)[number][]> = {
   tags: ["contains", "not_contains", "empty", "not_empty"],
   ref: ["eq", "neq", "empty", "not_empty"],
   enum: ["eq", "neq"],
+  link: ["eq", "neq", "empty", "not_empty"],
 }
+
+/** An object's fields for searching: its catalog fields plus its relations as links ("membership.contact_id"). */
+export const searchFields = (o: ObjectKey): Field[] => [
+  ...def(o).fields,
+  ...Object.entries(def(o).relations ?? {})
+    .filter(([col]) => !def(o).fields.some((f) => f.key === col))
+    .map(([col, target]) => ({ key: col, kind: "link" as const, target })),
+]
 
 /** "contact.custom.level" → { object: "contact", field: "custom.level" } */
 export const splitPath = (path: string) => {

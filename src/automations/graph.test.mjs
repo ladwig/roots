@@ -46,11 +46,26 @@ it("conditions and placeholders", () => {
 it("test run walks the path with real data", async () => {
   const { simulate } = await import("./graph.ts")
   const ctx = { contact: { first_name: "Ana", tags: ["VIP"] } }
-  const trace = simulate(good, ctx)
+  const trace = await simulate(good, ctx)
   assert.deepEqual(trace.map((s) => s.node), ["t", "c", "w", "m"])
   assert.equal(trace[1].branch, "yes")
   assert.equal(trace[1].rules[0].ok, true)
   assert.equal(trace[2].wait, 172_800_000)
   assert.equal(trace[3].preview.subject, "Hallo Ana")
-  assert.deepEqual(simulate(good, { contact: { tags: [] } }).map((s) => s.node), ["t", "c", "x"])
+  assert.deepEqual((await simulate(good, { contact: { tags: [] } })).map((s) => s.node), ["t", "c", "x"])
+})
+
+it("data steps: filter with run values, count/sum, first by sort", async () => {
+  const { query, aggregate, pickFirst } = await import("./graph.ts")
+  const rows = [
+    { id: "a", contact_id: "c1", amount_cents: 500, due_on: "2026-09-01", status: "open" },
+    { id: "b", contact_id: "c1", amount_cents: 700, due_on: "2026-10-01", status: "open" },
+    { id: "c", contact_id: "c2", amount_cents: 900, due_on: "2026-10-05", status: "paid" },
+  ]
+  const run = { contact: { id: "c1" } }
+  const mine = query(rows, "due", [{ field: "due.contact_id", op: "eq", value: "{contact.id}" }, { field: "due.status", op: "eq", value: "open" }], run)
+  assert.deepEqual(mine.map((r) => r.id), ["a", "b"])
+  assert.equal(aggregate(mine, "count", ""), 2)
+  assert.equal(aggregate(mine, "sum", "amount_cents"), 1200)
+  assert.equal(pickFirst(mine, "due_on", "desc").id, "b")
 })

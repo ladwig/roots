@@ -4,8 +4,9 @@
 import { z } from "zod"
 import { berlinDay, resolveDate } from "./schedule.ts"
 
+export const DATA_STEPS = ["find_record", "aggregate"] as const // read only: they put a result into the run
 export const ACTIONS = ["send_email", "add_tag", "remove_tag", "set_field", "create_record", "notify_team", "telegram", "webhook"] as const
-export const NODE_TYPES = ["trigger", "condition", "wait", ...ACTIONS] as const
+export const NODE_TYPES = ["trigger", "condition", "wait", ...DATA_STEPS, ...ACTIONS] as const
 export type NodeType = (typeof NODE_TYPES)[number]
 export const OPS = ["eq", "neq", "contains", "not_contains", "gt", "gte", "lt", "lte", "empty", "not_empty"] as const
 export const WAIT_UNITS = ["minutes", "hours", "days"] as const
@@ -26,12 +27,32 @@ export const NODE_DATA = {
     date_field: text(100).optional(),
     offset: z.number().int().min(-3650).max(3650).optional(), // days: negative = before the date
     yearly: z.boolean().optional(),
+    // Only once: per person or per record (the trigger's), optionally again after N days.
+    once: z.enum(["", "contact", "record"]).optional(),
+    again_after_days: z.number().int().min(0).max(3650).optional(),
   }),
   condition: z.object({
     match: z.enum(["all", "any"]).default("all"),
     rules: z.array(z.object({ field: text(100), op: z.enum(OPS), value: text(500).default("") })).max(20),
   }),
-  wait: z.object({ amount: z.number().int().min(1).max(100_000), unit: z.enum(WAIT_UNITS) }),
+  // mode "for": a duration; "until": a date (fixed or calculated, optional " HH:MM"), e.g. "{event.starts_at}-1d 18:00"
+  wait: z.object({ mode: z.enum(["for", "until"]).default("for"), amount: z.number().int().min(1).max(100_000).default(1), unit: z.enum(WAIT_UNITS).default("days"), until: text(200).default("") }),
+  // Search records of an object (conditions may use run values: "{contact.id}", dates "today-90"), sorted, first one.
+  find_record: z.object({
+    object: text(40),
+    rules: z.array(z.object({ field: text(100), op: z.enum(OPS), value: text(500).default("") })).max(20).default([]),
+    sort: text(100).default(""),
+    dir: z.enum(["asc", "desc"]).default("desc"),
+    label: text(60).default(""),
+  }),
+  // Count / sum / average / min / max over the records that match.
+  aggregate: z.object({
+    object: text(40),
+    rules: z.array(z.object({ field: text(100), op: z.enum(OPS), value: text(500).default("") })).max(20).default([]),
+    op: z.enum(["count", "sum", "avg", "min", "max"]).default("count"),
+    field: text(100).default(""),
+    label: text(60).default(""),
+  }),
   send_email: z.object({ to: text(320).default("{contact.email}"), subject: text(200), body: text(100_000) }), // to: an address or a placeholder
   add_tag: z.object({ tag: text(40) }),
   remove_tag: z.object({ tag: text(40) }),
@@ -105,6 +126,11 @@ function filled(type: NodeType, d: Record<string, unknown>) {
       return !!d.text
     case "create_record":
       return !!d.object
+    case "find_record":
+    case "aggregate":
+      return !!d.object && (d.op === undefined || d.op === "count" || !!d.field)
+    case "wait":
+      return d.mode !== "until" || !!d.until
     case "telegram":
       return /^-?\d+$/.test(String(d.chat_id)) && !!d.text
     default:
@@ -212,6 +238,26 @@ export const passes = (d: NodeData<"condition">, ctx: Record<string, unknown>) =
   d.match === "any" ? d.rules.some((r) => test(r, ctx)) : d.rules.every((r) => test(r, ctx))
 
 export const waitMs = (d: NodeData<"wait">) => d.amount * { minutes: 60_000, hours: 3_600_000, days: 86_400_000 }[d.unit]
+/** Where a data step's result lives in the run: ctx["step_<node>"] = the found record, or { value } of an aggregate. */
+export const stepKey = (nodeId: string) => `step_${nodeId.replace(/[^a-zA-Z0-9]/g, "_")}`
+
+/** Filter/sort/aggregate rows of one object (data steps). Rule values are filled from the run first. */
+export function query(rows: Record<string, unknown>[], object: string, rules: { field: string; op: (typeof OPS)[number]; value: string }[], run: Record<string, unknown>) {
+  const filled = rules.map((r) => ({ ...r, value: fill(r.value, run) }))
+  return rows.filter((row) => filled.every((r) => test(r, { ...run, [object]: row })))
+}
+export function aggregate(rows: Record<string, unknown>[], op: "count" | "sum" | "avg" | "min" | "max", field: string) {
+  if (op === "count") return rows.length
+  const nums = rows.map((r) => Number(r[field])).filter((n) => Number.isFinite(n))
+  if (!nums.length) return op === "sum" ? 0 : null
+  if (op === "sum") return nums.reduce((a, b) => a + b, 0)
+  if (op === "avg") return Math.round((nums.reduce((a, b) => a + b, 0) / nums.length) * 100) / 100
+  return op === "min" ? Math.min(...nums) : Math.max(...nums)
+}
+export function pickFirst(rows: Record<string, unknown>[], sort: string, dir: "asc" | "desc") {
+  const sorted = sort ? [...rows].sort((a, b) => String(a[sort] ?? "").localeCompare(String(b[sort] ?? ""), undefined, { numeric: true }) * (dir === "asc" ? 1 : -1)) : rows
+  return sorted[0] ?? null
+}
 
 /** {first_name}, {payload.title}, {contact.city} … in texts of actions. Unknown placeholders stay as they are. */
 export const fill = (template: string, ctx: Record<string, unknown>, escape = (s: string) => s) =>
@@ -233,7 +279,12 @@ export type TraceStep = {
 }
 
 /** Walk the flow with real data without doing anything: path, condition results, filled texts. */
-export function simulate(g: Graph, ctx: Record<string, unknown>, maxSteps = 100): TraceStep[] {
+export async function simulate(
+  g: Graph,
+  ctx: Record<string, unknown>,
+  lookup?: (node: GraphNode, d: Record<string, unknown>, ctx: Record<string, unknown>) => Promise<unknown>,
+  maxSteps = 100,
+): Promise<TraceStep[]> {
   const trace: TraceStep[] = []
   const trigger = triggerOf(g)
   if (!trigger) return trace
@@ -251,7 +302,12 @@ export function simulate(g: Graph, ctx: Record<string, unknown>, maxSteps = 100)
       continue
     }
     const step: TraceStep = { node: node.id, type: node.type }
-    if (node.type === "wait") step.wait = waitMs(d as NodeData<"wait">)
+    if (node.type === "find_record" || node.type === "aggregate") {
+      // Data steps really read (nothing is changed), so later steps can be tested with the result.
+      const result = lookup ? await lookup(node, d, ctx) : null
+      ctx[stepKey(node.id)] = result
+      step.preview = { result: result == null ? "–" : typeof result === "object" ? String((result as Record<string, unknown>).value ?? (result as Record<string, unknown>).title ?? (result as Record<string, unknown>).name ?? (result as Record<string, unknown>).id ?? "") : String(result) }
+    } else if (node.type === "wait") step.wait = (d as NodeData<"wait">).mode === "until" ? undefined : waitMs(d as NodeData<"wait">)
     else
       step.preview = Object.fromEntries(
         Object.entries(d)
