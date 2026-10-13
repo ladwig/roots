@@ -7,7 +7,7 @@ import { requirePerm } from "@/lib/context"
 import type { Json } from "@/lib/supabase/types"
 import { back } from "@/lib/url"
 import { Graph, simulate, triggerOf, validate, type TraceStep } from "@/automations/graph"
-import { OBJECTS, type ObjectKey } from "@/automations/objects"
+import { OBJECTS, parseRecordTrigger, type ObjectKey } from "@/automations/objects"
 import { contextForEvent } from "@/automations/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { TEMPLATES } from "@/automations/templates"
@@ -116,6 +116,23 @@ export async function cancelRun(fd: FormData) {
 export async function testSamples(eventType: string): Promise<{ id: number; at: string; label: string }[]> {
   const ctx = await requirePerm("automations.view")
   if (!eventType) return []
+  // Record triggers: the latest changes of that kind from the change log (ids are negated to tell them apart).
+  const rec = parseRecordTrigger(eventType)
+  if (rec) {
+    const { data } = await createAdminClient()
+      .from("audit_log")
+      .select("id, at, new")
+      .eq("org_id", ctx.org.id)
+      .eq("table_name", OBJECTS[rec.object].table)
+      .eq("action", rec.action)
+      .order("id", { ascending: false })
+      .limit(20)
+    return (data ?? []).map((e) => {
+      const n = (e.new ?? {}) as Record<string, unknown>
+      const label = [n.name, n.title, n.holder_name, n.email, [n.first_name, n.last_name].filter(Boolean).join(" ")].find((x) => typeof x === "string" && x) as string | undefined
+      return { id: -e.id, at: e.at, label: label ?? "" }
+    })
+  }
   // hub_events aren't readable for members; read with the service role, strictly this org.
   const { data } = await createAdminClient().from("hub_events").select("id, created_at, payload").eq("org_id", ctx.org.id).eq("type", eventType).order("id", { ascending: false }).limit(20)
   return (data ?? []).map((e) => {
@@ -132,7 +149,12 @@ export async function testRun(input: { eventId: number; graph: unknown }): Promi
   const parsed = Graph.safeParse(input.graph)
   if (!parsed.success) return { error: t("automations.graphInvalid") }
   const db = createAdminClient()
-  const { data: ev } = await db.from("hub_events").select("type, payload").eq("id", input.eventId).eq("org_id", ctx.org.id).maybeSingle()
+  let ev: { type: string; payload: unknown } | null = null
+  if (input.eventId < 0) {
+    // A change from the change log (record trigger): the run sees the record id and the changed fields.
+    const { data: ch } = await db.from("audit_log").select("table_name, row_id, action, new").eq("id", -input.eventId).eq("org_id", ctx.org.id).maybeSingle()
+    if (ch) ev = { type: `record:${ch.table_name}:${ch.action}`, payload: { id: ch.row_id, changed: ch.action === "update" ? Object.keys((ch.new ?? {}) as object) : [] } }
+  } else ev = (await db.from("hub_events").select("type, payload").eq("id", input.eventId).eq("org_id", ctx.org.id).maybeSingle()).data
   if (!ev) return { error: t("automations.noSample") }
   const full = await contextForEvent(db, ctx.org.id, ev)
   // Only data the tester may see anyway (person data needs crm.view, memberships members.view …).
