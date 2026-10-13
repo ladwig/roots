@@ -18,6 +18,7 @@ import { endpoints as reports } from "./reports"
 import { endpoints as settings } from "./settings"
 import { endpoints as shifts } from "./shifts"
 import { endpoints as tickets } from "./tickets"
+import { endpoints as wiki } from "./wiki"
 
 export const endpoints: Endpoint[] = [
   ...events,
@@ -36,5 +37,6 @@ export const endpoints: Endpoint[] = [
   ...automations,
   ...reports,
   ...files,
+  ...wiki,
   ...settings,
 ]

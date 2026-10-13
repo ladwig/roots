@@ -247,6 +247,10 @@
     "cashbook": {
       "name": "Cash book",
       "description": "Cash boxes and accounts, entries with receipts, month closing with a cash count."
+    },
+    "wiki": {
+      "name": "Knowledge",
+      "description": "Wiki for handbooks, processes and minutes – pages in pages, Markdown, history."
     }
   },
   "permissions": {
@@ -287,7 +291,9 @@
     "automations.manage": "Edit automations",
     "reports.view": "View reports",
     "cashbook.view": "View cash book",
-    "cashbook.manage": "Book entries and close months"
+    "cashbook.manage": "Book entries and close months",
+    "wiki.view": "Read wiki",
+    "wiki.manage": "Write wiki"
   },
   "integrations": {
     "connect": "Connect",
@@ -446,7 +452,8 @@
       "workflow_runs": "Automation runs",
       "cash_accounts": "Cash accounts",
       "cash_entries": "Cash book",
-      "cash_closings": "Cash closings"
+      "cash_closings": "Cash closings",
+      "wiki_pages": "Wiki pages"
     }
   },
   "errors": {
@@ -514,7 +521,8 @@
     "clock_running": "You're already clocked in.",
     "cash_entry_locked": "Booked entries can't be changed – reverse them instead.",
     "cash_month_closed": "This month is closed.",
-    "cash_month_open": "The month isn't over yet."
+    "cash_month_open": "The month isn't over yet.",
+    "wiki_cycle": "A page can't be placed below itself."
   },
   "admin": {
     "title": "Platform",
@@ -2485,6 +2493,10 @@
       "cashbook": {
         "name": "Cash book",
         "text": "Cash boxes and accounts, entries with receipts, the four areas of German non-profit law and month closing with a cash count."
+      },
+      "wiki": {
+        "name": "Knowledge",
+        "text": "A wiki for handbooks, processes and minutes: pages in pages, Markdown, attachments and history."
       }
     },
     "events": {
@@ -3266,7 +3278,8 @@
       "file": "File",
       "now": "Time",
       "cash_entry": "Cash entry",
-      "cash_account": "Cash account"
+      "cash_account": "Cash account",
+      "wiki_page": "Wiki page"
     },
     "fields": {
       "contact": {
@@ -3474,6 +3487,9 @@
         "name": "Name",
         "kind": "Kind",
         "active": "Active"
+      },
+      "wiki_page": {
+        "title": "Title"
       }
     },
     "values": {
@@ -3860,5 +3876,63 @@
     "invoiceNotOpen": "Only open invoices can be paid with an income entry.",
     "cantReverseReversal": "A reversal can't be reversed.",
     "alreadyReversed": "This entry is already reversed."
+  },
+  "wiki": {
+    "nav": "Knowledge",
+    "title": "Knowledge",
+    "newPage": "New page",
+    "subPage": "Sub-page",
+    "untitled": "New page",
+    "tree": "Pages",
+    "search": "Search the wiki",
+    "recent": "Recently changed",
+    "results": "Results",
+    "noMatch": "Nothing found.",
+    "empty": "No pages yet.",
+    "trash": "Trash",
+    "backToPages": "Back to the pages",
+    "trashEmpty": "The trash is empty.",
+    "restore": "Restore",
+    "restored": "Page restored.",
+    "toTrash": "Move to trash",
+    "trashed": "Page moved to the trash (restorable for 30 days).",
+    "inTrash": "This page is in the trash.",
+    "edit": "Edit",
+    "history": "History",
+    "allVersions": "All versions",
+    "restoreVersion": "Restore this version",
+    "versionRestored": "Version restored – the previous state is in the history.",
+    "noVersions": "No earlier versions yet.",
+    "updated": "Last changed {date}",
+    "emptyPage": "This page is still empty.",
+    "subPages": "Sub-pages",
+    "attachments": "Attachments",
+    "pageTitle": "Title",
+    "parent": "Placed under",
+    "topLevel": "– top level –",
+    "toolbar": "Formatting",
+    "body": "Text (Markdown)",
+    "bodyPlaceholder": "Start writing … Markdown works: **bold**, _italic_, ## Heading, - list, - [ ] task, [link](https://…)",
+    "preview": "Preview",
+    "unsaved": "Unsaved changes",
+    "shortcuts": "⌘B bold · ⌘I italic · ⌘K link · ⌘S save",
+    "saved": "Saved.",
+    "listItem": "Item",
+    "titleRequired": "Please enter a title.",
+    "tooLong": "The text is too long (max. 200,000 characters).",
+    "tools": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "heading": "Heading",
+      "list": "List",
+      "numbered": "Numbered list",
+      "checklist": "Task list",
+      "quote": "Quote",
+      "link": "Link",
+      "linkText": "Link text",
+      "code": "Code",
+      "table": "Table",
+      "column": "Column"
+    }
   }
 }

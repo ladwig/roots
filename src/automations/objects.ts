@@ -200,6 +200,7 @@ export const OBJECTS = {
     fields: [pick("status", ["new", "accepted", "rejected"]), text("email")],
     relations: { form_id: "form", contact_id: "contact", membership_id: "membership" },
   },
+  wiki_page: { table: "wiki_pages", remove: "soft", module: "wiki", record: true, fields: [text("title")], relations: { parent_id: "wiki_page" } },
   cash_entry: {
     table: "cash_entries",
     module: "cashbook",

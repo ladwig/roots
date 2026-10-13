@@ -802,6 +802,28 @@ begin
     reset role;
   end;
 
+  -- Wiki: a change keeps the old text as a version, no cycles in the tree; B sees nothing
+  insert into public.org_modules (org_id, module_key) values (org_a, 'wiki') on conflict do nothing;
+  declare v_root uuid; v_child uuid;
+  begin
+    perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    insert into public.wiki_pages (org_id, title, body) values (org_a, 'Handbuch', 'v1') returning id into v_root;
+    insert into public.wiki_pages (org_id, parent_id, title) values (org_a, v_root, 'Kasse') returning id into v_child;
+    update public.wiki_pages set body = 'v2' where id = v_root;
+    select count(*) into n from public.wiki_page_versions where page_id = v_root and body = 'v1';  assert n = 1, 'old text is kept as a version';
+    begin
+      update public.wiki_pages set parent_id = v_child where id = v_root;
+      assert false, 'a page cannot move into its own child';
+    exception when raise_exception then null; end;
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.wiki_pages where org_id = org_a;          assert n = 0, 'B sees wiki pages of A';
+    select count(*) into n from public.wiki_page_versions where org_id = org_a;  assert n = 0, 'B sees wiki versions of A';
+    reset role;
+  end;
+
   -- Automations: an event of the trigger type starts one run per active workflow; B sees nothing
   insert into public.org_modules (org_id, module_key) values (org_a, 'automations') on conflict do nothing;
   declare v_wf uuid;

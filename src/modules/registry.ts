@@ -4,7 +4,7 @@
 // Permission keys start with the module key ("events.manage"), so a role can grant a whole module with "events.*".
 // ponytail: one file while modules are just definitions; move each to src/modules/<key>/ once it has code.
 
-import { BarChart3Icon, WalletIcon, BriefcaseBusinessIcon, GraduationCapIcon, WorkflowIcon, CalendarClockIcon, CalendarDaysIcon, ClipboardListIcon, ContactIcon, CreditCardIcon, FileTextIcon, IdCardIcon, ListChecksIcon, MailIcon, ScanLineIcon, type LucideIcon } from "lucide-react"
+import { BarChart3Icon, BookOpenIcon, WalletIcon, BriefcaseBusinessIcon, GraduationCapIcon, WorkflowIcon, CalendarClockIcon, CalendarDaysIcon, ClipboardListIcon, ContactIcon, CreditCardIcon, FileTextIcon, IdCardIcon, ListChecksIcon, MailIcon, ScanLineIcon, type LucideIcon } from "lucide-react"
 
 export type NavItem = { href: string; label: string; icon: LucideIcon; permission?: string | string[]; newTab?: boolean } // label = message key; several permissions = any of them
 export type ModuleDef = {
@@ -96,6 +96,7 @@ export const modules: ModuleDef[] = [
     nav: [{ href: "/hr", label: "hr.nav", icon: BriefcaseBusinessIcon, permission: "hr.view" }],
   },
   { key: "cashbook", permissions: ["cashbook.view", "cashbook.manage"], nav: [{ href: "/cashbook", label: "cashbook.nav", icon: WalletIcon, permission: "cashbook.view" }] },
+  { key: "wiki", permissions: ["wiki.view", "wiki.manage"], nav: [{ href: "/wiki", label: "wiki.nav", icon: BookOpenIcon, permission: "wiki.view" }] },
   { key: "reports", permissions: ["reports.view"], nav: [{ href: "/reports", label: "reports.nav", icon: BarChart3Icon, permission: "reports.view" }] },
 ]
 

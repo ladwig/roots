@@ -247,6 +247,10 @@
     "cashbook": {
       "name": "Kassenbuch",
       "description": "Kassen und Konten, Buchungen mit Belegen, Monatsabschluss mit Kassensturz."
+    },
+    "wiki": {
+      "name": "Wissen",
+      "description": "Wiki für Handbücher, Abläufe und Protokolle – Seiten in Seiten, Markdown, Verlauf."
     }
   },
   "permissions": {
@@ -287,7 +291,9 @@
     "automations.manage": "Automationen bearbeiten",
     "reports.view": "Auswertungen ansehen",
     "cashbook.view": "Kassenbuch ansehen",
-    "cashbook.manage": "Buchen und Monate abschließen"
+    "cashbook.manage": "Buchen und Monate abschließen",
+    "wiki.view": "Wiki lesen",
+    "wiki.manage": "Wiki schreiben"
   },
   "integrations": {
     "connect": "Verbinden",
@@ -446,7 +452,8 @@
       "workflow_runs": "Automations-Durchläufe",
       "cash_accounts": "Kassen & Konten",
       "cash_entries": "Kassenbuch",
-      "cash_closings": "Kassenabschlüsse"
+      "cash_closings": "Kassenabschlüsse",
+      "wiki_pages": "Wiki-Seiten"
     }
   },
   "errors": {
@@ -514,7 +521,8 @@
     "clock_running": "Du bist schon eingestempelt.",
     "cash_entry_locked": "Gebuchte Einträge lassen sich nicht ändern – bitte stornieren.",
     "cash_month_closed": "Dieser Monat ist abgeschlossen.",
-    "cash_month_open": "Der Monat ist noch nicht vorbei."
+    "cash_month_open": "Der Monat ist noch nicht vorbei.",
+    "wiki_cycle": "Eine Seite kann nicht unter sich selbst liegen."
   },
   "admin": {
     "title": "Plattform",
@@ -2485,6 +2493,10 @@
       "cashbook": {
         "name": "Kassenbuch",
         "text": "Kassen und Konten, Buchungen mit Belegen, die vier Bereiche des Gemeinnützigkeitsrechts und Monatsabschluss mit Kassensturz."
+      },
+      "wiki": {
+        "name": "Wissen",
+        "text": "Ein Wiki für Handbücher, Abläufe und Protokolle: Seiten in Seiten, Markdown, Anhänge und Verlauf."
       }
     },
     "events": {
@@ -3266,7 +3278,8 @@
       "file": "Datei",
       "now": "Zeitpunkt",
       "cash_entry": "Buchung",
-      "cash_account": "Kasse / Konto"
+      "cash_account": "Kasse / Konto",
+      "wiki_page": "Wiki-Seite"
     },
     "fields": {
       "contact": {
@@ -3474,6 +3487,9 @@
         "name": "Name",
         "kind": "Art",
         "active": "Aktiv"
+      },
+      "wiki_page": {
+        "title": "Titel"
       }
     },
     "values": {
@@ -3860,5 +3876,63 @@
     "invoiceNotOpen": "Nur offene Rechnungen lassen sich mit einer Einnahme bezahlen.",
     "cantReverseReversal": "Ein Storno lässt sich nicht stornieren.",
     "alreadyReversed": "Diese Buchung ist schon storniert."
+  },
+  "wiki": {
+    "nav": "Wissen",
+    "title": "Wissen",
+    "newPage": "Neue Seite",
+    "subPage": "Unterseite",
+    "untitled": "Neue Seite",
+    "tree": "Seiten",
+    "search": "Wiki durchsuchen",
+    "recent": "Zuletzt geändert",
+    "results": "Treffer",
+    "noMatch": "Nichts gefunden.",
+    "empty": "Noch keine Seiten.",
+    "trash": "Papierkorb",
+    "backToPages": "Zurück zu den Seiten",
+    "trashEmpty": "Der Papierkorb ist leer.",
+    "restore": "Wiederherstellen",
+    "restored": "Seite wiederhergestellt.",
+    "toTrash": "In den Papierkorb",
+    "trashed": "Seite liegt im Papierkorb (30 Tage wiederherstellbar).",
+    "inTrash": "Diese Seite liegt im Papierkorb.",
+    "edit": "Bearbeiten",
+    "history": "Verlauf",
+    "allVersions": "Alle Versionen",
+    "restoreVersion": "Diese Version wiederherstellen",
+    "versionRestored": "Version wiederhergestellt – der vorherige Stand ist im Verlauf.",
+    "noVersions": "Noch keine früheren Versionen.",
+    "updated": "Zuletzt geändert {date}",
+    "emptyPage": "Diese Seite ist noch leer.",
+    "subPages": "Unterseiten",
+    "attachments": "Anhänge",
+    "pageTitle": "Titel",
+    "parent": "Liegt unter",
+    "topLevel": "– oberste Ebene –",
+    "toolbar": "Formatierung",
+    "body": "Text (Markdown)",
+    "bodyPlaceholder": "Schreib los … Markdown geht: **fett**, _kursiv_, ## Überschrift, - Liste, - [ ] Aufgabe, [Link](https://…)",
+    "preview": "Vorschau",
+    "unsaved": "Ungespeicherte Änderungen",
+    "shortcuts": "⌘B fett · ⌘I kursiv · ⌘K Link · ⌘S speichern",
+    "saved": "Gespeichert.",
+    "listItem": "Punkt",
+    "titleRequired": "Bitte einen Titel angeben.",
+    "tooLong": "Der Text ist zu lang (max. 200.000 Zeichen).",
+    "tools": {
+      "bold": "Fett",
+      "italic": "Kursiv",
+      "heading": "Überschrift",
+      "list": "Liste",
+      "numbered": "Nummerierte Liste",
+      "checklist": "Aufgabenliste",
+      "quote": "Zitat",
+      "link": "Link",
+      "linkText": "Linktext",
+      "code": "Code",
+      "table": "Tabelle",
+      "column": "Spalte"
+    }
   }
 }

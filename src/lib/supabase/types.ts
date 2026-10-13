@@ -1787,6 +1787,58 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"wiki_page_versions": {
+                  Row: {
+                    "body": string,"created_at": string,"created_by": string | null,"id": string,"org_id": string,"page_id": string,"title": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body": string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id": string,"page_id": string,"title": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "body"?: string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id"?: string,"page_id"?: string,"title"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "wiki_page_versions_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "wiki_page_versions_page_id_fkey"
+      columns: ["page_id"]
+isOneToOne: false
+      referencedRelation: "wiki_pages"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"wiki_pages": {
+                  Row: {
+                    "body": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"id": string,"org_id": string,"parent_id": string | null,"position": number,"title": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"org_id": string,"parent_id"?: string | null,"position"?: number,"title": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "body"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"org_id"?: string,"parent_id"?: string | null,"position"?: number,"title"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "wiki_pages_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "wiki_pages_parent_id_fkey"
+      columns: ["parent_id"]
+isOneToOne: false
+      referencedRelation: "wiki_pages"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"workflow_runs": {
                   Row: {
                     "contact_id": string | null,"context": NonNullable<Json>,"created_at": string,"created_by": string | null,"error": string | null,"event_id": number | null,"id": string,"log": NonNullable<Json>,"node_id": string | null,"org_id": string,"resume_at": string,"status": string,"updated_at": string,"updated_by": string | null,"workflow_id": string
