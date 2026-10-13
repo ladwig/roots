@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ExternalLinkIcon } from "lucide-react"
 import { Markdown } from "@/components/markdown"
 import { SubmitButton } from "@/components/submit-button"
+import { PeopleSelect } from "./people-select"
 import { TagSelect } from "@/components/tag-select"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,12 +10,13 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
 import type { T } from "@/i18n/translate"
 import type { ChecklistItem } from "@/projects/fields"
-import { saveTaskAction, trashTaskAction } from "./actions"
+import { autosaveTaskAction, trashTaskAction } from "./actions"
+import { AutosaveForm } from "./autosave-form"
 import { Checklist } from "./checklist"
 
 export type EditorTask = { id: string; title: string; description: string; status_id: string; due_on: string | null; tags: string[]; checklist: unknown; created_at: string; completed_at: string | null; task_assignees: { user_id: string }[] }
 
-// Everything about one task: fields (saved with the button), checklist (saves at once), trash. Used by the board's
+// Everything about one task: fields (save themselves), checklist (saves at once), trash. Used by the board's
 // side panel and the task's own page.
 export function TaskEditor({
   t,
@@ -43,9 +45,8 @@ export function TaskEditor({
           <ExternalLinkIcon className="size-3.5" /> {t("projects.openAsPage")}
         </Link>
       )}
-      <form action={saveTaskAction} className="grid gap-4">
+      <AutosaveForm action={autosaveTaskAction} className="grid gap-4">
         <input type="hidden" name="id" value={task.id} />
-        <input type="hidden" name="back" value={back} />
         <fieldset disabled={!canManage} className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="tk-title">{t("projects.taskTitle")}</Label>
@@ -67,21 +68,10 @@ export function TaskEditor({
               <Input id="tk-due" name="due_on" type="date" defaultValue={task.due_on ?? ""} />
             </div>
           </div>
-          <fieldset className="grid gap-2">
-            <legend className="mb-1 text-sm font-medium">{t("projects.assignees")}</legend>
-            {team.length ? (
-              <div className="grid gap-1.5 sm:grid-cols-2">
-                {team.map((p) => (
-                  <label key={p.id} className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" name="assignees" value={p.id} defaultChecked={assigned.includes(p.id)} className="size-4" />
-                    <span className="truncate">{p.name}</span>
-                  </label>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">{t("projects.noTeam")}</p>
-            )}
-          </fieldset>
+          <div className="grid gap-2">
+            <Label htmlFor="tk-people">{t("projects.assignees")}</Label>
+            <PeopleSelect id="tk-people" name="assignees" team={team} defaultValue={assigned} />
+          </div>
           <div className="grid gap-2">
             <Label htmlFor="tk-tags">{t("projects.tags")}</Label>
             <TagSelect id="tk-tags" name="tags" options={tags} defaultValue={task.tags} creatable />
@@ -90,9 +80,8 @@ export function TaskEditor({
             <Label htmlFor="tk-desc">{t("projects.description")}</Label>
             <Textarea id="tk-desc" name="description" defaultValue={task.description} rows={6} maxLength={100000} placeholder={t("projects.descriptionHint")} />
           </div>
-          {canManage && <SubmitButton className="justify-self-start">{t("common.save")}</SubmitButton>}
         </fieldset>
-      </form>
+      </AutosaveForm>
       {!canManage && task.description.trim() && <Markdown>{task.description}</Markdown>}
       <Checklist taskId={task.id} initial={(Array.isArray(task.checklist) ? task.checklist : []) as ChecklistItem[]} disabled={!canManage} />
       <p className="text-xs text-muted-foreground">

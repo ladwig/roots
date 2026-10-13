@@ -57,6 +57,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   const tasks = (rows ?? []).map((r) => ({
     id: r.id,
     title: r.title,
+    snippet: r.description.replace(/[#*_`>[\]()|~-]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 200),
     status_id: r.status_id,
     tags: r.tags,
     due_on: r.due_on,
@@ -115,7 +116,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       )}
 
       {view === "board" ? (
-        <Board key={JSON.stringify(sp)} statuses={statuses} tasks={tasks} canManage={canManage} back={here} today={today} />
+        <Board statuses={statuses} tasks={tasks} canManage={canManage} back={here} today={today} />
       ) : (
         <DataTable
           rows={tasks}
@@ -123,7 +124,15 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           rowHref={(r) => r.href}
           empty={t("projects.empty")}
           columns={[
-            { header: t("projects.taskTitle"), cell: (r) => <span className={r.done ? "text-muted-foreground line-through" : "font-medium"}>{r.title}</span> },
+            {
+              header: t("projects.taskTitle"),
+              cell: (r) => (
+                <span className="grid gap-0.5">
+                  <span className={r.done ? "text-muted-foreground line-through" : "font-medium"}>{r.title}</span>
+                  {r.snippet && <span className="line-clamp-1 text-xs text-muted-foreground">{r.snippet}</span>}
+                </span>
+              ),
+            },
             {
               header: t("projects.status"),
               cell: (r) => {

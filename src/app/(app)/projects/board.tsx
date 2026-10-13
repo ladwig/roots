@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useTransition } from "react"
+import { useEffect, useRef, useState, useTransition } from "react"
 import Link from "next/link"
 import { CalendarIcon, ListChecksIcon } from "lucide-react"
 import { toast } from "sonner"
@@ -14,15 +14,25 @@ import { DOT } from "@/projects/fields"
 import { createTaskAction, moveTaskAction } from "./actions"
 
 export type BoardStatus = { id: string; name: string; color: string }
-export type BoardTask = { id: string; title: string; status_id: string; tags: string[]; due_on: string | null; done: boolean; progress: string | null; people: { id: string; initials: string; name: string }[]; href: string }
+export type BoardTask = { id: string; title: string; snippet: string; status_id: string; tags: string[]; due_on: string | null; done: boolean; progress: string | null; people: { id: string; initials: string; name: string }[]; href: string }
 type Item = { id: string; name: string; column: string; task: BoardTask }
 
 // Kanban: one column per status, drag & drop between and within columns (saved at once), quick add per column,
 // a click opens the task panel. Readers see the board without dragging.
 export function Board({ statuses, tasks, canManage, back, today }: { statuses: BoardStatus[]; tasks: BoardTask[]; canManage: boolean; back: string; today: string }) {
   const t = useT()
-  const [items, setItems] = useState<Item[]>(() => tasks.map((task) => ({ id: task.id, name: task.title, column: task.status_id, task })))
+  const toItems = (list: BoardTask[]) => list.map((task) => ({ id: task.id, name: task.title, column: task.status_id, task }))
+  const [items, setItems] = useState<Item[]>(() => toItems(tasks))
+  // New tasks from the server (quick add, panel edits, refresh): take them over (React's "adjust state on prop change").
+  const [seen, setSeen] = useState(tasks)
+  if (seen !== tasks) {
+    setSeen(tasks)
+    setItems(toItems(tasks))
+  }
   const latest = useRef(items)
+  useEffect(() => {
+    latest.current = items
+  }, [items])
   const from = useRef<{ id: string; column: string } | null>(null)
   const [, start] = useTransition()
   const columns = statuses.map((s) => ({ id: s.id, name: s.name, color: s.color }))
@@ -92,25 +102,34 @@ export function Board({ statuses, tasks, canManage, back, today }: { statuses: B
   )
 }
 
+// Title with tags top right (max 2 + "+n", so cards stay small), description preview, then due date, subtasks, people.
 function TaskCard({ task, today }: { task: BoardTask; today: string }) {
   const overdue = task.due_on && !task.done && task.due_on < today
   return (
-    <Link href={task.href} scroll={false} className="grid gap-2 text-sm">
-      <span className={cn("font-medium break-words", task.done && "text-muted-foreground line-through")}>{task.title}</span>
-      {task.tags.length > 0 && (
-        <span className="flex flex-wrap gap-1">
-          {task.tags.map((tag) => (
-            <Badge key={tag} variant="outline" className="text-[11px]">
-              {tag}
-            </Badge>
-          ))}
-        </span>
-      )}
+    <Link href={task.href} scroll={false} className="grid gap-1.5 text-sm">
+      <span className="flex items-start gap-2">
+        <span className={cn("min-w-0 flex-1 font-medium break-words", task.done && "text-muted-foreground line-through")}>{task.title}</span>
+        {task.tags.length > 0 && (
+          <span className="flex shrink-0 gap-1">
+            {task.tags.slice(0, 2).map((tag) => (
+              <Badge key={tag} variant="outline" className="max-w-20 truncate px-1.5 text-[10px]">
+                {tag}
+              </Badge>
+            ))}
+            {task.tags.length > 2 && (
+              <Badge variant="outline" className="px-1.5 text-[10px]" title={task.tags.slice(2).join(", ")}>
+                +{task.tags.length - 2}
+              </Badge>
+            )}
+          </span>
+        )}
+      </span>
+      {task.snippet && <span className="line-clamp-2 text-xs text-muted-foreground">{task.snippet}</span>}
       {(task.due_on || task.progress || task.people.length > 0) && (
-        <span className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+        <span className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
           {task.due_on && (
-            <span className={cn("inline-flex items-center gap-1", overdue && "text-destructive")}>
-              <CalendarIcon className="size-3.5" /> {new Date(`${task.due_on}T12:00:00`).toLocaleDateString(undefined, { day: "2-digit", month: "2-digit" })}
+            <span className={cn("inline-flex items-center gap-1", overdue && "font-medium text-destructive")}>
+              <CalendarIcon className="size-3.5" /> {new Date(`${task.due_on}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", day: "2-digit", month: "2-digit" })}
             </span>
           )}
           {task.progress && (
@@ -118,12 +137,15 @@ function TaskCard({ task, today }: { task: BoardTask; today: string }) {
               <ListChecksIcon className="size-3.5" /> {task.progress}
             </span>
           )}
-          <span className="ml-auto flex -space-x-1.5">
-            {task.people.map((p) => (
-              <span key={p.id} title={p.name} className="grid size-6 place-items-center rounded-full border-2 border-card bg-muted text-[10px] font-medium text-foreground">
-                {p.initials}
-              </span>
-            ))}
+          <span className="ml-auto flex items-center gap-1.5">
+            {task.people.length === 1 && <span className="max-w-24 truncate">{task.people[0].name}</span>}
+            <span className="flex -space-x-1.5">
+              {task.people.map((p) => (
+                <span key={p.id} title={p.name} className="grid size-6 place-items-center rounded-full border-2 border-card bg-muted text-[10px] font-medium text-foreground">
+                  {p.initials}
+                </span>
+              ))}
+            </span>
           </span>
         </span>
       )}

@@ -2331,9 +2331,10 @@
   },
   "tags": {
     "remove": "{tag} entfernen",
-    "typeNew": "Tag eingeben, Enter zum Hinzufügen",
-    "none": "Keine ausgewählt – unten antippen",
-    "available": "Vorhandene Tags"
+    "typeNew": "Tag suchen oder neu anlegen…",
+    "search": "Tag suchen…",
+    "create": "„{tag}“ anlegen",
+    "noMatch": "Nichts gefunden."
   },
   "landing": {
     "meta": {
@@ -4164,6 +4165,8 @@
     },
     "statusSaved": "Spalte gespeichert.",
     "statusDeleted": "Spalte gelöscht.",
-    "statusInUse": "Die Spalte enthält noch Aufgaben."
+    "statusInUse": "Die Spalte enthält noch Aufgaben.",
+    "searchPeople": "Person suchen…",
+    "saving": "Speichert…"
   }
 }

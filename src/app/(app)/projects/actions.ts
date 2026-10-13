@@ -32,14 +32,16 @@ export async function createTaskAction(fd: FormData) {
   const r = await createTask(ctx.supabase, ctx.org.id, { title: String(fd.get("title") ?? ""), statusId: id(fd, "status_id"), tags: parseTags(String(fd.get("tags") ?? "")) })
   if ("error" in r) back(to, { error: message(t, r) })
   deliverSoon()
-  back(to, {})
+  // Open the new task's panel right away (assignees, due date, …).
+  const url = new URL(to, "http://x")
+  url.searchParams.set("task", r.id)
+  back(url.pathname + url.search, {})
 }
 
-/** The task panel's form: fields, status, assignees. */
-export async function saveTaskAction(fd: FormData) {
+/** The task panel saves itself (AutosaveForm): fields, status, assignees. */
+export async function autosaveTaskAction(fd: FormData): Promise<{ error?: string }> {
   const { ctx, t } = await manager()
   const task = id(fd, "id") ?? ""
-  const to = backTo(fd, `/projects?task=${task}`)
   const r = await updateTask(ctx.supabase, ctx.org.id, task, {
     title: String(fd.get("title") ?? ""),
     description: String(fd.get("description") ?? ""),
@@ -47,11 +49,11 @@ export async function saveTaskAction(fd: FormData) {
     tags: parseTags(String(fd.get("tags") ?? "")),
     statusId: id(fd, "status_id") ?? undefined,
   })
-  if ("error" in r) back(to, { error: message(t, r) })
+  if ("error" in r) return { error: message(t, r) }
   const a = await setAssignees(ctx.supabase, ctx.org.id, task, fd.getAll("assignees").map(String).filter((u) => UUID.test(u)))
-  if ("error" in a) back(to, { error: message(t, a) })
+  if ("error" in a) return { error: message(t, a) }
   deliverSoon()
-  back(to, { ok: t("projects.saved") })
+  return {}
 }
 
 /** Board drag & drop (called from the board). */

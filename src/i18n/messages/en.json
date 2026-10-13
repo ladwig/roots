@@ -2331,9 +2331,10 @@
   },
   "tags": {
     "remove": "Remove {tag}",
-    "typeNew": "Type a tag, Enter to add",
-    "none": "None selected – tap below",
-    "available": "Existing tags"
+    "typeNew": "Search or create a tag…",
+    "search": "Search tags…",
+    "create": "Create “{tag}”",
+    "noMatch": "Nothing found."
   },
   "landing": {
     "meta": {
@@ -4164,6 +4165,8 @@
     },
     "statusSaved": "Column saved.",
     "statusDeleted": "Column deleted.",
-    "statusInUse": "The column still contains tasks."
+    "statusInUse": "The column still contains tasks.",
+    "searchPeople": "Search people…",
+    "saving": "Saving…"
   }
 }
