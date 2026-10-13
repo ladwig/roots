@@ -32,7 +32,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useT } from "@/i18n/client"
 import { cn } from "@/lib/utils"
 import { ACTIONS, DATA_STEPS, stepKey, triggerKey, validate, WAIT_UNITS, type Graph, type NodeType, type TraceStep } from "@/automations/graph"
-import { creatableFor, def, OBJECTS, searchFields, objectsFor, OPS_FOR, parseRecordTrigger, SCHEDULE_OBJECTS, splitPath, writableFor, type Field, type Kind, type ObjectKey, type RefList } from "@/automations/objects"
+import { creatableFor, deletableFor, def, OBJECTS, searchFields, objectsFor, OPS_FOR, parseRecordTrigger, SCHEDULE_OBJECTS, splitPath, writableFor, type Field, type Kind, type ObjectKey, type RefList } from "@/automations/objects"
 import { saveWorkflow, testRun, testSamples } from "../actions"
 
 type Data = Record<string, unknown>
@@ -93,6 +93,7 @@ const ICONS: Record<NodeType, LucideIcon> = {
   webhook: WebhookIcon,
   notify_team: BellIcon,
   create_record: FilePlus2Icon,
+  delete_record: Trash2Icon,
   find_record: SearchIcon,
   aggregate: SigmaIcon,
   telegram: SendIcon,
@@ -108,6 +109,7 @@ const DEFAULTS: Record<NodeType, Data> = {
   webhook: { url: "" },
   notify_team: { text: "" },
   create_record: { object: "", values: {} },
+  delete_record: { object: "" },
   find_record: { object: "", rules: [], sort: "", dir: "desc", label: "" },
   aggregate: { object: "", rules: [], op: "count", field: "", label: "" },
   telegram: { chat_id: "", text: "" },
@@ -117,7 +119,7 @@ const PALETTE: { section: string; types: NodeType[] }[] = [
   { section: "logic", types: ["condition", "wait"] },
   { section: "query", types: ["find_record", "aggregate"] },
   { section: "send", types: ["send_email", "notify_team", "telegram"] },
-  { section: "data", types: ["add_tag", "remove_tag", "set_field", "create_record"] },
+  { section: "data", types: ["add_tag", "remove_tag", "set_field", "create_record", "delete_record"] },
   { section: "connect", types: ["webhook"] },
 ]
 
@@ -584,6 +586,19 @@ function Inspector({
       )}
       {(type === "add_tag" || type === "remove_tag") && <TagPick value={String(d.tag ?? "")} tags={options.tags} creatable={type === "add_tag"} disabled={!canEdit} onChange={(tag) => onChange({ tag })} />}
       {type === "set_field" && <SetField d={d} options={options} trigger={trigger} extra={stepKeys} canEdit={canEdit} onChange={onChange} />}
+      {type === "delete_record" && (
+        <div className="grid gap-2">
+          <NativeSelect value={String(d.object ?? "")} disabled={!canEdit} aria-label={t("automations.object")} className="w-full" onChange={(e) => onChange({ object: e.target.value })}>
+            <NativeSelectOption value="">{t("automations.pickObject")}</NativeSelectOption>
+            {[...deletableFor(trigger, mods), ...stepKeys.filter((k) => { const st = options.steps?.find((x) => x.key === k); return st && st.object in OBJECTS && def(st.object as ObjectKey).remove })].map((o) => (
+              <NativeSelectOption key={o} value={o}>
+                {objectLabel(o, options, (k) => t.dynamic(k))}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+          <p className="text-xs text-muted-foreground">{t("automations.deleteHint")}</p>
+        </div>
+      )}
       {type === "create_record" && <CreateRecord d={d} options={options} trigger={trigger} canEdit={canEdit} onChange={onChange} />}
       {type === "telegram" && (
         <>

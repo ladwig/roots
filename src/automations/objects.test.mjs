@@ -17,6 +17,7 @@ test("record triggers and the objects they bring", () => {
   assert.deepEqual(parseRecordTrigger("record:tickets:insert"), { object: "ticket", action: "insert" })
   assert.equal(parseRecordTrigger("record:api_keys:insert"), null)
   assert.deepEqual(objectsFor("record:tickets:insert"), ["ticket", "event", "order", "contact", "ticket_type", "membership", "now"])
+  assert.ok(objectsFor("record:member_dues:update").includes("contact")) // due → membership → person (two hops)
   assert.deepEqual(objectsFor("record:tickets:insert", new Set(["tickets", "events"])), ["ticket", "event", "ticket_type", "now"])
   assert.deepEqual(pickFields("membership", { id: "m", iban: "DE…", ends_on: null, contact_id: "c", type_id: "t" }), { id: "m", ends_on: null, type_id: "t", contact_id: "c" })
 })

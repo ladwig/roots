@@ -3000,7 +3000,8 @@
       "telegram": "Telegram message",
       "create_record": "Create record",
       "find_record": "Find record",
-      "aggregate": "Count & calculate"
+      "aggregate": "Count & calculate",
+      "delete_record": "Delete record"
     },
     "help": {
       "trigger": "What starts the automation? Every event gets its own run.",
@@ -3016,7 +3017,8 @@
       "telegram": "Sends a message through your Telegram bot to a chat.",
       "create_record": "Creates a new record (person, event as draft, shift, membership, note …). Links to this run's person etc. are set automatically.",
       "find_record": "Finds a record (e.g. this person's newest membership, the next event). All later steps can use the result.",
-      "aggregate": "Counts records or calculates over a number field (sum, average, smallest/largest) – e.g. this person's check-ins in the last 90 days."
+      "aggregate": "Counts records or calculates over a number field (sum, average, smallest/largest) – e.g. this person's check-ins in the last 90 days.",
+      "delete_record": "Deletes a record of this run (or a found one)."
     },
     "ops": {
       "eq": "is",
@@ -3500,6 +3502,7 @@
     "oncePerRecord": "Only once per record",
     "againAfter": "Allowed again after",
     "aggResultOf": "Count/value",
-    "rename": "Rename"
+    "rename": "Rename",
+    "deleteHint": "People, memberships, events etc. go to the trash (restorable for 30 days); links like notes or guest list entries are deleted. Money (tickets, orders, dues, invoices) is never deleted."
   }
 }

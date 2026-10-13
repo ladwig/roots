@@ -3000,7 +3000,8 @@
       "telegram": "Telegram-Nachricht",
       "create_record": "Datensatz anlegen",
       "find_record": "Datensatz suchen",
-      "aggregate": "Zählen & berechnen"
+      "aggregate": "Zählen & berechnen",
+      "delete_record": "Datensatz löschen"
     },
     "help": {
       "trigger": "Womit startet die Automation? Für jedes Ereignis gibt es einen eigenen Durchlauf.",
@@ -3016,7 +3017,8 @@
       "telegram": "Schickt eine Nachricht über euren Telegram-Bot in einen Chat.",
       "create_record": "Legt einen neuen Datensatz an (Person, Event als Entwurf, Schicht, Mitgliedschaft, Notiz …). Verknüpfungen zur Person o. Ä. dieses Ablaufs werden automatisch gesetzt.",
       "find_record": "Sucht einen Datensatz (z. B. die neueste Mitgliedschaft dieser Person, das nächste Event). Das Ergebnis können alle folgenden Schritte nutzen.",
-      "aggregate": "Zählt Datensätze oder rechnet über ein Zahlenfeld (Summe, Durchschnitt, kleinster/größter Wert) – z. B. Check-ins dieser Person in den letzten 90 Tagen."
+      "aggregate": "Zählt Datensätze oder rechnet über ein Zahlenfeld (Summe, Durchschnitt, kleinster/größter Wert) – z. B. Check-ins dieser Person in den letzten 90 Tagen.",
+      "delete_record": "Löscht einen Datensatz dieses Ablaufs (oder einen gefundenen)."
     },
     "ops": {
       "eq": "ist",
@@ -3500,6 +3502,7 @@
     "oncePerRecord": "Nur einmal pro Datensatz",
     "againAfter": "Wieder erlaubt nach",
     "aggResultOf": "Anzahl/Wert",
-    "rename": "Umbenennen"
+    "rename": "Umbenennen",
+    "deleteHint": "Personen, Mitgliedschaften, Events u. Ä. kommen in den Papierkorb (30 Tage wiederherstellbar); Verknüpfungen wie Notizen oder Gästelisten-Einträge werden gelöscht. Geld (Tickets, Bestellungen, Beiträge, Rechnungen) wird nie gelöscht."
   }
 }

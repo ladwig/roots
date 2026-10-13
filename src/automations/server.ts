@@ -193,10 +193,12 @@ export async function context(db: Db, run: Pick<Run, "org_id" | "contact_id" | "
     which.forEach((k, i) => (out[k] = rows[i]))
   }
   await round((Object.keys(ids) as ObjectKey[]).filter((k) => k !== "contact"))
-  // One relation away (ticket → event/order/type/person, membership → person/type …).
-  for (const [k, row] of Object.entries(out) as [ObjectKey, Row | null][])
-    for (const [col, target] of Object.entries(def(k).relations ?? {})) if (row && typeof row[col] === "string" && keys.includes(target as ObjectKey)) ids[target as ObjectKey] ??= row[col] as string
-  await round((Object.keys(ids) as ObjectKey[]).filter((k) => !(k in out)))
+  // Up to two relations away (ticket → event/order/person, due → membership → person …).
+  for (let hop = 0; hop < 2; hop++) {
+    for (const [k, row] of Object.entries(out) as [ObjectKey, Row | null][])
+      for (const [col, target] of Object.entries(def(k).relations ?? {})) if (row && typeof row[col] === "string" && keys.includes(target as ObjectKey)) ids[target as ObjectKey] ??= row[col] as string
+    await round((Object.keys(ids) as ObjectKey[]).filter((k) => !(k in out)))
+  }
 
   const contact = out.contact ?? null
   const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
@@ -329,6 +331,19 @@ async function act(db: Db, run: Run, node: GraphNode, type: NodeType, d: Record<
       return setField(db, run, String(d.field), fill(String(d.value), ctx), ctx)
     case "create_record":
       return createRecord(db, run, String(d.object), (d.values ?? {}) as Record<string, string>, ctx)
+    case "delete_record": {
+      // Soft = into the trash (restorable for 30 days), hard = removed; the catalog says which, money never.
+      const key = String(d.object)
+      const row = ctx[key] as Row | null
+      if (!row?.id) return `skipped: no ${key}`
+      const type = (key.startsWith("step_") ? String(row.__object ?? "") : key) as ObjectKey
+      const mode = def(type)?.remove
+      if (!mode) throw new Error(`${type} can't be deleted`)
+      const table = def(type).table as "contacts"
+      const { error } = mode === "soft" ? await db.from(table).update({ deleted_at: new Date().toISOString() } as never).eq("id", row.id as string).eq("org_id", run.org_id).is("deleted_at", null) : await db.from(table).delete().eq("id", row.id as string).eq("org_id", run.org_id)
+      if (error) throw new Error(error.message)
+      return `${type} ${mode === "soft" ? "→ trash" : "deleted"}`
+    }
     case "webhook": {
       const url = String(d.url)
       if (!isAllowedUrl(url)) throw new Error("webhook URL not allowed")

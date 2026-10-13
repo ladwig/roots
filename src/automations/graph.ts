@@ -5,7 +5,7 @@ import { z } from "zod"
 import { berlinDay, resolveDate } from "./schedule.ts"
 
 export const DATA_STEPS = ["find_record", "aggregate"] as const // read only: they put a result into the run
-export const ACTIONS = ["send_email", "add_tag", "remove_tag", "set_field", "create_record", "notify_team", "telegram", "webhook"] as const
+export const ACTIONS = ["send_email", "add_tag", "remove_tag", "set_field", "create_record", "delete_record", "notify_team", "telegram", "webhook"] as const
 export const NODE_TYPES = ["trigger", "condition", "wait", ...DATA_STEPS, ...ACTIONS] as const
 export type NodeType = (typeof NODE_TYPES)[number]
 export const OPS = ["eq", "neq", "contains", "not_contains", "gt", "gte", "lt", "lte", "empty", "not_empty"] as const
@@ -61,6 +61,7 @@ export const NODE_DATA = {
   notify_team: z.object({ text: text(500) }),
   telegram: z.object({ chat_id: text(40), text: text(4000) }),
   create_record: z.object({ object: text(40), values: z.record(z.string().max(100), text(2000)).default({}) }),
+  delete_record: z.object({ object: text(80) }), // an object of the run or a found record (step_…)
 } satisfies Record<NodeType, z.ZodType>
 export type NodeData<T extends NodeType> = z.infer<(typeof NODE_DATA)[T]>
 
@@ -125,6 +126,7 @@ function filled(type: NodeType, d: Record<string, unknown>) {
     case "notify_team":
       return !!d.text
     case "create_record":
+    case "delete_record":
       return !!d.object
     case "find_record":
     case "aggregate":
