@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import { MemberImportBody } from "./import/body"
+import { UrlSheet } from "@/components/url-sheet"
 import { UploadIcon } from "lucide-react"
 import { contactName } from "@/app/(app)/contacts/fields"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
@@ -81,7 +83,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
         <div className="flex flex-wrap gap-2">
           <ExportMenu entity="members" query={{ status, type: typeFilter, q }} />
           {canManage && ctx.can("crm.manage") && (
-            <Button render={<Link href="/members/import" />} nativeButton={false} size="sm" variant="outline">
+            <Button render={<Link href={withParams(sp, { import: "1" })} scroll={false} />} nativeButton={false} size="sm" variant="outline">
               <UploadIcon /> {t("membership.import")}
             </Button>
           )}
@@ -143,6 +145,11 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
       />
       <Pager sp={sp} page={page} hasNext={(data?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
 
+      {canManage && ctx.can("crm.manage") && param(sp, "import") === "1" && (
+        <UrlSheet params={["import"]} title={t("membership.importTitle")} wide>
+          <MemberImportBody ctx={ctx} />
+        </UrlSheet>
+      )}
     </>
   )
 }

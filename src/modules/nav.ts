@@ -26,7 +26,6 @@ export const NAV: Area[] = [
     icon: ContactIcon,
     children: [
       { href: "/contacts", label: "nav.overview", module: "crm", permission: "crm.view" },
-      { href: "/contacts/import", label: "contacts.import", module: "crm", permission: "crm.manage" },
     ],
   },
   {
@@ -36,7 +35,6 @@ export const NAV: Area[] = [
     children: [
       { href: "/members", label: "nav.overview", module: "members", permission: "members.view" },
       { href: "/members/dues", label: "membership.tabs.dues", module: "members", permission: "members.view" },
-      { href: "/members/import", label: "nav.import", module: "members", permission: "members.manage" },
       { href: "/members/setup", label: "membership.tabs.setup", module: "members", permission: "members.manage" },
     ],
   },

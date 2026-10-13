@@ -94,6 +94,8 @@ Every screen works on phone (from 360px), tablet (iPad, `md` = 768px+) and deskt
 - Drawers (`<UrlSheet>`) are full-width on phones. Forms stack on phones: `grid gap-4 sm:grid-cols-2`.
 - Toolbars and page headers wrap: `flex flex-wrap items-center gap-3`.
 - Pages are left-aligned (same left margin everywhere): `grid max-w-5xl gap-6`, never `mx-auto` in the App/admin. Popovers from the sidebar open below/above their trigger, as wide as the sidebar.
+- **Global search (⌘K, `src/search/actions.ts`)**: every new module/record type adds its source there, and every hit is a **deep link to the record itself** (its page, or its drawer via `?edit=<id>`, a wiki page, a file), never just the list. Pages come from the nav tree (`src/modules/nav.ts`).
+- **Navigation**: the sidebar is the tree in `src/modules/nav.ts` (areas with sub-pages, only the current area expanded, the first sub-page is "Übersicht" when it is the area itself). New sub-page = an entry there, not a tab bar in the layout. Records with real content are pages (`/<area>/<id>`), and so is creating them (`/<area>/new`, `<NewPage>`); drawers only for quick edits with a few fields and for imports (wide `<UrlSheet wide>` on the overview).
 - Feedback on every action: form buttons are `<SubmitButton>` (`src/components/submit-button.tsx`: spinner + disabled while the server action runs), navigation shows the area's `loading.tsx` skeleton, client-side work (`useTransition`) disables its trigger and shows a pending label. Never a plain `<Button type="submit">`.
 - Icon-only buttons get a `<Tooltip>` and an `aria-label`. Touch targets at least `size-8`.
 - Check new screens at 375px, 768px and 1280px before committing.

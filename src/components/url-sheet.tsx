@@ -9,8 +9,10 @@ export function UrlSheet({
   title,
   description,
   children,
+  wide,
 }: {
   params: string[]
+  wide?: boolean // e.g. an import with a preview table
   title: string
   description?: string
   children: React.ReactNode
@@ -27,7 +29,7 @@ export function UrlSheet({
 
   return (
     <Sheet open onOpenChange={(open) => !open && close()}>
-      <SheetContent className="w-full overflow-y-auto sm:max-w-md">
+      <SheetContent className={wide ? "w-full overflow-y-auto sm:max-w-3xl" : "w-full overflow-y-auto sm:max-w-md"}>
         <SheetHeader>
           <SheetTitle>{title}</SheetTitle>
           {description && <SheetDescription>{description}</SheetDescription>}

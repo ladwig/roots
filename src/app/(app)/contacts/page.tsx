@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { ContactImportBody } from "./import/body"
+import { UrlSheet } from "@/components/url-sheet"
 import { notFound, redirect } from "next/navigation"
 import { UploadIcon } from "lucide-react"
 import { ExportMenu } from "@/components/export-menu"
@@ -61,7 +63,7 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
           <ExportMenu entity="contacts" query={{ q, tag }} />
           {canManage && (
             <>
-              <Button render={<Link href="/contacts/import" />} nativeButton={false} size="sm" variant="outline">
+              <Button render={<Link href={withParams(sp, { import: "1" })} scroll={false} />} nativeButton={false} size="sm" variant="outline">
                 <UploadIcon /> {t("contacts.import")}
               </Button>
               <Button render={<Link href="/contacts/new" />} nativeButton={false} size="sm">
@@ -117,6 +119,11 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
       />
       <Pager sp={sp} page={page} hasNext={(data?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
 
+      {canManage && param(sp, "import") === "1" && (
+        <UrlSheet params={["import"]} title={t("contacts.importTitle")} wide>
+          <ContactImportBody ctx={ctx} />
+        </UrlSheet>
+      )}
     </div>
   )
 }
