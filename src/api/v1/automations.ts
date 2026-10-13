@@ -79,7 +79,7 @@ export const endpoints: Endpoint[] = [
     async handler({ db, orgId, body }) {
       const { data, error } = await db
         .from("workflows")
-        .insert({ org_id: orgId, name: body.name, description: body.description ?? null, graph: body.graph as unknown as Json, trigger_type: (triggerOf(body.graph)?.data.event as string) || null })
+        .insert({ org_id: orgId, name: body.name, description: body.description ?? null, graph: body.graph as unknown as NonNullable<Json>, trigger_type: (triggerOf(body.graph)?.data.event as string) || null })
         .select(COLS)
         .single()
       if (error) throw dbError(error)
@@ -106,7 +106,7 @@ export const endpoints: Endpoint[] = [
         .update({
           ...(body.name !== undefined ? { name: body.name } : {}),
           ...(body.description !== undefined ? { description: body.description } : {}),
-          ...(body.graph ? { graph: body.graph as unknown as Json, trigger_type: (triggerOf(body.graph)?.data.event as string) || null } : {}),
+          ...(body.graph ? { graph: body.graph as unknown as NonNullable<Json>, trigger_type: (triggerOf(body.graph)?.data.event as string) || null } : {}),
           active,
         })
         .eq("id", params.id)

@@ -43,7 +43,7 @@ export async function createWorkflow(fd: FormData) {
   }
   const { data, error } = await ctx.supabase
     .from("workflows")
-    .insert({ org_id: ctx.org.id, name: name || t("automations.untitled"), graph: graph as unknown as Json, trigger_type: (triggerOf(graph)?.data.event as string) || null })
+    .insert({ org_id: ctx.org.id, name: name || t("automations.untitled"), graph: graph as unknown as NonNullable<Json>, trigger_type: (triggerOf(graph)?.data.event as string) || null })
     .select("id")
     .single()
   if (error) back("/automations?new=1", { error: dbError(t, error) })
@@ -65,7 +65,7 @@ export async function saveWorkflow(input: { id: string; name: string; descriptio
     .update({
       name: input.name.trim().slice(0, 200) || t("automations.untitled"),
       description: input.description.trim().slice(0, 2000) || null,
-      graph: parsed.data as unknown as Json,
+      graph: parsed.data as unknown as NonNullable<Json>,
       trigger_type: (triggerOf(parsed.data)?.data.event as string) || null,
     })
     .eq("id", input.id)

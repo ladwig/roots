@@ -141,7 +141,7 @@ async function act(db: Db, run: Run, node: GraphNode, type: NodeType, d: Record<
 async function finish(db: Db, run: Run, log: LogEntry[], patch: { status: string; node_id?: string; resume_at?: string; error?: string }) {
   await db
     .from("workflow_runs")
-    .update({ ...patch, log: [...((run.log as LogEntry[]) ?? []), ...log].slice(-200) as unknown as Json })
+    .update({ ...patch, log: [...((run.log as LogEntry[]) ?? []), ...log].slice(-200) as unknown as NonNullable<Json> })
     .eq("id", run.id)
     .eq("status", "running") // a run cancelled meanwhile stays cancelled
 }

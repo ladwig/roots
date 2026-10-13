@@ -139,17 +139,23 @@ isOneToOne: false
                   ]
                 },"course_attendance": {
                   Row: {
-                    "id": string,"org_id": string,"session_id": string,"participant_id": string,"present": boolean,"created_at": string,"created_by": string | null,"updated_at": string,"updated_by": string | null
+                    "created_at": string,"created_by": string | null,"id": string,"org_id": string,"participant_id": string,"present": boolean,"session_id": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "id"?: string,"org_id": string,"session_id": string,"participant_id": string,"present": boolean,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id": string,"participant_id": string,"present": boolean,"session_id": string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "id"?: string,"org_id"?: string,"session_id"?: string,"participant_id"?: string,"present"?: boolean,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id"?: string,"participant_id"?: string,"present"?: boolean,"session_id"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
+      foreignKeyName: "course_attendance_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "course_attendance_participant_id_fkey"
       columns: ["participant_id"]
 isOneToOne: false
@@ -165,14 +171,14 @@ isOneToOne: false
                   ]
                 },"course_participants": {
                   Row: {
-                    "id": string,"org_id": string,"course_id": string,"contact_id": string,"status": string,"note": string | null,"created_at": string,"created_by": string | null,"updated_at": string,"updated_by": string | null
+                    "contact_id": string,"course_id": string,"created_at": string,"created_by": string | null,"id": string,"note": string | null,"org_id": string,"status": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "id"?: string,"org_id": string,"course_id": string,"contact_id": string,"status"?: string,"note"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "contact_id": string,"course_id": string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"note"?: string | null,"org_id": string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "id"?: string,"org_id"?: string,"course_id"?: string,"contact_id"?: string,"status"?: string,"note"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "contact_id"?: string,"course_id"?: string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"note"?: string | null,"org_id"?: string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -187,18 +193,24 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "courses"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "course_participants_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
     }
                   ]
                 },"course_sessions": {
                   Row: {
-                    "id": string,"org_id": string,"course_id": string,"starts_at": string,"ends_at": string,"location_id": string | null,"cancelled": boolean,"note": string | null,"created_at": string,"created_by": string | null,"updated_at": string,"updated_by": string | null
+                    "cancelled": boolean,"course_id": string,"created_at": string,"created_by": string | null,"ends_at": string,"id": string,"location_id": string | null,"note": string | null,"org_id": string,"starts_at": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "id"?: string,"org_id": string,"course_id": string,"starts_at": string,"ends_at": string,"location_id"?: string | null,"cancelled"?: boolean,"note"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "cancelled"?: boolean,"course_id": string,"created_at"?: string,"created_by"?: string | null,"ends_at": string,"id"?: string,"location_id"?: string | null,"note"?: string | null,"org_id": string,"starts_at": string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "id"?: string,"org_id"?: string,"course_id"?: string,"starts_at"?: string,"ends_at"?: string,"location_id"?: string | null,"cancelled"?: boolean,"note"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "cancelled"?: boolean,"course_id"?: string,"created_at"?: string,"created_by"?: string | null,"ends_at"?: string,"id"?: string,"location_id"?: string | null,"note"?: string | null,"org_id"?: string,"starts_at"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -213,18 +225,24 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "locations"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "course_sessions_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
     }
                   ]
                 },"courses": {
                   Row: {
-                    "id": string,"org_id": string,"title": string,"description": string | null,"location_id": string | null,"instructor": string | null,"capacity": number | null,"track_attendance": boolean,"deleted_at": string | null,"deleted_by": string | null,"created_at": string,"created_by": string | null,"updated_at": string,"updated_by": string | null
+                    "capacity": number | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"id": string,"instructor": string | null,"location_id": string | null,"org_id": string,"title": string,"track_attendance": boolean,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "id"?: string,"org_id": string,"title": string,"description"?: string | null,"location_id"?: string | null,"instructor"?: string | null,"capacity"?: number | null,"track_attendance"?: boolean,"deleted_at"?: string | null,"deleted_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "capacity"?: number | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"id"?: string,"instructor"?: string | null,"location_id"?: string | null,"org_id": string,"title": string,"track_attendance"?: boolean,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "id"?: string,"org_id"?: string,"title"?: string,"description"?: string | null,"location_id"?: string | null,"instructor"?: string | null,"capacity"?: number | null,"track_attendance"?: boolean,"deleted_at"?: string | null,"deleted_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "capacity"?: number | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"id"?: string,"instructor"?: string | null,"location_id"?: string | null,"org_id"?: string,"title"?: string,"track_attendance"?: boolean,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -361,14 +379,14 @@ isOneToOne: false
                   ]
                 },"email_sends": {
                   Row: {
-                    "automation_id": string | null,"campaign_id": string | null,"workflow_id": string | null,"workflow_node": string | null,"claimed_at": string | null,"contact_id": string | null,"created_at": string,"delivery": string | null,"delivery_at": string | null,"error": string | null,"id": string,"org_id": string,"send_after": string,"sent_at": string | null,"status": string,"to_email": string,"vars": NonNullable<Json>
+                    "automation_id": string | null,"campaign_id": string | null,"claimed_at": string | null,"contact_id": string | null,"created_at": string,"delivery": string | null,"delivery_at": string | null,"error": string | null,"id": string,"org_id": string,"send_after": string,"sent_at": string | null,"status": string,"to_email": string,"vars": NonNullable<Json>,"workflow_id": string | null,"workflow_node": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "automation_id"?: string | null,"campaign_id"?: string | null,"workflow_id"?: string | null,"workflow_node"?: string | null,"claimed_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"delivery"?: string | null,"delivery_at"?: string | null,"error"?: string | null,"id"?: string,"org_id": string,"send_after"?: string,"sent_at"?: string | null,"status"?: string,"to_email": string,"vars"?: NonNullable<Json>
+                    "automation_id"?: string | null,"campaign_id"?: string | null,"claimed_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"delivery"?: string | null,"delivery_at"?: string | null,"error"?: string | null,"id"?: string,"org_id": string,"send_after"?: string,"sent_at"?: string | null,"status"?: string,"to_email": string,"vars"?: NonNullable<Json>,"workflow_id"?: string | null,"workflow_node"?: string | null
                   }
                   Update: {
-                    "automation_id"?: string | null,"campaign_id"?: string | null,"workflow_id"?: string | null,"workflow_node"?: string | null,"claimed_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"delivery"?: string | null,"delivery_at"?: string | null,"error"?: string | null,"id"?: string,"org_id"?: string,"send_after"?: string,"sent_at"?: string | null,"status"?: string,"to_email"?: string,"vars"?: NonNullable<Json>
+                    "automation_id"?: string | null,"campaign_id"?: string | null,"claimed_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"delivery"?: string | null,"delivery_at"?: string | null,"error"?: string | null,"id"?: string,"org_id"?: string,"send_after"?: string,"sent_at"?: string | null,"status"?: string,"to_email"?: string,"vars"?: NonNullable<Json>,"workflow_id"?: string | null,"workflow_node"?: string | null
                   }
                   Relationships: [
                     {
@@ -394,6 +412,12 @@ isOneToOne: false
       columns: ["org_id"]
 isOneToOne: false
       referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "email_sends_workflow_id_fkey"
+      columns: ["workflow_id"]
+isOneToOne: false
+      referencedRelation: "workflows"
       referencedColumns: ["id"]
     }
                   ]
@@ -1641,52 +1665,6 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"workflow_runs": {
-                  Row: {
-                    "id": string,"org_id": string,"workflow_id": string,"event_id": number | null,"contact_id": string | null,"status": string,"node_id": string | null,"resume_at": string,"context": Json,"log": Json,"error": string | null,"created_at": string,"created_by": string | null,"updated_at": string,"updated_by": string | null
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "id"?: string,"org_id": string,"workflow_id": string,"event_id"?: number | null,"contact_id"?: string | null,"status"?: string,"node_id"?: string | null,"resume_at"?: string,"context"?: Json,"log"?: Json,"error"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
-                  }
-                  Update: {
-                    "id"?: string,"org_id"?: string,"workflow_id"?: string,"event_id"?: number | null,"contact_id"?: string | null,"status"?: string,"node_id"?: string | null,"resume_at"?: string,"context"?: Json,"log"?: Json,"error"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "workflow_runs_contact_id_fkey"
-      columns: ["contact_id"]
-isOneToOne: false
-      referencedRelation: "contacts"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "workflow_runs_workflow_id_fkey"
-      columns: ["workflow_id"]
-isOneToOne: false
-      referencedRelation: "workflows"
-      referencedColumns: ["id"]
-    }
-                  ]
-                },"workflows": {
-                  Row: {
-                    "id": string,"org_id": string,"name": string,"description": string | null,"active": boolean,"trigger_type": string | null,"graph": Json,"deleted_at": string | null,"deleted_by": string | null,"created_at": string,"created_by": string | null,"updated_at": string,"updated_by": string | null
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "id"?: string,"org_id": string,"name": string,"description"?: string | null,"active"?: boolean,"trigger_type"?: string | null,"graph"?: Json,"deleted_at"?: string | null,"deleted_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
-                  }
-                  Update: {
-                    "id"?: string,"org_id"?: string,"name"?: string,"description"?: string | null,"active"?: boolean,"trigger_type"?: string | null,"graph"?: Json,"deleted_at"?: string | null,"deleted_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "workflows_org_id_fkey"
-      columns: ["org_id"]
-isOneToOne: false
-      referencedRelation: "orgs"
-      referencedColumns: ["id"]
-    }
-                  ]
                 },"time_entries": {
                   Row: {
                     "approved_at": string | null,"approved_by": string | null,"break_minutes": number | null,"created_at": string,"created_by": string | null,"ended_at": string | null,"id": string,"note": string | null,"org_id": string,"shift_id": string | null,"staff_id": string,"started_at": string,"updated_at": string,"updated_by": string | null
@@ -1716,6 +1694,64 @@ isOneToOne: false
       columns: ["staff_id"]
 isOneToOne: false
       referencedRelation: "staff"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"workflow_runs": {
+                  Row: {
+                    "contact_id": string | null,"context": NonNullable<Json>,"created_at": string,"created_by": string | null,"error": string | null,"event_id": number | null,"id": string,"log": NonNullable<Json>,"node_id": string | null,"org_id": string,"resume_at": string,"status": string,"updated_at": string,"updated_by": string | null,"workflow_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "contact_id"?: string | null,"context"?: NonNullable<Json>,"created_at"?: string,"created_by"?: string | null,"error"?: string | null,"event_id"?: number | null,"id"?: string,"log"?: NonNullable<Json>,"node_id"?: string | null,"org_id": string,"resume_at"?: string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null,"workflow_id": string
+                  }
+                  Update: {
+                    "contact_id"?: string | null,"context"?: NonNullable<Json>,"created_at"?: string,"created_by"?: string | null,"error"?: string | null,"event_id"?: number | null,"id"?: string,"log"?: NonNullable<Json>,"node_id"?: string | null,"org_id"?: string,"resume_at"?: string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null,"workflow_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "workflow_runs_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "workflow_runs_event_id_fkey"
+      columns: ["event_id"]
+isOneToOne: false
+      referencedRelation: "hub_events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "workflow_runs_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "workflow_runs_workflow_id_fkey"
+      columns: ["workflow_id"]
+isOneToOne: false
+      referencedRelation: "workflows"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"workflows": {
+                  Row: {
+                    "active": boolean,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"graph": NonNullable<Json>,"id": string,"name": string,"org_id": string,"trigger_type": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"graph"?: NonNullable<Json>,"id"?: string,"name": string,"org_id": string,"trigger_type"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"graph"?: NonNullable<Json>,"id"?: string,"name"?: string,"org_id"?: string,"trigger_type"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "workflows_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
       referencedColumns: ["id"]
     }
                   ]
@@ -1753,6 +1789,9 @@ isOneToOne: false
 "artist_visible":
 { Args: { "p_artist": string }; Returns: boolean
                            },
+"attendance_refs_ok":
+{ Args: { "p_org": string,"p_participant": string,"p_session": string }; Returns: boolean
+                           },
 "can_see_deleted":
 { Args: { "p_org": string,"p_table": unknown }; Returns: boolean
                            },
@@ -1767,15 +1806,10 @@ isOneToOne: false
               "checked_in_at": string,"holder_name": string,"result": string,"type_name": string
             }[]
                            },
-"claim_workflow_runs":
-{ Args: { "p_limit"?: number }; Returns: Database["public"]["Tables"]["workflow_runs"]["Row"][]
-                           },
 "claim_email_sends":
 { Args: { "p_limit"?: number }; Returns: {
               "automation_id": string | null,
 "campaign_id": string | null,
-"workflow_id": string | null,
-"workflow_node": string | null,
 "claimed_at": string | null,
 "contact_id": string | null,
 "created_at": string,
@@ -1788,7 +1822,9 @@ isOneToOne: false
 "sent_at": string | null,
 "status": string,
 "to_email": string,
-"vars": NonNullable<Json>
+"vars": NonNullable<Json>,
+"workflow_id": string | null,
+"workflow_node": string | null
             }[]
                           SetofOptions: {
         from: "*"
@@ -1802,8 +1838,38 @@ isOneToOne: false
 "claim_unrouted_events":
 { Args: { "p_limit"?: number }; Returns: number[]
                            },
+"claim_workflow_runs":
+{ Args: { "p_limit"?: number }; Returns: {
+              "contact_id": string | null,
+"context": NonNullable<Json>,
+"created_at": string,
+"created_by": string | null,
+"error": string | null,
+"event_id": number | null,
+"id": string,
+"log": NonNullable<Json>,
+"node_id": string | null,
+"org_id": string,
+"resume_at": string,
+"status": string,
+"updated_at": string,
+"updated_by": string | null,
+"workflow_id": string
+            }[]
+                          SetofOptions: {
+        from: "*"
+        to: "workflow_runs"
+        isOneToOne: false
+        isSetofReturn: true
+      } },
 "contact_tags":
 { Args: { "p_org": string }; Returns: string[]
+                           },
+"course_fill":
+{ Args: { "p_course": string }; Returns: undefined
+                           },
+"course_refs_ok":
+{ Args: { "p_contact": string,"p_course": string,"p_location": string,"p_org": string }; Returns: boolean
                            },
 "create_org":
 { Args: { "p_name": string,"p_slug": string }; Returns: string
