@@ -1,14 +1,13 @@
+import { redirect } from "next/navigation"
 import Link from "next/link"
 import { PlusIcon } from "lucide-react"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { UrlSheet } from "@/components/url-sheet"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
-import { pageParam, param, withParams } from "@/lib/url"
-import { CourseForm } from "./course-form"
+import { pageParam, param } from "@/lib/url"
 
 // Courses: next date, places taken/left, waiting list at a glance. A row opens the course.
 export default async function CoursesPage({ searchParams }: PageProps<"/courses">) {
@@ -28,11 +27,8 @@ export default async function CoursesPage({ searchParams }: PageProps<"/courses"
     .range(...pageRange(page))
   query = trash ? query.not("deleted_at", "is", null) : query.is("deleted_at", null)
   if (q) query = query.or(`title.ilike.%${q}%,instructor.ilike.%${q}%`)
-  const creating = canManage && param(sp, "new") === "course"
-  const [{ data }, { data: locations }] = await Promise.all([
-    query,
-    creating ? ctx.supabase.from("locations").select("id, name").eq("org_id", ctx.org.id).order("name") : Promise.resolve({ data: null }),
-  ])
+  if (param(sp, "new")) redirect("/courses/new") // old drawer link
+  const { data } = await query
   const rows = (data ?? []).slice(0, PAGE_SIZE).map((c) => {
     const upcoming = c.course_sessions.filter((s) => !s.cancelled && s.starts_at >= now).map((s) => s.starts_at).sort()
     return {
@@ -48,7 +44,7 @@ export default async function CoursesPage({ searchParams }: PageProps<"/courses"
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-heading text-2xl font-semibold">{t("courses.title")}</h1>
         {canManage && (
-          <Button render={<Link href={`/courses${withParams(sp, { new: "course" })}`} />} nativeButton={false} size="sm">
+          <Button render={<Link href="/courses/new" />} nativeButton={false} size="sm">
             <PlusIcon /> {t("courses.new")}
           </Button>
         )}
@@ -90,12 +86,6 @@ export default async function CoursesPage({ searchParams }: PageProps<"/courses"
         ]}
       />
       <Pager sp={sp} page={page} hasNext={(data?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
-      {creating && (
-        <UrlSheet params={["new"]} title={t("courses.new")}>
-          <Notice error={param(sp, "error")} />
-          <CourseForm t={t} locations={locations ?? []} />
-        </UrlSheet>
-      )}
     </div>
   )
 }

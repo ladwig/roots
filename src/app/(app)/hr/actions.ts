@@ -27,7 +27,7 @@ const fail = (t: Awaited<ReturnType<typeof getT>>, r: { error: string; field?: s
 export async function saveEmployee(fd: FormData) {
   const { ctx, t } = await manager()
   const id = String(fd.get("id") ?? "")
-  const here = UUID.test(id) ? `/hr/${id}` : "/hr?new=employee"
+  const here = UUID.test(id) ? `/hr/${id}` : "/hr/new"
   // Employees are org members: the person comes from the member's profile (name, email), their shift team row
   // (if any) is linked automatically. Only the contract data is entered here.
   const userArg = String(fd.get("user_id") ?? "")

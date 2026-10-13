@@ -25,7 +25,7 @@ export async function saveList(fd: FormData) {
   const id = String(fd.get("id") ?? "")
   const eventRaw = String(fd.get("event") ?? "")
   const eventId = UUID.test(eventRaw) ? eventRaw : null
-  const retry = id ? `${PATH}/${id}?edit=1` : `${PATH}?new=list${eventId ? `&event=${eventId}` : ""}`
+  const retry = id ? `${PATH}/${id}?edit=1` : `${PATH}/new${eventId ? `?event=${eventId}` : ""}`
   const name = String(fd.get("name") ?? "").trim().slice(0, 100)
   const price = parsePrice(String(fd.get("door_price") ?? "0") || "0")
   const quotaRaw = String(fd.get("quota") ?? "").trim()

@@ -29,13 +29,13 @@ const readForm = async (ctx: Ctx, fd: FormData) => readContact(fromForm(fd), awa
 export async function createContact(fd: FormData) {
   const { ctx, t } = await manager()
   const r = await readForm(ctx, fd)
-  if ("error" in r) back(`${PATH}?new=contact`, { error: fieldError(t, r) })
+  if ("error" in r) back(`${PATH}/new`, { error: fieldError(t, r) })
   const { data, error } = await ctx.supabase
     .from("contacts")
     .insert({ ...r.row, org_id: ctx.org.id })
     .select("id")
     .single()
-  if (error) back(`${PATH}?new=contact`, { error: uniqueError(t, error) })
+  if (error) back(`${PATH}/new`, { error: uniqueError(t, error) })
   deliverSoon()
   back(`${PATH}/${data.id}`, { ok: t("contacts.created") })
 }

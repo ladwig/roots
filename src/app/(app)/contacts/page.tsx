@@ -4,15 +4,11 @@ import { UploadIcon } from "lucide-react"
 import { ExportMenu } from "@/components/export-menu"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
-import { UrlSheet } from "@/components/url-sheet"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
-import { loadFields } from "@/lib/custom-fields"
 import { pageParam, param, withParams } from "@/lib/url"
-import { createContact } from "./actions"
-import { ContactForm } from "./contact-form"
 import { contactName } from "./fields"
 
 export default async function ContactsPage({ searchParams }: PageProps<"/contacts">) {
@@ -30,7 +26,7 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
   // Old drawer links (?edit=<id>) → the contact's page.
   const editId = param(sp, "edit")
   if (editId && /^[0-9a-f-]{36}$/.test(editId)) redirect(`/contacts/${editId}`)
-  const creating = canManage && param(sp, "new") === "contact"
+  if (param(sp, "new")) redirect("/contacts/new") // old drawer link
 
   // All filtering happens here in the query; the UI only writes the URL.
   let query = ctx.supabase
@@ -43,11 +39,7 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
     : query.is("deleted_at", null).order("last_name", { nullsFirst: false }).order("first_name").order("company")
   if (q) query = query.or(["first_name", "last_name", "company", "email", "phone", "city"].map((c) => `${c}.ilike.%${q}%`).join(","))
   if (tag) query = query.contains("tags", [tag])
-  const [{ data }, { data: tagRows }, defs] = await Promise.all([
-    query,
-    ctx.supabase.rpc("contact_tags", { p_org: ctx.org.id }),
-    creating ? loadFields(ctx.supabase, ctx.org.id, "contacts") : Promise.resolve([]),
-  ])
+  const [{ data }, { data: tagRows }] = await Promise.all([query, ctx.supabase.rpc("contact_tags", { p_org: ctx.org.id })])
   const rows = data?.slice(0, PAGE_SIZE) ?? []
   const tags = ((tagRows ?? []) as unknown as string[]).sort((a, b) => a.localeCompare(b, t.locale))
   const chip = (href: string, current: boolean, label: string) => (
@@ -72,14 +64,14 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
               <Button render={<Link href="/contacts/import" />} nativeButton={false} size="sm" variant="outline">
                 <UploadIcon /> {t("contacts.import")}
               </Button>
-              <Button render={<Link href={withParams(sp, { new: "contact" })} scroll={false} />} nativeButton={false} size="sm">
+              <Button render={<Link href="/contacts/new" />} nativeButton={false} size="sm">
                 {t("contacts.new")}
               </Button>
             </>
           )}
         </div>
       </div>
-      <Notice error={!creating ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
+      <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
 
       <div className="flex flex-wrap items-center gap-3">
         <SearchBox q={q} label={t("common.search")} />
@@ -125,12 +117,6 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
       />
       <Pager sp={sp} page={page} hasNext={(data?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
 
-      {creating && (
-        <UrlSheet params={["new"]} title={t("contacts.new")}>
-          <Notice error={param(sp, "error")} />
-          <ContactForm t={t} action={createContact} defs={defs} tags={tags} />
-        </UrlSheet>
-      )}
     </div>
   )
 }

@@ -56,11 +56,11 @@ async function readEventCustom(ctx: Awaited<ReturnType<typeof manager>>["ctx"], 
 export async function createEvent(fd: FormData) {
   const { ctx, t } = await manager()
   const r = readEvent(fd)
-  if ("error" in r) back(`${PATH}?new=event`, { error: t.dynamic(r.error!) })
+  if ("error" in r) back(`${PATH}/new`, { error: t.dynamic(r.error!) })
   const c = await readEventCustom(ctx, fd)
-  if ("error" in c) back(`${PATH}?new=event`, { error: `${c.field}: ${t.dynamic(c.error)}` })
+  if ("error" in c) back(`${PATH}/new`, { error: `${c.field}: ${t.dynamic(c.error)}` })
   const res = await insertEvent(ctx.supabase, { ...r.row!, custom: c.custom, org_id: ctx.org.id }, r.slug ?? null)
-  if (res.error) back(`${PATH}?new=event`, { error: res.error.code === "23505" ? t("errors.slug_taken") : dbError(t, res.error) })
+  if (res.error) back(`${PATH}/new`, { error: res.error.code === "23505" ? t("errors.slug_taken") : dbError(t, res.error) })
   refreshPublic(ctx.org.id) // public pages show this
   back(`${PATH}/${res.data!.id}`, { ok: t("eventsPage.created") })
 }

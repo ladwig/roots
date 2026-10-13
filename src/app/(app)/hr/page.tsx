@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation"
 import Link from "next/link"
 import { PlusIcon } from "lucide-react"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
@@ -5,11 +6,9 @@ import { ExportMenu } from "@/components/export-menu"
 import { Notice } from "@/components/notice"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { UrlSheet } from "@/components/url-sheet"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
-import { pageParam, param, withParams } from "@/lib/url"
-import { EmployeeForm } from "./employee-form"
+import { pageParam, param } from "@/lib/url"
 
 // Employees: who works here, on what terms. A row opens the person's page.
 export default async function HrPage({ searchParams }: PageProps<"/hr">) {
@@ -28,16 +27,8 @@ export default async function HrPage({ searchParams }: PageProps<"/hr">) {
     .range(...pageRange(page))
   query = trash ? query.not("deleted_at", "is", null) : query.is("deleted_at", null)
   if (q) query = query.or(`name.ilike.%${q}%,job_title.ilike.%${q}%,department.ilike.%${q}%,email.ilike.%${q}%`)
-  const creating = canManage && param(sp, "new") === "employee"
-  const [{ data }, { data: people }, { data: orgMembers }] = await Promise.all([
-    query,
-    creating ? ctx.supabase.from("employees").select("id, name, user_id").eq("org_id", ctx.org.id).is("deleted_at", null).order("name").limit(500) : Promise.resolve({ data: null }),
-    creating ? ctx.supabase.from("org_members").select("user_id").eq("org_id", ctx.org.id) : Promise.resolve({ data: null }),
-  ])
-  // Org members who aren't employees yet (name + email from their profile).
-  const free = (orgMembers ?? []).filter((m) => !people?.some((p) => p.user_id === m.user_id))
-  const { data: profiles } = free.length ? await ctx.supabase.from("profiles").select("id, full_name, email").in("id", free.map((m) => m.user_id)) : { data: [] }
-  const members = (profiles ?? []).map((p) => ({ id: p.id, name: p.full_name ? `${p.full_name} · ${p.email}` : p.email })).sort((a, b) => a.name.localeCompare(b.name))
+  if (param(sp, "new")) redirect("/hr/new") // old drawer link
+  const { data } = await query
   const today = new Date().toISOString().slice(0, 10)
 
   return (
@@ -47,7 +38,7 @@ export default async function HrPage({ searchParams }: PageProps<"/hr">) {
         <div className="flex flex-wrap gap-2">
           <ExportMenu entity="employees" />
           {canManage && (
-            <Button render={<Link href={`/hr${withParams(sp, { new: "employee" })}`} />} nativeButton={false} size="sm">
+            <Button render={<Link href="/hr/new" />} nativeButton={false} size="sm">
               <PlusIcon /> {t("hr.new")}
             </Button>
           )}
@@ -91,12 +82,6 @@ export default async function HrPage({ searchParams }: PageProps<"/hr">) {
         ]}
       />
       <Pager sp={sp} page={page} hasNext={(data?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
-      {creating && (
-        <UrlSheet params={["new"]} title={t("hr.new")}>
-          <Notice error={param(sp, "error")} />
-          <EmployeeForm t={t} managers={people ?? []} members={members} />
-        </UrlSheet>
-      )}
     </div>
   )
 }

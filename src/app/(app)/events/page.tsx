@@ -2,13 +2,11 @@ import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
-import { UrlSheet } from "@/components/url-sheet"
 import { Button } from "@/components/ui/button"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { pageParam, param, withParams } from "@/lib/url"
-import { createEvent } from "./actions"
-import { EventForm, StatusBadge } from "./event-form"
+import { StatusBadge } from "./event-form"
 
 const VIEWS = ["upcoming", "past", "all"] as const
 const STATUSES = ["draft", "published", "cancelled"] as const
@@ -29,7 +27,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
   // Old drawer links (?edit=<id>) → the event's page.
   const editId = param(sp, "edit")
   if (editId && /^[0-9a-f-]{36}$/.test(editId)) redirect(`/events/${editId}`)
-  const creating = canManage && param(sp, "new") === "event"
+  if (param(sp, "new")) redirect("/events/new") // old drawer link
 
   // All filtering happens here in the query; the UI only writes the URL.
   const now = new Date().toISOString()
@@ -66,12 +64,12 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-heading text-2xl font-semibold">{t("eventsPage.title")}</h1>
         {canManage && (
-          <Button render={<Link href={withParams(sp, { new: "event", edit: undefined })} scroll={false} />} nativeButton={false} size="sm">
+          <Button render={<Link href="/events/new" />} nativeButton={false} size="sm">
             {t("eventsPage.new")}
           </Button>
         )}
       </div>
-      <Notice error={!editId && !creating ? param(sp, "error") : undefined} ok={!editId ? param(sp, "ok") : undefined} />
+      <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
 
       <div className="flex flex-wrap items-center gap-3">
         <SearchBox q={q} label={t("common.search")} />
@@ -122,12 +120,6 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
       />
       <Pager sp={sp} page={page} hasNext={(data?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
 
-      {creating && (
-        <UrlSheet params={["new"]} title={t("eventsPage.new")}>
-          <Notice error={param(sp, "error")} />
-          <EventForm t={t} action={createEvent} />
-        </UrlSheet>
-      )}
     </div>
   )
 }

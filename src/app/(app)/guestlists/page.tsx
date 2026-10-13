@@ -1,15 +1,13 @@
 import Link from "next/link"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { DataTable } from "@/components/data-table"
 import { Notice } from "@/components/notice"
-import { UrlSheet } from "@/components/url-sheet"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
-import { param, withParams } from "@/lib/url"
-import { ListForm } from "./list-form"
+import { param } from "@/lib/url"
 
 export default async function GuestListsPage({ searchParams }: PageProps<"/guestlists">) {
   const ctx = await requirePerm("guestlists.view")
@@ -33,7 +31,7 @@ export default async function GuestListsPage({ searchParams }: PageProps<"/guest
   const rows = (data ?? []).filter((l) => !l.event_id || !eventId || l.event_id === eventId)
   // Only lists of upcoming events (plus permanent ones) without a filter.
   const visible = eventId ? rows : rows.filter((l) => !l.event_id || (l.events && l.events.starts_at >= since))
-  const creating = canManage && param(sp, "new") === "list"
+  if (param(sp, "new")) redirect(`/guestlists/new${eventId ? `?event=${eventId}` : ""}`) // old drawer link
   const count = (l: (typeof rows)[number]) => (l.guest_entries as unknown as { count: number }[])[0]?.count ?? 0
 
   return (
@@ -41,12 +39,12 @@ export default async function GuestListsPage({ searchParams }: PageProps<"/guest
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-heading text-2xl font-semibold">{t("guestlists.title")}</h1>
         {canManage && (
-          <Button render={<Link href={withParams(sp, { new: "list" })} scroll={false} />} nativeButton={false} size="sm">
+          <Button render={<Link href={`/guestlists/new${eventId ? `?event=${eventId}` : ""}`} />} nativeButton={false} size="sm">
             {t("guestlists.new")}
           </Button>
         )}
       </div>
-      <Notice error={!creating ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
+      <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
       <form className="flex flex-wrap items-center gap-2">
         <NativeSelect name="event" defaultValue={eventId ?? ""} aria-label={t("guestlists.event")} className="w-72 max-w-full">
           <NativeSelectOption value="">{t("guestlists.allUpcoming")}</NativeSelectOption>
@@ -84,12 +82,6 @@ export default async function GuestListsPage({ searchParams }: PageProps<"/guest
           { header: t("guestlists.link"), cell: (l) => (l.link_enabled ? <Badge>{t("guestlists.linkOn")}</Badge> : null) },
         ]}
       />
-      {creating && (
-        <UrlSheet params={["new"]} title={t("guestlists.new")}>
-          <Notice error={param(sp, "error")} />
-          <ListForm eventId={eventId ?? null} />
-        </UrlSheet>
-      )}
     </div>
   )
 }

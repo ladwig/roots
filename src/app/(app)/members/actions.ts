@@ -34,7 +34,7 @@ const message = (t: T, f: Fail) => (f.db ? dbError(t, f.db) : t.dynamic(f.error,
 export async function saveMembership(fd: FormData) {
   const { ctx, t } = await manager()
   const id = str(fd, "id", 36)
-  const here = id ? `${PATH}/${id}` : `${PATH}?new=1`
+  const here = id ? `${PATH}/${id}` : `${PATH}/new`
   const typeId = str(fd, "type_id", 36)
   const startsOn = date(fd, "starts_on")
   if (!typeId || !startsOn) back(here, { error: t("membership.typeAndStartRequired") })

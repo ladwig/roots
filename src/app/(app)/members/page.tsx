@@ -3,21 +3,15 @@ import Link from "next/link"
 import { UploadIcon } from "lucide-react"
 import { contactName } from "@/app/(app)/contacts/fields"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
-import { ContactPicker } from "@/components/contact-picker"
 import { ExportMenu } from "@/components/export-menu"
 import { Notice } from "@/components/notice"
-import { SubmitButton } from "@/components/submit-button"
-import { UrlSheet } from "@/components/url-sheet"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { pageParam, param, withParams } from "@/lib/url"
 import { isPaused } from "@/members/dues"
-import { loadFields } from "@/lib/custom-fields"
-import { Field, MembershipFields, TYPE_COLS } from "./membership-parts"
-import { saveMembership } from "./actions"
+import { TYPE_COLS } from "./membership-parts"
 
 const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
 
@@ -33,7 +27,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
   // Old drawer links (?edit=<id>) → the membership's page.
   const editId = param(sp, "edit")
   if (editId && /^[0-9a-f-]{36}$/.test(editId)) redirect(`/members/${editId}`)
-  const creating = canManage && param(sp, "new") === "1"
+  if (param(sp, "new")) redirect(`/members/new${param(sp, "contact") ? `?contact=${param(sp, "contact")}` : ""}`) // old drawer link
   const now = today()
 
   let query = ctx.supabase
@@ -47,14 +41,10 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
   if (status === "ended") query = query.lt("ends_on", now)
   if (typeFilter) query = query.eq("type_id", typeFilter)
   if (q) query = query.or(["first_name", "last_name", "company", "email"].map((c) => `${c}.ilike.%${q}%`).join(","), { referencedTable: "contacts" })
-  const [{ data }, { data: types }, { count: activeCount }, { data: preset }, defs] = await Promise.all([
+  const [{ data }, { data: types }, { count: activeCount }] = await Promise.all([
     query,
     ctx.supabase.from("membership_types").select(TYPE_COLS).eq("org_id", ctx.org.id).order("name"),
     ctx.supabase.from("memberships").select("id", { count: "exact", head: true }).eq("org_id", ctx.org.id).is("deleted_at", null).lte("starts_on", now).or(`ends_on.is.null,ends_on.gte.${now}`),
-    creating && param(sp, "contact")
-      ? ctx.supabase.from("contacts").select("id, first_name, last_name, company, email").eq("id", param(sp, "contact")!).eq("org_id", ctx.org.id).maybeSingle()
-      : Promise.resolve({ data: null }),
-    creating ? loadFields(ctx.supabase, ctx.org.id, "memberships") : [],
   ])
   const rows = data?.slice(0, PAGE_SIZE) ?? []
   const typeName = (id: string) => types?.find((x) => x.id === id)?.name ?? ""
@@ -96,13 +86,13 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
             </Button>
           )}
           {canManage && (
-            <Button render={<Link href={withParams(sp, { new: "1", edit: undefined })} scroll={false} />} nativeButton={false} size="sm" disabled={!types?.length}>
+            <Button render={<Link href="/members/new" />} nativeButton={false} size="sm" disabled={!types?.length}>
               {t("membership.new")}
             </Button>
           )}
         </div>
       </div>
-      <Notice error={!creating ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
+      <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
       {!types?.length && (
         <p className="rounded-lg border bg-muted px-3 py-2 text-sm">
           {t("membership.noTypes")}{" "}
@@ -153,30 +143,6 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
       />
       <Pager sp={sp} page={page} hasNext={(data?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
 
-      {creating && (
-        <UrlSheet params={["new"]} title={t("membership.new")}>
-          <Notice error={param(sp, "error")} />
-          <form action={saveMembership} className="grid gap-4">
-            <fieldset className="grid gap-4">
-              <legend className="mb-2 font-medium">{t("membership.person")}</legend>
-              <ContactPicker
-                name="contact_id"
-                label={t("membership.existingContact")}
-                initial={preset ? { id: preset.id, label: contactName(preset), detail: preset.email ?? "" } : null}
-              />
-              <p className="text-xs text-muted-foreground">{t("membership.newContactHint")}</p>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field id="m-first" name="first_name" label={t("contacts.firstName")} maxLength={100} autoComplete="off" />
-                <Field id="m-last" name="last_name" label={t("contacts.lastName")} maxLength={100} autoComplete="off" />
-              </div>
-              <Field id="m-email" name="email" type="email" label={t("contacts.email")} maxLength={320} autoComplete="off" />
-            </fieldset>
-            <Separator />
-            <MembershipFields t={t} types={types ?? []} defs={defs} />
-            <SubmitButton className="justify-self-start">{t("membership.create")}</SubmitButton>
-          </form>
-        </UrlSheet>
-      )}
     </>
   )
 }

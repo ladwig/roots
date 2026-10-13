@@ -27,7 +27,7 @@ const msg = (t: Awaited<ReturnType<typeof getT>>, key: string) => (t.has(key) ? 
 export async function saveCourse(fd: FormData) {
   const { ctx, t } = await manager()
   const courseId = id(fd)
-  const here = courseId ? `/courses/${courseId}` : "/courses?new=course"
+  const here = courseId ? `/courses/${courseId}` : "/courses/new"
   const r = readCourse(getter(fd))
   if ("error" in r) back(here, { error: msg(t, r.error) })
   if (courseId) {
