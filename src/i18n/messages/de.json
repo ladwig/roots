@@ -3897,7 +3897,6 @@
     "toTrash": "In den Papierkorb",
     "trashed": "Seite liegt im Papierkorb (30 Tage wiederherstellbar).",
     "inTrash": "Diese Seite liegt im Papierkorb.",
-    "edit": "Bearbeiten",
     "history": "Verlauf",
     "allVersions": "Alle Versionen",
     "restoreVersion": "Diese Version wiederherstellen",
@@ -3908,33 +3907,42 @@
     "subPages": "Unterseiten",
     "attachments": "Anhänge",
     "pageTitle": "Titel",
-    "parent": "Liegt unter",
-    "topLevel": "– oberste Ebene –",
-    "toolbar": "Formatierung",
     "body": "Text (Markdown)",
-    "bodyPlaceholder": "Schreib los … Markdown geht: **fett**, _kursiv_, ## Überschrift, - Liste, - [ ] Aufgabe, [Link](https://…). Bilder und Dateien einfach hineinziehen oder einfügen.",
-    "preview": "Vorschau",
-    "unsaved": "Ungespeicherte Änderungen",
-    "shortcuts": "⌘B fett · ⌘I kursiv · ⌘K Link · ⌘S speichern",
-    "saved": "Gespeichert.",
-    "listItem": "Punkt",
     "titleRequired": "Bitte einen Titel angeben.",
     "tooLong": "Der Text ist zu lang (max. 200.000 Zeichen).",
     "tools": {
       "bold": "Fett",
       "italic": "Kursiv",
-      "heading": "Überschrift",
+      "link": "Link",
+      "code": "Code",
+      "strike": "Durchgestrichen"
+    },
+    "uploading": "{count} wird hochgeladen …",
+    "blocks": {
+      "text": "Text",
+      "h1": "Überschrift 1",
+      "h2": "Überschrift 2",
+      "h3": "Überschrift 3",
       "list": "Liste",
       "numbered": "Nummerierte Liste",
       "checklist": "Aufgabenliste",
       "quote": "Zitat",
-      "link": "Link",
-      "linkText": "Linktext",
-      "code": "Code",
+      "code": "Code-Block",
       "table": "Tabelle",
-      "column": "Spalte",
-      "image": "Bild oder Datei einfügen"
+      "divider": "Trennlinie",
+      "image": "Bild oder Datei"
     },
-    "uploading": "{count} wird hochgeladen …"
+    "state": {
+      "saved": "Gespeichert",
+      "dirty": "Ungespeichert …",
+      "saving": "Speichert …",
+      "error": "Nicht gespeichert"
+    },
+    "headingPlaceholder": "Überschrift",
+    "typePlaceholder": "Schreib los oder tippe „/“ für Blöcke …",
+    "blocksMenu": "Blöcke",
+    "linkPrompt": "Link-Adresse",
+    "editorHint": "„/“ für Blöcke · Markdown geht beim Tippen (# Überschrift, - Liste, [] Aufgabe, > Zitat) · Bilder und Dateien hineinziehen oder einfügen · speichert automatisch (⌘S sofort)",
+    "dropTopLevel": "Hier ablegen = oberste Ebene"
   }
 }

@@ -45,3 +45,19 @@ export async function restoreVersion(db: Db, orgId: string, versionId: string): 
   if (!v) return { error: "errors.not_allowed" }
   return savePage(db, orgId, v.page_id, { title: v.title, body: v.body })
 }
+
+/** Move a page: below `parentId` (null = top level), before `beforeId` or at the end; siblings renumbered. */
+export async function movePage(db: Db, orgId: string, id: string, parentId: string | null, beforeId: string | null): Promise<WikiFail | { id: string }> {
+  if (parentId === id || beforeId === id) return { error: "errors.invalid_input" }
+  let q = db.from("wiki_pages").select("id").eq("org_id", orgId).is("deleted_at", null).neq("id", id).order("position").order("title")
+  q = parentId ? q.eq("parent_id", parentId) : q.is("parent_id", null)
+  const { data: siblings } = await q
+  const order = (siblings ?? []).map((s) => s.id)
+  const at = beforeId ? order.indexOf(beforeId) : -1
+  order.splice(at < 0 ? order.length : at, 0, id)
+  // Parent first (the DB refuses cycles), then the order.
+  const { error } = await db.from("wiki_pages").update({ parent_id: parentId, position: order.indexOf(id) }).eq("id", id).eq("org_id", orgId)
+  if (error) return dbFail(error)
+  await Promise.all(order.map((pid, i) => (pid === id ? null : db.from("wiki_pages").update({ position: i }).eq("id", pid).eq("org_id", orgId))))
+  return { id }
+}

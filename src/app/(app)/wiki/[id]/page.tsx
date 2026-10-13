@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { FilePlusIcon, HistoryIcon, PencilIcon } from "lucide-react"
+import { FilePlusIcon, HistoryIcon } from "lucide-react"
 import { FileList } from "@/components/file-list"
 import { Markdown } from "@/components/markdown"
 import { Notice } from "@/components/notice"
@@ -11,12 +11,13 @@ import { UrlSheet } from "@/components/url-sheet"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param, withParams, type SearchParams } from "@/lib/url"
-import { pathTo, subtree, buildTree, type Node } from "@/wiki/tree"
+import { pathTo } from "@/wiki/tree"
 import { newPageAction, restorePageAction, restoreVersionAction, trashPageAction } from "../actions"
 import { TreeNav } from "../tree-nav"
 import { WikiEditor } from "./editor"
 
-// One wiki page: tree on the left, the text (or the editor with ?edit=1), sub-pages, attachments, history (?history=1).
+// One wiki page: tree on the left (drag & drop to move), the page – editable in place for writers, read-only text for
+// readers – sub-pages, attachments, history (?history=1).
 export default async function WikiPageView({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<SearchParams> }) {
   const { id } = await params
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound()
@@ -35,12 +36,8 @@ export default async function WikiPageView({ params, searchParams }: { params: P
   ])
   if (!page) notFound()
   const all = rows ?? []
-  const editing = canManage && param(sp, "edit") === "1" && !page.deleted_at
+  const editing = canManage && !page.deleted_at
   const children = all.filter((r) => r.parent_id === page.id).sort((a, b) => a.position - b.position || a.title.localeCompare(b.title, "de"))
-  // Possible parents: every page except this one and its sub-pages, indented by depth.
-  const blocked = subtree(all, page.id)
-  const flat = (nodes: Node[], depth = 0): { id: string; label: string }[] =>
-    nodes.flatMap((n) => (blocked.has(n.id) ? [] : [{ id: n.id, label: `${"  ".repeat(depth)}${depth ? "└ " : ""}${n.title}` }, ...flat(n.children, depth + 1)]))
 
   return (
     <div className="grid max-w-6xl gap-6">
@@ -48,7 +45,7 @@ export default async function WikiPageView({ params, searchParams }: { params: P
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
       <div className="grid gap-6 lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-start">
         <aside className="hidden rounded-lg border p-2 lg:sticky lg:top-4 lg:grid">
-          <TreeNav rows={all} current={page.id} label={t("wiki.tree")} />
+          <TreeNav rows={all} current={page.id} label={t("wiki.tree")} movable={canManage} />
         </aside>
         <article className="grid min-w-0 gap-6">
           {page.deleted_at ? (
@@ -61,21 +58,18 @@ export default async function WikiPageView({ params, searchParams }: { params: P
                 </form>
               )}
             </div>
-          ) : editing ? (
-            <WikiEditor page={page} parents={flat(buildTree(all))} orgId={ctx.org.id} />
           ) : (
             <>
               <header className="flex flex-wrap items-start justify-between gap-3">
-                <div className="grid gap-1">
-                  <h1 className="font-heading text-2xl font-semibold break-words">{page.title}</h1>
-                  <p className="text-xs text-muted-foreground">{t("wiki.updated", { date: t.date(page.updated_at, { dateStyle: "medium", timeStyle: "short" }) })}</p>
-                </div>
+                {editing ? (
+                  <span />
+                ) : (
+                  <div className="grid gap-1">
+                    <h1 className="font-heading text-2xl font-semibold break-words">{page.title}</h1>
+                    <p className="text-xs text-muted-foreground">{t("wiki.updated", { date: t.date(page.updated_at, { dateStyle: "medium", timeStyle: "short" }) })}</p>
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-2">
-                  {canManage && (
-                    <Button render={<Link href={`/wiki/${page.id}?edit=1`} />} nativeButton={false} size="sm">
-                      <PencilIcon /> {t("wiki.edit")}
-                    </Button>
-                  )}
                   {canManage && (
                     <form action={newPageAction}>
                       <input type="hidden" name="parent_id" value={page.id} />
@@ -89,7 +83,13 @@ export default async function WikiPageView({ params, searchParams }: { params: P
                   </Button>
                 </div>
               </header>
-              {page.body.trim() ? <Markdown>{page.body}</Markdown> : <p className="text-sm text-muted-foreground">{t("wiki.emptyPage")}</p>}
+              {editing ? (
+                <WikiEditor key={`${page.id}:${param(sp, "r") ?? ""}`} page={page} orgId={ctx.org.id} />
+              ) : page.body.trim() ? (
+                <Markdown>{page.body}</Markdown>
+              ) : (
+                <p className="text-sm text-muted-foreground">{t("wiki.emptyPage")}</p>
+              )}
               {children.length > 0 && (
                 <section className="grid gap-2" aria-labelledby="sub">
                   <h2 id="sub" className="text-sm font-medium">
