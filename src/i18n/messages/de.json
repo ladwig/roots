@@ -973,7 +973,6 @@
     "noteDeleted": "Notiz gelöscht.",
     "createdBy": "Angelegt von {who}",
     "createdEntry": "Kontakt angelegt",
-    "updatedEntry": "Zuletzt geändert",
     "someone": "jemandem",
     "details": "Details",
     "import": "Importieren",
@@ -1001,7 +1000,8 @@
     "quickCreate": "Neuen Kontakt anlegen",
     "quickCreateNamed": "„{name}“ als neuen Kontakt anlegen",
     "quickSave": "Anlegen und auswählen",
-    "quickNeedsName": "Bitte einen Namen, eine Firma oder eine E-Mail angeben."
+    "quickNeedsName": "Bitte einen Namen, eine Firma oder eine E-Mail angeben.",
+    "unsubscribed": "Von E-Mails abgemeldet"
   },
   "fields": {
     "intro": "Eigene Felder für deine Daten, z. B. Mitgliedsnummer oder Kleidergröße bei Kontakten. Sie erscheinen in Formularen und im CSV-Import.",

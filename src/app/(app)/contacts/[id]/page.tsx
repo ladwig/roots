@@ -34,7 +34,7 @@ export default async function ContactPage({ params, searchParams }: PageProps<"/
   const none = Promise.resolve({ data: null })
   const by = <Q extends { eq: (c: string, v: string) => Q }>(q: Q) => q.eq("org_id", ctx.org.id).eq("contact_id", id)
 
-  const [{ data: c }, { data: notes }, { data: tagRows }, defs, { data: membership }, { data: tickets }, { data: docs }, { data: subs }, { data: mails }] = await Promise.all([
+  const [{ data: c }, { data: notes }, { data: tagRows }, defs, { data: membership }, { data: tickets }, { data: docs }, { data: subs }, { data: mails }, { data: changes }] = await Promise.all([
     ctx.supabase.from("contacts").select("*").eq("id", id).eq("org_id", ctx.org.id).maybeSingle(),
     by(ctx.supabase.from("contact_notes").select("id, body, created_at, created_by")).order("created_at", { ascending: false }).limit(200),
     ctx.supabase.rpc("contact_tags", { p_org: ctx.org.id }),
@@ -54,6 +54,7 @@ export default async function ContactPage({ params, searchParams }: PageProps<"/
     on("email", "email.view")
       ? by(ctx.supabase.from("email_sends").select("id, status, delivery, sent_at, send_after, email_campaigns(name), email_automations(name)")).order("created_at", { ascending: false }).limit(LIMIT)
       : none,
+    ctx.supabase.rpc("contact_changes", { p_contact: id }),
   ])
   if (!c) notFound()
   // Team access: the linked account, and (for managers) the team members who could be linked.
@@ -126,7 +127,7 @@ export default async function ContactPage({ params, searchParams }: PageProps<"/
               {!canManage && <p className="text-sm text-muted-foreground">{t("contacts.readOnly")}</p>}
               <ContactForm t={t} action={updateContact} c={c} disabled={!canManage} defs={defs} tags={tags} />
             </Section>
-            <Timeline t={t} ctx={ctx} c={c} notes={notes ?? []} canManage={canManage} />
+            <Timeline t={t} ctx={ctx} c={c} notes={notes ?? []} changes={changes ?? []} defs={defs} canManage={canManage} />
           </div>
 
           <aside className="grid min-w-0 gap-6">
@@ -293,21 +294,73 @@ function Rows({ rows }: { rows: { key: string; href: string; title: string; deta
   )
 }
 
-// Notes + created/changed, newest first.
+// Contact fields shown in the timeline's change entries (others, like technical columns, are left out).
+const FIELD_LABELS: Record<string, string> = {
+  first_name: "contacts.firstName",
+  last_name: "contacts.lastName",
+  company: "contacts.company",
+  email: "contacts.email",
+  phone: "contacts.phone",
+  street: "contacts.street",
+  postal_code: "contacts.postalCode",
+  city: "contacts.city",
+  country: "contacts.country",
+  birthday: "contacts.birthday",
+  tags: "contacts.tags",
+  unsubscribed_at: "contacts.unsubscribed",
+}
+
+/** One change-log entry → [{ label, from, to }] for the fields people know (custom fields by their label). */
+function fieldChanges(oldRow: unknown, newRow: unknown, defs: { key: string; label: string; type: string }[], t: T) {
+  const o = (oldRow ?? {}) as Record<string, unknown>
+  const n = (newRow ?? {}) as Record<string, unknown>
+  const show = (v: unknown, key?: string): string => {
+    if (v === null || v === undefined || v === "" || (Array.isArray(v) && !v.length)) return "–"
+    if (Array.isArray(v)) return v.join(", ")
+    if (typeof v === "boolean") return v ? "✓" : "✗"
+    const s = String(v)
+    if (key === "unsubscribed_at" || /^\d{4}-\d{2}-\d{2}T/.test(s)) return t.date(s, { dateStyle: "medium" })
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return t.date(`${s}T12:00:00`, { dateStyle: "medium" })
+    return s.length > 80 ? `${s.slice(0, 80)}…` : s
+  }
+  const out: { label: string; from: string; to: string }[] = []
+  for (const [key, label] of Object.entries(FIELD_LABELS))
+    if (key in n || key in o) {
+      const from = show(o[key], key)
+      const to = show(n[key], key)
+      if (from !== to) out.push({ label: t.dynamic(label), from, to })
+    }
+  if ("custom" in n || "custom" in o) {
+    const oc = (o.custom ?? {}) as Record<string, unknown>
+    const nc = (n.custom ?? {}) as Record<string, unknown>
+    for (const key of new Set([...Object.keys(oc), ...Object.keys(nc)])) {
+      const from = show(oc[key])
+      const to = show(nc[key])
+      if (from !== to) out.push({ label: defs.find((d) => d.key === key)?.label ?? key, from, to })
+    }
+  }
+  return out
+}
+
+// Notes, field changes (from the change log) and creation, newest first.
 async function Timeline({
   t,
   ctx,
   c,
   notes,
+  changes,
+  defs,
   canManage,
 }: {
   t: T
   ctx: Ctx
   c: { id: string; created_at: string; updated_at: string; created_by: string | null }
   notes: { id: string; body: string; created_at: string; created_by: string | null }[]
+  changes: { at: string; actor_id: string | null; old: unknown; new: unknown }[]
+  defs: { key: string; label: string; type: string }[]
   canManage: boolean
 }) {
-  const authorIds = [...new Set([c.created_by, ...notes.map((n) => n.created_by)].filter((v): v is string => !!v))]
+  const authorIds = [...new Set([c.created_by, ...notes.map((n) => n.created_by), ...changes.map((x) => x.actor_id)].filter((v): v is string => !!v))]
   const { data: people } = authorIds.length ? await ctx.supabase.from("profiles").select("id, full_name, email").in("id", authorIds) : { data: [] }
   const who = (id: string | null) => {
     const p = people?.find((x) => x.id === id)
@@ -316,7 +369,10 @@ async function Timeline({
   const dt = (v: string) => t.date(v, { dateStyle: "medium", timeStyle: "short" })
   const timeline = [
     ...notes.map((n) => ({ key: n.id, at: n.created_at, note: n })),
-    ...(c.updated_at !== c.created_at ? [{ key: "updated", at: c.updated_at, note: null }] : []),
+    ...changes.flatMap((x, i) => {
+      const diff = fieldChanges(x.old, x.new, defs, t)
+      return diff.length ? [{ key: `change-${i}`, at: x.at, note: null, diff, actor: x.actor_id }] : []
+    }),
     { key: "created", at: c.created_at, note: null },
   ].sort((a, b) => b.at.localeCompare(a.at))
 
@@ -338,6 +394,7 @@ async function Timeline({
             <span className="text-xs text-muted-foreground">
               {dt(e.at)}
               {e.note && ` · ${who(e.note.created_by)}`}
+              {"actor" in e && e.actor && ` · ${who(e.actor)}`}
             </span>
             {e.note ? (
               <div className="flex items-start gap-2">
@@ -359,9 +416,15 @@ async function Timeline({
               <p>
                 {t("contacts.createdEntry")} · <span className="text-muted-foreground">{t("contacts.createdBy", { who: who(c.created_by) })}</span>
               </p>
-            ) : (
-              <p>{t("contacts.updatedEntry")}</p>
-            )}
+            ) : "diff" in e && e.diff ? (
+              <ul className="grid gap-0.5">
+                {e.diff.map((d) => (
+                  <li key={d.label} className="break-words">
+                    <span className="text-muted-foreground">{d.label}:</span> <span className="text-muted-foreground line-through">{d.from}</span> → {d.to}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </li>
         ))}
       </ol>

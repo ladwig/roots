@@ -2081,6 +2081,11 @@ isOneToOne: false
         isOneToOne: false
         isSetofReturn: true
       } },
+"contact_changes":
+{ Args: { "p_contact": string }; Returns: {
+              "actor_id": string,"at": string,"new": Json,"old": Json
+            }[]
+                           },
 "contact_tags":
 { Args: { "p_org": string }; Returns: string[]
                            },

@@ -973,7 +973,6 @@
     "noteDeleted": "Note deleted.",
     "createdBy": "Created by {who}",
     "createdEntry": "Contact created",
-    "updatedEntry": "Last changed",
     "someone": "someone",
     "details": "Details",
     "import": "Import",
@@ -1001,7 +1000,8 @@
     "quickCreate": "Create new contact",
     "quickCreateNamed": "Create “{name}” as a new contact",
     "quickSave": "Create and select",
-    "quickNeedsName": "Please enter a name, company or email."
+    "quickNeedsName": "Please enter a name, company or email.",
+    "unsubscribed": "Unsubscribed from emails"
   },
   "fields": {
     "intro": "Your own fields for your data, e.g. member number or shirt size on contacts. They show up in forms and in the CSV import.",
