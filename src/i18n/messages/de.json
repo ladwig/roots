@@ -1767,7 +1767,8 @@
     },
     "pickMember": "Mitglied wählen…",
     "memberHint": "Im Team ist, wer Mitglied der Organisation ist (Name und E-Mail aus dem Profil). Neue Leute vorher unter Einstellungen → Mitglieder einladen.",
-    "assignOnCreate": "Wird {name} zugeteilt."
+    "assignOnCreate": "Wird {name} zugeteilt.",
+    "setupTitle": "Schichten einrichten"
   },
   "locations": {
     "title": "Ort",
@@ -4046,5 +4047,15 @@
     "search": "Emoji suchen …",
     "loading": "Lädt …",
     "none": "Kein Emoji gefunden."
+  },
+  "nav": {
+    "overview": "Übersicht",
+    "import": "Import",
+    "events": "Veranstaltungen",
+    "finance": "Finanzen",
+    "communication": "Kommunikation",
+    "campaigns": "E-Mail-Kampagnen",
+    "emailAutomations": "E-Mail-Automationen",
+    "emailLog": "E-Mail-Versand"
   }
 }

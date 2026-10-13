@@ -5,7 +5,8 @@ import type { SidebarLink } from "@/components/app-sidebar"
 import { OrgSwitcher } from "@/components/org-switcher"
 import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
-import { modules } from "@/modules/registry"
+import { SETTINGS_TABS } from "./settings/tabs"
+import { visibleNav } from "@/modules/nav"
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getContext()
@@ -16,12 +17,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     // Linked to a contact of this org → "Mein Mitgliederbereich" in the user menu (members module on).
     ctx.modules.has("members") ? ctx.supabase.from("contacts").select("id").eq("org_id", ctx.org.id).eq("user_id", ctx.userId).is("deleted_at", null).maybeSingle() : Promise.resolve({ data: null }),
   ])
-  const moduleLinks: SidebarLink[] = modules
-    .filter((m) => ctx.modules.has(m.key))
-    .flatMap((m) => m.nav ?? [])
-    .filter((n) => !n.permission || [n.permission].flat().some((p) => ctx.can(p)))
-    .filter((n, i, all) => all.findIndex((x) => x.href === n.href) === i) // e.g. the door belongs to tickets and guest lists
-    .map((n) => ({ href: n.href, label: t.dynamic(n.label), icon: <n.icon />, newTab: n.newTab }))
+  // Areas with their sub-pages (src/modules/nav.ts); an area opens its first sub-page.
+  const moduleLinks: SidebarLink[] = visibleNav((m) => ctx.modules.has(m), ctx.can).map((a) => ({
+    href: a.children[0].href,
+    label: t.dynamic(a.label),
+    icon: <a.icon />,
+    children: a.children.map((c) => ({ href: c.href, label: t.dynamic(c.label) })),
+  }))
+  const settings = SETTINGS_TABS.filter((s) => !s.permission || ctx.can(s.permission)).map((s) => ({ href: `/settings/${s.key}`, label: t.dynamic(`settings.tabs.${s.key}`) }))
   const groups = [
     {
       items: [
@@ -33,8 +36,20 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     {
       label: t("shell.org"),
       items: [
-        ...(ctx.can("org.files.view") ? [{ href: "/files", label: t("files.title"), icon: <FolderIcon /> }] : []),
-        { href: "/settings", label: t("shell.settings"), icon: <SettingsIcon /> },
+        ...(ctx.can("org.files.view")
+          ? [
+              {
+                href: "/files",
+                label: t("files.title"),
+                icon: <FolderIcon />,
+                children: [
+                  { href: "/files", label: t("letters.tabs.files") },
+                  { href: "/files/templates", label: t("letters.tabs.templates") },
+                ],
+              },
+            ]
+          : []),
+        { href: settings[0]?.href ?? "/settings", label: t("shell.settings"), icon: <SettingsIcon />, children: settings },
         ...(ctx.isPlatformAdmin ? [{ href: "/admin", label: t("admin.link"), icon: <ShieldIcon /> }] : []),
       ],
     },

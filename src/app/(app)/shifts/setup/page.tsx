@@ -35,6 +35,7 @@ export default async function ShiftSetup({ searchParams }: PageProps<"/shifts/se
 
   return (
     <div className="grid gap-8">
+      <h1 className="font-heading text-2xl font-semibold">{t("shifts.setupTitle")}</h1>
       <Notice error={!editing && !creating ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
       <section className="grid gap-3" aria-labelledby="positions">
         <h2 id="positions" className="font-medium">

@@ -1,37 +1,13 @@
-import { NavLink } from "@/components/nav-link"
-import { getT } from "@/i18n/server"
-import { getContext } from "@/lib/context"
 import { titled } from "@/lib/title"
+import { SettingsTitle } from "./section-title"
 
 export const generateMetadata = titled("shell.settings")
 
-const tabs = [
-  { key: "profile" },
-  { key: "general" },
-  { key: "team" },
-  { key: "roles" },
-  { key: "modules" },
-  { key: "fields" },
-  { key: "locations" },
-  { key: "integrations", permission: "org.integrations.manage" },
-  { key: "api", permission: "org.integrations.manage" },
-]
-
-export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
-  const ctx = await getContext()
-  const t = await getT()
+// The sections are sub-items in the sidebar (./tabs.ts).
+export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid max-w-4xl gap-6">
-      <h1 className="font-heading text-2xl font-semibold">{t("settings.title")}</h1>
-      <nav aria-label={t("settings.nav")} className="-mx-1 flex gap-1 overflow-x-auto border-b px-1 pb-2">
-        {tabs
-          .filter((tab) => !tab.permission || ctx.can(tab.permission))
-          .map((tab) => (
-            <NavLink key={tab.key} href={`/settings/${tab.key}`}>
-              {t.dynamic(`settings.tabs.${tab.key}`)}
-            </NavLink>
-          ))}
-      </nav>
+      <SettingsTitle />
       {children}
     </div>
   )

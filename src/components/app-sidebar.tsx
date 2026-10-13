@@ -29,6 +29,9 @@ import {
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar"
@@ -42,7 +45,7 @@ function NavIcon({ icon }: { icon: React.ReactNode }) {
   return pending ? <Loader2Icon className="animate-spin" /> : icon
 }
 
-export type SidebarLink = { href: string; label: string; icon: React.ReactNode; count?: number; newTab?: boolean }
+export type SidebarLink = { href: string; label: string; icon: React.ReactNode; count?: number; newTab?: boolean; children?: { href: string; label: string }[] } // children: sub-pages (the area opens the first)
 export type Me = { name: string; email: string; avatar: string | null; memberArea?: boolean } // memberArea: linked to a contact of the org
 
 export function AppSidebar({
@@ -64,6 +67,14 @@ export function AppSidebar({
   const target = clicked && clicked.from === pathname ? appRoute(clicked.href) : null
   const matches = (href: string, path: string) => (appRoute(href) === "/" ? path === "/" : path.startsWith(appRoute(href)))
   const isActive = (href: string) => (target ? matches(href, target) : matches(href, pathname))
+  const here = target ?? pathname
+  // Sub-pages: the most specific match wins (/members/dues over /members); an area is active if one of them is.
+  const activeChild = (children: { href: string }[]) =>
+    children.filter((c) => matches(c.href, here)).sort((a, b) => appRoute(b.href).length - appRoute(a.href).length)[0]?.href
+  const go = (href: string) => {
+    setOpenMobile(false)
+    setClicked({ href, from: pathname })
+  }
 
   return (
     <Sidebar collapsible="icon">
@@ -76,32 +87,41 @@ export function AppSidebar({
           <SidebarGroup key={i}>
             {g.label && <SidebarGroupLabel>{g.label}</SidebarGroupLabel>}
             <SidebarMenu aria-label={g.label ?? t("shell.mainNav")}>
-              {g.items.map((n) => (
-                <SidebarMenuItem key={n.href}>
-                  <SidebarMenuButton
-                    isActive={isActive(n.href)}
-                    tooltip={n.label}
-                    render={
-                      n.newTab ? (
-                        <a href={n.href} target="_blank" rel="noreferrer" />
-                      ) : (
-                        <Link
-                          href={n.href}
-                          aria-current={isActive(n.href) ? "page" : undefined}
-                          onClick={() => {
-                            setOpenMobile(false)
-                            setClicked({ href: n.href, from: pathname })
-                          }}
-                        />
-                      )
-                    }
-                  >
-                    {n.newTab ? n.icon : <NavIcon icon={n.icon} />}
-                    <span>{n.label}</span>
-                  </SidebarMenuButton>
-                  {!!n.count && <SidebarMenuBadge className="tabular-nums">{n.count}</SidebarMenuBadge>}
-                </SidebarMenuItem>
-              ))}
+              {g.items.map((n) => {
+                const current = n.children ? activeChild(n.children) : undefined
+                const active = n.children ? !!current : isActive(n.href)
+                return (
+                  <SidebarMenuItem key={n.href}>
+                    <SidebarMenuButton
+                      isActive={active && !(n.children && n.children.length > 1)}
+                      tooltip={n.label}
+                      render={
+                        n.newTab ? (
+                          <a href={n.href} target="_blank" rel="noreferrer" />
+                        ) : (
+                          <Link href={n.href} aria-current={active ? "page" : undefined} onClick={() => go(n.href)} />
+                        )
+                      }
+                    >
+                      {n.newTab ? n.icon : <NavIcon icon={n.icon} />}
+                      <span>{n.label}</span>
+                    </SidebarMenuButton>
+                    {!!n.count && <SidebarMenuBadge className="tabular-nums">{n.count}</SidebarMenuBadge>}
+                    {/* Sub-pages of the current area only: moving to another area collapses this one. */}
+                    {active && n.children && n.children.length > 1 && (
+                      <SidebarMenuSub>
+                        {n.children.map((c) => (
+                          <SidebarMenuSubItem key={c.href}>
+                            <SidebarMenuSubButton isActive={c.href === current} render={<Link href={c.href} aria-current={c.href === current ? "page" : undefined} onClick={() => go(c.href)} />}>
+                              <span>{c.label}</span>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    )}
+                  </SidebarMenuItem>
+                )
+              })}
             </SidebarMenu>
           </SidebarGroup>
         ))}

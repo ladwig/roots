@@ -3,7 +3,7 @@
 import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
 import { APP_HOME } from "@/lib/url"
-import { modules } from "@/modules/registry"
+import { visibleNav } from "@/modules/nav"
 
 export type SearchItem = { id: string; title: string; detail?: string; href: string }
 export type SearchGroup = { key: string; label: string; items: SearchItem[] }
@@ -44,11 +44,10 @@ export async function searchApp(input: string): Promise<SearchGroup[]> {
   const pages: SearchItem[] = [
     { id: "home", title: t("shell.home"), href: APP_HOME },
     { id: "inbox", title: t("inbox.title"), href: "/notifications" },
-    ...modules
-      .filter((m) => m.key === "org" || ctx.modules.has(m.key))
-      .flatMap((m) => m.nav ?? [])
-      .filter((n) => !n.permission || [n.permission].flat().some((p) => ctx.can(p)))
-      .map((n) => ({ id: n.href, title: t.dynamic(n.label), href: n.href })),
+    // Every page of the sidebar (sub-pages with their area as detail).
+    ...visibleNav((m) => ctx.modules.has(m), ctx.can).flatMap((a) =>
+      a.children.map((c) => ({ id: c.href, title: c.label === "nav.overview" ? t.dynamic(a.label) : t.dynamic(c.label), detail: a.children.length > 1 ? t.dynamic(a.label) : undefined, href: c.href })),
+    ),
     ...(ctx.can("org.files.view")
       ? [
           { id: "files", title: t("files.title"), href: "/files" },

@@ -1767,7 +1767,8 @@
     },
     "pickMember": "Pick a member…",
     "memberHint": "The team consists of organisation members (name and email from their profile). Invite new people under Settings → Members first.",
-    "assignOnCreate": "Will be assigned to {name}."
+    "assignOnCreate": "Will be assigned to {name}.",
+    "setupTitle": "Shift setup"
   },
   "locations": {
     "title": "Location",
@@ -4046,5 +4047,15 @@
     "search": "Search emoji …",
     "loading": "Loading …",
     "none": "No emoji found."
+  },
+  "nav": {
+    "overview": "Overview",
+    "import": "Import",
+    "events": "Events",
+    "finance": "Finance",
+    "communication": "Communication",
+    "campaigns": "Email campaigns",
+    "emailAutomations": "Email automations",
+    "emailLog": "Email log"
   }
 }
