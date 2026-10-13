@@ -3679,7 +3679,7 @@
         "other": "{count} members"
       },
       "byType": "Active by membership type",
-    "perMonth": "Joined and left per month",
+      "perMonth": "Joined and left per month"
     },
     "events": {
       "title": "Events & door",
