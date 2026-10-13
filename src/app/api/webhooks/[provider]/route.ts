@@ -48,7 +48,8 @@ export async function POST(request: Request, { params }: RouteContext<"/api/webh
     .or(`locked_at.is.null,locked_at.lt.${stale}`)
     .select("id")
   if (claimError) return new NextResponse("Could not claim event", { status: 500 })
-  if (!claimed?.length) return NextResponse.json({ duplicate: true })
+  // Not 2xx: the provider must retry later, or a failing first run would lose the event.
+  if (!claimed?.length) return new NextResponse("In progress", { status: 409 })
 
   try {
     await webhook.handle(event)

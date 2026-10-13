@@ -27,7 +27,7 @@ export default async function GuestListPage({ params, searchParams }: PageProps<
   const canManage = ctx.can("guestlists.manage")
   const [{ data: list }, { data: entries }] = await Promise.all([
     ctx.supabase.from("guest_lists").select("*, events(title, starts_at), artists(name)").eq("id", id).eq("org_id", ctx.org.id).is("deleted_at", null).maybeSingle(),
-    ctx.supabase.from("guest_entries").select("id, name, email, added_via, submitted_by, created_at, tickets(code, status), guest_checkins(event_id, checked_in_at)").eq("list_id", id).order("name"),
+    ctx.supabase.from("guest_entries").select("id, name, email, added_via, submitted_by, created_at, tickets!guest_entries_ticket_id_fkey(code, status), guest_checkins(event_id, checked_in_at)").eq("list_id", id).order("name"),
   ])
   if (!list) notFound()
   const link = list.link_token ? siteUrl(ctx.org.slug, `/g/${list.link_token}`) : null

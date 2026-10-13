@@ -45,7 +45,7 @@ const Entry = z.object({
   checkins: z.array(z.object({ event_id: uuid, checked_in_at: ts })),
   created_at: ts,
 })
-const ENTRY_COLS = "id, list_id, name, email, note, added_via, submitted_by, ticket_id, created_at, tickets(code), guest_checkins(event_id, checked_in_at)"
+const ENTRY_COLS = "id, list_id, name, email, note, added_via, submitted_by, ticket_id, created_at, tickets!guest_entries_ticket_id_fkey(code), guest_checkins(event_id, checked_in_at)"
 type EntryRow = { list_id: string; tickets: { code: string } | null; guest_checkins: { event_id: string; checked_in_at: string }[] }
 const entryOut = <R extends EntryRow>({ tickets, guest_checkins, ...e }: R) => ({ ...e, ticket_code: tickets?.code ?? null, checkins: guest_checkins })
 

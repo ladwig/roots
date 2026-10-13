@@ -12,7 +12,11 @@ export const linkToken = () => Array.from(randomBytes(24), (b) => "abcdefghijklm
 export async function syncTickets(listId: string) {
   const { data: list } = await db().from("guest_lists").select("id, org_id, event_id, ticket_type_id, name, deleted_at").eq("id", listId).maybeSingle()
   if (!list?.ticket_type_id || !list.event_id || list.deleted_at) return
-  const { data: entries } = await db().from("guest_entries").select("id, name, email, ticket_id, tickets(holder_name, status)").eq("list_id", listId)
+  const { data: entries, error: entriesError } = await db()
+    .from("guest_entries")
+    .select("id, name, email, ticket_id, tickets!guest_entries_ticket_id_fkey(holder_name, status)")
+    .eq("list_id", listId)
+  if (entriesError) throw entriesError
   const missing: NonNullable<typeof entries> = []
   await Promise.all(
     (entries ?? []).map(async (e) => {
