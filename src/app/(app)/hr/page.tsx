@@ -29,11 +29,15 @@ export default async function HrPage({ searchParams }: PageProps<"/hr">) {
   query = trash ? query.not("deleted_at", "is", null) : query.is("deleted_at", null)
   if (q) query = query.or(`name.ilike.%${q}%,job_title.ilike.%${q}%,department.ilike.%${q}%,email.ilike.%${q}%`)
   const creating = canManage && param(sp, "new") === "employee"
-  const [{ data }, { data: people }, { data: staff }] = await Promise.all([
+  const [{ data }, { data: people }, { data: orgMembers }] = await Promise.all([
     query,
-    creating ? ctx.supabase.from("employees").select("id, name").eq("org_id", ctx.org.id).is("deleted_at", null).order("name").limit(500) : Promise.resolve({ data: null }),
-    creating && ctx.modules.has("shifts") ? ctx.supabase.from("staff").select("id, name").eq("org_id", ctx.org.id).eq("active", true).order("name").limit(500) : Promise.resolve({ data: null }),
+    creating ? ctx.supabase.from("employees").select("id, name, user_id").eq("org_id", ctx.org.id).is("deleted_at", null).order("name").limit(500) : Promise.resolve({ data: null }),
+    creating ? ctx.supabase.from("org_members").select("user_id").eq("org_id", ctx.org.id) : Promise.resolve({ data: null }),
   ])
+  // Org members who aren't employees yet (name + email from their profile).
+  const free = (orgMembers ?? []).filter((m) => !people?.some((p) => p.user_id === m.user_id))
+  const { data: profiles } = free.length ? await ctx.supabase.from("profiles").select("id, full_name, email").in("id", free.map((m) => m.user_id)) : { data: [] }
+  const members = (profiles ?? []).map((p) => ({ id: p.id, name: p.full_name ? `${p.full_name} · ${p.email}` : p.email })).sort((a, b) => a.name.localeCompare(b.name))
   const today = new Date().toISOString().slice(0, 10)
 
   return (
@@ -90,7 +94,7 @@ export default async function HrPage({ searchParams }: PageProps<"/hr">) {
       {creating && (
         <UrlSheet params={["new"]} title={t("hr.new")}>
           <Notice error={param(sp, "error")} />
-          <EmployeeForm t={t} managers={people ?? []} staff={staff ?? []} />
+          <EmployeeForm t={t} managers={people ?? []} members={members} />
         </UrlSheet>
       )}
     </div>

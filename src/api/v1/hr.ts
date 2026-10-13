@@ -2,6 +2,7 @@ import { z } from "zod"
 import { ABSENCE_KINDS, EMPLOYMENT_TYPES, PAY_TYPES, readAbsence, readEmployee, readPrivate } from "@/hr/fields"
 import { payrollMonth } from "@/hr/server"
 import { monthOf } from "@/lib/time"
+import type { TablesUpdate } from "@/lib/supabase/types"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
 import { day, ts, type Db } from "./shared"
 
@@ -15,7 +16,8 @@ const Employee = z.object({
   job_title: z.string().nullable(),
   department: z.string().nullable(),
   manager_id: uuid.nullable().describe("Reports to (org chart)"),
-  staff_id: uuid.nullable().describe("Shift team member: approved hours come from there"),
+  staff_id: uuid.nullable().describe("Shift team member of the same user (approved hours come from there)"),
+  user_id: uuid.nullable().describe("The org member this employee is"),
   employment_type: z.enum(EMPLOYMENT_TYPES),
   starts_on: day.nullable(),
   ends_on: day.nullable(),
@@ -28,7 +30,7 @@ const Employee = z.object({
   created_at: ts,
   updated_at: ts,
 })
-const EMP_COLS = "id, name, email, phone, job_title, department, manager_id, staff_id, employment_type, starts_on, ends_on, pay_type, hourly_rate_cents, monthly_salary_cents, weekly_hours, vacation_days, notes, created_at, updated_at"
+const EMP_COLS = "id, name, email, phone, job_title, department, manager_id, staff_id, user_id, employment_type, starts_on, ends_on, pay_type, hourly_rate_cents, monthly_salary_cents, weekly_hours, vacation_days, notes, created_at, updated_at"
 const EmployeeInput = z
   .object({
     name: z.string().max(200),
@@ -90,7 +92,7 @@ async function employeeOf(db: Db, orgId: string, id: string) {
   if (!data) throw notFound()
   return data
 }
-const conflict = (e: { code?: string; message: string }) => (e.code === "23505" ? new ApiError(409, "staff_taken", "This shift team member is already linked to another employee.") : dbError(e))
+const conflict = (e: { code?: string; message: string }) => (e.code === "23505" ? new ApiError(409, "already_employee", "This member is already an employee.") : dbError(e))
 
 export const endpoints: Endpoint[] = [
   endpoint({
@@ -129,14 +131,21 @@ export const endpoints: Endpoint[] = [
     permission: "hr.manage",
     tag: TAG,
     summary: "Add an employee",
-    body: EmployeeInput.required({ name: true }),
+    description: "Employees are org members: `user_id` of a member (name and email come from their profile; their shift team row is linked).",
+    body: EmployeeInput.omit({ name: true, email: true, staff_id: true }).extend({ user_id: uuid }).strict(),
     response: Employee,
     status: 201,
     async handler({ db, orgId, body }) {
-      const r = readEmployee(getter(body))
+      const [{ data: member }, { data: profile }, { data: staff }] = await Promise.all([
+        db.from("org_members").select("user_id").eq("org_id", orgId).eq("user_id", body.user_id).maybeSingle(),
+        db.from("profiles").select("full_name, email").eq("id", body.user_id).maybeSingle(),
+        db.from("staff").select("id").eq("org_id", orgId).eq("user_id", body.user_id).maybeSingle(),
+      ])
+      if (!member) throw new ApiError(422, "not_a_member", "user_id must be a member of this organisation.")
+      const r = readEmployee(getter({ ...body, name: profile?.full_name || profile?.email || "–", email: profile?.email ?? null }))
       if ("error" in r) throw invalid(r)
-      const userId = await refsOk(db, orgId, r.row)
-      const { data, error } = await db.from("employees").insert({ ...r.row, user_id: userId, org_id: orgId }).select(EMP_COLS).single()
+      await refsOk(db, orgId, { manager_id: r.row.manager_id })
+      const { data, error } = await db.from("employees").insert({ ...r.row, user_id: body.user_id, staff_id: staff?.id ?? null, org_id: orgId }).select(EMP_COLS).single()
       if (error) throw conflict(error)
       return data
     },
@@ -147,16 +156,17 @@ export const endpoints: Endpoint[] = [
     permission: "hr.manage",
     tag: TAG,
     summary: "Change an employee",
-    description: "Only the given fields change.",
-    body: EmployeeInput,
+    description: "Only the given fields change. The linked member (name, email, shift team) stays.",
+    body: EmployeeInput.omit({ name: true, email: true, staff_id: true }),
     response: Employee,
     async handler({ db, orgId, params, body }) {
       const old = await employeeOf(db, orgId, params.id)
       const r = readEmployee(getter({ ...old, ...body }))
       if ("error" in r) throw invalid(r)
-      const userId = await refsOk(db, orgId, r.row)
+      await refsOk(db, orgId, { manager_id: r.row.manager_id })
       if (r.row.manager_id === params.id) throw new ApiError(422, "invalid_reference", "Someone can't report to themselves.")
-      const { data, error } = await db.from("employees").update({ ...r.row, user_id: userId }).eq("id", params.id).eq("org_id", orgId).select(EMP_COLS).single()
+      const contract = Object.fromEntries(Object.entries(r.row).filter(([k]) => !["name", "email", "staff_id", "user_id"].includes(k))) as TablesUpdate<"employees">
+      const { data, error } = await db.from("employees").update(contract).eq("id", params.id).eq("org_id", orgId).select(EMP_COLS).single()
       if (error) throw conflict(error)
       return data
     },

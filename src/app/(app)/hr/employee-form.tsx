@@ -14,7 +14,8 @@ type Option = { id: string; name: string }
 
 // General data + contract. Read-only (disabled) for hr.view. Manager and shift-team pickers list the org's people.
 // ponytail: plain selects; switch to a server-side picker if an org has hundreds of employees.
-export function EmployeeForm({ t, e, managers, staff, disabled }: { t: T; e?: Employee | null; managers: Option[]; staff: Option[]; disabled?: boolean }) {
+// New: pick an org member (not yet an employee); the person's name and email come from their profile.
+export function EmployeeForm({ t, e, managers, members = [], disabled }: { t: T; e?: Employee | null; managers: Option[]; members?: Option[]; disabled?: boolean }) {
   const field = (name: string, label: string, props: React.ComponentProps<typeof Input> = {}) => (
     <div className="grid gap-2">
       <Label htmlFor={`emp-${name}`}>{label}</Label>
@@ -38,13 +39,25 @@ export function EmployeeForm({ t, e, managers, staff, disabled }: { t: T; e?: Em
     <form action={saveEmployee} className="grid gap-6">
       {e && <input type="hidden" name="id" value={e.id} />}
       <fieldset className="grid gap-4 sm:grid-cols-2">
-        {field("name", t("hr.name"), { required: true, maxLength: 200, defaultValue: e?.name ?? "" })}
+        {e ? (
+          <div className="grid gap-1 sm:col-span-2">
+            <input type="hidden" name="name" value={e.name} />
+            <span className="text-sm font-medium">{t("hr.account")}</span>
+            <span className="text-sm text-muted-foreground">
+              {e.name}
+              {e.email && ` · ${e.email}`}
+            </span>
+          </div>
+        ) : (
+          <div className="sm:col-span-2">
+            {select("user_id", t("hr.member"), "", members.map((m) => ({ value: m.id, label: m.name })), t("hr.pickMember"))}
+            <p className="mt-1 text-xs text-muted-foreground">{t("hr.memberHint")}</p>
+          </div>
+        )}
         {field("job_title", t("hr.jobTitle"), { maxLength: 100, defaultValue: e?.job_title ?? "" })}
-        {field("email", t("hr.email"), { type: "email", maxLength: 320, defaultValue: e?.email ?? "" })}
         {field("phone", t("hr.phone"), { type: "tel", maxLength: 50, defaultValue: e?.phone ?? "" })}
         {field("department", t("hr.department"), { maxLength: 100, defaultValue: e?.department ?? "" })}
         {select("manager_id", t("hr.manager"), e?.manager_id ?? "", managers.filter((m) => m.id !== e?.id).map((m) => ({ value: m.id, label: m.name })), "–")}
-        {staff.length > 0 && select("staff_id", t("hr.staffLink"), e?.staff_id ?? "", staff.map((s) => ({ value: s.id, label: s.name })), t("hr.noStaffLink"))}
       </fieldset>
       <fieldset className="grid gap-4 sm:grid-cols-2">
         <legend className="mb-2 text-sm font-medium">{t("hr.contract")}</legend>

@@ -2700,9 +2700,6 @@
     "jobTitle": "Role",
     "department": "Department",
     "manager": "Reports to",
-    "staffLink": "Shift team",
-    "noStaffLink": "– not in the shift team –",
-    "staffTaken": "This shift team member is already linked.",
     "contract": "Contract",
     "employmentType": "Employment",
     "payType": "Pay",
@@ -2795,7 +2792,12 @@
     "endBeforeStart": "The end is before the start.",
     "amountInvalid": "Please enter a valid amount (e.g. 14.50).",
     "taxIdInvalid": "The tax ID has 11 digits.",
-    "halfDayOneDay": "A half day only works for a single day."
+    "halfDayOneDay": "A half day only works for a single day.",
+    "account": "Account",
+    "member": "Member of the organisation",
+    "pickMember": "Pick a member…",
+    "memberHint": "Employees are members of your organisation (Settings → Team). Name and email come from their account.",
+    "memberTaken": "This member is already an employee."
   },
   "courses": {
     "nav": "Courses",

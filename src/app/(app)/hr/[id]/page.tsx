@@ -31,12 +31,11 @@ export default async function EmployeePage({ params, searchParams }: { params: P
   const canManage = ctx.can("hr.manage")
   const year = new Date().getFullYear()
   const month = monthOf()
-  const [{ data: e }, { data: priv }, { data: absences }, { data: people }, { data: staff }, payroll] = await Promise.all([
+  const [{ data: e }, { data: priv }, { data: absences }, { data: people }, payroll] = await Promise.all([
     ctx.supabase.from("employees").select("*").eq("id", id).eq("org_id", ctx.org.id).maybeSingle(),
     canManage ? ctx.supabase.from("employee_private").select("*").eq("employee_id", id).eq("org_id", ctx.org.id).maybeSingle() : Promise.resolve({ data: null }),
     ctx.supabase.from("absences").select("id, kind, starts_on, ends_on, half_day, note").eq("employee_id", id).eq("org_id", ctx.org.id).gte("ends_on", `${year}-01-01`).order("starts_on", { ascending: false }),
     ctx.supabase.from("employees").select("id, name").eq("org_id", ctx.org.id).is("deleted_at", null).order("name").limit(500),
-    ctx.modules.has("shifts") ? ctx.supabase.from("staff").select("id, name").eq("org_id", ctx.org.id).order("name").limit(500) : Promise.resolve({ data: null }),
     payrollMonth(ctx.supabase, ctx.org.id, month),
   ])
   if (!e) notFound()
@@ -87,7 +86,7 @@ export default async function EmployeePage({ params, searchParams }: { params: P
           <div className="grid min-w-0 gap-8">
             <section id="details" className="grid scroll-mt-20 gap-3">
               <h2 className="font-medium">{t("hr.details")}</h2>
-              <EmployeeForm t={t} e={e} managers={people ?? []} staff={staff ?? []} disabled={!canManage} />
+              <EmployeeForm t={t} e={e} managers={people ?? []} disabled={!canManage} />
             </section>
             {canManage && (
               <section id="private" className="grid scroll-mt-20 gap-3">

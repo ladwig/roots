@@ -2700,9 +2700,6 @@
     "jobTitle": "Funktion",
     "department": "Abteilung",
     "manager": "Berichtet an",
-    "staffLink": "Schicht-Team",
-    "noStaffLink": "– nicht im Schicht-Team –",
-    "staffTaken": "Diese Person aus dem Schicht-Team ist schon verknüpft.",
     "contract": "Vertrag",
     "employmentType": "Beschäftigung",
     "payType": "Vergütung",
@@ -2795,7 +2792,12 @@
     "endBeforeStart": "Das Ende liegt vor dem Beginn.",
     "amountInvalid": "Bitte einen gültigen Betrag eingeben (z. B. 14,50).",
     "taxIdInvalid": "Die Steuer-ID hat 11 Ziffern.",
-    "halfDayOneDay": "Ein halber Tag geht nur bei einem einzelnen Tag."
+    "halfDayOneDay": "Ein halber Tag geht nur bei einem einzelnen Tag.",
+    "account": "Konto",
+    "member": "Mitglied der Organisation",
+    "pickMember": "Mitglied wählen…",
+    "memberHint": "Mitarbeitende sind Mitglieder eurer Organisation (Einstellungen → Team). Name und E-Mail kommen aus ihrem Konto.",
+    "memberTaken": "Dieses Mitglied ist schon als Mitarbeiter:in angelegt."
   },
   "courses": {
     "nav": "Kurse",

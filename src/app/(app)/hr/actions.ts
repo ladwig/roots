@@ -6,6 +6,7 @@ import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { back } from "@/lib/url"
 import { readAbsence, readEmployee, readPrivate } from "@/hr/fields"
+import type { TablesUpdate } from "@/lib/supabase/types"
 
 const UUID = /^[0-9a-f-]{36}$/
 const getter = (fd: FormData) => (k: string) => String(fd.get(k) ?? "")
@@ -27,13 +28,33 @@ export async function saveEmployee(fd: FormData) {
   const { ctx, t } = await manager()
   const id = String(fd.get("id") ?? "")
   const here = UUID.test(id) ? `/hr/${id}` : "/hr?new=employee"
+  // Employees are org members: the person comes from the member's profile (name, email), their shift team row
+  // (if any) is linked automatically. Only the contract data is entered here.
+  const userArg = String(fd.get("user_id") ?? "")
+  const userId = UUID.test(id) ? null : UUID.test(userArg) ? userArg : null
+  if (!UUID.test(id) && !userId) back(here, { error: t("hr.pickMember") })
+  let profileName = ""
+  if (userId) {
+    const [{ data: member }, { data: profile }] = await Promise.all([
+      ctx.supabase.from("org_members").select("user_id").eq("org_id", ctx.org.id).eq("user_id", userId).maybeSingle(),
+      ctx.supabase.from("profiles").select("full_name, email").eq("id", userId).maybeSingle(),
+    ])
+    if (!member) back(here, { error: t("hr.pickMember") })
+    profileName = profile?.full_name || profile?.email || "–"
+    fd.set("name", profileName)
+    fd.set("email", profile?.email ?? "")
+  }
   const r = readEmployee(getter(fd))
   if ("error" in r) back(here, { error: fail(t, r) })
-  // Linked to a shift team member → same login (the person sees their own row).
-  if (r.row.staff_id) r.row.user_id = (await ctx.supabase.from("staff").select("user_id").eq("id", r.row.staff_id).eq("org_id", ctx.org.id).maybeSingle()).data?.user_id ?? null
+  if (userId) {
+    r.row.user_id = userId
+    r.row.staff_id = (await ctx.supabase.from("staff").select("id").eq("org_id", ctx.org.id).eq("user_id", userId).maybeSingle()).data?.id ?? null
+  }
+  // Updates keep the linked account (name/email from the profile at creation).
+  const contract = Object.fromEntries(Object.entries(r.row).filter(([k]) => !["name", "email", "user_id", "staff_id"].includes(k))) as TablesUpdate<"employees">
   if (UUID.test(id)) {
-    const { error } = await ctx.supabase.from("employees").update(r.row).eq("id", id).eq("org_id", ctx.org.id)
-    if (error) back(here, { error: error.code === "23505" ? t("hr.staffTaken") : dbError(t, error) })
+    const { error } = await ctx.supabase.from("employees").update(contract).eq("id", id).eq("org_id", ctx.org.id)
+    if (error) back(here, { error: dbError(t, error) })
     back(here, { ok: t("hr.saved") })
   }
   const { data, error } = await ctx.supabase
@@ -41,7 +62,7 @@ export async function saveEmployee(fd: FormData) {
     .insert({ ...r.row, org_id: ctx.org.id })
     .select("id")
     .single()
-  if (error) back(here, { error: error.code === "23505" ? t("hr.staffTaken") : dbError(t, error) })
+  if (error) back(here, { error: error.code === "23505" ? t("hr.memberTaken") : dbError(t, error) })
   redirect(`/hr/${data.id}?ok=${encodeURIComponent(t("hr.created"))}`)
 }
 
@@ -69,7 +90,7 @@ export async function restoreEmployee(fd: FormData) {
   const { ctx, t } = await manager()
   const id = String(fd.get("id") ?? "")
   const { error } = await ctx.supabase.rpc("restore_deleted", { p_table: "public.employees", p_id: id })
-  if (error) back(`/hr/${id}`, { error: error.code === "23505" ? t("hr.staffTaken") : dbError(t, error) })
+  if (error) back(`/hr/${id}`, { error: error.code === "23505" ? t("hr.memberTaken") : dbError(t, error) })
   back(`/hr/${id}`, { ok: t("hr.restored") })
 }
 
