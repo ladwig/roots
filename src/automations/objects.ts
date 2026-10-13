@@ -200,6 +200,14 @@ export const OBJECTS = {
     fields: [pick("status", ["new", "accepted", "rejected"]), text("email")],
     relations: { form_id: "form", contact_id: "contact", membership_id: "membership" },
   },
+  cash_entry: {
+    table: "cash_entries",
+    module: "cashbook",
+    record: true,
+    fields: [text("number"), date("booked_on"), num("amount_cents"), text("description"), text("category"), pick("sphere", ["ideal", "asset", "purpose", "commercial"]), text("counterparty")],
+    relations: { account_id: "cash_account", contact_id: "contact", document_id: "invoice" },
+  },
+  cash_account: { table: "cash_accounts", module: "cashbook", record: true, fields: [text("name"), pick("kind", ["cash", "bank"]), bool("active", true)] },
   invoice: {
     table: "documents",
     module: "invoices",
@@ -225,7 +233,7 @@ export const def = (k: ObjectKey): ObjectDef => OBJECTS[k]
 // Audited tables that are deliberately not workflow objects (setup, technical, sensitive). Everything else must be
 // in OBJECTS – objects.test.mjs checks it, so a new feature's tables show up in workflows.
 export const NOT_OBJECTS = [
-  "api_keys", "custom_fields", "document_items", "email_automations", "email_campaigns", "employee_private", "event_subscriptions",
+  "api_keys", "cash_closings", "custom_fields", "document_items", "email_automations", "email_campaigns", "employee_private", "event_subscriptions",
   "invites", "letter_templates", "locations", "member_settings", "number_ranges", "org_billing", "org_integrations", "org_members",
   "org_modules", "orgs", "platform_admins", "positions", "roles", "sepa_runs", "shift_series", "site_pages", "sites", "ticket_codes",
   "ticket_tiers", "workflow_runs", "workflows",

@@ -243,6 +243,10 @@
     "reports": {
       "name": "Reports",
       "description": "KPIs per period: members, door, revenue, shifts, invoices."
+    },
+    "cashbook": {
+      "name": "Cash book",
+      "description": "Cash boxes and accounts, entries with receipts, month closing with a cash count."
     }
   },
   "permissions": {
@@ -281,7 +285,9 @@
     "courses.manage": "Manage courses",
     "automations.view": "View automations",
     "automations.manage": "Edit automations",
-    "reports.view": "View reports"
+    "reports.view": "View reports",
+    "cashbook.view": "View cash book",
+    "cashbook.manage": "Book entries and close months"
   },
   "integrations": {
     "connect": "Connect",
@@ -437,7 +443,10 @@
       "course_participants": "Course participants",
       "course_attendance": "Attendance",
       "workflows": "Automations",
-      "workflow_runs": "Automation runs"
+      "workflow_runs": "Automation runs",
+      "cash_accounts": "Cash accounts",
+      "cash_entries": "Cash book",
+      "cash_closings": "Cash closings"
     }
   },
   "errors": {
@@ -502,7 +511,10 @@
     "mandate_required": "Please grant the direct debit mandate.",
     "consent_required": "Please confirm the consent.",
     "unknown_membership_type": "Unknown membership type",
-    "clock_running": "You're already clocked in."
+    "clock_running": "You're already clocked in.",
+    "cash_entry_locked": "Booked entries can't be changed – reverse them instead.",
+    "cash_month_closed": "This month is closed.",
+    "cash_month_open": "The month isn't over yet."
   },
   "admin": {
     "title": "Platform",
@@ -2469,6 +2481,10 @@
       "reports": {
         "name": "Reports",
         "text": "KPIs for any period: members, door by membership type, revenue, shifts and invoices."
+      },
+      "cashbook": {
+        "name": "Cash book",
+        "text": "Cash boxes and accounts, entries with receipts, the four areas of German non-profit law and month closing with a cash count."
       }
     },
     "events": {
@@ -3248,7 +3264,9 @@
       "submission": "Submission",
       "invoice": "Invoice/quote",
       "file": "File",
-      "now": "Time"
+      "now": "Time",
+      "cash_entry": "Cash entry",
+      "cash_account": "Cash account"
     },
     "fields": {
       "contact": {
@@ -3442,6 +3460,20 @@
         "weekday": "Weekday",
         "hour": "Hour",
         "date": "Date"
+      },
+      "cash_entry": {
+        "number": "Number",
+        "booked_on": "Booking date",
+        "amount_cents": "Amount (cents, − = expense)",
+        "description": "Description",
+        "category": "Category",
+        "sphere": "Area",
+        "counterparty": "Counterparty"
+      },
+      "cash_account": {
+        "name": "Name",
+        "kind": "Kind",
+        "active": "Active"
       }
     },
     "values": {
@@ -3740,6 +3772,93 @@
       "sent": "Emails sent",
       "delivered": "{rate} delivered",
       "bounced": "Bounced / spam"
+    },
+    "cashbook": {
+      "title": "Cash book",
+      "income": "Income",
+      "expenses": "Expenses",
+      "result": "Surplus",
+      "bySphere": "By area",
+      "balances": "Balances at the end of the period",
+      "noSphere": "no area"
     }
+  },
+  "cashbook": {
+    "nav": "Cash book",
+    "title": "Cash book",
+    "accounts": "Cash boxes & accounts",
+    "newAccount": "Cash box / account",
+    "editAccount": "Edit account",
+    "inactive": "inactive",
+    "noAccounts": "No cash box yet – create a cash box or account first (e.g. \"Petty cash\" or \"Door\").",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "monthClosed": "Closed",
+    "openingBalance": "Opening balance",
+    "income": "Income",
+    "expenses": "Expenses",
+    "closingBalance": "Closing balance",
+    "newEntry": "Entry",
+    "entry": "Entry",
+    "number": "Number",
+    "date": "Date",
+    "account": "Cash box / account",
+    "description": "Description",
+    "category": "Category",
+    "sphere": "Area",
+    "counterparty": "From / to",
+    "amount": "Amount",
+    "receipts": "Receipts",
+    "reversal": "Reversal",
+    "reversedShort": "reversed",
+    "noEntries": "No entries this month.",
+    "direction": "Kind of entry",
+    "directions": {
+      "in": "Income",
+      "out": "Expense"
+    },
+    "invoice": "Pays invoice",
+    "invoiceHint": "Optional: the invoice is marked paid.",
+    "bookHint": "Booked entries get a number and can't be changed afterwards – mistakes are reversed. Attach receipts after booking.",
+    "book": "Book",
+    "spheres": {
+      "ideal": "Non-profit activities",
+      "asset": "Asset management",
+      "purpose": "Purpose-related business",
+      "commercial": "Commercial business"
+    },
+    "kinds": {
+      "cash": "Cash box",
+      "bank": "Bank account"
+    },
+    "accountName": "Name",
+    "accountPlaceholder": "e.g. Petty cash, Door, Current account",
+    "accountKind": "Kind",
+    "opening": "Opening balance (€)",
+    "openingOn": "As of",
+    "accountActive": "Active",
+    "accountSaved": "Saved.",
+    "booked": "Booked as {number}.",
+    "reversed": "Reversed with {number}.",
+    "reverse": "Reverse",
+    "reverseHint": "Books the opposite amount today; the entry itself stays visible.",
+    "reverses": "Reverses",
+    "reversedBy": "Reversed by",
+    "bookedAt": "Booked at",
+    "closing": "Month closing",
+    "closeLater": "You can close the month once it is over.",
+    "closeHint": "Closing balance from the entries: {balance}. After closing, the month takes no more entries.",
+    "counted": "Counted cash (€)",
+    "note": "Note",
+    "closeMonth": "Close month",
+    "closed": "Month closed.",
+    "closedInfo": "Closed on {date}, closing balance {balance}",
+    "countedInfo": "counted {counted}, difference {diff}",
+    "notClosed": "Not closed yet.",
+    "amountInvalid": "Please enter an amount above 0, e.g. 12.50.",
+    "descriptionRequired": "Please enter a description.",
+    "invoiceNotOpen": "Only open invoices can be paid with an income entry.",
+    "cantReverseReversal": "A reversal can't be reversed.",
+    "alreadyReversed": "This entry is already reversed."
   }
 }

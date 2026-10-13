@@ -21,6 +21,7 @@ export type Report = {
   invoices?: { issued: N; issued_cents: N; paid_cents: N; open_cents: N; overdue_cents: N }
   courses?: { courses: N; enrolled: N; waiting: N }
   email?: { sent: N; delivered: N; bounced: N; complained: N }
+  cashbook?: { income_cents: N; expense_cents: N; entries: N; by_sphere: Record<string, { income_cents: N; expense_cents: N }>; accounts: { name: string; balance_cents: N }[] }
 }
 
 export async function loadReport(db: SupabaseClient<Database>, orgId: string, from: string, to: string) {

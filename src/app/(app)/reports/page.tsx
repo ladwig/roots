@@ -180,6 +180,35 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         </Section>
       )}
 
+      {r.cashbook && (
+        <Section id="cashbook" title={t("reports.cashbook.title")}>
+          <Tiles>
+            <Kpi label={t("reports.cashbook.income")} value={t.money(r.cashbook.income_cents)} />
+            <Kpi label={t("reports.cashbook.expenses")} value={t.money(r.cashbook.expense_cents)} />
+            <Kpi label={t("reports.cashbook.result")} value={t.money(r.cashbook.income_cents - r.cashbook.expense_cents)} warn={r.cashbook.income_cents < r.cashbook.expense_cents} />
+            {r.cashbook.accounts.map((a) => (
+              <Kpi key={a.name} label={a.name} value={t.money(a.balance_cents)} hint={t("reports.cashbook.balances")} />
+            ))}
+          </Tiles>
+          {Object.keys(r.cashbook.by_sphere).length > 0 && (
+            <div className="grid gap-2">
+              <h3 className="text-sm text-muted-foreground">{t("reports.cashbook.bySphere")}</h3>
+              <GroupedBars
+                data={Object.entries(r.cashbook.by_sphere).map(([k, v]) => ({
+                  label: k === "–" ? t("reports.cashbook.noSphere") : t.dynamic(`cashbook.spheres.${k}`),
+                  income: v.income_cents / 100,
+                  expenses: v.expense_cents / 100,
+                }))}
+                series={[
+                  { key: "income", label: t("reports.cashbook.income") },
+                  { key: "expenses", label: t("reports.cashbook.expenses") },
+                ]}
+              />
+            </div>
+          )}
+        </Section>
+      )}
+
       {r.shifts && (
         <Section id="shifts" title={t("reports.shifts.title")}>
           <Tiles>

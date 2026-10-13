@@ -243,6 +243,10 @@
     "reports": {
       "name": "Auswertungen",
       "description": "Kennzahlen pro Zeitraum: Mitglieder, Einlass, Umsatz, Schichten, Rechnungen."
+    },
+    "cashbook": {
+      "name": "Kassenbuch",
+      "description": "Kassen und Konten, Buchungen mit Belegen, Monatsabschluss mit Kassensturz."
     }
   },
   "permissions": {
@@ -281,7 +285,9 @@
     "courses.manage": "Kurse verwalten",
     "automations.view": "Automationen ansehen",
     "automations.manage": "Automationen bearbeiten",
-    "reports.view": "Auswertungen ansehen"
+    "reports.view": "Auswertungen ansehen",
+    "cashbook.view": "Kassenbuch ansehen",
+    "cashbook.manage": "Buchen und Monate abschließen"
   },
   "integrations": {
     "connect": "Verbinden",
@@ -437,7 +443,10 @@
       "course_participants": "Kursteilnehmende",
       "course_attendance": "Anwesenheit",
       "workflows": "Automationen",
-      "workflow_runs": "Automations-Durchläufe"
+      "workflow_runs": "Automations-Durchläufe",
+      "cash_accounts": "Kassen & Konten",
+      "cash_entries": "Kassenbuch",
+      "cash_closings": "Kassenabschlüsse"
     }
   },
   "errors": {
@@ -502,7 +511,10 @@
     "mandate_required": "Bitte erteile das Lastschriftmandat.",
     "consent_required": "Bitte bestätige die Einwilligung.",
     "unknown_membership_type": "Unbekannte Mitgliedsart",
-    "clock_running": "Du bist schon eingestempelt."
+    "clock_running": "Du bist schon eingestempelt.",
+    "cash_entry_locked": "Gebuchte Einträge lassen sich nicht ändern – bitte stornieren.",
+    "cash_month_closed": "Dieser Monat ist abgeschlossen.",
+    "cash_month_open": "Der Monat ist noch nicht vorbei."
   },
   "admin": {
     "title": "Plattform",
@@ -2469,6 +2481,10 @@
       "reports": {
         "name": "Auswertungen",
         "text": "Kennzahlen für jeden Zeitraum: Mitglieder, Einlass nach Mitgliedsart, Umsatz, Schichten und Rechnungen."
+      },
+      "cashbook": {
+        "name": "Kassenbuch",
+        "text": "Kassen und Konten, Buchungen mit Belegen, die vier Bereiche des Gemeinnützigkeitsrechts und Monatsabschluss mit Kassensturz."
       }
     },
     "events": {
@@ -3248,7 +3264,9 @@
       "submission": "Einsendung",
       "invoice": "Rechnung/Angebot",
       "file": "Datei",
-      "now": "Zeitpunkt"
+      "now": "Zeitpunkt",
+      "cash_entry": "Buchung",
+      "cash_account": "Kasse / Konto"
     },
     "fields": {
       "contact": {
@@ -3442,6 +3460,20 @@
         "weekday": "Wochentag",
         "hour": "Uhrzeit (Stunde)",
         "date": "Datum"
+      },
+      "cash_entry": {
+        "number": "Nummer",
+        "booked_on": "Buchungsdatum",
+        "amount_cents": "Betrag (Cent, − = Ausgabe)",
+        "description": "Beschreibung",
+        "category": "Kategorie",
+        "sphere": "Bereich",
+        "counterparty": "Gegenpartei"
+      },
+      "cash_account": {
+        "name": "Name",
+        "kind": "Art",
+        "active": "Aktiv"
       }
     },
     "values": {
@@ -3740,6 +3772,93 @@
       "sent": "E-Mails verschickt",
       "delivered": "{rate} zugestellt",
       "bounced": "Unzustellbar / Spam"
+    },
+    "cashbook": {
+      "title": "Kassenbuch",
+      "income": "Einnahmen",
+      "expenses": "Ausgaben",
+      "result": "Überschuss",
+      "bySphere": "Nach Bereich",
+      "balances": "Bestände zum Ende des Zeitraums",
+      "noSphere": "ohne Bereich"
     }
+  },
+  "cashbook": {
+    "nav": "Kassenbuch",
+    "title": "Kassenbuch",
+    "accounts": "Kassen & Konten",
+    "newAccount": "Kasse / Konto",
+    "editAccount": "Konto bearbeiten",
+    "inactive": "inaktiv",
+    "noAccounts": "Noch keine Kasse – leg zuerst eine Kasse oder ein Konto an (z. B. „Barkasse“ oder „Abendkasse“).",
+    "prevMonth": "Vorheriger Monat",
+    "nextMonth": "Nächster Monat",
+    "monthClosed": "Abgeschlossen",
+    "openingBalance": "Anfangsbestand",
+    "income": "Einnahmen",
+    "expenses": "Ausgaben",
+    "closingBalance": "Endbestand",
+    "newEntry": "Buchung",
+    "entry": "Buchung",
+    "number": "Nummer",
+    "date": "Datum",
+    "account": "Kasse / Konto",
+    "description": "Beschreibung",
+    "category": "Kategorie",
+    "sphere": "Bereich",
+    "counterparty": "Von / an",
+    "amount": "Betrag",
+    "receipts": "Belege",
+    "reversal": "Storno",
+    "reversedShort": "storniert",
+    "noEntries": "Keine Buchungen in diesem Monat.",
+    "direction": "Art der Buchung",
+    "directions": {
+      "in": "Einnahme",
+      "out": "Ausgabe"
+    },
+    "invoice": "Bezahlt Rechnung",
+    "invoiceHint": "Optional: Die Rechnung wird damit als bezahlt markiert.",
+    "bookHint": "Gebuchte Einträge bekommen eine Nummer und lassen sich danach nicht mehr ändern – Fehler werden storniert. Belege hängst du nach dem Buchen an.",
+    "book": "Buchen",
+    "spheres": {
+      "ideal": "Ideeller Bereich",
+      "asset": "Vermögensverwaltung",
+      "purpose": "Zweckbetrieb",
+      "commercial": "Wirtschaftlicher Geschäftsbetrieb"
+    },
+    "kinds": {
+      "cash": "Bargeldkasse",
+      "bank": "Bankkonto"
+    },
+    "accountName": "Name",
+    "accountPlaceholder": "z. B. Barkasse, Abendkasse, Girokonto",
+    "accountKind": "Art",
+    "opening": "Anfangsbestand (€)",
+    "openingOn": "Stand vom",
+    "accountActive": "Aktiv",
+    "accountSaved": "Gespeichert.",
+    "booked": "Gebucht als {number}.",
+    "reversed": "Storniert mit {number}.",
+    "reverse": "Stornieren",
+    "reverseHint": "Bucht den Gegenbetrag mit heutigem Datum; die Buchung selbst bleibt sichtbar.",
+    "reverses": "Storno von",
+    "reversedBy": "Storniert durch",
+    "bookedAt": "Gebucht am",
+    "closing": "Monatsabschluss",
+    "closeLater": "Abschließen geht, sobald der Monat vorbei ist.",
+    "closeHint": "Endbestand laut Buchungen: {balance}. Nach dem Abschluss nimmt der Monat keine Buchungen mehr an.",
+    "counted": "Gezählter Bestand (Kassensturz, €)",
+    "note": "Notiz",
+    "closeMonth": "Monat abschließen",
+    "closed": "Monat abgeschlossen.",
+    "closedInfo": "Abgeschlossen am {date}, Endbestand {balance}",
+    "countedInfo": "gezählt {counted}, Differenz {diff}",
+    "notClosed": "Noch nicht abgeschlossen.",
+    "amountInvalid": "Bitte einen Betrag größer 0 eingeben, z. B. 12,50.",
+    "descriptionRequired": "Bitte eine Beschreibung angeben.",
+    "invoiceNotOpen": "Nur offene Rechnungen lassen sich mit einer Einnahme bezahlen.",
+    "cantReverseReversal": "Ein Storno lässt sich nicht stornieren.",
+    "alreadyReversed": "Diese Buchung ist schon storniert."
   }
 }

@@ -91,6 +91,96 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"cash_accounts": {
+                  Row: {
+                    "active": boolean,"created_at": string,"created_by": string | null,"id": string,"kind": string,"name": string,"opening_cents": number,"opening_on": string,"org_id": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"id"?: string,"kind"?: string,"name": string,"opening_cents"?: number,"opening_on"?: string,"org_id": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"id"?: string,"kind"?: string,"name"?: string,"opening_cents"?: number,"opening_on"?: string,"org_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "cash_accounts_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"cash_closings": {
+                  Row: {
+                    "account_id": string,"balance_cents": number,"counted_cents": number | null,"created_at": string,"created_by": string | null,"id": string,"month": string,"note": string | null,"org_id": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "account_id": string,"balance_cents": number,"counted_cents"?: number | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"month": string,"note"?: string | null,"org_id": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "account_id"?: string,"balance_cents"?: number,"counted_cents"?: number | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"month"?: string,"note"?: string | null,"org_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "cash_closings_account_id_fkey"
+      columns: ["account_id"]
+isOneToOne: false
+      referencedRelation: "cash_accounts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "cash_closings_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"cash_entries": {
+                  Row: {
+                    "account_id": string,"amount_cents": number,"booked_on": string,"category": string | null,"contact_id": string | null,"counterparty": string | null,"created_at": string,"created_by": string | null,"description": string,"document_id": string | null,"id": string,"number": string | null,"org_id": string,"reverses_id": string | null,"sphere": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "account_id": string,"amount_cents": number,"booked_on": string,"category"?: string | null,"contact_id"?: string | null,"counterparty"?: string | null,"created_at"?: string,"created_by"?: string | null,"description": string,"document_id"?: string | null,"id"?: string,"number"?: string | null,"org_id": string,"reverses_id"?: string | null,"sphere"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "account_id"?: string,"amount_cents"?: number,"booked_on"?: string,"category"?: string | null,"contact_id"?: string | null,"counterparty"?: string | null,"created_at"?: string,"created_by"?: string | null,"description"?: string,"document_id"?: string | null,"id"?: string,"number"?: string | null,"org_id"?: string,"reverses_id"?: string | null,"sphere"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "cash_entries_account_id_fkey"
+      columns: ["account_id"]
+isOneToOne: false
+      referencedRelation: "cash_accounts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "cash_entries_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "cash_entries_document_id_fkey"
+      columns: ["document_id"]
+isOneToOne: false
+      referencedRelation: "documents"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "cash_entries_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "cash_entries_reverses_id_fkey"
+      columns: ["reverses_id"]
+isOneToOne: true
+      referencedRelation: "cash_entries"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"contact_notes": {
                   Row: {
                     "body": string,"contact_id": string,"created_at": string,"created_by": string | null,"id": string,"org_id": string,"updated_at": string,"updated_by": string | null
@@ -1800,6 +1890,11 @@ isOneToOne: false
                            },
 "cancel_invoice":
 { Args: { "p_id": string }; Returns: string
+                           },
+"cash_balances":
+{ Args: { "p_org": string,"p_until"?: string }; Returns: {
+              "account_id": string,"balance_cents": number
+            }[]
                            },
 "check_in_ticket":
 { Args: { "p_code": string,"p_event": string }; Returns: {

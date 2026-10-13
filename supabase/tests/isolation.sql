@@ -772,6 +772,36 @@ begin
     reset role;
   end;
 
+  -- Cash book: numbered entries, frozen after booking, closed months take nothing; B sees nothing
+  insert into public.org_modules (org_id, module_key) values (org_a, 'cashbook') on conflict do nothing;
+  declare v_acc uuid; v_entry uuid; v_no text;
+  begin
+    perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    insert into public.cash_accounts (org_id, name, opening_cents, opening_on) values (org_a, 'Barkasse', 10000, '2025-01-01') returning id into v_acc;
+    insert into public.cash_entries (org_id, account_id, booked_on, amount_cents, description) values (org_a, v_acc, '2025-03-10', -2500, 'Getränke')
+      returning id, number into v_entry, v_no;
+    assert v_no = 'K-2025-0001', 'entries get a number from the cash range';
+    update public.cash_entries set amount_cents = -1 where id = v_entry;      -- no update policy: changes nothing
+    select amount_cents into n from public.cash_entries where id = v_entry;     assert n = -2500, 'booked entries are frozen';
+    insert into public.cash_closings (org_id, account_id, month, balance_cents, counted_cents) values (org_a, v_acc, '2025-03-01', 0, 7500);
+    select balance_cents into n from public.cash_closings where account_id = v_acc;  assert n = 7500, 'closing balance is computed in the DB';
+    begin
+      insert into public.cash_entries (org_id, account_id, booked_on, amount_cents, description) values (org_a, v_acc, '2025-03-20', 100, 'Nachtrag');
+      assert false, 'closed months take no entries';
+    exception when raise_exception then null; end;
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.cash_accounts where org_id = org_a;  assert n = 0, 'B sees cash accounts of A';
+    select count(*) into n from public.cash_entries where org_id = org_a;   assert n = 0, 'B sees cash entries of A';
+    begin
+      insert into public.cash_entries (org_id, account_id, booked_on, amount_cents, description) values (org_b, v_acc, '2025-04-01', 100, 'x');
+      assert false, 'B must not book on an account of A';
+    exception when insufficient_privilege or raise_exception then null; end;
+    reset role;
+  end;
+
   -- Automations: an event of the trigger type starts one run per active workflow; B sees nothing
   insert into public.org_modules (org_id, module_key) values (org_a, 'automations') on conflict do nothing;
   declare v_wf uuid;

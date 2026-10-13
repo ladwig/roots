@@ -31,6 +31,46 @@ const contactCells = (c: Record<string, unknown> | null) => contactCols.map((k) 
 
 // Column headers match the import's field labels, so an export can be edited and imported again.
 export const EXPORTERS: Record<string, Exporter> = {
+  cash_entries: {
+    perm: "cashbook.view",
+    module: "cashbook",
+    name: "kassenbuch",
+    async load(ctx, t, sp) {
+      // One account and/or one month (as on the page), else everything.
+      const account = /^[0-9a-f-]{36}$/.test(sp.get("account") ?? "") ? sp.get("account")! : null
+      const month = /^\d{4}-\d{2}$/.test(sp.get("month") ?? "") ? sp.get("month")! : null
+      const rows = await all((from, to) => {
+        let q = ctx.supabase
+          .from("cash_entries")
+          .select("number, booked_on, amount_cents, description, category, sphere, counterparty, cash_accounts(name), reversed:reverses_id(number)")
+          .eq("org_id", ctx.org.id)
+          .order("booked_on")
+          .order("number")
+          .range(from, to)
+        if (account) q = q.eq("account_id", account)
+        if (month) {
+          const [y, m] = month.split("-").map(Number)
+          q = q.gte("booked_on", `${month}-01`).lte("booked_on", new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10))
+        }
+        return q
+      })
+      return {
+        headers: [t("cashbook.number"), t("cashbook.date"), t("cashbook.account"), t("cashbook.description"), t("cashbook.category"), t("cashbook.sphere"), t("cashbook.counterparty"), t("cashbook.income"), t("cashbook.expenses"), t("cashbook.reverses")],
+        rows: rows.map((e) => [
+          e.number,
+          e.booked_on,
+          e.cash_accounts?.name ?? "",
+          e.description,
+          e.category,
+          e.sphere ? t.dynamic(`cashbook.spheres.${e.sphere}`) : "",
+          e.counterparty,
+          e.amount_cents > 0 ? e.amount_cents / 100 : "",
+          e.amount_cents < 0 ? -e.amount_cents / 100 : "",
+          (e.reversed as { number: string | null } | null)?.number ?? "",
+        ]),
+      }
+    },
+  },
   contacts: {
     perm: "crm.view",
     module: "crm",

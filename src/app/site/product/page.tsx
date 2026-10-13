@@ -72,7 +72,7 @@ const VISUALS: Record<Area, React.ReactNode> = {
 
 export default async function ProductPage() {
   const t = await getT()
-  const modules = ["crm", "members", "events", "tickets", "guestlists", "courses", "shifts", "hr", "forms", "email", "automations", "reports", "invoices", "files", "portal", "api"] as const
+  const modules = ["crm", "members", "events", "tickets", "guestlists", "courses", "shifts", "hr", "forms", "email", "automations", "reports", "invoices", "cashbook", "files", "portal", "api"] as const
   return (
     <SiteFrame>
       <header className="wrap grid gap-8 pt-[clamp(48px,7vw,104px)] pb-[clamp(56px,7vw,104px)]">
