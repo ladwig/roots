@@ -45,7 +45,7 @@ export const NAV: Area[] = [
     label: "nav.events",
     icon: CalendarDaysIcon,
     children: [
-      { href: "/events", label: "eventsPage.nav", module: "events", permission: "events.view" },
+      { href: "/events", label: "nav.overview", module: "events", permission: "events.view" },
       { href: "/guestlists", label: "guestlists.nav", module: "guestlists", permission: "guestlists.view" },
       { href: "/scan", label: "tickets.scanNav", module: ["tickets", "guestlists"], permission: ["tickets.scan", "guestlists.checkin"] },
     ],
@@ -55,7 +55,7 @@ export const NAV: Area[] = [
     label: "shifts.nav",
     icon: CalendarClockIcon,
     children: [
-      { href: "/shifts", label: "shifts.tabs.plan", module: "shifts", permission: "shifts.view" },
+      { href: "/shifts", label: "nav.overview", module: "shifts", permission: "shifts.view" },
       { href: "/shifts/me", label: "shifts.tabs.me", module: "shifts", permission: "shifts.self" },
       { href: "/shifts/hours", label: "shifts.tabs.hours", module: "shifts", permission: "shifts.view" },
       { href: "/shifts/team", label: "shifts.tabs.team", module: "shifts", permission: "shifts.view" },
@@ -67,7 +67,7 @@ export const NAV: Area[] = [
     label: "hr.nav",
     icon: BriefcaseBusinessIcon,
     children: [
-      { href: "/hr", label: "hr.tabs.people", module: "hr", permission: "hr.view" },
+      { href: "/hr", label: "nav.overview", module: "hr", permission: "hr.view" },
       { href: "/hr/absences", label: "hr.tabs.absences", module: "hr", permission: "hr.view" },
       { href: "/hr/chart", label: "hr.tabs.chart", module: "hr", permission: "hr.view" },
       { href: "/hr/payroll", label: "hr.tabs.payroll", module: "hr", permission: "hr.view" },

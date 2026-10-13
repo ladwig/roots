@@ -43,7 +43,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 label: t("files.title"),
                 icon: <FolderIcon />,
                 children: [
-                  { href: "/files", label: t("letters.tabs.files") },
+                  { href: "/files", label: t("nav.overview") },
                   { href: "/files/templates", label: t("letters.tabs.templates") },
                 ],
               },
