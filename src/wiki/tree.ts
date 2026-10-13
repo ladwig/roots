@@ -1,5 +1,6 @@
 // Wiki page tree: flat rows → nested, path to a page. Pure (node --test).
-export type PageRow = { id: string; parent_id: string | null; title: string; position: number }
+export type PageRow = { id: string; parent_id: string | null; title: string; position: number; visibility?: string | null }
+export const VISIBILITIES = ["team", "roles"] as const // later: "members", "public"
 export type Node = PageRow & { children: Node[] }
 
 /** Nested by parent; pages whose parent isn't there (deleted, no access) become top-level. Sorted by position, title. */
@@ -36,4 +37,12 @@ export function subtree(rows: PageRow[], id: string): Set<string> {
       }
   }
   return out
+}
+
+/** Who may read a page: its own setting or the nearest ancestor's (like the DB's wiki_access()); default team. */
+export function effectiveVisibility(rows: PageRow[], id: string): { visibility: string; from: string | null } {
+  const byId = new Map(rows.map((r) => [r.id, r]))
+  for (let p = byId.get(id), n = 0; p && n < 50; p = p.parent_id ? byId.get(p.parent_id) : undefined, n++)
+    if (p.visibility) return { visibility: p.visibility, from: p.id }
+  return { visibility: "team", from: null }
 }

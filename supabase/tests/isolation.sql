@@ -822,6 +822,18 @@ begin
     select count(*) into n from public.wiki_pages where org_id = org_a;          assert n = 0, 'B sees wiki pages of A';
     select count(*) into n from public.wiki_page_versions where org_id = org_a;  assert n = 0, 'B sees wiki versions of A';
     reset role;
+    -- Visibility: a page for certain roles hides it (and its sub-pages) from readers without that role
+    update public.roles set permissions = permissions || '{wiki.view}' where org_id is null and name ->> 'en' = 'Member';
+    update public.wiki_pages set visibility = 'roles', role_ids = '{}' where id = v_root;
+    perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.wiki_pages where id in (v_root, v_child);  assert n = 0, 'role-restricted page and its sub-page are hidden';
+    reset role;
+    update public.wiki_pages set visibility = 'team' where id = v_child;
+    perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.wiki_pages where id = v_child;  assert n = 1, 'a sub-page with its own setting is visible';
+    reset role;
   end;
 
   -- Automations: an event of the trigger type starts one run per active workflow; B sees nothing

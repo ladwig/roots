@@ -3,10 +3,11 @@
 import { useState, useTransition } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { LockIcon } from "lucide-react"
 import { toast } from "sonner"
 import { useT } from "@/i18n/client"
 import { cn } from "@/lib/utils"
-import { buildTree, subtree, type Node, type PageRow } from "@/wiki/tree"
+import { buildTree, effectiveVisibility, subtree, type Node, type PageRow } from "@/wiki/tree"
 import { movePageAction } from "./actions"
 
 type Drop = { id: string; zone: "before" | "inside" } | { id: "root"; zone: "inside" }
@@ -73,6 +74,7 @@ export function TreeNav({ rows, current, label, movable }: { rows: PageRow[]; cu
               over?.id === n.id && over.zone === "inside" && "bg-primary/10 text-foreground",
             )}
           >
+            {effectiveVisibility(rows, n.id).visibility === "roles" && <LockIcon className="mr-1 inline size-3 align-[-1px]" aria-label={t("wiki.share.short.roles")} />}
             {n.title}
           </Link>
           {n.children.length > 0 && level(n.children, depth + 1)}

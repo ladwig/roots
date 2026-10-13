@@ -1,7 +1,8 @@
 import { z } from "zod"
 import { messages } from "@/i18n/config"
 import { createT } from "@/i18n/translate"
-import { createPage, restoreVersion, savePage, WIKI_COLS, type WikiFail } from "@/wiki/server"
+import { createPage, restoreVersion, savePage, setVisibility, WIKI_COLS, type WikiFail } from "@/wiki/server"
+import { VISIBILITIES } from "@/wiki/tree"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
 import { trashRow } from "./contacts"
 import { ts, type Db } from "./shared"
@@ -12,8 +13,18 @@ function fail(f: WikiFail): never {
   if (f.db) throw f.db.message === "wiki_cycle" ? new ApiError(422, "wiki_cycle", "A page can't move below itself.") : dbError(f.db)
   throw f.error === "errors.not_allowed" ? notFound() : new ApiError(422, f.error.split(".").pop()!, en.dynamic(f.error))
 }
-const Page = z.object({ id: uuid, parent_id: uuid.nullable(), title: z.string(), body: z.string().describe("Markdown (GitHub flavour)"), position: z.number().int(), created_at: ts, updated_at: ts })
-const Summary = Page.omit({ body: true })
+const Page = z.object({
+  id: uuid,
+  parent_id: uuid.nullable(),
+  title: z.string(),
+  body: z.string().describe("Markdown (GitHub flavour)"),
+  position: z.number().int(),
+  visibility: z.enum(VISIBILITIES).nullable().describe("Who may read it: team (everyone with wiki.view), roles (only role_ids + wiki.manage); null = like the parent page"),
+  role_ids: z.array(uuid),
+  created_at: ts,
+  updated_at: ts,
+})
+const Summary = Page.omit({ body: true, role_ids: true })
 async function pageOf(db: Db, orgId: string, id: string) {
   const { data } = await db.from("wiki_pages").select(WIKI_COLS).eq("id", id).eq("org_id", orgId).is("deleted_at", null).maybeSingle()
   if (!data) throw notFound()
@@ -31,7 +42,7 @@ export const endpoints: Endpoint[] = [
     query: page.extend({ q: z.string().max(100).optional(), parent_id: uuid.optional() }),
     response: list(Summary),
     async handler({ db, orgId, query }) {
-      let q = db.from("wiki_pages").select("id, parent_id, title, position, created_at, updated_at").eq("org_id", orgId).is("deleted_at", null).order("position").order("title").range(query.offset, query.offset + query.limit)
+      let q = db.from("wiki_pages").select("id, parent_id, title, position, visibility, created_at, updated_at").eq("org_id", orgId).is("deleted_at", null).order("position").order("title").range(query.offset, query.offset + query.limit)
       const s = query.q?.replace(/[%,()*\\]/g, " ").trim()
       if (s) q = q.or(`title.ilike.%${s}%,body.ilike.%${s}%`)
       if (query.parent_id) q = q.eq("parent_id", query.parent_id)
@@ -62,14 +73,18 @@ export const endpoints: Endpoint[] = [
     permission: "wiki.manage",
     tag: TAG,
     summary: "Change a page",
-    description: "Only the given fields change. The previous text is kept as a version.",
-    body: z.object({ title: z.string().trim().min(1).max(200), body: z.string().max(200000), parent_id: uuid.nullable() }).partial().strict(),
+    description: "Only the given fields change. The previous text is kept as a version. `visibility` + `role_ids` set who may read the page (inherited by sub-pages).",
+    body: z.object({ title: z.string().trim().min(1).max(200), body: z.string().max(200000), parent_id: uuid.nullable(), visibility: z.enum(VISIBILITIES).nullable(), role_ids: z.array(uuid).max(50) }).partial().strict(),
     response: Page,
     async handler({ db, orgId, params, body }) {
       await pageOf(db, orgId, params.id)
       if (body.parent_id) await pageOf(db, orgId, body.parent_id)
       const r = await savePage(db, orgId, params.id, { title: body.title, body: body.body, parentId: body.parent_id })
       if ("error" in r) fail(r)
+      if (body.visibility !== undefined || body.role_ids) {
+        const v = await setVisibility(db, orgId, params.id, body.visibility === undefined ? (await pageOf(db, orgId, params.id)).visibility : body.visibility, body.role_ids ?? [])
+        if ("error" in v) fail(v)
+      }
       return pageOf(db, orgId, params.id)
     },
   }),

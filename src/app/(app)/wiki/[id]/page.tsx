@@ -10,10 +10,11 @@ import { UrlSheet } from "@/components/url-sheet"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param, withParams, type SearchParams } from "@/lib/url"
-import { pathTo } from "@/wiki/tree"
+import { effectiveVisibility, pathTo } from "@/wiki/tree"
 import { newPageAction, restorePageAction, restoreVersionAction, trashPageAction } from "../actions"
 import { TreeNav } from "../tree-nav"
 import { WikiEditor } from "./editor"
+import { ShareButton } from "./share"
 
 // One wiki page: tree on the left (drag & drop to move), the page – editable in place for writers, read-only text for
 // readers – sub-pages, history (?history=1). Files live inline in the text (images, file cards).
@@ -27,11 +28,12 @@ export default async function WikiPageView({ params, searchParams }: { params: P
   const canManage = ctx.can("wiki.manage")
   const showHistory = param(sp, "history") === "1"
   const versionId = param(sp, "version")
-  const [{ data: page }, { data: rows }, { data: versions }, { data: version }] = await Promise.all([
+  const [{ data: page }, { data: rows }, { data: versions }, { data: version }, { data: roles }] = await Promise.all([
     ctx.supabase.from("wiki_pages").select("*").eq("id", id).eq("org_id", ctx.org.id).maybeSingle(),
-    ctx.supabase.from("wiki_pages").select("id, parent_id, title, position").eq("org_id", ctx.org.id).is("deleted_at", null).limit(2000),
+    ctx.supabase.from("wiki_pages").select("id, parent_id, title, position, visibility").eq("org_id", ctx.org.id).is("deleted_at", null).limit(2000),
     showHistory ? ctx.supabase.from("wiki_page_versions").select("id, title, created_at, created_by").eq("page_id", id).order("created_at", { ascending: false }).limit(100) : Promise.resolve({ data: null }),
     versionId && /^[0-9a-f-]{36}$/.test(versionId) ? ctx.supabase.from("wiki_page_versions").select("id, title, body, created_at").eq("id", versionId).eq("page_id", id).maybeSingle() : Promise.resolve({ data: null }),
+    ctx.supabase.from("roles").select("id, name, is_owner").is("org_id", null).order("is_owner", { ascending: false }),
   ])
   if (!page) notFound()
   const all = rows ?? []
@@ -69,6 +71,18 @@ export default async function WikiPageView({ params, searchParams }: { params: P
                   </div>
                 )}
                 <div className="flex flex-wrap gap-2">
+                  <ShareButton
+                    pageId={page.id}
+                    canManage={canManage}
+                    own={page.visibility}
+                    roleIds={page.role_ids}
+                    hasParent={!!page.parent_id}
+                    inherited={(() => {
+                      const e = page.parent_id ? effectiveVisibility(all, page.parent_id) : { visibility: "team", from: null }
+                      return { visibility: e.visibility, fromTitle: all.find((r) => r.id === e.from)?.title ?? null }
+                    })()}
+                    roles={(roles ?? []).filter((r) => !r.is_owner).map((r) => ({ id: r.id, label: t.pick(r.name as Record<string, string>) }))}
+                  />
                   {canManage && (
                     <form action={newPageAction}>
                       <input type="hidden" name="parent_id" value={page.id} />

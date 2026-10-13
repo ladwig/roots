@@ -5,7 +5,7 @@ import { getT } from "@/i18n/server"
 import { dbError, type T } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { back } from "@/lib/url"
-import { createPage, movePage, restoreVersion, savePage, type WikiFail } from "@/wiki/server"
+import { createPage, movePage, restoreVersion, savePage, setVisibility, type WikiFail } from "@/wiki/server"
 
 const UUID = /^[0-9a-f-]{36}$/
 const id = (fd: FormData, key: string) => (UUID.test(String(fd.get(key) ?? "")) ? String(fd.get(key)) : null)
@@ -65,4 +65,14 @@ export async function movePageAction(input: { id: string; parentId: string | nul
   if (!UUID.test(input.id) || !ok(input.parentId) || !ok(input.beforeId)) return { error: t("errors.invalid_input") }
   const r = await movePage(ctx.supabase, ctx.org.id, input.id, input.parentId, input.beforeId)
   return "error" in r ? { error: message(t, r) } : {}
+}
+
+/** "Teilen": who may read the page ('' = like the parent page). */
+export async function setVisibilityAction(fd: FormData) {
+  const { ctx, t } = await editor()
+  const page = id(fd, "id") ?? ""
+  const visibility = String(fd.get("visibility") ?? "") || null
+  const roles = fd.getAll("role_ids").map(String).filter((r) => UUID.test(r))
+  const r = await setVisibility(ctx.supabase, ctx.org.id, page, visibility, roles)
+  back(`/wiki/${page}`, "error" in r ? { error: message(t, r) } : { ok: t("wiki.share.saved") })
 }

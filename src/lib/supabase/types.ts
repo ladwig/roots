@@ -1815,14 +1815,14 @@ isOneToOne: false
                   ]
                 },"wiki_pages": {
                   Row: {
-                    "body": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"id": string,"org_id": string,"parent_id": string | null,"position": number,"title": string,"updated_at": string,"updated_by": string | null
+                    "body": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"id": string,"org_id": string,"parent_id": string | null,"position": number,"role_ids": (string)[],"title": string,"updated_at": string,"updated_by": string | null,"visibility": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "body"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"org_id": string,"parent_id"?: string | null,"position"?: number,"title": string,"updated_at"?: string,"updated_by"?: string | null
+                    "body"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"org_id": string,"parent_id"?: string | null,"position"?: number,"role_ids"?: (string)[],"title": string,"updated_at"?: string,"updated_by"?: string | null,"visibility"?: string | null
                   }
                   Update: {
-                    "body"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"org_id"?: string,"parent_id"?: string | null,"position"?: number,"title"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "body"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"org_id"?: string,"parent_id"?: string | null,"position"?: number,"role_ids"?: (string)[],"title"?: string,"updated_at"?: string,"updated_by"?: string | null,"visibility"?: string | null
                   }
                   Relationships: [
                     {
@@ -2280,6 +2280,14 @@ isOneToOne: false
                            },
 "user_has_perm":
 { Args: { "p_org": string,"p_perm": string,"p_user": string }; Returns: boolean
+                           },
+"wiki_access":
+{ Args: { "p_page": string }; Returns: {
+              "from_page": string,"role_ids": (string)[],"visibility": string
+            }[]
+                           },
+"wiki_readable":
+{ Args: { "p_org": string,"p_page": string }; Returns: boolean
                            }
           }
           Enums: {

@@ -3944,6 +3944,24 @@
     "linkPrompt": "Link address",
     "editorHint": "\"/\" for blocks · Markdown works while typing (# heading, - list, [] task, > quote) · drop or paste images and files · saves automatically (⌘S now)",
     "dropTopLevel": "Drop here = top level",
-    "insertFailed": "Uploaded, but not inserted into the text – you find it under attachments."
+    "insertFailed": "Uploaded, but not inserted into the text – you find it under attachments.",
+    "share": {
+      "button": "Share",
+      "who": "Who can see this page?",
+      "inherit": "Like the parent page",
+      "inheritHint": "Currently: {what} (from {page})",
+      "default": "default",
+      "team": "Team",
+      "teamHint": "Everyone with wiki access",
+      "roles": "Certain roles only",
+      "rolesHint": "Plus everyone who may edit the wiki",
+      "short": {
+        "team": "Team",
+        "roles": "Certain roles only"
+      },
+      "saved": "Visibility saved.",
+      "copy": "Copy link",
+      "copied": "Copied"
+    }
   }
 }

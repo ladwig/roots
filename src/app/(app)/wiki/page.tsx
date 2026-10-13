@@ -23,7 +23,7 @@ export default async function WikiPage({ searchParams }: { searchParams: Promise
   list = trash ? list.not("deleted_at", "is", null) : list.is("deleted_at", null)
   if (q) list = list.or(`title.ilike.%${q}%,body.ilike.%${q}%`)
   const [{ data: rows }, { data: pages }] = await Promise.all([
-    ctx.supabase.from("wiki_pages").select("id, parent_id, title, position").eq("org_id", ctx.org.id).is("deleted_at", null).limit(2000),
+    ctx.supabase.from("wiki_pages").select("id, parent_id, title, position, visibility").eq("org_id", ctx.org.id).is("deleted_at", null).limit(2000),
     list,
   ])
   // A snippet around the hit (plain text, Markdown marks stripped).

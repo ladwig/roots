@@ -3944,6 +3944,24 @@
     "linkPrompt": "Link-Adresse",
     "editorHint": "„/“ für Blöcke · Markdown geht beim Tippen (# Überschrift, - Liste, [] Aufgabe, > Zitat) · Bilder und Dateien hineinziehen oder einfügen · speichert automatisch (⌘S sofort)",
     "dropTopLevel": "Hier ablegen = oberste Ebene",
-    "insertFailed": "Hochgeladen, aber nicht in den Text eingefügt – du findest es unter Anhänge."
+    "insertFailed": "Hochgeladen, aber nicht in den Text eingefügt – du findest es unter Anhänge.",
+    "share": {
+      "button": "Teilen",
+      "who": "Wer kann diese Seite sehen?",
+      "inherit": "Wie die übergeordnete Seite",
+      "inheritHint": "Zurzeit: {what} (von {page})",
+      "default": "Standard",
+      "team": "Team",
+      "teamHint": "Alle mit Wiki-Zugang",
+      "roles": "Nur bestimmte Rollen",
+      "rolesHint": "Plus alle, die das Wiki bearbeiten dürfen",
+      "short": {
+        "team": "Team",
+        "roles": "Nur bestimmte Rollen"
+      },
+      "saved": "Sichtbarkeit gespeichert.",
+      "copy": "Link kopieren",
+      "copied": "Kopiert"
+    }
   }
 }

@@ -1,11 +1,12 @@
 // Wiki, server side (App actions + API): create, save, restore a version. Callers check wiki.manage; RLS again.
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "@/lib/supabase/types"
+import { VISIBILITIES } from "./tree"
 
 type Db = SupabaseClient<Database>
 export type WikiFail = { error: string; db?: { code?: string; message: string } }
 const dbFail = (e: { code?: string; message: string }): WikiFail => ({ error: "db", db: e })
-export const WIKI_COLS = "id, parent_id, title, body, position, created_at, updated_at"
+export const WIKI_COLS = "id, parent_id, title, body, position, visibility, role_ids, created_at, updated_at"
 
 export function readPage(i: { title?: string; body?: string }) {
   const title = (i.title ?? "").trim().slice(0, 200)
@@ -60,4 +61,17 @@ export async function movePage(db: Db, orgId: string, id: string, parentId: stri
   if (error) return dbFail(error)
   await Promise.all(order.map((pid, i) => (pid === id ? null : db.from("wiki_pages").update({ position: i }).eq("id", pid).eq("org_id", orgId))))
   return { id }
+}
+
+/** Who may read the page (null = like its parent page); role ids must be roles of the platform. */
+export async function setVisibility(db: Db, orgId: string, id: string, visibility: string | null, roleIds: string[]): Promise<WikiFail | { id: string }> {
+  if (visibility !== null && !(VISIBILITIES as readonly string[]).includes(visibility)) return { error: "errors.invalid_input" }
+  const ids = visibility === "roles" ? [...new Set(roleIds)].slice(0, 50) : []
+  if (ids.length) {
+    const { data } = await db.from("roles").select("id").is("org_id", null).in("id", ids)
+    if ((data?.length ?? 0) !== ids.length) return { error: "errors.invalid_input" }
+  }
+  const { data, error } = await db.from("wiki_pages").update({ visibility, role_ids: ids }).eq("id", id).eq("org_id", orgId).is("deleted_at", null).select("id").maybeSingle()
+  if (error) return dbFail(error)
+  return data ? { id } : { error: "errors.not_allowed" }
 }
