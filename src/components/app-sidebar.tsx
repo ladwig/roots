@@ -1,10 +1,10 @@
 "use client"
 
-import Link from "next/link"
+import Link, { useLinkStatus } from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { appRoute } from "@/lib/url"
-import { useTransition } from "react"
-import { CheckIcon, ChevronsUpDownIcon, LanguagesIcon, LogOutIcon, UserIcon } from "lucide-react"
+import { useState, useTransition } from "react"
+import { CheckIcon, ChevronsUpDownIcon, LanguagesIcon, Loader2Icon, LogOutIcon, UserIcon } from "lucide-react"
 import { signOut } from "@/app/login/actions"
 import { CommandSearch } from "@/components/command-search"
 import { Picture } from "@/components/picture"
@@ -35,6 +35,12 @@ import { setLocale } from "@/i18n/actions"
 import { useT } from "@/i18n/client"
 import { localeNames, locales } from "@/i18n/config"
 
+// The item's icon, or a spinner while its page loads (instant feedback on click, before the server answers).
+function NavIcon({ icon }: { icon: React.ReactNode }) {
+  const { pending } = useLinkStatus()
+  return pending ? <Loader2Icon className="animate-spin" /> : icon
+}
+
 export type SidebarLink = { href: string; label: string; icon: React.ReactNode; count?: number; newTab?: boolean }
 export type Me = { name: string; email: string; avatar: string | null }
 
@@ -52,7 +58,11 @@ export function AppSidebar({
   const t = useT()
   const pathname = appRoute(usePathname())
   const { setOpenMobile } = useSidebar()
-  const isActive = (href: string) => (appRoute(href) === "/" ? pathname === "/" : pathname.startsWith(appRoute(href)))
+  // The clicked item looks active right away; once the URL changed, the path decides again.
+  const [clicked, setClicked] = useState<{ href: string; from: string } | null>(null)
+  const target = clicked && clicked.from === pathname ? appRoute(clicked.href) : null
+  const matches = (href: string, path: string) => (appRoute(href) === "/" ? path === "/" : path.startsWith(appRoute(href)))
+  const isActive = (href: string) => (target ? matches(href, target) : matches(href, pathname))
 
   return (
     <Sidebar collapsible="icon">
@@ -74,11 +84,18 @@ export function AppSidebar({
                       n.newTab ? (
                         <a href={n.href} target="_blank" rel="noreferrer" />
                       ) : (
-                        <Link href={n.href} aria-current={isActive(n.href) ? "page" : undefined} onClick={() => setOpenMobile(false)} />
+                        <Link
+                          href={n.href}
+                          aria-current={isActive(n.href) ? "page" : undefined}
+                          onClick={() => {
+                            setOpenMobile(false)
+                            setClicked({ href: n.href, from: pathname })
+                          }}
+                        />
                       )
                     }
                   >
-                    {n.icon}
+                    {n.newTab ? n.icon : <NavIcon icon={n.icon} />}
                     <span>{n.label}</span>
                   </SidebarMenuButton>
                   {!!n.count && <SidebarMenuBadge className="tabular-nums">{n.count}</SidebarMenuBadge>}
