@@ -34,7 +34,7 @@ const message = (t: T, f: Fail) => (f.db ? dbError(t, f.db) : t.dynamic(f.error,
 export async function saveMembership(fd: FormData) {
   const { ctx, t } = await manager()
   const id = str(fd, "id", 36)
-  const here = id ? `${PATH}?edit=${id}` : `${PATH}?new=1`
+  const here = id ? `${PATH}/${id}` : `${PATH}?new=1`
   const typeId = str(fd, "type_id", 36)
   const startsOn = date(fd, "starts_on")
   if (!typeId || !startsOn) back(here, { error: t("membership.typeAndStartRequired") })
@@ -78,14 +78,14 @@ export async function saveMembership(fd: FormData) {
   const r = await members.insertMembership(ctx.supabase, ctx.org.id, contactId, withCustom, t)
   if ("error" in r) back(here, { error: message(t, r) })
   deliverSoon()
-  back(`${PATH}?edit=${r.id}`, { ok: t("membership.created") })
+  back(`${PATH}/${r.id}`, { ok: t("membership.created") })
 }
 
 /** Cancel: end on the given date, or the earliest date the notice period allows. */
 export async function endMembership(fd: FormData) {
   const { ctx, t } = await manager()
   const id = str(fd, "id", 36) ?? ""
-  const here = `${PATH}?edit=${id}`
+  const here = `${PATH}/${id}`
   const r = await members.endMembership(ctx.supabase, ctx.org.id, id, date(fd, "ends_on"))
   if ("error" in r) back(here, { error: message(t, r) })
   deliverSoon()
@@ -95,7 +95,7 @@ export async function endMembership(fd: FormData) {
 export async function pauseMembership(fd: FormData) {
   const { ctx, t } = await manager()
   const id = str(fd, "id", 36) ?? ""
-  const here = `${PATH}?edit=${id}`
+  const here = `${PATH}/${id}`
   const r = await members.pauseMembership(ctx.supabase, ctx.org.id, id, { from: date(fd, "paused_from"), until: date(fd, "paused_until"), reason: str(fd, "pause_reason", 300) })
   if ("error" in r) back(here, { error: message(t, r) })
   back(here, { ok: t("membership.paused") })
@@ -104,7 +104,7 @@ export async function pauseMembership(fd: FormData) {
 export async function resumeMembership(fd: FormData) {
   const { ctx, t } = await manager()
   const id = str(fd, "id", 36) ?? ""
-  const here = `${PATH}?edit=${id}`
+  const here = `${PATH}/${id}`
   const r = await members.resumeMembership(ctx.supabase, ctx.org.id, id)
   if ("error" in r) back(here, { error: message(t, r) })
   back(here, { ok: t("membership.resumed") })
@@ -113,7 +113,7 @@ export async function resumeMembership(fd: FormData) {
 /** Lost card: new member code, the old one stops working at the door. */
 export async function resetMemberCode(fd: FormData) {
   const { ctx, t } = await manager()
-  const here = `${PATH}?edit=${str(fd, "id", 36) ?? ""}`
+  const here = `${PATH}/${str(fd, "id", 36) ?? ""}`
   const { error } = await ctx.supabase.rpc("reset_member_code", { p_contact: str(fd, "contact", 36) ?? "" })
   back(here, error ? { error: dbError(t, error) } : { ok: t("membership.cardResetDone") })
 }
@@ -122,7 +122,7 @@ export async function trashMembership(fd: FormData) {
   const { ctx, t } = await manager()
   const id = str(fd, "id", 36) ?? ""
   const { error } = await ctx.supabase.rpc("soft_delete", { p_table: "public.memberships", p_id: id })
-  if (error) back(`${PATH}?edit=${id}`, { error: dbError(t, error) })
+  if (error) back(`${PATH}/${id}`, { error: dbError(t, error) })
   back(PATH, { ok: t("membership.trashed") })
 }
 
@@ -130,7 +130,7 @@ export async function restoreMembership(fd: FormData) {
   const { ctx, t } = await manager()
   const id = str(fd, "id", 36) ?? ""
   const { error } = await ctx.supabase.rpc("restore_deleted", { p_table: "public.memberships", p_id: id })
-  back(`${PATH}?edit=${id}`, error ? { error: dbError(t, error) } : { ok: t("membership.restored") })
+  back(`${PATH}/${id}`, error ? { error: dbError(t, error) } : { ok: t("membership.restored") })
 }
 
 // ---------- types + settings ----------

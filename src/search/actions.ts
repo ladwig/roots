@@ -112,7 +112,7 @@ export async function searchApp(input: string): Promise<SearchGroup[]> {
     {
       key: "members",
       label: t("membership.nav"),
-      items: (members.data ?? []).map((m) => ({ id: m.id, title: person(m.contacts), detail: m.member_no ?? undefined, href: `/members?edit=${m.id}` })),
+      items: (members.data ?? []).map((m) => ({ id: m.id, title: person(m.contacts), detail: m.member_no ?? undefined, href: `/members/${m.id}` })),
     },
     { key: "events", label: t("eventsPage.nav"), items: (events.data ?? []).map((e) => ({ id: e.id, title: e.title, detail: day(e.starts_at), href: `/events/${e.id}` })) },
     {

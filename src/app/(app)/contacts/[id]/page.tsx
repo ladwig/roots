@@ -172,7 +172,7 @@ export default async function ContactPage({ params, searchParams }: PageProps<"/
             {ctx.modules.has("members") && ctx.can("members.view") && (
               <Section id="membership" title={t("membership.nav")}>
                 {membership ? (
-                  <Link href={`/members?edit=${membership.id}`} className="grid gap-0.5 rounded-lg border px-3 py-2 text-sm hover:bg-muted">
+                  <Link href={`/members/${membership.id}`} className="grid gap-0.5 rounded-lg border px-3 py-2 text-sm hover:bg-muted">
                     <span className="font-medium">
                       {membership.membership_types?.name ?? "–"}
                       {membership.member_no && <span className="text-muted-foreground"> · {membership.member_no}</span>}

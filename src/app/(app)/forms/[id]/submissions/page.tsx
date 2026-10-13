@@ -93,7 +93,7 @@ export default async function SubmissionsPage({ params, searchParams }: PageProp
               </Button>
             )}
             {sub.membership_id && (
-              <Button render={<Link href={`/members?edit=${sub.membership_id}`} />} nativeButton={false} size="sm" variant="outline">
+              <Button render={<Link href={`/members/${sub.membership_id}`} />} nativeButton={false} size="sm" variant="outline">
                 {t("forms.openMembership")}
               </Button>
             )}

@@ -174,7 +174,7 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
       <DataTable
         rows={rows}
         rowKey={(r) => r.id}
-        rowHref={(r) => `/members?edit=${r.membership_id}`}
+        rowHref={(r) => `/members/${r.membership_id}`}
         empty={t("membership.noDues")}
         columns={[
           {
