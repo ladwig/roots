@@ -3,7 +3,7 @@
 // actions, the API and the worker all use it, and export/import is just this JSON.
 import { z } from "zod"
 
-export const ACTIONS = ["send_email", "add_tag", "remove_tag", "set_field", "webhook", "notify_team"] as const
+export const ACTIONS = ["send_email", "email_address", "add_tag", "remove_tag", "set_field", "notify_team", "telegram", "webhook"] as const
 export const NODE_TYPES = ["trigger", "condition", "wait", ...ACTIONS] as const
 export type NodeType = (typeof NODE_TYPES)[number]
 export const OPS = ["eq", "neq", "contains", "not_contains", "gt", "gte", "lt", "lte", "empty", "not_empty"] as const
@@ -12,7 +12,7 @@ export const WAIT_UNITS = ["minutes", "hours", "days"] as const
 const text = (max: number) => z.string().max(max)
 // What each node type stores in `data` (also what the inspector edits and the API accepts).
 export const NODE_DATA = {
-  trigger: z.object({ event: text(100) }),
+  trigger: z.object({ event: text(100), fields: z.array(text(100)).max(50).optional() }), // fields: record changed → only when one of these changed
   condition: z.object({
     match: z.enum(["all", "any"]).default("all"),
     rules: z.array(z.object({ field: text(100), op: z.enum(OPS), value: text(500).default("") })).max(20),
@@ -24,6 +24,8 @@ export const NODE_DATA = {
   set_field: z.object({ field: text(100), value: text(2000) }),
   webhook: z.object({ url: text(2000) }),
   notify_team: z.object({ text: text(500) }),
+  email_address: z.object({ to: text(320), subject: text(200), body: text(100_000) }),
+  telegram: z.object({ chat_id: text(40), text: text(4000) }),
 } satisfies Record<NodeType, z.ZodType>
 export type NodeData<T extends NodeType> = z.infer<(typeof NODE_DATA)[T]>
 
@@ -87,6 +89,10 @@ function filled(type: NodeType, d: Record<string, unknown>) {
       return /^https:\/\/[^\s]+$/.test(String(d.url))
     case "notify_team":
       return !!d.text
+    case "email_address":
+      return /^[^@\s{}]+@[^@\s]+\.[^@\s]+$|^\{[a-z_.]+\}$/.test(String(d.to)) && !!d.subject && !!d.body
+    case "telegram":
+      return /^-?\d+$/.test(String(d.chat_id)) && !!d.text
     default:
       return true
   }

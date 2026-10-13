@@ -2991,9 +2991,11 @@
       "send_email": "Send email",
       "add_tag": "Add tag",
       "remove_tag": "Remove tag",
-      "set_field": "Set field",
+      "set_field": "Change record",
       "webhook": "Webhook",
-      "notify_team": "Notify team"
+      "notify_team": "In-app notification",
+      "email_address": "Email to an address",
+      "telegram": "Telegram message"
     },
     "help": {
       "trigger": "What starts the automation? Every event gets its own run.",
@@ -3002,9 +3004,11 @@
       "send_email": "Emails the person of the event (with unsubscribe link; unsubscribed people get nothing).",
       "add_tag": "Gives the person a tag.",
       "remove_tag": "Takes a tag away from the person.",
-      "set_field": "Changes a field of the person or membership the run is about.",
+      "set_field": "Changes a field of a record this run is about (person, membership, ticket type …).",
       "webhook": "POSTs the data to an https address (e.g. Zapier, Make, n8n).",
-      "notify_team": "Notifies everyone who may see automations (in the app)."
+      "notify_team": "An in-app notification for everyone who may see automations.",
+      "email_address": "Sends an email to a fixed address (e.g. your team inbox) – no unsubscribe link, not for newsletters.",
+      "telegram": "Sends a message through your Telegram bot to a chat."
     },
     "ops": {
       "eq": "is",
@@ -3079,14 +3083,36 @@
     "op": "Comparison",
     "objects": {
       "contact": "Person",
-      "event": "Event",
-      "order": "Order",
+      "note": "Note",
       "membership": "Membership",
-      "form": "Form",
-      "course": "Course",
-      "invoice": "Invoice/quote",
+      "membership_type": "Membership type",
+      "due": "Due",
+      "event": "Event",
+      "slot": "Timetable slot",
+      "artist": "Artist",
+      "ticket": "Ticket",
+      "ticket_type": "Ticket type",
+      "tickets": "Tickets of the order",
+      "waitlist_entry": "Waiting list entry",
+      "order": "Order",
       "guest_list": "Guest list",
-      "shift": "Shift"
+      "guest": "Guest",
+      "guest_checkin": "Guest check-in",
+      "shift": "Shift",
+      "shift_assignment": "Shift assignment",
+      "staff": "Shift team member",
+      "time_entry": "Time entry",
+      "employee": "Employee",
+      "absence": "Absence",
+      "course": "Course",
+      "course_session": "Course date",
+      "participant": "Course participation",
+      "attendance": "Attendance",
+      "form": "Form",
+      "submission": "Submission",
+      "invoice": "Invoice/quote",
+      "file": "File",
+      "now": "Time"
     },
     "fields": {
       "contact": {
@@ -3099,47 +3125,182 @@
         "country": "Country",
         "birthday": "Birthday",
         "tags": "Tags",
-        "unsubscribed": "Unsubscribed from emails"
+        "unsubscribed_at": "Unsubscribed at"
+      },
+      "note": {
+        "body": "Text"
+      },
+      "membership": {
+        "type_id": "Membership type",
+        "member_no": "Member number",
+        "starts_on": "Start",
+        "ends_on": "End",
+        "note": "Note"
+      },
+      "membership_type": {
+        "name": "Name",
+        "fee_cents": "Fee (cents)",
+        "interval": "Interval"
+      },
+      "due": {
+        "kind": "Kind",
+        "description": "Description",
+        "amount_cents": "Amount (cents)",
+        "due_on": "Due on",
+        "status": "Status",
+        "paid_on": "Paid on",
+        "reminders": "Reminders"
       },
       "event": {
         "id": "Event",
         "title": "Title",
         "status": "Status",
         "starts_at": "Start",
-        "venue_name": "Venue"
+        "ends_at": "End",
+        "venue_name": "Venue",
+        "capacity": "Capacity"
+      },
+      "slot": {
+        "title": "Title",
+        "stage": "Stage",
+        "starts_at": "Start",
+        "ends_at": "End"
+      },
+      "artist": {
+        "name": "Name"
+      },
+      "ticket": {
+        "code": "Code",
+        "status": "Status",
+        "holder_name": "Name on the ticket",
+        "price": "Price (cents)",
+        "checked_in_at": "Checked in at"
+      },
+      "ticket_type": {
+        "name": "Name",
+        "price": "Price (cents)",
+        "quota": "Quota",
+        "active": "on sale",
+        "hidden": "hidden"
+      },
+      "tickets": {
+        "types": "Ticket types",
+        "count": "Count"
+      },
+      "waitlist_entry": {
+        "name": "Name",
+        "email": "Email",
+        "quantity": "Quantity",
+        "status": "Status"
       },
       "order": {
-        "amount": "Amount (€)",
+        "amount_total": "Amount (cents)",
         "status": "Status",
-        "source_module": "Area"
-      },
-      "membership": {
-        "type_id": "Membership type",
-        "member_no": "Member number",
-        "starts_on": "Start",
-        "ends_on": "End"
-      },
-      "form": {
-        "id": "Form",
-        "title": "Title"
-      },
-      "course": {
-        "id": "Course",
-        "title": "Title",
-        "capacity": "Places"
-      },
-      "invoice": {
-        "kind": "Kind",
-        "number": "Number",
-        "amount": "Gross amount (€)"
+        "source_module": "Area",
+        "customer_email": "Email",
+        "customer_name": "Name"
       },
       "guest_list": {
         "id": "Guest list",
         "name": "Name"
       },
+      "guest": {
+        "name": "Name",
+        "email": "Email",
+        "note": "Note",
+        "added_via": "Added via"
+      },
+      "guest_checkin": {
+        "checked_in_at": "Checked in at"
+      },
       "shift": {
         "title": "Title",
-        "starts_at": "Start"
+        "starts_at": "Start",
+        "ends_at": "End",
+        "needed": "Needed",
+        "open": "open for applications"
+      },
+      "shift_assignment": {
+        "status": "Status"
+      },
+      "staff": {
+        "name": "Name",
+        "email": "Email",
+        "role_label": "Employment",
+        "target_hours": "Target hours",
+        "active": "active"
+      },
+      "time_entry": {
+        "started_at": "Start",
+        "ended_at": "End",
+        "break_minutes": "Break (min)",
+        "approved_at": "Approved at",
+        "note": "Note"
+      },
+      "employee": {
+        "name": "Name",
+        "email": "Email",
+        "job_title": "Role",
+        "department": "Department",
+        "employment_type": "Employment",
+        "starts_on": "Start",
+        "ends_on": "End"
+      },
+      "absence": {
+        "kind": "Kind",
+        "starts_on": "From",
+        "ends_on": "To",
+        "half_day": "half day"
+      },
+      "course": {
+        "id": "Course",
+        "title": "Title",
+        "instructor": "Instructor",
+        "capacity": "Places"
+      },
+      "course_session": {
+        "starts_at": "Start",
+        "ends_at": "End",
+        "cancelled": "cancelled",
+        "note": "Note"
+      },
+      "participant": {
+        "status": "Status",
+        "note": "Note"
+      },
+      "attendance": {
+        "present": "present"
+      },
+      "form": {
+        "id": "Form",
+        "title": "Title",
+        "status": "Status",
+        "purpose": "Purpose"
+      },
+      "submission": {
+        "status": "Status",
+        "email": "Email"
+      },
+      "invoice": {
+        "kind": "Kind",
+        "status": "Status",
+        "number": "Number",
+        "gross_total": "Gross amount (cents)",
+        "issue_date": "Date",
+        "due_date": "Due on",
+        "paid_at": "Paid at"
+      },
+      "file": {
+        "name": "Name",
+        "mime": "Type",
+        "size": "Size (bytes)",
+        "entity": "Belongs to",
+        "folder": "Folder"
+      },
+      "now": {
+        "weekday": "Weekday",
+        "hour": "Hour",
+        "date": "Date"
       }
     },
     "values": {
@@ -3154,7 +3315,52 @@
       "invoices": "Invoices",
       "invoice": "Invoice",
       "quote": "Quote",
-      "cancellation": "Cancellation"
+      "cancellation": "Cancellation",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday",
+      "7": "Sunday",
+      "reserved": "reserved",
+      "valid": "valid",
+      "used": "checked in",
+      "void": "void",
+      "waiting": "waiting",
+      "offered": "offered",
+      "claimed": "claimed",
+      "expired": "expired",
+      "assigned": "assigned",
+      "applied": "applied",
+      "enrolled": "enrolled",
+      "new": "new",
+      "accepted": "accepted",
+      "rejected": "rejected",
+      "closed": "closed",
+      "contact": "Contact",
+      "membership": "Membership",
+      "sent": "sent",
+      "declined": "declined",
+      "fee": "Fee",
+      "entry": "Entry fee",
+      "levy": "Levy",
+      "month": "monthly",
+      "quarter": "quarterly",
+      "half_year": "half-yearly",
+      "year": "yearly",
+      "none": "one-off",
+      "vacation": "holiday",
+      "sick": "sick",
+      "unpaid": "unpaid",
+      "other": "other",
+      "full_time": "full-time",
+      "part_time": "part-time",
+      "minijob": "Minijob",
+      "working_student": "working student",
+      "trainee": "trainee/intern",
+      "freelance": "freelance",
+      "volunteer": "volunteer"
     },
     "object": "What is it about?",
     "pickObject": "Pick an object…",
@@ -3181,6 +3387,26 @@
     "closeTest": "Close test",
     "expected": "expected",
     "actual": "actual",
-    "pickTriggerFirstTest": "Pick a trigger first."
+    "pickTriggerFirstTest": "Pick a trigger first.",
+    "sections": {
+      "logic": "Logic",
+      "send": "Send & notify",
+      "data": "Change data",
+      "connect": "Connect"
+    },
+    "recordActions": {
+      "insert": "created",
+      "update": "changed",
+      "delete": "deleted"
+    },
+    "general": "General",
+    "searchTrigger": "Search triggers…",
+    "noTrigger": "Nothing found.",
+    "watchFields": "Only when these change",
+    "watchHint": "Nothing ticked = on every change.",
+    "to": "To (address)",
+    "chat": "Chat",
+    "pickChat": "Pick a chat…",
+    "telegramOff": "Connect Telegram under Settings → Integrations first."
   }
 }

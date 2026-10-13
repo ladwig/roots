@@ -8,7 +8,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getT } from "@/i18n/server"
 import { Graph } from "@/automations/graph"
+import { def, RECORD_ACTIONS, RECORD_OBJECTS, recordTrigger } from "@/automations/objects"
 import { eventTypes } from "@/events/registry"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { modules } from "@/modules/registry"
 import { requirePerm } from "@/lib/context"
 import { loadFields } from "@/lib/custom-fields"
 import { param } from "@/lib/url"
@@ -38,13 +41,28 @@ export default async function WorkflowPage({ params, searchParams }: { params: P
     on("guestlists") ? ctx.supabase.from("guest_lists").select("id, name").eq("org_id", org).is("deleted_at", null).order("name").limit(200) : none,
   ])
   if (!wf) notFound()
+  // Telegram: connected + the chats the bot knows (titles only; the token stays in the vault).
+  const { data: telegramRow } = await createAdminClient().from("org_integrations").select("status, config").eq("org_id", org).eq("provider", "telegram").maybeSingle()
   const parsed = Graph.safeParse(wf.graph)
   const graph: Graph = parsed.success ? parsed.data : { nodes: [], edges: [] }
   const options: EditorOptions = {
-    events: eventTypes
-      .filter((e) => e.module !== "platform" && !e.key.startsWith("workflow.") && (e.module === "org" || ctx.modules.has(e.module)))
-      .map((e) => ({ key: e.key, label: t.dynamic(`events.types.${e.key}`) }))
-      .sort((a, b) => a.label.localeCompare(b.label, t.locale)),
+    // Per module (active ones): its events + "<object> created / changed / deleted" for its objects.
+    triggers: ["org", ...modules.map((m) => m.key)]
+      .filter((m) => m === "org" || ctx.modules.has(m))
+      .map((m) => ({
+        group: m === "org" ? t("automations.general") : t.dynamic(`modules.${m}.name`),
+        items: [
+          ...eventTypes.filter((e) => e.module === m && !e.key.startsWith("workflow.")).map((e) => ({ key: e.key, label: t.dynamic(`events.types.${e.key}`) })),
+          ...RECORD_OBJECTS.filter((o) => def(o).module === m).flatMap((o) =>
+            RECORD_ACTIONS.map((a) => ({ key: recordTrigger(o, a), label: `${t.dynamic(`automations.objects.${o}`)} · ${t.dynamic(`automations.recordActions.${a}`)}` })),
+          ),
+        ],
+      }))
+      .filter((g) => g.items.length),
+    telegram: {
+      connected: telegramRow?.status === "connected",
+      chats: (((telegramRow?.config as { chats?: { id: number; title: string }[] } | null)?.chats ?? []) as { id: number; title: string }[]).map((c) => ({ id: String(c.id), title: c.title })),
+    },
     customFields: defs.map((d) => ({ key: d.key, label: d.label, type: d.type, options: d.options })),
     tags: ((tagRows ?? []) as unknown as string[]).sort((a, b) => a.localeCompare(b, t.locale)).slice(0, 500),
     modules: [...ctx.modules],

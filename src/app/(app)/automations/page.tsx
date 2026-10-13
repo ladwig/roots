@@ -11,6 +11,7 @@ import { UrlSheet } from "@/components/url-sheet"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param, withParams } from "@/lib/url"
+import { parseRecordTrigger } from "@/automations/objects"
 import { TEMPLATES } from "@/automations/templates"
 import { createWorkflow } from "./actions"
 
@@ -59,7 +60,13 @@ export default async function AutomationsPage({ searchParams }: PageProps<"/auto
               </Link>
             ),
           },
-          { header: t("automations.when"), cell: (w) => (w.trigger_type ? t.dynamic(`events.types.${w.trigger_type}`) : "–") },
+          {
+            header: t("automations.when"),
+            cell: (w) => {
+              const rec = w.trigger_type ? parseRecordTrigger(w.trigger_type) : null
+              return rec ? `${t.dynamic(`automations.objects.${rec.object}`)} · ${t.dynamic(`automations.recordActions.${rec.action}`)}` : w.trigger_type ? t.dynamic(`events.types.${w.trigger_type}`) : "–"
+            },
+          },
           { header: t("automations.status"), cell: (w) => <Badge variant={w.active ? "default" : "secondary"}>{t(w.active ? "automations.on" : "automations.off")}</Badge> },
           {
             header: t("automations.runs"),

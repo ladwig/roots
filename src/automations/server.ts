@@ -1,22 +1,29 @@
 // Automations worker: takes due runs, walks their workflow's graph from where they stand and executes the nodes
 // until a wait (park until resume_at), the end (done) or an error (failed). Runs from the minute cron and right
-// after actions that emit events. Service role: everything here filters by the run's org.
+// after actions that emit events. Service role, every query filtered by the run's org. Its client sends
+// x-roots-workflow, so the worker's own writes and events never start workflows (no loops).
 import { isAllowedUrl } from "@/events/channels/webhook"
+import { getSecret } from "@/integrations/server"
+import { tg } from "@/integrations/telegram"
 import { loadFields, parseValue } from "@/lib/custom-fields"
+import { sendOrgEmail } from "@/lib/org-email"
 import { createAdminClient } from "@/lib/supabase/admin"
-import type { Json, TablesUpdate } from "@/lib/supabase/types"
-import { OBJECTS, objectsFor, splitPath, type ObjectKey } from "./objects"
+import type { Json } from "@/lib/supabase/types"
 import { fill, Graph, NODE_DATA, next, passes, triggerOf, waitMs, type GraphNode, type NodeData, type NodeType } from "./graph"
+import { def, objectsFor, parseRecordTrigger, pickFields, splitPath, type ObjectKey } from "./objects"
 
 type Db = ReturnType<typeof createAdminClient>
 type Run = { id: string; org_id: string; workflow_id: string; contact_id: string | null; node_id: string | null; context: Json; log: Json }
-type Ctx = Record<string, unknown> & { payload: Record<string, unknown>; contact: Record<string, unknown> | null; org: { name: string } }
+type Row = Record<string, unknown>
+type Ctx = Record<string, unknown> & { event?: string; payload: Row; contact: Row | null; org: { name: string } }
 type LogEntry = { at: string; node: string; type: NodeType; ok: boolean; note?: string }
 const MAX_STEPS = 50 // per run and turn (graphs have no cycles, this only guards against surprises)
+const UUID = /^[0-9a-f-]{36}$/
+const workerDb = () => createAdminClient({ "x-roots-workflow": "1" })
 
 export async function processWorkflowRuns(limit = 25) {
   if (!process.env.SUPABASE_SECRET_KEY) return 0
-  const db = createAdminClient()
+  const db = workerDb()
   const { data: runs, error } = await db.rpc("claim_workflow_runs", { p_limit: limit })
   if (error) throw error
   for (const run of runs ?? []) await step(db, run).catch((e) => finish(db, run, [], { status: "failed", error: String(e instanceof Error ? e.message : e) }))
@@ -29,9 +36,15 @@ async function step(db: Db, run: Run) {
   const parsed = Graph.safeParse(wf.graph)
   if (!parsed.success) return finish(db, run, [], { status: "failed", error: "invalid workflow" })
   const g = parsed.data
+  const trigger = triggerOf(g)
+  // "Record changed" with chosen fields: only runs when one of them changed.
+  const watch = (trigger?.data.fields as string[] | undefined) ?? []
+  const changed = ((run.context as { payload?: { changed?: string[] } })?.payload?.changed ?? []) as string[]
+  if (!run.node_id && watch.length && changed.length && !watch.some((f) => changed.includes(f)))
+    return finish(db, run, [{ at: new Date().toISOString(), node: trigger!.id, type: "trigger", ok: true, note: "skipped: other fields changed" }], { status: "done" })
   const ctx = await context(db, run)
   const log: LogEntry[] = []
-  let node: GraphNode | null = run.node_id ? (g.nodes.find((n) => n.id === run.node_id) ?? null) : next(g, triggerOf(g)?.id ?? "")
+  let node: GraphNode | null = run.node_id ? (g.nodes.find((n) => n.id === run.node_id) ?? null) : next(g, trigger?.id ?? "")
   for (let i = 0; i < MAX_STEPS && node; i++) {
     const type = node.type
     const data = NODE_DATA[type].parse(node.data) as Record<string, unknown>
@@ -60,63 +73,95 @@ async function step(db: Db, run: Run) {
   return finish(db, run, log, node ? { status: "waiting", node_id: node.id, resume_at: new Date().toISOString() } : { status: "done" })
 }
 
-// The run's data: trigger payload, the objects the trigger brings (src/automations/objects.ts) as they are now,
-// the person (from the run, or via the membership/invoice), the org.
+// ---------- the run's data ----------
+
+async function load(db: Db, orgId: string, object: ObjectKey, id: string) {
+  const d = def(object)
+  if (!d.table || !UUID.test(id)) return null
+  const { data } = await db.from(d.table as "contacts").select("*").eq("id", id).eq("org_id", orgId).maybeSingle()
+  return pickFields(object, data as Row | null)
+}
+
+/**
+ * Everything the trigger brings, as it is now (catalog fields only): the record (record triggers) or the objects
+ * named in the event's payload, then everything one relation away, the person's current membership, the
+ * tickets of an order, the time, the org.
+ */
 export async function context(db: Db, run: Pick<Run, "org_id" | "contact_id" | "context">): Promise<Ctx> {
-  const base = (run.context ?? {}) as { event?: string; payload?: Record<string, unknown> }
+  const base = (run.context ?? {}) as { event?: string; payload?: Row }
   const payload = base.payload ?? {}
-  const idOf = (k: ObjectKey) => {
-    const v = payload[OBJECTS[k].idKey]
-    return typeof v === "string" && /^[0-9a-f-]{36}$/.test(v) ? v : null
+  const event = base.event ?? ""
+  const keys = objectsFor(event)
+  const rec = parseRecordTrigger(event)
+  const ids: Partial<Record<ObjectKey, string>> = {}
+  if (rec && typeof payload.id === "string") ids[rec.object] = payload.id
+  for (const k of keys) {
+    const idKey = def(k).idKey
+    const v = idKey && payload[idKey]
+    if (k !== "tickets" && typeof v === "string" && UUID.test(v)) ids[k] ??= v
   }
-  const want = new Set(objectsFor(base.event ?? ""))
-  const id = (k: ObjectKey) => (want.has(k) ? idOf(k) : null)
-  const none = { data: null }
-  const [{ data: event }, { data: order }, { data: membership }, { data: form }, { data: course }, { data: invoice }, { data: guestList }, { data: shift }, { data: org }] = await Promise.all([
-    id("event") ? db.from("events").select("id, title, status, starts_at, venue_name").eq("id", id("event")!).eq("org_id", run.org_id).maybeSingle() : none,
-    id("order") ? db.from("pay_orders").select("amount_total, status, source_module, customer_email").eq("id", id("order")!).eq("org_id", run.org_id).maybeSingle() : none,
-    id("membership") ? db.from("memberships").select("type_id, member_no, starts_on, ends_on, contact_id").eq("id", id("membership")!).eq("org_id", run.org_id).maybeSingle() : none,
-    id("form") ? db.from("forms").select("id, title").eq("id", id("form")!).eq("org_id", run.org_id).maybeSingle() : none,
-    id("course") ? db.from("courses").select("id, title, capacity").eq("id", id("course")!).eq("org_id", run.org_id).maybeSingle() : none,
-    id("invoice") ? db.from("documents").select("kind, number, gross_total, contact_id").eq("id", id("invoice")!).eq("org_id", run.org_id).maybeSingle() : none,
-    id("guest_list") ? db.from("guest_lists").select("id, name").eq("id", id("guest_list")!).eq("org_id", run.org_id).maybeSingle() : none,
-    id("shift") ? db.from("shifts").select("title, starts_at").eq("id", id("shift")!).eq("org_id", run.org_id).maybeSingle() : none,
+  if (run.contact_id) ids.contact ??= run.contact_id
+  const out: Partial<Record<ObjectKey, Row | null>> = {}
+  const round = async (which: ObjectKey[]) => {
+    const rows = await Promise.all(which.map((k) => load(db, run.org_id, k, ids[k]!)))
+    which.forEach((k, i) => (out[k] = rows[i]))
+  }
+  await round((Object.keys(ids) as ObjectKey[]).filter((k) => k !== "contact"))
+  // One relation away (ticket → event/order/type/person, membership → person/type …).
+  for (const [k, row] of Object.entries(out) as [ObjectKey, Row | null][])
+    for (const [col, target] of Object.entries(def(k).relations ?? {})) if (row && typeof row[col] === "string" && keys.includes(target as ObjectKey)) ids[target as ObjectKey] ??= row[col] as string
+  await round((Object.keys(ids) as ObjectKey[]).filter((k) => !(k in out)))
+
+  const contact = out.contact ?? null
+  const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
+  const [{ data: tickets }, { data: current }, { data: org }] = await Promise.all([
+    keys.includes("tickets") && typeof payload.order_id === "string"
+      ? db.from("tickets").select("ticket_types(name)").eq("order_id", payload.order_id).eq("org_id", run.org_id).neq("status", "void")
+      : { data: null },
+    !out.membership && contact && keys.includes("membership")
+      ? db
+          .from("memberships")
+          .select("id, type_id, member_no, starts_on, ends_on, note, contact_id")
+          .eq("contact_id", contact.id as string)
+          .eq("org_id", run.org_id)
+          .is("deleted_at", null)
+          .lte("starts_on", today)
+          .or(`ends_on.is.null,ends_on.gte.${today}`)
+          .order("starts_on", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      : { data: null },
     db.from("orgs").select("name").eq("id", run.org_id).single(),
   ])
-  const contactId = run.contact_id ?? membership?.contact_id ?? invoice?.contact_id ?? null
-  const { data: contact } = contactId
-    ? await db.from("contacts").select("id, first_name, last_name, company, email, phone, city, country, birthday, tags, custom, unsubscribed_at").eq("id", contactId).eq("org_id", run.org_id).is("deleted_at", null).maybeSingle()
-    : { data: null }
-  const name = contact ? [contact.first_name, contact.last_name].filter(Boolean).join(" ") || contact.company || contact.email || "" : ""
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Berlin", weekday: "short", hour: "2-digit", hourCycle: "h23" }).formatToParts(new Date()).map((p) => [p.type, p.value]))
+  const name = contact ? [contact.first_name, contact.last_name].filter(Boolean).join(" ") || (contact.company as string) || (contact.email as string) || "" : ""
   return {
-    ...base,
-    payload,
-    contact: contact ? { ...contact, name, unsubscribed: !!contact.unsubscribed_at } : null,
+    ...out,
     event,
-    order: order && { ...order, amount: order.amount_total / 100 },
-    membership,
-    form,
-    course,
-    invoice: invoice && { ...invoice, amount: invoice.gross_total / 100 },
-    guest_list: guestList,
-    shift,
+    payload,
+    contact: contact ? { ...contact, name } : null,
+    membership: out.membership ?? current ?? null,
+    tickets: tickets && { types: [...new Set(tickets.map((k) => k.ticket_types?.name).filter(Boolean))], count: tickets.length },
+    now: { weekday: String(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(parts.weekday) + 1), hour: Number(parts.hour), date: today },
     org: { name: org?.name ?? "" },
   }
 }
 
 /** Data of a test run: the same objects a real run of this hub event would see (contact via id or email). */
 export async function contextForEvent(db: Db, orgId: string, event: { type: string; payload: unknown }) {
-  const payload = (event.payload ?? {}) as Record<string, unknown>
-  let contactId = typeof payload.contact_id === "string" && /^[0-9a-f-]{36}$/.test(payload.contact_id) ? payload.contact_id : null
+  const payload = (event.payload ?? {}) as Row
+  let contactId = typeof payload.contact_id === "string" && UUID.test(payload.contact_id) ? payload.contact_id : null
   if (!contactId && typeof payload.email === "string" && payload.email)
     contactId = (await db.from("contacts").select("id").eq("org_id", orgId).eq("email", payload.email.toLowerCase()).is("deleted_at", null).maybeSingle()).data?.id ?? null
   return context(db, { org_id: orgId, contact_id: contactId, context: { event: event.type, payload } as NonNullable<Json> })
 }
 
+// ---------- actions ----------
+
 async function act(db: Db, run: Run, node: GraphNode, type: NodeType, d: Record<string, unknown>, ctx: Ctx): Promise<string | void> {
   const contact = ctx.contact as { id: string; email: string | null; tags: string[]; custom: Record<string, unknown>; unsubscribed_at: string | null } | null
   const needContact = () => {
-    if (!contact) throw new Error("no contact for this run")
+    if (!contact) throw new Error("no person for this run")
     return contact
   }
   switch (type) {
@@ -128,6 +173,16 @@ async function act(db: Db, run: Run, node: GraphNode, type: NodeType, d: Record<
       if (error) throw new Error(error.message)
       return "queued"
     }
+    case "email_address": {
+      // A fixed address (e.g. the team) or a placeholder that resolves to one; no newsletter footer, not tracked.
+      const to = fill(String(d.to), ctx).trim()
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) throw new Error("no valid address")
+      const esc = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[x]!)
+      const html = fill(String(d.body), ctx, esc)
+      const ok = await sendOrgEmail(run.org_id, { to, subject: fill(String(d.subject), ctx).slice(0, 200), html, text: html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() })
+      if (!ok) throw new Error("no email provider connected")
+      return to
+    }
     case "add_tag":
     case "remove_tag": {
       const c = needContact()
@@ -138,56 +193,16 @@ async function act(db: Db, run: Run, node: GraphNode, type: NodeType, d: Record<
       c.tags = tags
       return
     }
-    case "set_field": {
-      // "contact.custom.level", "contact.city", "membership.type_id" (old drafts: just the custom field key).
-      const path = String(d.field).includes(".") ? String(d.field) : `contact.custom.${d.field}`
-      const { object, field } = splitPath(path)
-      const raw = fill(String(d.value), ctx)
-      if (object === "contact") {
-        const c = needContact()
-        if (field.startsWith("custom.")) {
-          // Same rules as every other way of entering custom values (type, options).
-          const def = (await loadFields(db, run.org_id, "contacts")).find((f) => f.key === field.slice(7))
-          if (!def) throw new Error(`unknown field ${field}`)
-          const parsed = parseValue(def, raw)
-          if (parsed.error) throw new Error(`invalid value for ${def.key}`)
-          const custom = { ...c.custom, [def.key]: parsed.value ?? null }
-          if (parsed.value === undefined) delete custom[def.key]
-          const { error } = await db.from("contacts").update({ custom: custom as NonNullable<Json> }).eq("id", c.id).eq("org_id", run.org_id)
-          if (error) throw new Error(error.message)
-          c.custom = custom
-          return
-        }
-        const f = OBJECTS.contact.fields.find((x) => x.key === field && x.write)
-        if (!f) throw new Error(`field ${field} can't be set`)
-        if (f.kind === "date" && raw && !/^\d{4}-\d{2}-\d{2}$/.test(raw)) throw new Error(`invalid date for ${field}`)
-        const { error } = await db.from("contacts").update({ [field]: raw.trim().slice(0, 200) || null } as TablesUpdate<"contacts">).eq("id", c.id).eq("org_id", run.org_id)
-        if (error) throw new Error(error.message)
-        return
-      }
-      if (object === "membership") {
-        const m = ctx.membership as { id?: string } | null
-        const id = (ctx.payload.membership_id as string) ?? m?.id
-        if (!id) throw new Error("no membership for this run")
-        if (field === "type_id") {
-          const { data: type } = await db.from("membership_types").select("id").eq("id", raw).eq("org_id", run.org_id).maybeSingle()
-          if (!type) throw new Error("unknown membership type")
-        } else if (field === "ends_on") {
-          if (raw && !/^\d{4}-\d{2}-\d{2}$/.test(raw)) throw new Error("invalid end date")
-        } else throw new Error(`field ${field} can't be set`)
-        const { error } = await db.from("memberships").update({ [field]: raw || null } as TablesUpdate<"memberships">).eq("id", id).eq("org_id", run.org_id)
-        if (error) throw new Error(error.message)
-        return
-      }
-      throw new Error(`${object} can't be changed`)
-    }
+    case "set_field":
+      return setField(db, run, String(d.field), fill(String(d.value), ctx), ctx)
     case "webhook": {
       const url = String(d.url)
       if (!isAllowedUrl(url)) throw new Error("webhook URL not allowed")
+      const { payload, event, org, ...objects } = ctx
       const res = await fetch(url, {
         method: "POST",
         headers: { "content-type": "application/json", "user-agent": "roots-automations/1" },
-        body: JSON.stringify({ workflow_id: run.workflow_id, run_id: run.id, event: ctx.event, payload: ctx.payload, contact: ctx.contact }),
+        body: JSON.stringify({ workflow_id: run.workflow_id, run_id: run.id, event, org: org.name, payload, ...objects }),
         signal: AbortSignal.timeout(10_000),
         redirect: "manual",
       })
@@ -205,7 +220,58 @@ async function act(db: Db, run: Run, node: GraphNode, type: NodeType, d: Record<
       if (error) throw new Error(error.message)
       return
     }
+    case "telegram": {
+      const secret = await getSecret(run.org_id, "telegram")
+      if (!secret?.botToken) throw new Error("telegram bot not connected")
+      await tg(secret.botToken, "sendMessage", { chat_id: Number(d.chat_id), text: fill(String(d.text), ctx).slice(0, 4000) })
+      return
+    }
   }
+}
+
+// "Change record": any writable catalog field of an object the run has ("membership.ends_on", "ticket_type.active",
+// "contact.custom.level"; old drafts: just the custom field key). Validated by the field's kind.
+async function setField(db: Db, run: Run, rawPath: string, raw: string, ctx: Ctx): Promise<string | void> {
+  const path = rawPath.includes(".") ? rawPath : `contact.custom.${rawPath}`
+  const { object, field } = splitPath(path)
+  if (!(object in ctx)) throw new Error(`${object} isn't part of this run`)
+  const row = ctx[object] as Row | null
+  if (!row?.id) throw new Error(`no ${object} in this run`)
+  const d = def(object as ObjectKey)
+  if (object === "contact" && field.startsWith("custom.")) {
+    // Same rules as every other way of entering custom values (type, options).
+    const fdef = (await loadFields(db, run.org_id, "contacts")).find((f) => f.key === field.slice(7))
+    if (!fdef) throw new Error(`unknown field ${field}`)
+    const parsed = parseValue(fdef, raw)
+    if (parsed.error) throw new Error(`invalid value for ${fdef.key}`)
+    const custom = { ...((row.custom as Row) ?? {}), [fdef.key]: parsed.value ?? null }
+    if (parsed.value === undefined) delete custom[fdef.key]
+    const { error } = await db.from("contacts").update({ custom: custom as NonNullable<Json> }).eq("id", row.id as string).eq("org_id", run.org_id)
+    if (error) throw new Error(error.message)
+    row.custom = custom
+    return
+  }
+  const f = d.fields.find((x) => x.key === field && x.write)
+  if (!f) throw new Error(`${path} can't be changed`)
+  let value: string | number | boolean | null = raw.trim() === "" ? null : raw.trim()
+  if (value !== null) {
+    if (f.kind === "date" && !/^\d{4}-\d{2}-\d{2}/.test(value as string)) throw new Error(`invalid date for ${path}`)
+    if (f.kind === "number") {
+      value = Number(String(value).replace(",", "."))
+      if (!Number.isFinite(value)) throw new Error(`invalid number for ${path}`)
+    }
+    if (f.kind === "bool") value = ["true", "1", "ja", "yes"].includes(String(value).toLowerCase())
+    if (f.kind === "enum" && !f.options?.includes(String(value))) throw new Error(`invalid value for ${path}`)
+    if (f.kind === "ref" && f.refTable) {
+      const { data: ok } = await db.from(f.refTable as "contacts").select("id").eq("id", String(value)).eq("org_id", run.org_id).maybeSingle()
+      if (!ok) throw new Error(`unknown ${f.key}`)
+    }
+    if (f.kind === "text") value = String(value).slice(0, 2000)
+  }
+  const { error } = await db.from(d.table as "contacts").update({ [field]: value } as never).eq("id", row.id as string).eq("org_id", run.org_id)
+  if (error) throw new Error(error.message)
+  row[field] = value
+  return `${path} = ${value ?? "–"}`
 }
 
 async function finish(db: Db, run: Run, log: LogEntry[], patch: { status: string; node_id?: string; resume_at?: string; error?: string }) {

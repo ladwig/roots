@@ -18,9 +18,11 @@ import {
   type Node,
   type NodeProps,
 } from "@xyflow/react"
-import { BellIcon, CheckIcon, ClockIcon, DownloadIcon, FlaskConicalIcon, XIcon, GitForkIcon, LayoutListIcon, MailIcon, PencilIcon, SaveIcon, TagIcon, TagsIcon, Trash2Icon, WebhookIcon, ZapIcon, type LucideIcon } from "lucide-react"
+import { AtSignIcon, BellIcon, CheckIcon, ChevronsUpDownIcon, ClockIcon, SendIcon, DownloadIcon, FlaskConicalIcon, XIcon, GitForkIcon, LayoutListIcon, MailIcon, PencilIcon, SaveIcon, TagIcon, TagsIcon, Trash2Icon, WebhookIcon, ZapIcon, type LucideIcon } from "lucide-react"
 import { toast } from "sonner"
 import { RichTextEditor } from "@/components/rich-text-editor"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,24 +32,26 @@ import { Textarea } from "@/components/ui/textarea"
 import { useT } from "@/i18n/client"
 import { cn } from "@/lib/utils"
 import { ACTIONS, validate, WAIT_UNITS, type Graph, type NodeType, type TraceStep } from "@/automations/graph"
-import { OBJECTS, objectsFor, OPS_FOR, splitPath, WRITABLE, type Field, type Kind, type ObjectKey, type RefList } from "@/automations/objects"
+import { def, OBJECTS, objectsFor, OPS_FOR, parseRecordTrigger, splitPath, writableFor, type Field, type Kind, type ObjectKey, type RefList } from "@/automations/objects"
 import { saveWorkflow, testRun, testSamples } from "../actions"
 
 type Data = Record<string, unknown>
 type FlowNode = Node<Data, NodeType>
 type Option = { value: string; label: string }
 export type EditorOptions = {
-  events: { key: string; label: string }[]
+  triggers: { group: string; items: { key: string; label: string }[] }[] // by module: its events + "record created/changed/deleted"
   customFields: { key: string; label: string; type: string; options: string[] }[]
   tags: string[]
   refs: Partial<Record<RefList, Option[]>> // pickable records (events, membership types, forms, courses, guest lists)
   modules: string[] // the org's active modules: objects/actions of others aren't offered
+  telegram: { connected: boolean; chats: { id: string; title: string }[] }
 }
 
+const isObject = (o: string): o is ObjectKey => o in OBJECTS
 // Fields of an object as the pickers show them (catalog + the contacts' custom fields); `write` = only settable ones.
 function fieldsOf(o: string, options: EditorOptions, label: (k: string) => string, write = false): (Field & { label: string })[] {
-  if (!(o in OBJECTS)) return []
-  const base = OBJECTS[o as ObjectKey].fields.filter((f) => !write || f.write).map((f) => ({ ...f, label: label(`automations.fields.${o}.${f.key}`) }))
+  if (!o || !isObject(o)) return []
+  const base = def(o).fields.filter((f) => !write || f.write).map((f) => ({ ...f, label: label(`automations.fields.${o}.${f.key}`) }))
   const custom =
     o === "contact"
       ? options.customFields.map((f) => ({
@@ -71,6 +75,8 @@ const ICONS: Record<NodeType, LucideIcon> = {
   set_field: PencilIcon,
   webhook: WebhookIcon,
   notify_team: BellIcon,
+  email_address: AtSignIcon,
+  telegram: SendIcon,
 }
 const DEFAULTS: Record<NodeType, Data> = {
   trigger: { event: "" },
@@ -82,7 +88,16 @@ const DEFAULTS: Record<NodeType, Data> = {
   set_field: { field: "", value: "" },
   webhook: { url: "" },
   notify_team: { text: "" },
+  email_address: { to: "", subject: "", body: "" },
+  telegram: { chat_id: "", text: "" },
 }
+// The sidebar's sections.
+const PALETTE: { section: string; types: NodeType[] }[] = [
+  { section: "logic", types: ["condition", "wait"] },
+  { section: "send", types: ["send_email", "email_address", "notify_team", "telegram"] },
+  { section: "data", types: ["add_tag", "remove_tag", "set_field"] },
+  { section: "connect", types: ["webhook"] },
+]
 
 // One step on the canvas: icon, kind, a one-line summary; conditions have a yes and a no output.
 function StepNode({ type, data, selected }: NodeProps<FlowNode>) {
@@ -90,10 +105,10 @@ function StepNode({ type, data, selected }: NodeProps<FlowNode>) {
   const Icon = ICONS[type]
   const summary = (() => {
     const d = data as Record<string, string | number | { field: string }[]>
-    if (type === "trigger") return (d.event as string) ? t.dynamic(`events.types.${d.event}`) : t("automations.pickEvent")
+    if (type === "trigger") return (d.event as string) ? triggerLabel(String(d.event), t) : t("automations.pickEvent")
     if (type === "wait") return `${d.amount} ${t.dynamic(`automations.units.${d.unit}`)}`
     if (type === "condition") return ((d.rules as { field: string }[]) ?? []).map((r) => r.field).filter(Boolean).join(", ") || "–"
-    return String(d.subject ?? d.tag ?? d.field ?? d.url ?? d.text ?? "") || "–"
+    return String(d.subject ?? d.tag ?? d.field ?? d.url ?? d.text ?? d.to ?? "") || "–"
   })()
   const problem = Boolean(data.__problem)
   const trace = data.__trace as TraceStep | null | undefined // undefined = no test run, null = not reached
@@ -337,16 +352,30 @@ function Editor({ id, name: initialName, description: initialDescription, graph,
       )}
       <div className="grid gap-3 lg:grid-cols-[10rem_minmax(0,1fr)_20rem]">
         {canEdit && (
-          <aside className="grid content-start gap-1" aria-label={t("automations.addStep")}>
-            <p className="text-xs font-medium text-muted-foreground">{t("automations.addStep")}</p>
-            {(["condition", "wait", ...ACTIONS] as NodeType[]).map((type) => {
-              const Icon = ICONS[type]
-              return (
-                <Button key={type} type="button" variant="ghost" size="sm" className="justify-start" onClick={() => add(type)}>
-                  <Icon /> {t.dynamic(`automations.nodes.${type}`)}
-                </Button>
-              )
-            })}
+          <aside className="grid content-start gap-3" aria-label={t("automations.addStep")}>
+            {PALETTE.map((sec) => (
+              <div key={sec.section} className="grid gap-0.5">
+                <p className="px-2 text-xs font-medium text-muted-foreground">{t.dynamic(`automations.sections.${sec.section}`)}</p>
+                {sec.types.map((type) => {
+                  const Icon = ICONS[type]
+                  const off = type === "telegram" && !options.telegram.connected
+                  return (
+                    <Button
+                      key={type}
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="justify-start"
+                      disabled={off}
+                      title={off ? t("automations.telegramOff") : undefined}
+                      onClick={() => add(type)}
+                    >
+                      <Icon /> {t.dynamic(`automations.nodes.${type}`)}
+                    </Button>
+                  )
+                })}
+              </div>
+            ))}
           </aside>
         )}
         <div className="h-[70dvh] min-h-[460px] overflow-hidden rounded-lg border">
@@ -424,7 +453,7 @@ function Inspector({
     "first_name",
     "name",
     "org",
-    ...objectsFor(trigger, mods).flatMap((o) => OBJECTS[o].fields.filter((f) => f.kind !== "ref" && f.kind !== "tags" && f.kind !== "bool").map((f) => `${o}.${f.key}`)),
+    ...objectsFor(trigger, mods).flatMap((o) => def(o).fields.filter((f) => f.kind !== "ref" && f.kind !== "tags" && f.kind !== "bool").map((f) => `${o}.${f.key}`)),
     ...(objectsFor(trigger, mods).includes("contact") ? options.customFields.map((f) => `contact.custom.${f.key}`) : []),
   ]
   const insert = (k: string, token: string) => onChange({ [k]: `${String(d[k] ?? "")}{${token}}` })
@@ -450,19 +479,7 @@ function Inspector({
       </p>
       <p className="text-xs text-muted-foreground">{t.dynamic(`automations.help.${type}`)}</p>
       {trace !== undefined && <TraceView trace={trace} />}
-      {type === "trigger" && (
-        <div className="grid gap-1">
-          <Label htmlFor="in-event">{t("automations.event")}</Label>
-          <NativeSelect id="in-event" value={String(d.event ?? "")} disabled={!canEdit} onChange={(e) => onChange({ event: e.target.value })} className="w-full">
-            <NativeSelectOption value="">{t("automations.pickEvent")}</NativeSelectOption>
-            {options.events.map((e) => (
-              <NativeSelectOption key={e.key} value={e.key}>
-                {e.label}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-        </div>
-      )}
+      {type === "trigger" && <TriggerForm d={d} options={options} canEdit={canEdit} onChange={onChange} />}
       {type === "wait" && (
         <div className="grid grid-cols-2 gap-2">
           {field("amount", t("automations.amount"), { type: "number", min: 1, onChange: (e) => onChange({ amount: Math.max(1, Math.floor(Number(e.target.value) || 1)) }) })}
@@ -491,6 +508,35 @@ function Inspector({
       )}
       {(type === "add_tag" || type === "remove_tag") && <TagPick value={String(d.tag ?? "")} tags={options.tags} creatable={type === "add_tag"} disabled={!canEdit} onChange={(tag) => onChange({ tag })} />}
       {type === "set_field" && <SetField d={d} options={options} trigger={trigger} canEdit={canEdit} onChange={onChange} />}
+      {type === "email_address" && (
+        <>
+          {field("to", t("automations.to"), { maxLength: 320, placeholder: "team@…" })}
+          {field("subject", t("automations.subject"), { maxLength: 200 })}
+          {chips("subject")}
+          <div className="grid gap-1">
+            <Label>{t("automations.body")}</Label>
+            <RichTextEditor name="body" defaultValue={String(d.body ?? "")} placeholders={placeholders} disabled={!canEdit} onChange={(html) => onChange({ body: html })} />
+          </div>
+        </>
+      )}
+      {type === "telegram" && (
+        <>
+          {!options.telegram.connected && <p className="text-xs text-destructive">{t("automations.telegramOff")}</p>}
+          <div className="grid gap-1">
+            <Label htmlFor="in-chat">{t("automations.chat")}</Label>
+            <NativeSelect id="in-chat" value={String(d.chat_id ?? "")} disabled={!canEdit} onChange={(e) => onChange({ chat_id: e.target.value })} className="w-full">
+              <NativeSelectOption value="">{t("automations.pickChat")}</NativeSelectOption>
+              {options.telegram.chats.map((c) => (
+                <NativeSelectOption key={c.id} value={c.id}>
+                  {c.title}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </div>
+          {field("text", t("automations.text"), { maxLength: 4000 })}
+          {chips("text")}
+        </>
+      )}
       {type === "webhook" && field("url", "URL", { type: "url", placeholder: "https://…" })}
       {type === "notify_team" && (
         <>
@@ -498,7 +544,72 @@ function Inspector({
           {chips("text")}
         </>
       )}
-      {(type === "send_email" || type === "notify_team") && <p className="text-xs text-muted-foreground">{t("automations.placeholdersHint")}</p>}
+      {(type === "send_email" || type === "notify_team" || type === "email_address" || type === "telegram") && <p className="text-xs text-muted-foreground">{t("automations.placeholdersHint")}</p>}
+    </div>
+  )
+}
+
+/** "Ticket sold" or, for record triggers, "Ticket · created". */
+export function triggerLabel(key: string, t: ReturnType<typeof useT>) {
+  const rec = parseRecordTrigger(key)
+  return rec ? `${t.dynamic(`automations.objects.${rec.object}`)} · ${t.dynamic(`automations.recordActions.${rec.action}`)}` : t.dynamic(`events.types.${key}`)
+}
+
+// Trigger: search over all triggers of the active modules, grouped by module; "record changed" can watch fields.
+function TriggerForm({ d, options, canEdit, onChange }: { d: Record<string, unknown>; options: EditorOptions; canEdit: boolean; onChange: (p: Data) => void }) {
+  const t = useT()
+  const [open, setOpen] = useState(false)
+  const value = String(d.event ?? "")
+  const rec = parseRecordTrigger(value)
+  const watch = (d.fields as string[] | undefined) ?? []
+  return (
+    <div className="grid gap-3">
+      <div className="grid gap-1">
+        <Label>{t("automations.event")}</Label>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger render={<Button type="button" variant="outline" className="w-full justify-between font-normal" disabled={!canEdit} />}>
+            <span className="truncate">{value ? triggerLabel(value, t) : t("automations.pickEvent")}</span>
+            <ChevronsUpDownIcon className="opacity-50" />
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-0" align="start">
+            <Command>
+              <CommandInput placeholder={t("automations.searchTrigger")} />
+              <CommandList className="max-h-80">
+                <CommandEmpty>{t("automations.noTrigger")}</CommandEmpty>
+                {options.triggers.map((g) => (
+                  <CommandGroup key={g.group} heading={g.group}>
+                    {g.items.map((it) => (
+                      <CommandItem key={it.key} value={`${g.group} ${it.label}`} data-checked={it.key === value} onSelect={() => (onChange({ event: it.key, fields: [] }), setOpen(false))}>
+                        {it.label}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                ))}
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </div>
+      {rec?.action === "update" && (
+        <fieldset className="grid gap-1">
+          <legend className="mb-1 text-sm font-medium">{t("automations.watchFields")}</legend>
+          <p className="text-xs text-muted-foreground">{t("automations.watchHint")}</p>
+          {def(rec.object).fields
+            .filter((f) => f.key !== "id")
+            .map((f) => (
+              <label key={f.key} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="size-4"
+                  disabled={!canEdit}
+                  checked={watch.includes(f.key)}
+                  onChange={(e) => onChange({ fields: e.target.checked ? [...watch, f.key] : watch.filter((x) => x !== f.key) })}
+                />
+                {t.dynamic(`automations.fields.${rec.object}.${f.key}`)}
+              </label>
+            ))}
+        </fieldset>
+      )}
     </div>
   )
 }
@@ -534,7 +645,7 @@ function SetField({ d, options, trigger, canEdit, onChange }: { d: Record<string
   const t = useT()
   const path = String(d.field ?? "")
   const { object, field } = path.includes(".") ? splitPath(path) : { object: path ? "contact" : "", field: path ? `custom.${path}` : "" }
-  const objects = objectsFor(trigger, new Set(options.modules)).filter((o) => WRITABLE.includes(o))
+  const objects = writableFor(trigger, new Set(options.modules))
   const fields = fieldsOf(object, options, (k) => t.dynamic(k), true)
   const f = fields.find((x) => x.key === field)
   return (
