@@ -512,3 +512,118 @@ export function AutomationsMock() {
     </div>
   )
 }
+
+/** Wiki: page tree on the left, a Notion-like page with icon, checklist and a share badge. */
+export function WikiMock() {
+  const tree = [
+    ["📖", "Handbuch", 0],
+    ["🍻", "Bar & Kasse", 1],
+    ["🔑", "Schließdienst", 1],
+    ["🔒", "Vorstand", 0],
+    ["🗓️", "Protokolle", 1],
+    ["🌍", "Hausordnung", 0],
+  ] as const
+  return (
+    <div className="grid grid-cols-[11em_1fr] gap-[1em] p-[1.2em] text-[clamp(8px,0.9vw,12.5px)]">
+      <div className="grid content-start gap-[0.2em] rounded-[0.7em] border border-black/5 bg-white p-[0.6em]">
+        {tree.map(([icon, name, depth], i) => (
+          <span key={name} className={cn("anim-row truncate rounded-[0.4em] px-[0.5em] py-[0.3em]", i === 1 && "bg-black/5 font-medium")} style={{ ...delay(i * 0.3), paddingLeft: `${0.5 + depth * 1.1}em` }}>
+            {icon} {name}
+          </span>
+        ))}
+      </div>
+      <div className="grid content-start gap-[0.6em] rounded-[0.7em] border border-black/5 bg-white p-[1.2em]">
+        <div className="flex items-start justify-between">
+          <span className="text-[2.4em] leading-none">🍻</span>
+          <Badge tone="lime">🌍 Öffentlich</Badge>
+        </div>
+        <div className="text-[1.7em] font-semibold tracking-tight">Bar & Kasse</div>
+        <p className="text-black/60">So öffnest und schließt du die Bar. Bei Fragen: Kasse-Chat.</p>
+        <div className="text-[1.1em] font-semibold">Abends</div>
+        {["Kasse zählen und eintragen", "Kühlschränke auffüllen", "Musik leiser ab 23 Uhr"].map((x, i) => (
+          <span key={x} className="anim-row flex items-center gap-[0.5em]" style={delay(1 + i * 0.4)}>
+            <span className={cn("grid size-[1.1em] place-items-center rounded-[0.25em] border border-black/30 text-[0.8em]", i === 0 && "border-[#14532d] bg-[#14532d] text-white")}>{i === 0 ? "✓" : ""}</span>
+            {x}
+          </span>
+        ))}
+        <span className="mt-[0.3em] rounded-[0.4em] border border-dashed border-black/15 px-[0.6em] py-[0.4em] text-black/40">Tippe „/“ für Blöcke …</span>
+      </div>
+    </div>
+  )
+}
+
+/** Cash book: balance tiles and the month's entries with numbers, tax area and receipt clips. */
+export function CashbookMock() {
+  const rows = [
+    ["K-2026-0041", "Abendkasse Sa", "Wirtschaftl.", "+1.240,00 €", true],
+    ["K-2026-0042", "Getränke Großhandel", "Wirtschaftl.", "−486,30 €", true],
+    ["K-2026-0043", "Mitgliedsbeiträge bar", "Ideell", "+90,00 €", false],
+    ["K-2026-0044", "Reinigung", "Ideell", "−120,00 €", true],
+  ] as const
+  return (
+    <div className="grid gap-[0.8em] p-[1.2em] text-[clamp(8px,0.9vw,12.5px)]">
+      <div className="flex items-center justify-between">
+        <span className="text-[1.4em] font-semibold tracking-tight">Kassenbuch · Barkasse</span>
+        <Badge tone="moss">Oktober</Badge>
+      </div>
+      <div className="grid grid-cols-3 gap-[0.6em]">
+        {[["Anfang", "812,40 €"], ["Einnahmen", "1.330,00 €"], ["Endbestand", "1.536,10 €"]].map(([l, v]) => (
+          <div key={l} className="rounded-[0.6em] border border-black/5 bg-white p-[0.7em]">
+            <div className="text-black/45">{l}</div>
+            <div className="text-[1.3em] font-semibold tabular-nums">{v}</div>
+          </div>
+        ))}
+      </div>
+      <div className="overflow-hidden rounded-[0.7em] border border-black/5 bg-white">
+        {rows.map(([no, text, area, amount, clip], i) => (
+          <div key={no} className={cn("anim-row grid grid-cols-[6.5em_1fr_auto_auto] items-center gap-[0.7em] px-[0.9em] py-[0.55em]", i && "border-t border-black/5")} style={delay(i * 0.5)}>
+            <span className="text-black/45 tabular-nums">{no}</span>
+            <span className="truncate font-medium">
+              {text} {clip && <span className="text-black/35">📎</span>}
+            </span>
+            <Badge tone="gray">{area}</Badge>
+            <span className={cn("tabular-nums", amount.startsWith("−") && "text-[#8a2b2b]")}>{amount}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** Reports: KPI tiles and admitted people per event, stacked by ticket / member / guest. */
+export function ReportsMock() {
+  const nights = [
+    ["Do", 40, 25, 8],
+    ["Fr", 95, 40, 22],
+    ["Sa", 140, 55, 30],
+    ["Do", 35, 30, 6],
+    ["Fr", 110, 45, 18],
+    ["Sa", 160, 60, 35],
+  ] as const
+  const max = 255
+  return (
+    <div className="grid gap-[0.8em] p-[1.2em] text-[clamp(8px,0.9vw,12.5px)]">
+      <span className="text-[1.4em] font-semibold tracking-tight">Auswertungen · Oktober</span>
+      <div className="grid grid-cols-4 gap-[0.6em]">
+        {[["Aktive Mitglieder", "412"], ["Eingelassen", "1.054"], ["Ticketumsatz", "8.920 €"], ["Schichten besetzt", "94 %"]].map(([l, v]) => (
+          <div key={l} className="rounded-[0.6em] border border-black/5 bg-white p-[0.7em]">
+            <div className="truncate text-black/45">{l}</div>
+            <div className="text-[1.3em] font-semibold tabular-nums">{v}</div>
+          </div>
+        ))}
+      </div>
+      <div className="flex h-[12em] items-end gap-[0.8em] rounded-[0.7em] border border-black/5 bg-white p-[0.9em]">
+        {nights.map(([day, tickets, members, guests], i) => (
+          <div key={i} className="grid flex-1 justify-items-center gap-[0.3em]">
+            <div className="anim-drop flex w-full flex-col-reverse overflow-hidden rounded-[0.3em]" style={{ ...delay(i * 0.25), height: `${((tickets + members + guests) / max) * 9}em` }}>
+              <span className="bg-[#14532d]" style={{ flex: tickets }} />
+              <span className="bg-[#7f9a5d]" style={{ flex: members }} />
+              <span className="bg-[#dfe7c6]" style={{ flex: guests }} />
+            </div>
+            <span className="text-black/45">{day}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}

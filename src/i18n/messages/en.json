@@ -2412,6 +2412,30 @@
         "b1": "Triggers from every area, also at set times",
         "b2": "Conditions, waits, counters and lookups",
         "b3": "Risk-free test runs – nothing is sent"
+      },
+      "cashbook": {
+        "label": "Cash book",
+        "title": "Every euro with a receipt.",
+        "text": "Petty cash, door cash and accounts in one place. Every entry gets a number and its receipt, mistakes are reversed instead of deleted. At the end of the month you count the cash – roots calculates, compares and closes the month.",
+        "b1": "The four areas of German non-profit law",
+        "b2": "Receipts as photo or PDF right on the entry",
+        "b3": "Pay open invoices with an income entry"
+      },
+      "reports": {
+        "label": "Reports",
+        "title": "Know how it goes.",
+        "text": "Members, door, revenue, shifts and invoices for any period – with charts, no spreadsheet. Every number only for those allowed to see it.",
+        "b1": "Admitted per night, by membership type",
+        "b2": "Joins and leaves, open dues, cash balance",
+        "b3": "The same numbers via API"
+      },
+      "wiki": {
+        "label": "Knowledge",
+        "title": "Your handbook, like Notion.",
+        "text": "Processes, minutes and house rules as pages in pages: write like in Notion, drop in images and files, icons per page. Each page for the team, certain roles, club members or public.",
+        "b1": "\"/\" menu, Markdown while typing, saves by itself",
+        "b2": "History with restore",
+        "b3": "One link – the team in the app, everyone else on the public page"
       }
     },
     "manifesto": {
@@ -2638,6 +2662,18 @@
         "automations": {
           "title": "Automations",
           "text": "Flows that run by themselves"
+        },
+        "cashbook": {
+          "title": "Cash book",
+          "text": "Cash boxes, receipts, month closing"
+        },
+        "reports": {
+          "title": "Reports",
+          "text": "KPIs for any period"
+        },
+        "wiki": {
+          "title": "Knowledge",
+          "text": "Handbook and minutes like Notion"
         }
       }
     },

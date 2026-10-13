@@ -10,7 +10,7 @@ import { ScrollFlag } from "./scroll-flag"
 export const APP = "/app"
 export const SIGNUP = "/login"
 // Areas of the product: menu entries and the anchors on /product (same order).
-export const AREAS = ["members", "tickets", "events", "shifts", "hr", "invoices", "forms", "automations", "contacts", "portal"] as const
+export const AREAS = ["members", "tickets", "events", "shifts", "hr", "invoices", "cashbook", "reports", "forms", "automations", "wiki", "contacts", "portal"] as const
 export type Area = (typeof AREAS)[number]
 
 /** Nav (shrinks on scroll, "Produkt" mega menu) + page content + footer revealed underneath. */

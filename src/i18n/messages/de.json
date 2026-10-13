@@ -2412,6 +2412,30 @@
         "b1": "Auslöser aus allen Bereichen, auch zu festen Zeiten",
         "b2": "Bedingungen, Wartezeiten, Zähler und Suchen",
         "b3": "Testlauf ohne Risiko – nichts wird gesendet"
+      },
+      "cashbook": {
+        "label": "Kassenbuch",
+        "title": "Jeder Euro mit Beleg.",
+        "text": "Barkasse, Abendkasse und Konten an einem Ort. Jede Buchung bekommt eine Nummer und ihren Beleg, Fehler werden storniert statt gelöscht. Am Monatsende zählt ihr die Kasse – roots rechnet, vergleicht und schließt den Monat ab.",
+        "b1": "Die vier Bereiche des Gemeinnützigkeitsrechts",
+        "b2": "Belege als Foto oder PDF direkt an der Buchung",
+        "b3": "Offene Rechnungen mit einer Einnahme bezahlen"
+      },
+      "reports": {
+        "label": "Auswertungen",
+        "title": "Wissen, wie es läuft.",
+        "text": "Mitglieder, Einlass, Umsatz, Schichten und Rechnungen für jeden Zeitraum – mit Diagrammen, ohne Tabellenkalkulation. Jede Zahl nur für die, die sie sehen dürfen.",
+        "b1": "Eingelassen pro Abend, nach Mitgliedsart",
+        "b2": "Ein- und Austritte, offene Beiträge, Kassenstand",
+        "b3": "Dieselben Zahlen per API"
+      },
+      "wiki": {
+        "label": "Wissen",
+        "title": "Euer Handbuch, wie Notion.",
+        "text": "Abläufe, Protokolle und die Hausordnung als Seiten in Seiten: schreiben wie in Notion, Bilder und Dateien hineinziehen, Icons pro Seite. Jede Seite für das Team, bestimmte Rollen, Vereinsmitglieder oder öffentlich.",
+        "b1": "„/“-Menü, Markdown beim Tippen, speichert von selbst",
+        "b2": "Verlauf mit Wiederherstellen",
+        "b3": "Ein Link – das Team im App, alle anderen auf der öffentlichen Seite"
       }
     },
     "manifesto": {
@@ -2638,6 +2662,18 @@
         "automations": {
           "title": "Automationen",
           "text": "Abläufe, die von selbst laufen"
+        },
+        "cashbook": {
+          "title": "Kassenbuch",
+          "text": "Kassen, Belege, Monatsabschluss"
+        },
+        "reports": {
+          "title": "Auswertungen",
+          "text": "Kennzahlen für jeden Zeitraum"
+        },
+        "wiki": {
+          "title": "Wissen",
+          "text": "Handbuch und Protokolle wie in Notion"
         }
       }
     },
