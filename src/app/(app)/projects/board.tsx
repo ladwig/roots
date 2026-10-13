@@ -69,7 +69,7 @@ export function Board({ statuses, tasks, canManage, back, today }: { statuses: B
           from.current = i ? { id: i.id, column: i.column } : null
         }}
         onDragEnd={() => canManage && persist()}
-        className="min-w-max auto-cols-[minmax(16rem,1fr)]"
+        className="w-max auto-cols-[17rem] sm:auto-cols-[19rem]"
       >
         {(column) => (
           <KanbanBoard id={column.id} key={column.id} className="min-h-[60vh] bg-muted/40">
@@ -106,7 +106,7 @@ export function Board({ statuses, tasks, canManage, back, today }: { statuses: B
 function TaskCard({ task, today }: { task: BoardTask; today: string }) {
   const overdue = task.due_on && !task.done && task.due_on < today
   return (
-    <Link href={task.href} scroll={false} className="grid gap-1.5 text-sm">
+    <Link href={task.href} scroll={false} className="grid min-w-0 gap-1.5 text-sm">
       <span className="flex items-start gap-2">
         <span className={cn("min-w-0 flex-1 font-medium break-words", task.done && "text-muted-foreground line-through")}>{task.title}</span>
         {task.tags.length > 0 && (
@@ -124,7 +124,7 @@ function TaskCard({ task, today }: { task: BoardTask; today: string }) {
           </span>
         )}
       </span>
-      {task.snippet && <span className="line-clamp-2 text-xs text-muted-foreground">{task.snippet}</span>}
+      {task.snippet && <span className="line-clamp-2 text-xs break-words text-muted-foreground">{task.snippet}</span>}
       {(task.due_on || task.progress || task.people.length > 0) && (
         <span className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
           {task.due_on && (

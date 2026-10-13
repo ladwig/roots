@@ -1,5 +1,3 @@
-import Link from "next/link"
-import { ExternalLinkIcon } from "lucide-react"
 import { Markdown } from "@/components/markdown"
 import { SubmitButton } from "@/components/submit-button"
 import { PeopleSelect } from "./people-select"
@@ -17,7 +15,7 @@ import { Checklist } from "./checklist"
 export type EditorTask = { id: string; title: string; description: string; status_id: string; due_on: string | null; tags: string[]; checklist: unknown; created_at: string; completed_at: string | null; task_assignees: { user_id: string }[] }
 
 // Everything about one task: fields (save themselves), checklist (saves at once), trash. Used by the board's
-// side panel and the task's own page.
+// side panel.
 export function TaskEditor({
   t,
   task,
@@ -26,7 +24,6 @@ export function TaskEditor({
   tags,
   canManage,
   back,
-  pageLink,
 }: {
   t: T
   task: EditorTask
@@ -35,16 +32,10 @@ export function TaskEditor({
   tags: string[]
   canManage: boolean
   back: string
-  pageLink?: boolean
 }) {
   const assigned = task.task_assignees.map((a) => a.user_id)
   return (
     <div className="grid gap-6">
-      {pageLink && (
-        <Link href={`/projects/tasks/${task.id}`} className="inline-flex items-center gap-1 justify-self-start text-sm text-muted-foreground underline-offset-4 hover:underline">
-          <ExternalLinkIcon className="size-3.5" /> {t("projects.openAsPage")}
-        </Link>
-      )}
       <AutosaveForm action={autosaveTaskAction} className="grid gap-4">
         <input type="hidden" name="id" value={task.id} />
         <fieldset disabled={!canManage} className="grid gap-4">

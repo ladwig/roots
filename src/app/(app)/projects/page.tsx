@@ -129,7 +129,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
               cell: (r) => (
                 <span className="grid gap-0.5">
                   <span className={r.done ? "text-muted-foreground line-through" : "font-medium"}>{r.title}</span>
-                  {r.snippet && <span className="line-clamp-1 text-xs text-muted-foreground">{r.snippet}</span>}
+                  {r.snippet && <span className="line-clamp-1 max-w-md text-xs break-words text-muted-foreground">{r.snippet}</span>}
                 </span>
               ),
             },
@@ -155,7 +155,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       {open && (
         <UrlSheet params={["task"]} title={open.title} wide>
           <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
-          <TaskEditor t={t} task={open} statuses={statuses} team={team} tags={tags} canManage={canManage} back={`/projects${withParams(sp, { error: undefined, ok: undefined })}`} pageLink />
+          <TaskEditor t={t} task={open} statuses={statuses} team={team} tags={tags} canManage={canManage} back={`/projects${withParams(sp, { error: undefined, ok: undefined })}`} />
         </UrlSheet>
       )}
     </div>

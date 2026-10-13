@@ -4135,7 +4135,6 @@
     "description": "Beschreibung",
     "descriptionHint": "Details, Links, Notizen…",
     "noTeam": "Noch keine Teammitglieder.",
-    "openAsPage": "Als Seite öffnen",
     "created": "Angelegt am {date}",
     "completedOn": "erledigt am {date}",
     "toTrash": "In den Papierkorb",

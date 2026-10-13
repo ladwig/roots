@@ -1,5 +1,6 @@
 "use server"
 
+import { revalidatePath } from "next/cache"
 import { deliverSoon } from "@/events/worker"
 import { getT } from "@/i18n/server"
 import { dbError, type T } from "@/i18n/translate"
@@ -18,7 +19,9 @@ const backTo = (fd: FormData, fallback: string) => {
   return b.startsWith("/projects") ? b : fallback
 }
 
+// Every change drops the client's cached /projects pages (staleTimes), so closing the panel shows the new state.
 async function manager() {
+  revalidatePath("/projects", "layout")
   const ctx = await requirePerm("projects.manage")
   const t = await getT()
   if (!ctx.modules.has("projects")) back("/projects", { error: t("errors.not_allowed") })
