@@ -1840,18 +1840,18 @@
     }
   },
   "membership": {
-    "nav": "Members",
-    "title": "Members",
+    "nav": "Memberships",
+    "title": "Memberships",
     "tabs": {
-      "members": "Members",
+      "members": "Memberships",
       "dues": "Dues",
       "setup": "Setup"
     },
     "activeCount": {
-      "one": "{count} active member",
-      "other": "{count} active members"
+      "one": "{count} active membership",
+      "other": "{count} active memberships"
     },
-    "new": "New member",
+    "new": "New membership",
     "create": "Add member",
     "noTypes": "First add a membership type (e.g. full member, reduced).",
     "filter": "Filter",
@@ -1861,8 +1861,8 @@
       "all": "All",
       "trash": "Trash"
     },
-    "noMatch": "No members found.",
-    "empty": "No members yet.",
+    "noMatch": "No memberships found.",
+    "empty": "No memberships yet.",
     "name": "Name",
     "numberShort": "No. {number}",
     "type": "Membership type",
@@ -1909,7 +1909,7 @@
       "none": "one-off"
     },
     "saved": "Saved.",
-    "created": "Member added.",
+    "created": "Membership created.",
     "ended": "Membership ends on {date}.",
     "trashed": "Membership moved to the trash.",
     "typeAndStartRequired": "Membership type and start date are required.",
@@ -2016,7 +2016,7 @@
     "restored": "Membership restored.",
     "deletedOn": "In the trash since {date}. Deleted for good on {purge}.",
     "import": "Import",
-    "importTitle": "Import members",
+    "importTitle": "Import memberships",
     "importHint": "CSV from Excel or your old club software: one row per person with membership type, start date, number and optionally bank details. Membership types must be named exactly as set up here ({types}). Existing contacts are recognised by email. No entry fees are created.",
     "importNeedsType": "Map a column to the membership type (there are several types).",
     "importNumber": "Member number (old)",

@@ -1840,18 +1840,18 @@
     }
   },
   "membership": {
-    "nav": "Mitglieder",
-    "title": "Mitglieder",
+    "nav": "Mitgliedschaften",
+    "title": "Mitgliedschaften",
     "tabs": {
-      "members": "Mitglieder",
+      "members": "Mitgliedschaften",
       "dues": "Beiträge",
       "setup": "Einrichtung"
     },
     "activeCount": {
-      "one": "{count} aktives Mitglied",
-      "other": "{count} aktive Mitglieder"
+      "one": "{count} aktive Mitgliedschaft",
+      "other": "{count} aktive Mitgliedschaften"
     },
-    "new": "Neues Mitglied",
+    "new": "Neue Mitgliedschaft",
     "create": "Aufnehmen",
     "noTypes": "Lege zuerst eine Mitgliedsart an (z. B. Vollmitglied, ermäßigt).",
     "filter": "Filter",
@@ -1861,8 +1861,8 @@
       "all": "Alle",
       "trash": "Papierkorb"
     },
-    "noMatch": "Keine Mitglieder gefunden.",
-    "empty": "Noch keine Mitglieder.",
+    "noMatch": "Keine Mitgliedschaften gefunden.",
+    "empty": "Noch keine Mitgliedschaften.",
     "name": "Name",
     "numberShort": "Nr. {number}",
     "type": "Mitgliedsart",
@@ -1909,7 +1909,7 @@
       "none": "einmalig"
     },
     "saved": "Gespeichert.",
-    "created": "Mitglied aufgenommen.",
+    "created": "Mitgliedschaft angelegt.",
     "ended": "Mitgliedschaft endet am {date}.",
     "trashed": "Mitgliedschaft in den Papierkorb verschoben.",
     "typeAndStartRequired": "Mitgliedsart und Beginn sind nötig.",
@@ -2016,7 +2016,7 @@
     "restored": "Mitgliedschaft wiederhergestellt.",
     "deletedOn": "Im Papierkorb seit {date}. Wird am {purge} endgültig gelöscht.",
     "import": "Importieren",
-    "importTitle": "Mitglieder importieren",
+    "importTitle": "Mitgliedschaften importieren",
     "importHint": "CSV aus Excel oder deiner alten Vereinssoftware: eine Zeile pro Person mit Mitgliedsart, Eintritt, Nummer und optional Bankdaten. Mitgliedsarten müssen genau so heißen wie hier angelegt ({types}). Bestehende Kontakte werden über die E-Mail erkannt. Aufnahmegebühren werden nicht erzeugt.",
     "importNeedsType": "Ordne eine Spalte der Mitgliedsart zu (es gibt mehrere Arten).",
     "importNumber": "Mitgliedsnummer (alt)",
