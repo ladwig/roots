@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { FilePlusIcon, HistoryIcon } from "lucide-react"
 import { Markdown } from "@/components/markdown"
 import { Notice } from "@/components/notice"
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { UrlSheet } from "@/components/url-sheet"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
-import { param, siteUrl, withParams, type SearchParams } from "@/lib/url"
+import { param, withParams, type SearchParams } from "@/lib/url"
 import { effectiveVisibility, pathTo } from "@/wiki/tree"
 import { newPageAction, restorePageAction, restoreVersionAction, trashPageAction } from "../actions"
 import { TreeNav } from "../tree-nav"
@@ -35,7 +35,7 @@ export default async function WikiPageView({ params, searchParams }: { params: P
     versionId && /^[0-9a-f-]{36}$/.test(versionId) ? ctx.supabase.from("wiki_page_versions").select("id, title, body, created_at").eq("id", versionId).eq("page_id", id).maybeSingle() : Promise.resolve({ data: null }),
     ctx.supabase.from("roles").select("id, name, is_owner").is("org_id", null).order("is_owner", { ascending: false }),
   ])
-  if (!page) notFound()
+  if (!page) redirect(`/api/public/wiki-link/${id}`) // no access here: public page / member area, if released there
   const all = rows ?? []
   const editing = canManage && !page.deleted_at
   const children = all.filter((r) => r.parent_id === page.id).sort((a, b) => a.position - b.position || a.title.localeCompare(b.title, "de"))
@@ -93,7 +93,6 @@ export default async function WikiPageView({ params, searchParams }: { params: P
                       return { visibility: e.visibility, fromTitle: all.find((r) => r.id === e.from)?.title ?? null }
                     })()}
                     roles={(roles ?? []).filter((r) => !r.is_owner).map((r) => ({ id: r.id, label: t.pick(r.name as Record<string, string>) }))}
-                    publicUrl={siteUrl(ctx.org.slug, `/wiki/${page.id}`)}
                   />
                 </div>
               </header>

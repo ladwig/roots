@@ -3969,10 +3969,21 @@
       "membersHint": "In the member area (email login) – plus the team",
       "public": "Public",
       "publicHint": "For anyone with the link, on your public page – plus members and team",
-      "copyPublic": "Copy public link"
+      "oneLink": {
+        "public": "One link for everyone: people without app access land on the public page automatically.",
+        "members": "One link for everyone: members without app access land on this page in the member area after signing in."
+      }
     },
     "outside": {
       "title": "Knowledge"
+    },
+    "image": {
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large",
+      "full": "Full width",
+      "open": "Open original",
+      "remove": "Remove"
     }
   }
 }

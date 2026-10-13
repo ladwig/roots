@@ -7,7 +7,8 @@ import remarkGfm from "remark-gfm"
 // `links` rewrites in-app addresses for other surfaces: files (/files/<id>) and wiki pages (/wiki/<id>) in the member
 // area / on public pages point to their own routes there.
 type Links = { file: (id: string) => string; page: (id: string) => string }
-const FILE = /^\/files\/([0-9a-f-]{36})$/
+const FILE = /^\/files\/([0-9a-f-]{36})(?:#w=\d+)?$/
+const WIDTH = /#w=(\d+)$/ // image width set in the editor
 const PAGE = /^\/wiki\/([0-9a-f-]{36})$/
 
 function components(links?: Links): Components {
@@ -47,7 +48,11 @@ function components(links?: Links): Components {
     ),
     th: (p) => <th className="border px-2 py-1 text-left font-medium" {...p} />,
     td: (p) => <td className="border px-2 py-1 align-top" {...p} />,
-    img: ({ alt, src, ...p }) => <img alt={alt ?? ""} src={map(typeof src === "string" ? src : "")} className="my-3 max-w-full rounded-lg" {...p} />, // eslint-disable-line @next/next/no-img-element -- user content, any size
+    img: ({ alt, src, ...p }) => {
+      const s = typeof src === "string" ? src : ""
+      const w = WIDTH.exec(s)
+      return <img alt={alt ?? ""} src={map(s.replace(WIDTH, ""))} style={w ? { width: `${w[1]}px` } : undefined} className="my-3 h-auto max-w-full" {...p} /> // eslint-disable-line @next/next/no-img-element -- user content, any size
+    },
     input: (p) => <input {...p} disabled className="mr-2 size-4 align-middle" />,
   }
 }

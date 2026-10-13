@@ -54,6 +54,9 @@ export async function proxy(request: NextRequest) {
   const { data } = await supabase.auth.getClaims()
 
   // Optimistic gate so signed-out visitors get a real 307 instead of a streamed redirect.
+  // A wiki page link opened without an account: public page / member area if it's released there.
+  const wiki = !data?.claims && /^\/wiki\/([0-9a-f-]{36})$/.exec(appPath)
+  if (wiki) return NextResponse.redirect(new URL(`/api/public/wiki-link/${wiki[1]}`, request.url))
   if (!data?.claims && !under(appPath, PUBLIC_PATHS)) {
     const login = new URL("/login", request.url)
     if (appPath !== "/") login.searchParams.set("next", pathname + search)

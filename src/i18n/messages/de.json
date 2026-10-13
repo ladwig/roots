@@ -3969,10 +3969,21 @@
       "membersHint": "Im Mitgliederbereich (Login per E-Mail) – plus das Team",
       "public": "Öffentlich",
       "publicHint": "Für alle mit dem Link, auf eurer öffentlichen Seite – plus Mitglieder und Team",
-      "copyPublic": "Öffentlichen Link kopieren"
+      "oneLink": {
+        "public": "Ein Link für alle: Wer keinen Zugang zur App hat, landet automatisch auf der öffentlichen Seite.",
+        "members": "Ein Link für alle: Mitglieder ohne App-Zugang landen nach dem Login im Mitgliederbereich auf dieser Seite."
+      }
     },
     "outside": {
       "title": "Wissen"
+    },
+    "image": {
+      "small": "Klein",
+      "medium": "Mittel",
+      "large": "Groß",
+      "full": "Volle Breite",
+      "open": "Original öffnen",
+      "remove": "Entfernen"
     }
   }
 }

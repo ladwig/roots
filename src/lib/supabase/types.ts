@@ -2286,6 +2286,9 @@ isOneToOne: false
               "from_page": string,"role_ids": (string)[],"visibility": string
             }[]
                            },
+"wiki_has_content":
+{ Args: { "p_level": string,"p_page": string }; Returns: boolean
+                           },
 "wiki_open":
 { Args: { "p_level": string,"p_page": string }; Returns: boolean
                            },
@@ -2297,6 +2300,9 @@ isOneToOne: false
                            },
 "wiki_outside_page":
 { Args: { "p_level": string,"p_org": string,"p_page": string }; Returns: Json
+                           },
+"wiki_outside_target":
+{ Args: { "p_page": string }; Returns: Json
                            },
 "wiki_readable":
 { Args: { "p_org": string,"p_page": string }; Returns: boolean

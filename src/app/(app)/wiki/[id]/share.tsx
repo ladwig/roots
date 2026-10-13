@@ -19,7 +19,6 @@ export function ShareButton({
   inherited,
   hasParent,
   roles,
-  publicUrl,
 }: {
   pageId: string
   canManage: boolean
@@ -28,7 +27,6 @@ export function ShareButton({
   inherited: { visibility: string; fromTitle: string | null } // what applies when `own` is null
   hasParent: boolean
   roles: Role[]
-  publicUrl: string // where the page is when released publicly
 }) {
   const t = useT()
   const [choice, setChoice] = useState(own ?? (hasParent ? "" : "team"))
@@ -92,15 +90,11 @@ export function ShareButton({
             <Icon className="size-3.5" />
             {t.dynamic(`wiki.share.short.${effective}`)}
           </span>
+          {(effective === "public" || effective === "members") && <p className="text-xs text-muted-foreground">{t.dynamic(`wiki.share.oneLink.${effective}`)}</p>}
           <div className="flex flex-wrap gap-1">
             <Button type="button" size="sm" variant="ghost" onClick={() => copy("app", `${window.location.origin}${window.location.pathname}`)}>
               {copied === "app" ? <CheckIcon /> : <LinkIcon />} {copied === "app" ? t("wiki.share.copied") : t("wiki.share.copy")}
             </Button>
-            {effective === "public" && (
-              <Button type="button" size="sm" variant="ghost" onClick={() => copy("public", publicUrl)}>
-                {copied === "public" ? <CheckIcon /> : <GlobeIcon />} {copied === "public" ? t("wiki.share.copied") : t("wiki.share.copyPublic")}
-              </Button>
-            )}
           </div>
         </div>
       </PopoverContent>
