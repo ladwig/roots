@@ -15,6 +15,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 export type ApiCtx<Q, B> = {
   orgId: string
   keyId: string
+  request: Request // raw access for uploads (`upload` endpoints read the body themselves)
   db: ReturnType<typeof createAdminClient>
   params: Record<string, string>
   query: Q
@@ -22,7 +23,7 @@ export type ApiCtx<Q, B> = {
 }
 
 export type Endpoint<Q extends z.ZodType = z.ZodType, B extends z.ZodType = z.ZodType> = {
-  method: "GET" | "POST" | "PATCH" | "DELETE"
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
   path: string // "/events/{id}"
   permission: string // "events.view"
   tag: string
@@ -32,6 +33,7 @@ export type Endpoint<Q extends z.ZodType = z.ZodType, B extends z.ZodType = z.Zo
   body?: B
   response: z.ZodType
   status?: number // success status, default 200
+  upload?: "image" // the request body is the file itself (no JSON body), see uploadedImage()
   handler(ctx: ApiCtx<z.infer<Q>, z.infer<B>>): Promise<unknown>
 }
 
@@ -98,6 +100,15 @@ export function match(pattern: string, path: string) {
   return params
 }
 
+/** The image sent as the raw request body (`Content-Type: image/…`), as a File for replaceImage(). */
+export async function uploadedImage(request: Request, maxBytes: number) {
+  if (Number(request.headers.get("content-length") ?? 0) > maxBytes) throw new ApiError(413, "image_too_large", `Max. ${maxBytes / 1_000_000} MB.`)
+  const type = request.headers.get("content-type")?.split(";")[0].trim() ?? ""
+  const bytes = await request.arrayBuffer()
+  if (!bytes.byteLength) throw new ApiError(400, "image_missing", "Send the image as the request body.")
+  return new File([bytes], "upload", { type })
+}
+
 /** Query + JSON body, validated against the endpoint's schemas (400 with field errors otherwise). */
 export async function readInput(e: { query?: z.ZodType; body?: z.ZodType }, request: Request) {
   const query = e.query ? e.query.safeParse(Object.fromEntries(new URL(request.url).searchParams)) : { success: true as const, data: {} }
@@ -133,7 +144,7 @@ export async function dispatch(endpoints: Endpoint[], request: Request, path: st
     for (const [k, v] of Object.entries(params)) if (k.endsWith("id") && !uuid.safeParse(v).success) throw notFound()
     const { query, body } = await readInput(e, request)
     const db = createAdminClient({ "x-org-id": auth.org_id, "x-api-key-hash": hash })
-    const result = await e.handler({ orgId: auth.org_id, keyId: auth.key_id, db, params, query, body })
+    const result = await e.handler({ orgId: auth.org_id, keyId: auth.key_id, request, db, params, query, body })
     return json(e.status ?? 200, result)
   } catch (err) {
     if (err instanceof ApiError) return error(err)

@@ -6,7 +6,7 @@ import type { Endpoint } from "./core"
 const schema = (s: z.ZodType, io: "input" | "output") => z.toJSONSchema(s, { io, unrepresentable: "any" }) as Record<string, unknown>
 const ErrorBody = z.object({ error: z.object({ code: z.string(), message: z.string(), details: z.unknown().optional() }) })
 
-type Doc = Pick<Endpoint, "method" | "path" | "tag" | "summary" | "description" | "query" | "body" | "response" | "status"> & { permission?: string }
+type Doc = Pick<Endpoint, "method" | "path" | "tag" | "summary" | "description" | "query" | "body" | "response" | "status"> & Partial<Pick<Endpoint, "upload">> & { permission?: string }
 type Info = { title: string; description: string; server: string; auth: boolean }
 
 const KEY_INFO: Info = {
@@ -43,6 +43,7 @@ export function openapi(endpoints: Doc[], info: Info = KEY_INFO) {
       summary: e.summary,
       description: [e.description, e.permission && `Permission: \`${e.permission}\``].filter(Boolean).join("\n\n"),
       parameters: [...pathParams, ...queryParams],
+      ...(e.upload ? { requestBody: { required: true, description: "The image itself (JPEG, PNG, WebP, …; max. 2 MB) with its Content-Type.", content: { "image/*": { schema: { type: "string", format: "binary" } } } } } : {}),
       ...(e.body ? { requestBody: { required: true, content: { "application/json": { schema: schema(e.body, "input") } } } } : {}),
       responses: {
         [String(e.status ?? 200)]: { description: "OK", content: { "application/json": { schema: schema(e.response, "output") } } },

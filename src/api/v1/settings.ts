@@ -4,9 +4,10 @@ import { isAllowedUrl } from "@/events/channels/webhook"
 import { eventTypes, TEST_EVENT } from "@/events/registry"
 import { deliverSoon } from "@/events/worker"
 import { CUSTOM_ENTITIES, FIELD_TYPES, fieldKey, type CustomEntity } from "@/lib/custom-fields"
+import { imageUrl, removeImage } from "@/lib/images"
 import { refreshPublicFromApi } from "@/lib/public-cache"
 import { ApiError, dbError, endpoint, notFound, uuid, type Endpoint } from "../core"
-import { ts, type Db } from "./shared"
+import { putImage, ts, type Db } from "./shared"
 
 const Ok = z.object({ ok: z.literal(true) })
 
@@ -80,7 +81,42 @@ const TeamMember = z.object({
   joined_at: ts,
 })
 
+const logoOf = async (db: Db, orgId: string) => (await db.from("orgs").select("logo_path").eq("id", orgId).single()).data?.logo_path ?? null
+
 export const endpoints: Endpoint[] = [
+  endpoint({
+    method: "PUT",
+    path: "/org/logo",
+    permission: "org.settings.manage",
+    tag: "Settings",
+    summary: "Upload the organisation's logo",
+    description: "Send the image itself as the body (`Content-Type: image/png|jpeg|webp|gif`, max. 2 MB). Shown on public pages, invoices and letters.",
+    upload: "image",
+    response: z.object({ logo_url: z.string() }),
+    async handler({ db, orgId, request }) {
+      const path = await putImage(db, request, `orgs/${orgId}`, await logoOf(db, orgId))
+      const { error } = await db.from("orgs").update({ logo_path: path }).eq("id", orgId)
+      if (error) throw dbError(error)
+      refreshPublicFromApi(orgId)
+      return { logo_url: imageUrl(path) }
+    },
+  }),
+  endpoint({
+    method: "DELETE",
+    path: "/org/logo",
+    permission: "org.settings.manage",
+    tag: "Settings",
+    summary: "Remove the logo",
+    response: z.object({ ok: z.literal(true) }),
+    async handler({ db, orgId }) {
+      const previous = await logoOf(db, orgId)
+      const { error } = await db.from("orgs").update({ logo_path: null }).eq("id", orgId)
+      if (error) throw dbError(error)
+      await removeImage(db, previous)
+      refreshPublicFromApi(orgId)
+      return { ok: true }
+    },
+  }),
   endpoint({
     method: "GET",
     path: "/locations",

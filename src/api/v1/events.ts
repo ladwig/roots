@@ -1,11 +1,11 @@
 import { z } from "zod"
 import { checkEvent, EVENT_SLUG, EVENT_STATUSES, insertEvent, TICKET_NAMES } from "@/app/(app)/events/fields"
 import { deliverSoon } from "@/events/worker"
-import { imageUrl } from "@/lib/images"
+import { imageUrl, removeImage } from "@/lib/images"
 import { refreshPublicFromApi } from "@/lib/public-cache"
 import type { TablesUpdate } from "@/lib/supabase/types"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
-import { ts, type Db } from "./shared"
+import { putImage, ts, type Db } from "./shared"
 
 const dt = z.iso.datetime({ offset: true }).describe("ISO 8601 time")
 const ok = z.object({ ok: z.literal(true) })
@@ -152,7 +152,47 @@ async function slotRow(db: Db, orgId: string, body: Partial<z.infer<typeof SlotF
   return row
 }
 
+const imageOf = async (db: Db, orgId: string, id: string) => {
+  const { data } = await db.from("events").select("image_path").eq("id", id).eq("org_id", orgId).is("deleted_at", null).maybeSingle()
+  if (!data) throw notFound()
+  return data.image_path
+}
+
 export const endpoints: Endpoint[] = [
+  endpoint({
+    method: "PUT",
+    path: "/events/{id}/image",
+    permission: "events.manage",
+    tag: "Events",
+    summary: "Upload the event picture",
+    description: "Send the image itself as the body (`Content-Type: image/jpeg|png|webp|gif`, max. 2 MB). Replaces the previous picture.",
+    upload: "image",
+    response: z.object({ image_url: z.string() }),
+    async handler({ db, orgId, params, request }) {
+      const previous = await imageOf(db, orgId, params.id)
+      const path = await putImage(db, request, `orgs/${orgId}/events/${params.id}`, previous)
+      const { error } = await db.from("events").update({ image_path: path }).eq("id", params.id).eq("org_id", orgId)
+      if (error) throw dbError(error)
+      refreshPublicFromApi(orgId)
+      return { image_url: imageUrl(path) }
+    },
+  }),
+  endpoint({
+    method: "DELETE",
+    path: "/events/{id}/image",
+    permission: "events.manage",
+    tag: "Events",
+    summary: "Remove the event picture",
+    response: z.object({ ok: z.literal(true) }),
+    async handler({ db, orgId, params }) {
+      const previous = await imageOf(db, orgId, params.id)
+      const { error } = await db.from("events").update({ image_path: null }).eq("id", params.id).eq("org_id", orgId)
+      if (error) throw dbError(error)
+      await removeImage(db, previous)
+      refreshPublicFromApi(orgId)
+      return { ok: true }
+    },
+  }),
   endpoint({
     method: "GET",
     path: "/events",
