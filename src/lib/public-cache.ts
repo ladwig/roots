@@ -3,7 +3,7 @@
 // refreshPublic(orgId) (from Server Actions) for an immediate update; without it data is at most ~1 minute old
 // (cacheLife "minutes" = safety net, so a forgotten refresh costs little).
 // Live data stays uncached: ticket availability/shop, waiting-list claims, form submissions, checkout, portal.
-import { cacheLife, cacheTag, updateTag } from "next/cache"
+import { cacheLife, cacheTag, revalidateTag, updateTag } from "next/cache"
 import { createPublicClient } from "@/lib/supabase/server"
 
 export const publicTag = (orgId: string) => `public:${orgId}`
@@ -11,6 +11,10 @@ export const publicTag = (orgId: string) => `public:${orgId}`
 /** After a change to an org's public data (Server Actions only): the next visit renders fresh. */
 export function refreshPublic(orgId: string) {
   updateTag(publicTag(orgId))
+}
+/** Same from a Route Handler (API), where updateTag isn't available: the next visit blocks for fresh data. */
+export function refreshPublicFromApi(orgId: string) {
+  revalidateTag(publicTag(orgId), { expire: 0 })
 }
 
 export async function cachedOrg(slug: string) {

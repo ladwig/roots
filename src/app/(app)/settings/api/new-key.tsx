@@ -43,6 +43,16 @@ export function NewKey({ groups }: { groups: { module: string; label: string; pe
         <Label htmlFor="key-name">{t("api.name")}</Label>
         <Input id="key-name" name="name" required maxLength={100} placeholder={t("api.namePlaceholder")} />
       </div>
+      <div className="grid gap-2">
+        <Label htmlFor="key-expires">{t("api.expires")}</Label>
+        <select id="key-expires" name="expires" defaultValue="365" className="h-9 w-full max-w-xs rounded-md border border-input bg-transparent px-2 text-sm">
+          {["30", "90", "365", "0"].map((d) => (
+            <option key={d} value={d}>
+              {t.dynamic(`api.expiresIn.${d}`)}
+            </option>
+          ))}
+        </select>
+      </div>
       <fieldset className="grid gap-3">
         <legend className="mb-1 text-sm font-medium">{t("api.permissions")}</legend>
         {groups.map((g) => (

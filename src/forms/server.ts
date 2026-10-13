@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
+import { slugify } from "@/app/(app)/events/slug"
+import type { T } from "@/i18n/translate"
 import type { Database } from "@/lib/supabase/types"
-import type { Submission } from "./elements"
+import { template, type Purpose, type Submission } from "./elements"
 
 type Db = SupabaseClient<Database>
 
@@ -60,4 +62,47 @@ export async function membershipFromSubmission(db: Db, orgId: string, s: Submiss
       due_on: startsOn,
     })
   return { contactId, membershipId: data.id }
+}
+
+/** New form from the purpose's template with a free slug (App + API). Returns the insert result. */
+export async function insertForm(db: Db, org: { id: string; name: string }, title: string, purpose: Purpose, t: T) {
+  const base = slugify(title) || "form"
+  const { data: taken } = await db.from("forms").select("slug").eq("org_id", org.id).like("slug", `${base}%`)
+  let slug = base
+  for (let i = 2; taken?.some((x) => x.slug === slug); i++) slug = `${base}-${i}`
+  return db
+    .from("forms")
+    .insert({
+      org_id: org.id,
+      title,
+      slug,
+      purpose,
+      elements: template(purpose, { privacy: t("forms.defaultPrivacy", { org: org.name }), statutes: t("forms.defaultStatutes") }) as never,
+      success_text: t(purpose === "membership" ? "forms.defaultSuccessMembership" : "forms.defaultSuccess"),
+    })
+    .select("id")
+    .single()
+}
+
+/**
+ * Accept a new submission (App + API): membership application → contact + membership (+ entry fee), contact form →
+ * contact. "not_allowed" when it isn't new/of this org or a membership needs members.manage the caller lacks.
+ * Database errors are thrown. The caller runs deliverSoon().
+ */
+export async function acceptSubmission(db: Db, orgId: string, id: string, opts: { canMembers: () => boolean | Promise<boolean>; t: T }) {
+  const { data: sub } = await db.from("form_submissions").select("id, data, status, created_at, forms(purpose, settings)").eq("id", id).eq("org_id", orgId).maybeSingle()
+  if (!sub || sub.status !== "new") return "not_allowed" as const
+  const tags = ((sub.forms?.settings as { tags?: string[] })?.tags ?? []).slice(0, 20)
+  const data = sub.data as unknown as Submission
+  if (sub.forms?.purpose === "membership") {
+    if (!(await opts.canMembers())) return "not_allowed" as const
+    const r = await membershipFromSubmission(db, orgId, data, sub.created_at, tags, (type) => opts.t("membership.entryFeeText", { type }))
+    const { error } = await db.from("form_submissions").update({ status: "accepted", contact_id: r.contactId, membership_id: r.membershipId }).eq("id", id).eq("org_id", orgId)
+    if (error) throw error
+    return r
+  }
+  const contactId = await upsertContact(db, orgId, data, tags)
+  const { error } = await db.from("form_submissions").update({ status: "accepted", contact_id: contactId }).eq("id", id).eq("org_id", orgId)
+  if (error) throw error
+  return { contactId, membershipId: null }
 }

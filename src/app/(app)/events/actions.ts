@@ -9,10 +9,9 @@ import { removeImage, replaceImage } from "@/lib/images"
 import { fromLocalInput } from "@/lib/time"
 import { refreshPublic } from "@/lib/public-cache"
 import { back } from "@/lib/url"
-import { slugify } from "./slug"
+import { checkEvent, EVENT_STATUSES, insertEvent } from "./fields"
 
 const PATH = "/events"
-const STATUSES = ["draft", "published", "cancelled"] as const
 
 async function manager() {
   const ctx = await requirePerm("events.manage")
@@ -27,47 +26,32 @@ const idOf = (fd: FormData) => String(fd.get("id") ?? "")
 
 // Validates the form; returns the row or an errors.* key.
 function readEvent(fd: FormData) {
-  const title = text(fd, "title")
-  if (!title || title.length > 200) return { error: "errors.invalid_input" }
   const starts = fromLocalInput(String(fd.get("starts_at") ?? ""))
   if (!starts) return { error: "errors.invalid_time" }
   const endsRaw = text(fd, "ends_at")
   const ends = endsRaw ? fromLocalInput(endsRaw) : null
   if (endsRaw && !ends) return { error: "errors.invalid_time" }
-  if (ends && ends <= starts) return { error: "errors.end_before_start" }
   const capRaw = text(fd, "capacity")
-  const capacity = capRaw ? Number(capRaw) : null
-  if (capacity !== null && !(Number.isInteger(capacity) && capacity > 0)) return { error: "errors.invalid_input" }
-  const slug = text(fd, "slug")
-  if (slug && !/^[a-z0-9][a-z0-9-]{0,78}[a-z0-9]$/.test(slug)) return { error: "errors.invalid_input" }
-  return {
-    row: {
-      title,
-      starts_at: starts.toISOString(),
-      ends_at: ends?.toISOString() ?? null,
-      location_id: /^[0-9a-f-]{36}$/.test(String(fd.get("location") ?? "")) ? String(fd.get("location")) : null,
-      venue_name: text(fd, "venue_name")?.slice(0, 200) ?? null,
-      venue_address: text(fd, "venue_address")?.slice(0, 500) ?? null,
-      description: text(fd, "description")?.slice(0, 20000) ?? null,
-      capacity,
-    },
-    slug,
+  const row = {
+    title: text(fd, "title") ?? "",
+    starts_at: starts.toISOString(),
+    ends_at: ends?.toISOString() ?? null,
+    location_id: /^[0-9a-f-]{36}$/.test(String(fd.get("location") ?? "")) ? String(fd.get("location")) : null,
+    venue_name: text(fd, "venue_name")?.slice(0, 200) ?? null,
+    venue_address: text(fd, "venue_address")?.slice(0, 500) ?? null,
+    description: text(fd, "description")?.slice(0, 20000) ?? null,
+    capacity: capRaw ? Number(capRaw) : null,
   }
+  const slug = text(fd, "slug")
+  const error = checkEvent(row, slug)
+  return error ? { error } : { row, slug }
 }
 
 export async function createEvent(fd: FormData) {
   const { ctx, t } = await manager()
   const r = readEvent(fd)
   if ("error" in r) back(`${PATH}?new=event`, { error: t.dynamic(r.error!) })
-  const insert = (slug: string) =>
-    ctx.supabase
-      .from("events")
-      .insert({ ...r.row!, org_id: ctx.org.id, slug })
-      .select("id")
-      .single()
-  let res = await insert(r.slug ?? slugify(r.row!.title))
-  // Auto address taken (same title as another event) → add a short suffix once.
-  if (res.error?.code === "23505" && !r.slug) res = await insert(`${slugify(r.row!.title).slice(0, 74)}-${crypto.randomUUID().slice(0, 4)}`)
+  const res = await insertEvent(ctx.supabase, { ...r.row!, org_id: ctx.org.id }, r.slug ?? null)
   if (res.error) back(`${PATH}?new=event`, { error: res.error.code === "23505" ? t("errors.slug_taken") : dbError(t, res.error) })
   refreshPublic(ctx.org.id) // public pages show this
   back(`${PATH}?edit=${res.data!.id}`, { ok: t("eventsPage.created") })
@@ -94,9 +78,9 @@ export async function updateEvent(fd: FormData) {
 export async function setEventStatus(fd: FormData) {
   const { ctx, t } = await manager()
   const id = idOf(fd)
-  const status = fd.get("status") as (typeof STATUSES)[number]
+  const status = fd.get("status") as (typeof EVENT_STATUSES)[number]
   const here = `${PATH}?edit=${id}`
-  if (!STATUSES.includes(status)) back(here, { error: t("errors.invalid_input") })
+  if (!EVENT_STATUSES.includes(status)) back(here, { error: t("errors.invalid_input") })
   const { error, count } = await ctx.supabase.from("events").update({ status }, { count: "exact" }).eq("id", id).eq("org_id", ctx.org.id)
   if (error || !count) back(here, { error: error ? dbError(t, error) : t("errors.not_allowed") })
   deliverSoon()

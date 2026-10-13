@@ -3,7 +3,7 @@
 import { parseTags } from "@/app/(app)/contacts/fields"
 import { AUTOMATION_EVENTS } from "@/email/events"
 import { contactVars, FORMATS, renderMail } from "@/email/render"
-import { queueCampaign, type Audience } from "@/email/server"
+import { queueCampaign, sendProblem, type Audience } from "@/email/server"
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
@@ -60,8 +60,8 @@ export async function saveCampaign(fd: FormData) {
     back(here, ok ? { ok: t("email.testSent", { email: ctx.email }) } : { error: t("email.noProvider") })
   }
   if (intent === "send" || intent === "schedule") {
-    if (!c.subject || !c.body.replace(/<[^>]+>/g, "").trim()) back(here, { error: t("email.subjectBodyRequired") })
-    if (!c.audience.tags?.length && !c.audience.members) back(here, { error: t("email.audienceRequired") })
+    const problem = sendProblem(c)
+    if (problem) back(here, { error: t(problem) })
     if (intent === "schedule") {
       const at = fromLocalInput(str(fd, "send_at", 20))
       if (!at || at <= new Date()) back(here, { error: t("email.scheduleInvalid") })

@@ -715,6 +715,32 @@ begin
   select count(*) into n from public.files where org_id = org_a;              assert n = 0, 'B sees files of A';
   reset role;
 
+  -- API keys: the service role gets org rights only with a live key of that org (x-api-key-hash + x-org-id),
+  -- only for the key's permissions that its creator (A, owner) still has; never owner rights.
+  reset role;
+  insert into public.api_keys (org_id, name, prefix, key_hash, permissions, created_by)
+    values (org_a, 'k', 'roots_aaaaaa', repeat('b', 64), '{events.manage}', a), (org_a, 'c', 'roots_cccccc', repeat('d', 64), '{events.manage}', c);
+  perform set_config('request.jwt.claims', json_build_object('role', 'service_role')::text, true);
+  perform set_config('request.headers', json_build_object('x-org-id', org_a)::text, true);
+  assert not public.has_perm(org_a, 'events.manage'), 'service role without key has no org rights';
+  perform set_config('request.headers', json_build_object('x-org-id', org_a, 'x-api-key-hash', repeat('b', 64))::text, true);
+  assert public.has_perm(org_a, 'events.manage'), 'live key passes its permission';
+  assert public.is_member(org_a), 'live key counts as member';
+  assert not public.has_perm(org_a, 'crm.manage'), 'key passes only its own permissions';
+  assert not public.is_owner(org_a), 'keys never get owner rights';
+  assert not public.has_perm(org_b, 'events.manage'), 'key passes nothing in another org';
+  perform set_config('request.headers', json_build_object('x-org-id', org_b, 'x-api-key-hash', repeat('b', 64))::text, true);
+  assert not public.has_perm(org_b, 'events.manage'), 'key with another org header passes nothing';
+  perform set_config('request.headers', json_build_object('x-org-id', org_a, 'x-api-key-hash', repeat('d', 64))::text, true);
+  assert not public.has_perm(org_a, 'events.manage'), 'key cannot exceed its creator (C is a plain member)';
+  update public.api_keys set expires_at = now() - interval '1 second' where key_hash = repeat('b', 64);
+  perform set_config('request.headers', json_build_object('x-org-id', org_a, 'x-api-key-hash', repeat('b', 64))::text, true);
+  assert not public.has_perm(org_a, 'events.manage'), 'expired key passes nothing';
+  update public.api_keys set expires_at = null, revoked_at = now() where key_hash = repeat('b', 64);
+  assert not public.has_perm(org_a, 'events.manage'), 'revoked key passes nothing';
+  perform set_config('request.headers', '{}', true);
+  perform set_config('request.jwt.claims', '{}', true);
+
   -- x-org-id header: C is now in A and B, but with the header only sees the active org
   perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
   set local role authenticated;

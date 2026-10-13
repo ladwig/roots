@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server"
 
 const ROOT = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "localhost:3000"
 // App paths reachable without signing in.
-const PUBLIC_PATHS = ["/login", "/forgot", "/auth", "/invite", "/api/webhooks", "/api/integrations", "/api/cron", "/api/v1", "/api/docs", "/api/unsubscribe", "/checkout", "/s", "/u", "/site", "/style"]
+const PUBLIC_PATHS = ["/login", "/forgot", "/auth", "/invite", "/api/webhooks", "/api/integrations", "/api/cron", "/api/v1", "/api/public", "/api/docs", "/api/unsubscribe", "/checkout", "/s", "/u", "/site", "/style"]
 // On the bare domain these stay at the root; every other App path lives under /app there.
 const ROOT_PATHS = ["/login", "/forgot", "/auth", "/invite", "/api", "/checkout", "/s", "/u", "/site", "/style"]
 const SITE_PAGES = ["/product", "/imprint", "/privacy"]

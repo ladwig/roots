@@ -5,6 +5,7 @@ import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { fromLocalInput } from "@/lib/time"
 import { back } from "@/lib/url"
+import { checkCode, checkTicketType, checkTier, normalizeCode } from "@/tickets/fields"
 import { parsePrice } from "@/tickets/price"
 
 async function manager(eventId: string) {
@@ -24,10 +25,11 @@ function readType(fd: FormData) {
   const endRaw = String(fd.get("sales_end") ?? "").trim()
   const sales_start = startRaw ? fromLocalInput(startRaw)?.toISOString() : null
   const sales_end = endRaw ? fromLocalInput(endRaw)?.toISOString() : null
-  if (!name || (quota !== null && !(Number.isInteger(quota) && quota > 0))) return { error: "errors.invalid_input" }
-  if (sales_start === undefined || sales_end === undefined) return { error: "errors.invalid_time" }
-  if (sales_start && sales_end && sales_end <= sales_start) return { error: "errors.end_before_start" }
-  return { row: { name, description, quota, sales_start, sales_end, hidden: fd.get("hidden") === "1" } }
+  const error =
+    checkTicketType({ name, quota, sales_start: sales_start ?? null, sales_end: sales_end ?? null }) ??
+    (sales_start === undefined || sales_end === undefined ? "errors.invalid_time" : null)
+  if (error) return { error }
+  return { row: { name, description, quota, sales_start: sales_start ?? null, sales_end: sales_end ?? null, hidden: fd.get("hidden") === "1" } }
 }
 
 export async function saveTicketType(fd: FormData) {
@@ -87,7 +89,7 @@ export async function saveTier(fd: FormData) {
   const endRaw = String(fd.get("sales_end") ?? "").trim()
   const sales_end = endRaw ? fromLocalInput(endRaw)?.toISOString() : null
   const position = Number(fd.get("position") ?? 0)
-  if (!name || (quota !== null && !(Number.isInteger(quota) && quota > 0)) || !Number.isInteger(position)) back(retry, { error: t("errors.invalid_input") })
+  if (checkTier({ name, quota, position })) back(retry, { error: t("errors.invalid_input") })
   if (price === null) back(retry, { error: t("tickets.invalidPrice") })
   if (sales_end === undefined) back(retry, { error: t("errors.invalid_time") })
   const row = { name, price, quota, sales_end, position }
@@ -113,7 +115,7 @@ export async function saveCode(fd: FormData) {
   const { ctx, t, here } = await manager(eventId)
   const id = String(fd.get("id") ?? "")
   const retry = `${here}?${id ? `code=${id}` : "new=code"}`
-  const code = String(fd.get("code") ?? "").trim().toUpperCase().replace(/\s+/g, "-")
+  const code = normalizeCode(String(fd.get("code") ?? ""))
   const kind = String(fd.get("kind") ?? "")
   const raw = String(fd.get("value") ?? "").trim()
   const value = kind === "percent" ? Number(raw) : kind === "amount" ? parsePrice(raw) : 0
@@ -124,13 +126,11 @@ export async function saveCode(fd: FormData) {
   const valid_from = fromRaw ? fromLocalInput(fromRaw)?.toISOString() : null
   const valid_until = untilRaw ? fromLocalInput(untilRaw)?.toISOString() : null
   const type_ids = fd.getAll("type_ids").map(String).filter((v) => /^[0-9a-f-]{36}$/.test(v))
-  if (!/^[A-Z0-9][A-Z0-9-]{1,38}[A-Z0-9]$/.test(code)) back(retry, { error: t("tickets.codeFormat") })
-  if (!["percent", "amount", "none"].includes(kind) || value === null || !Number.isInteger(value) || value < 0 || (kind === "percent" && (value < 1 || value > 100)))
-    back(retry, { error: t("tickets.codeValue") })
-  if ((max_uses !== null && !(Number.isInteger(max_uses) && max_uses > 0)) || valid_from === undefined || valid_until === undefined)
-    back(retry, { error: t("errors.invalid_input") })
-  if (valid_from && valid_until && valid_until <= valid_from) back(retry, { error: t("errors.end_before_start") })
-  const row = { code, kind, value: value!, max_uses, valid_from, valid_until, type_ids, active: fd.getAll("active").includes("1") }
+  const invalid =
+    checkCode({ code, kind, value, max_uses, valid_from: valid_from ?? null, valid_until: valid_until ?? null }) ??
+    (valid_from === undefined || valid_until === undefined ? "errors.invalid_input" : null)
+  if (invalid) back(retry, { error: t.dynamic(invalid) })
+  const row = { code, kind, value: value!, max_uses, valid_from: valid_from ?? null, valid_until: valid_until ?? null, type_ids, active: fd.getAll("active").includes("1") }
   const { error } = id
     ? await ctx.supabase.from("ticket_codes").update(row).eq("id", id).eq("event_id", eventId)
     : await ctx.supabase.from("ticket_codes").insert({ ...row, org_id: ctx.org.id, event_id: eventId })

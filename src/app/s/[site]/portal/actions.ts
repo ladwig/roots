@@ -3,11 +3,11 @@
 import { redirect } from "next/navigation"
 import { deliverSoon } from "@/events/worker"
 import { getT } from "@/i18n/server"
-import { sendOrgEmail } from "@/lib/org-email"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { back, siteActionPath, siteUrl } from "@/lib/url"
+import { back, siteActionPath } from "@/lib/url"
 import { earliestEnd, type Interval } from "@/members/dues"
-import { createLoginToken, getPortalContact, signIn, signOut } from "@/portal/session"
+import { sendLoginLink } from "@/portal/login"
+import { getPortalContact, signIn, signOut } from "@/portal/session"
 import { getSite } from "../data"
 
 const str = (fd: FormData, key: string, max: number) => String(fd.get(key) ?? "").trim().slice(0, max) || null
@@ -26,28 +26,7 @@ export async function requestLink(fd: FormData) {
   const { slug, org, here } = await site(fd)
   const email = str(fd, "email", 320)?.toLowerCase()
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) back(here, { error: t("errors.invalid_email") })
-  // ponytail: simple flood guard per address (3 links per 10 minutes); a per-IP limit if the form gets abused.
-  const db = createAdminClient()
-  const { data: contact } = await db.from("contacts").select("id").eq("org_id", org.id).eq("email", email).is("deleted_at", null).maybeSingle()
-  const { count } = contact
-    ? await db.from("portal_tokens").select("id", { count: "exact", head: true }).eq("contact_id", contact.id).eq("kind", "login").gt("created_at", new Date(Date.now() - 600_000).toISOString())
-    : { count: 0 }
-  if ((count ?? 0) < 3) {
-    const login = await createLoginToken(org.id, email)
-    if (login) {
-      const link = `${siteUrl(slug, "/portal/login")}?token=${login.token}`
-      const text = [t("portal.mailHello", { name: login.firstName ?? "" }), "", t("portal.mailIntro", { org: org.name }), "", link, "", t("portal.mailNote")].join("\n")
-      await sendOrgEmail(org.id, {
-        to: email,
-        subject: t("portal.mailSubject", { org: org.name }),
-        text,
-        html: `<div style="font:15px/1.6 system-ui,sans-serif">${text
-          .split("\n")
-          .map((l) => (l === link ? `<p><a href="${link}" style="display:inline-block;padding:10px 16px;background:#15803d;color:#fff;border-radius:8px;text-decoration:none">${t("portal.mailButton")}</a></p>` : `<p style="margin:0 0 8px">${l.replace(/[<>&]/g, "")}</p>`))
-          .join("")}</div>`,
-      }).catch(console.error)
-    }
-  }
+  await sendLoginLink(org, slug, email, t)
   redirect(`${here}?sent=1`)
 }
 

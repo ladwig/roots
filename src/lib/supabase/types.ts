@@ -7,14 +7,14 @@ export type Database = {
           Tables: {
             "api_keys": {
                   Row: {
-                    "created_at": string,"created_by": string | null,"id": string,"key_hash": string,"last_used_at": string | null,"name": string,"org_id": string,"permissions": (string)[],"prefix": string,"revoked_at": string | null,"updated_at": string,"updated_by": string | null
+                    "created_at": string,"created_by": string | null,"expires_at": string | null,"id": string,"key_hash": string,"last_used_at": string | null,"name": string,"org_id": string,"permissions": (string)[],"prefix": string,"revoked_at": string | null,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"key_hash": string,"last_used_at"?: string | null,"name": string,"org_id": string,"permissions"?: (string)[],"prefix": string,"revoked_at"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"expires_at"?: string | null,"id"?: string,"key_hash": string,"last_used_at"?: string | null,"name": string,"org_id": string,"permissions"?: (string)[],"prefix": string,"revoked_at"?: string | null,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"key_hash"?: string,"last_used_at"?: string | null,"name"?: string,"org_id"?: string,"permissions"?: (string)[],"prefix"?: string,"revoked_at"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"expires_at"?: string | null,"id"?: string,"key_hash"?: string,"last_used_at"?: string | null,"name"?: string,"org_id"?: string,"permissions"?: (string)[],"prefix"?: string,"revoked_at"?: string | null,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {

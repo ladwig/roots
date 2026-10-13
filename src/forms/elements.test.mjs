@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { readSubmission, template } from "./elements.ts"
+import { checkElements, readSubmission, template } from "./elements.ts"
 
 const els = template("membership", { privacy: "Datenschutz", statutes: "Satzung" })
 const ctx = { purpose: "membership", customDefs: [], typeIds: ["t1"], today: "2027-01-01" }
@@ -35,4 +35,16 @@ test("fields not on the form are ignored", () => {
   assert.ok("data" in r)
   assert.equal(r.data.contact.company, null)
   assert.equal(r.data.membership, undefined)
+})
+
+test("checkElements: templates pass, duplicates and foreign elements don't", () => {
+  assert.equal(checkElements(els, "membership", []), null)
+  assert.equal(checkElements(template("contact", { privacy: "D", statutes: "S" }), "contact", []), null)
+  const f = (field, id = field) => ({ id, kind: "field", field, required: false })
+  assert.equal(checkElements([f("email"), f("email", "x")], "contact", []), "errors.invalid_input")
+  assert.equal(checkElements([f("email"), f("phone", "email")], "contact", []), "errors.invalid_input")
+  assert.equal(checkElements([f("membership.type")], "contact", []), "errors.invalid_input")
+  assert.equal(checkElements([{ id: "m", kind: "mandate" }], "contact", []), "errors.invalid_input")
+  assert.equal(checkElements([f("custom.size")], "contact", []), "errors.invalid_input")
+  assert.equal(checkElements([f("custom.size")], "contact", ["size"]), null)
 })

@@ -1,14 +1,12 @@
 "use server"
 
-import { pdfLogo } from "@/documents/load"
-import { renderPdf } from "@/documents/pdf"
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { getContext } from "@/lib/context"
 import { sendOrgEmail } from "@/lib/org-email"
 import { back } from "@/lib/url"
 import { cleanHtml, readFields } from "@/letters/model"
-import { contactVars, letterFileName, letterFromForm, loadTemplate } from "@/letters/server"
+import { contactVars, letterFileName, letterFromForm, letterPdf, loadTemplate, storeLetter, textHtml } from "@/letters/server"
 import { fill } from "@/email/render"
 
 const PATH = "/files/templates"
@@ -94,7 +92,7 @@ async function pdfFromForm(fd: FormData) {
   const t = await getT()
   const letter = await letterFromForm(ctx, t, fd)
   if (!letter) return { ctx, t, letter: null, bytes: null }
-  return { ctx, t, letter, bytes: await renderPdf(letter.view, letter.view.plain ? null : await pdfLogo(letter.view.logoUrl)) }
+  return { ctx, t, letter, bytes: await letterPdf(letter) }
 }
 
 /** The letter as a PDF in Dateien: attached to the contact, else in the "Briefe" folder. Called from the composer. */
@@ -102,24 +100,8 @@ export async function saveLetter(fd: FormData): Promise<{ ok?: string; error?: s
   const { ctx, t, letter, bytes } = await pdfFromForm(fd)
   if (!letter || !bytes) return { error: t("errors.not_allowed") }
   if (!ctx.can("org.files.manage")) return { error: t("errors.not_allowed") }
-  const path = `orgs/${ctx.org.id}/${crypto.randomUUID()}.pdf`
-  const { error: upload } = await ctx.supabase.storage.from("files").upload(path, bytes, { contentType: "application/pdf" })
-  if (upload) return { error: upload.message }
-  const { data, error } = await ctx.supabase
-    .from("files")
-    .insert({
-      org_id: ctx.org.id,
-      name: letterFileName(letter.title, letter.vars.name ?? ""),
-      path,
-      mime: "application/pdf",
-      size: bytes.length,
-      entity: letter.contactId ? "contacts" : null,
-      entity_id: letter.contactId,
-      folder: letter.contactId ? null : t("letters.folder"),
-    })
-    .select("id")
-    .single()
-  return error ? { error: dbError(t, error) } : { ok: t("letters.savedFile"), fileId: data.id }
+  const stored = await storeLetter(ctx, letter, bytes, t("letters.folder"))
+  return stored.error ? { error: "code" in stored.error ? dbError(t, stored.error) : stored.error.message } : { ok: t("letters.savedFile"), fileId: stored.id }
 }
 
 /** The letter as a PDF attachment to the contact's email address (org's email provider or roots' fallback). */
@@ -135,10 +117,7 @@ export async function sendLetter(fd: FormData): Promise<{ ok?: string; error?: s
       to: letter.email,
       subject: letter.title,
       text: message,
-      html: message
-        .split("\n\n")
-        .map((p) => `<p>${p.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`).replace(/\n/g, "<br>")}</p>`)
-        .join(""),
+      html: textHtml(message),
       attachments: [{ filename: letterFileName(letter.title, letter.vars.name ?? ""), content: bytes }],
     })
     return sent ? { ok: t("letters.sent") } : { error: t("email.noProvider") }

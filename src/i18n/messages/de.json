@@ -1143,7 +1143,15 @@
     "nameMissing": "Bitte gib dem Schlüssel einen Namen.",
     "permsMissing": "Bitte wähle mindestens ein Recht.",
     "noModules": "Für die API muss mindestens ein Modul aktiv sein.",
-    "corePermissions": "Allgemein"
+    "corePermissions": "Allgemein",
+    "expires": "Läuft ab",
+    "expiredBadge": "abgelaufen",
+    "expiresIn": {
+      "30": "in 30 Tagen",
+      "90": "in 90 Tagen",
+      "365": "in einem Jahr",
+      "0": "nie"
+    }
   },
   "invoices": {
     "nav": "Rechnungen",

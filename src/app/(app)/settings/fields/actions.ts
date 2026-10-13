@@ -3,6 +3,7 @@
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
+import { refreshPublic } from "@/lib/public-cache"
 import { CUSTOM_ENTITIES, FIELD_TYPES, fieldKey, type CustomEntity } from "@/lib/custom-fields"
 import { back } from "@/lib/url"
 
@@ -36,6 +37,7 @@ export async function createField(fd: FormData) {
     position: count ?? 0,
   })
   if (error) back(here, { error: error.code === "23505" ? t("errors.field_exists") : dbError(t, error) })
+  refreshPublic(ctx.org.id) // public forms show the custom fields
   back(PATH, { ok: t("fields.created") })
 }
 
@@ -55,6 +57,7 @@ export async function updateField(fd: FormData) {
     .update({ label: f.label, required: f.required, ...(old.type === "select" ? { options: f.options } : {}) })
     .eq("id", id)
   if (error) back(here, { error: dbError(t, error) })
+  refreshPublic(ctx.org.id)
   back(PATH, { ok: t("fields.saved") })
 }
 
@@ -65,5 +68,6 @@ export async function deleteField(fd: FormData) {
   const id = String(fd.get("id") ?? "")
   const { error, count } = await ctx.supabase.from("custom_fields").delete({ count: "exact" }).eq("id", id).eq("org_id", ctx.org.id)
   if (error || !count) back(`${PATH}?edit=${id}`, { error: error ? dbError(t, error) : t("errors.not_allowed") })
+  refreshPublic(ctx.org.id)
   back(PATH, { ok: t("fields.deleted") })
 }

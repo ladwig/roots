@@ -1143,7 +1143,15 @@
     "nameMissing": "Please give the key a name.",
     "permsMissing": "Please pick at least one permission.",
     "noModules": "The API needs at least one enabled module.",
-    "corePermissions": "General"
+    "corePermissions": "General",
+    "expires": "Expires",
+    "expiredBadge": "expired",
+    "expiresIn": {
+      "30": "in 30 days",
+      "90": "in 90 days",
+      "365": "in one year",
+      "0": "never"
+    }
   },
   "invoices": {
     "nav": "Invoices",

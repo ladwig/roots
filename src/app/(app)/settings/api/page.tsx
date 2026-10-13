@@ -16,7 +16,7 @@ export default async function ApiSettings({ searchParams }: PageProps<"/settings
   const sp = await searchParams
   const { data: keys } = await ctx.supabase
     .from("api_keys")
-    .select("id, name, prefix, permissions, last_used_at, revoked_at, created_at")
+    .select("id, name, prefix, permissions, last_used_at, revoked_at, expires_at, created_at")
     .eq("org_id", ctx.org.id)
     .order("created_at", { ascending: false })
   // Only what the creator may do themselves (the action checks the same).
@@ -57,10 +57,16 @@ export default async function ApiSettings({ searchParams }: PageProps<"/settings
             cell: (k) => (k.last_used_at ? t.date(k.last_used_at, { dateStyle: "short", timeStyle: "short" }) : t("api.never")),
           },
           {
+            header: t("api.expires"),
+            cell: (k) => (k.expires_at ? t.date(k.expires_at, { dateStyle: "short" }) : t("api.expiresIn.0")),
+          },
+          {
             header: "",
             cell: (k) =>
               k.revoked_at ? (
                 <Badge variant="secondary">{t("api.revokedBadge")}</Badge>
+              ) : k.expires_at && k.expires_at < new Date().toISOString() ? (
+                <Badge variant="secondary">{t("api.expiredBadge")}</Badge>
               ) : (
                 <form action={revokeApiKey}>
                   <input type="hidden" name="id" value={k.id} />

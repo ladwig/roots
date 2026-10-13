@@ -1,10 +1,10 @@
-import type { getT } from "@/i18n/server"
-import type { requirePerm } from "@/lib/context"
+import type { T } from "@/i18n/translate"
 import { imageUrl } from "@/lib/images"
+import type { Db } from "./drafts"
 import { buildView, type Seller } from "./model"
 
 /** A document as DocView, for the print page and the PDF route. Null if it isn't the org's. */
-export async function loadDocView(ctx: Awaited<ReturnType<typeof requirePerm>>, id: string, t: Awaited<ReturnType<typeof getT>>) {
+export async function loadDocView(ctx: { supabase: Db; org: { id: string; logo_path: string | null } }, id: string, t: T) {
   const [{ data: doc }, { data: billing }] = await Promise.all([
     ctx.supabase.from("documents").select("*, document_items(*)").eq("id", id).eq("org_id", ctx.org.id).maybeSingle(),
     ctx.supabase.from("org_billing").select("*").eq("org_id", ctx.org.id).maybeSingle(),

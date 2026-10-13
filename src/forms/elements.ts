@@ -107,3 +107,25 @@ export function readSubmission(
     }
   return { data: { contact, custom, membership, consents } }
 }
+
+/**
+ * A whole element list set at once (API): the same rules the builder enforces one step at a time. Returns an
+ * errors.* key or null. Known fields only (custom = the org's contact field keys), each field once, the mandate
+ * only on membership forms and only once, unique ids, consent labels not empty.
+ */
+export function checkElements(els: Element[], purpose: Purpose, customKeys: string[]): string | null {
+  const ids = new Set<string>()
+  const fields = new Set<string>()
+  let mandates = 0
+  for (const e of els) {
+    if (!e.id || ids.has(e.id)) return "errors.invalid_input"
+    ids.add(e.id)
+    if (e.kind === "field") {
+      if (!isKnownField(e.field, purpose, customKeys) || fields.has(e.field)) return "errors.invalid_input"
+      fields.add(e.field)
+    }
+    if (e.kind === "consent" && !e.label.trim()) return "errors.invalid_input"
+    if (e.kind === "mandate" && (purpose !== "membership" || ++mandates > 1)) return "errors.invalid_input"
+  }
+  return els.length > 100 ? "errors.invalid_input" : null
+}

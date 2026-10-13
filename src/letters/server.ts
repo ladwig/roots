@@ -1,12 +1,15 @@
 // Server side of letters: letterhead, the contact's placeholder values, and the finished DocView for PDF/save/send.
-import type { getT } from "@/i18n/server"
-import type { getContext } from "@/lib/context"
-import { imageUrl } from "@/lib/images"
+import { pdfLogo } from "@/documents/load"
 import { buildLetterView, type Seller } from "@/documents/model"
+import { renderPdf } from "@/documents/pdf"
+import type { Db } from "@/documents/drafts"
+import type { T } from "@/i18n/translate"
+import { imageUrl } from "@/lib/images"
 import { fieldVars, fillHtml, fillText, readFields, type Vars } from "./model"
 
-type Ctx = Awaited<ReturnType<typeof getContext>>
-type T = Awaited<ReturnType<typeof getT>>
+// The App's context or the API's (key-scoped client + org): only what letters need.
+export type LetterCtx = { supabase: Db; org: { id: string; name: string; logo_path: string | null } }
+type Ctx = LetterCtx
 export type LetterTemplate = { id: string; org_id: string | null; name: string; title: string; body: string; fields: unknown; letterhead: boolean }
 
 export const longDate = (t: T, iso: string) => t.date(`${iso}T12:00:00Z`, { dateStyle: "long" })
@@ -62,17 +65,55 @@ export async function loadTemplate(ctx: Ctx, id: string) {
 export async function letterFromForm(ctx: Ctx, t: T, fd: FormData) {
   const template = await loadTemplate(ctx, String(fd.get("template") ?? ""))
   if (!template) return null
-  const contactId = String(fd.get("contact") ?? "")
+  const values = Object.fromEntries(readFields(template.fields).map((f) => [f.key, String(fd.get(`f.${f.key}`) ?? "")]))
+  return fillLetter(ctx, t, template, { contactId: String(fd.get("contact") ?? ""), date: String(fd.get("date") ?? ""), values })
+}
+
+/** The filled letter: template + contact's placeholder values + date (YYYY-MM-DD, default today) + field values. */
+export async function fillLetter(ctx: Ctx, t: T, template: LetterTemplate, input: { contactId?: string | null; date?: string | null; values: Record<string, string> }) {
+  const contactId = input.contactId ?? ""
   const [head, contact] = await Promise.all([letterhead(ctx), contactId ? contactVars(ctx, t, contactId) : Promise.resolve(null)])
   const fields = readFields(template.fields)
-  const values = Object.fromEntries(fields.map((f) => [f.key, String(fd.get(`f.${f.key}`) ?? "")]))
-  const iso = String(fd.get("date") ?? "")
+  const values = Object.fromEntries(fields.map((f) => [f.key, input.values[f.key] ?? ""]))
+  const iso = input.date ?? ""
   const date = longDate(t, /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso : new Date().toISOString().slice(0, 10))
   const vars: Vars = { ...contact?.vars, org: head.seller.legal_name ?? ctx.org.name, today: date, ...fieldVars(fields, values, (d) => longDate(t, d)) }
   const title = fillText(template.title, vars) || template.name
   const view = buildLetterView({ title, body: fillHtml(template.body, vars), recipient: contact?.recipient ?? [], date, plain: !template.letterhead }, head.seller, head.logoUrl, t)
   return { template, view, title, vars, contactId: contact ? contactId : null, email: contact?.vars.email ?? "" }
 }
+export type Letter = NonNullable<Awaited<ReturnType<typeof fillLetter>>>
+
+export const letterPdf = async (letter: Letter) => renderPdf(letter.view, letter.view.plain ? null : await pdfLogo(letter.view.logoUrl))
+
+/** Stores the letter PDF in Dateien: attached to the contact, else in the given folder ("Briefe"). Returns the file id. */
+export async function storeLetter(ctx: Ctx, letter: Letter, bytes: Uint8Array, folder: string) {
+  const path = `orgs/${ctx.org.id}/${crypto.randomUUID()}.pdf`
+  const { error: upload } = await ctx.supabase.storage.from("files").upload(path, bytes, { contentType: "application/pdf" })
+  if (upload) return { error: { message: upload.message } }
+  const { data, error } = await ctx.supabase
+    .from("files")
+    .insert({
+      org_id: ctx.org.id,
+      name: letterFileName(letter.title, letter.vars.name ?? ""),
+      path,
+      mime: "application/pdf",
+      size: bytes.length,
+      entity: letter.contactId ? "contacts" : null,
+      entity_id: letter.contactId,
+      folder: letter.contactId ? null : folder,
+    })
+    .select("id")
+    .single()
+  return error ? { error } : { id: data.id }
+}
+
+/** Plain text → simple HTML paragraphs (escaped), for mails with a PDF attachment. */
+export const textHtml = (text: string) =>
+  text
+    .split("\n\n")
+    .map((p) => `<p>${p.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`).replace(/\n/g, "<br>")}</p>`)
+    .join("")
 
 /** "Mitgliedsbescheinigung – Erika Muster.pdf" */
 export const letterFileName = (title: string, name: string) =>

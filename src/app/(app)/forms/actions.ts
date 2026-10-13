@@ -3,8 +3,8 @@
 import { slugify } from "@/app/(app)/events/slug"
 import { parseTags } from "@/app/(app)/contacts/fields"
 import { deliverSoon } from "@/events/worker"
-import { isKnownField, PURPOSES, template, type Element, type Purpose, type Submission } from "@/forms/elements"
-import { membershipFromSubmission, upsertContact } from "@/forms/server"
+import { isKnownField, PURPOSES, type Element, type Purpose } from "@/forms/elements"
+import { acceptSubmission as accept, insertForm } from "@/forms/server"
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
@@ -41,22 +41,7 @@ export async function createForm(fd: FormData) {
   const purpose = PURPOSES.find((p) => p === fd.get("purpose")) ?? "contact"
   if (!title) back(`${PATH}?new=1`, { error: t("forms.titleRequired") })
   if (purpose === "membership" && !ctx.modules.has("members")) back(`${PATH}?new=1`, { error: t("forms.needsMembers") })
-  const base = slugify(title) || "form"
-  const { data: taken } = await ctx.supabase.from("forms").select("slug").eq("org_id", ctx.org.id).like("slug", `${base}%`)
-  let slug = base
-  for (let i = 2; taken?.some((x) => x.slug === slug); i++) slug = `${base}-${i}`
-  const { data, error } = await ctx.supabase
-    .from("forms")
-    .insert({
-      org_id: ctx.org.id,
-      title,
-      slug,
-      purpose,
-      elements: template(purpose, { privacy: t("forms.defaultPrivacy", { org: ctx.org.name }), statutes: t("forms.defaultStatutes") }) as never,
-      success_text: t(purpose === "membership" ? "forms.defaultSuccessMembership" : "forms.defaultSuccess"),
-    })
-    .select("id")
-    .single()
+  const { data, error } = await insertForm(ctx.supabase, ctx.org, title, purpose, t)
   if (error || !data) back(`${PATH}?new=1`, { error: dbError(t, error) })
   back(`${PATH}/${data.id}`, { ok: t("forms.created") })
 }
@@ -166,27 +151,13 @@ export async function acceptSubmission(fd: FormData) {
   const id = str(fd, "id", 36) ?? ""
   const back_ = String(fd.get("back") ?? "")
   const here = back_.startsWith("/forms/") ? back_ : PATH
-  const { data: sub } = await ctx.supabase
-    .from("form_submissions")
-    .select("id, data, status, created_at, forms(purpose, settings)")
-    .eq("id", id)
-    .eq("org_id", ctx.org.id)
-    .single()
-  if (!sub || sub.status !== "new") back(here, { error: t("errors.not_allowed") })
-  const tags = ((sub.forms?.settings as { tags?: string[] })?.tags ?? []).slice(0, 20)
-  const data = sub.data as unknown as Submission
-  if (sub.forms?.purpose === "membership" && !ctx.can("members.manage")) back(here, { error: t("errors.not_allowed") })
+  let r: Awaited<ReturnType<typeof accept>> | undefined
   try {
-    if (sub.forms?.purpose === "membership") {
-      const r = await membershipFromSubmission(ctx.supabase, ctx.org.id, data, sub.created_at, tags, (type) => t("membership.entryFeeText", { type }))
-      await ctx.supabase.from("form_submissions").update({ status: "accepted", contact_id: r.contactId, membership_id: r.membershipId }).eq("id", id)
-    } else {
-      const contactId = await upsertContact(ctx.supabase, ctx.org.id, data, tags)
-      await ctx.supabase.from("form_submissions").update({ status: "accepted", contact_id: contactId }).eq("id", id)
-    }
+    r = await accept(ctx.supabase, ctx.org.id, id, { canMembers: () => ctx.can("members.manage"), t })
   } catch (e) {
     back(here, { error: dbError(t, e as { message?: string; code?: string }) })
   }
+  if (r === "not_allowed") back(here, { error: t("errors.not_allowed") })
   deliverSoon()
   back(here, { ok: t("forms.accepted") })
 }

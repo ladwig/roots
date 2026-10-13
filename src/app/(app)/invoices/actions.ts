@@ -8,13 +8,12 @@ import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { refreshPublic } from "@/lib/public-cache"
 import { back } from "@/lib/url"
-import { TAX_RATES, totals, UNITS } from "@/documents/calc"
+import { TAX_RATES, UNITS } from "@/documents/calc"
+import { BIC, copyDocument as copyDraft, createDraft, IBAN, issueDraft, validRangeFormat, VAT_ID, writeDraft } from "@/documents/drafts"
 import { TEMPLATES } from "@/documents/templates"
 import { parsePrice } from "@/tickets/price"
 
 const PATH = "/invoices"
-const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" }) // YYYY-MM-DD
-const addDays = (d: string, n: number) => new Date(new Date(`${d}T12:00:00Z`).getTime() + n * 86_400_000).toISOString().slice(0, 10)
 const text = (fd: FormData, k: string, max: number) => String(fd.get(k) ?? "").trim().slice(0, max) || null
 const date = (fd: FormData, k: string) => {
   const v = String(fd.get(k) ?? "")
@@ -28,45 +27,17 @@ async function manager() {
   return { ctx, t }
 }
 type Ctx = Awaited<ReturnType<typeof manager>>["ctx"]
-
-async function billing(ctx: Ctx) {
-  const { data } = await ctx.supabase.from("org_billing").select("*").eq("org_id", ctx.org.id).maybeSingle()
-  return data
-}
+type T = Awaited<ReturnType<typeof getT>>
+// Shared draft logic reports "not_found" for documents of other orgs; the App says "not allowed" there.
+const draftError = (t: T, e: { code?: string; message: string }) => (e.message === "not_found" ? t("errors.not_allowed") : dbError(t, e))
 
 export async function createDocument(fd: FormData) {
   const { ctx, t } = await manager()
   const kind = fd.get("kind") === "quote" ? "quote" : "invoice"
-  const b = await billing(ctx)
   const contactId = String(fd.get("contact") ?? "")
-  let recipient: { recipient_name?: string | null; recipient_address?: string | null; recipient_email?: string | null; contact_id?: string } = {}
-  if (/^[0-9a-f-]{36}$/.test(contactId)) {
-    const { data: c } = await ctx.supabase.from("contacts").select("id, first_name, last_name, company, email, street, postal_code, city").eq("id", contactId).eq("org_id", ctx.org.id).maybeSingle()
-    if (c)
-      recipient = {
-        contact_id: c.id,
-        recipient_name: c.company || [c.first_name, c.last_name].filter(Boolean).join(" ") || null,
-        recipient_address: [c.company ? [c.first_name, c.last_name].filter(Boolean).join(" ") : "", c.street ?? "", [c.postal_code, c.city].filter(Boolean).join(" ")].filter(Boolean).join("\n") || null,
-        recipient_email: c.email,
-      }
-  }
-  const d = today()
-  const { data, error } = await ctx.supabase
-    .from("documents")
-    .insert({
-      org_id: ctx.org.id,
-      kind,
-      tax_mode: b?.tax_mode ?? "standard",
-      intro: kind === "quote" ? b?.quote_intro : b?.invoice_intro,
-      outro: kind === "quote" ? b?.quote_outro : b?.invoice_outro,
-      service_from: kind === "invoice" ? d : null,
-      valid_until: kind === "quote" ? addDays(d, b?.quote_days ?? 30) : null,
-      ...recipient,
-    })
-    .select("id")
-    .single()
+  const { id, error } = await createDraft(ctx.supabase, ctx.org.id, kind, /^[0-9a-f-]{36}$/.test(contactId) ? contactId : null)
   if (error) back(PATH, { error: dbError(t, error) })
-  redirect(`${PATH}/${data.id}`)
+  redirect(`${PATH}/${id}`)
 }
 
 const ItemInput = z.object({
@@ -79,12 +50,9 @@ const ItemInput = z.object({
 })
 
 // Saves header + items of a draft (items are replaced as a whole). Returns the id or redirects with an error.
-async function save(ctx: Ctx, t: Awaited<ReturnType<typeof getT>>, fd: FormData) {
+async function save(ctx: Ctx, t: T, fd: FormData) {
   const id = String(fd.get("id") ?? "")
   const here = `${PATH}/${id}`
-  const { data: doc } = await ctx.supabase.from("documents").select("id, status, tax_mode").eq("id", id).eq("org_id", ctx.org.id).maybeSingle()
-  if (!doc) back(PATH, { error: t("errors.not_allowed") })
-  if (doc.status !== "draft") back(here, { error: t("errors.document_locked") })
   let raw: unknown
   try {
     raw = JSON.parse(String(fd.get("items") ?? "[]"))
@@ -93,21 +61,18 @@ async function save(ctx: Ctx, t: Awaited<ReturnType<typeof getT>>, fd: FormData)
   }
   const parsed = z.array(ItemInput).max(200).safeParse(raw)
   if (!parsed.success) back(here, { error: t("invoices.itemsInvalid") })
-  const items = parsed.data.map((i, position) => {
+  const items = parsed.data.map((i) => {
     const quantity = Number(i.quantity.replace(/\./g, "").replace(",", ".")) || Number(i.quantity)
     const unit_price = parsePrice(i.unit_price)
-    return { position, title: i.title, description: i.description.trim() || null, quantity, unit: i.unit, unit_price, tax_rate: i.tax_rate }
+    return { title: i.title, description: i.description.trim() || null, quantity, unit: i.unit, unit_price, tax_rate: i.tax_rate }
   })
   if (items.some((i) => !(i.quantity > 0) || i.quantity > 1e8 || i.unit_price === null)) back(here, { error: t("invoices.itemsInvalid") })
-  const serviceFrom = date(fd, "service_from")
-  const serviceTo = date(fd, "service_to")
-  if (serviceFrom && serviceTo && serviceTo < serviceFrom) back(here, { error: t("errors.end_before_start") })
-  const small = fd.get("tax_mode") === "small_business"
-  const sum = totals(items.map((i) => ({ quantity: i.quantity, unit_price: i.unit_price!, tax_rate: i.tax_rate })), small)
   const contact = String(fd.get("contact_id") ?? "")
-  const { error } = await ctx.supabase
-    .from("documents")
-    .update({
+  const error = await writeDraft(
+    ctx.supabase,
+    ctx.org.id,
+    id,
+    {
       title: text(fd, "title", 200),
       contact_id: /^[0-9a-f-]{36}$/.test(contact) ? contact : null,
       recipient_name: text(fd, "recipient_name", 200),
@@ -115,27 +80,18 @@ async function save(ctx: Ctx, t: Awaited<ReturnType<typeof getT>>, fd: FormData)
       recipient_email: text(fd, "recipient_email", 320),
       recipient_vat_id: text(fd, "recipient_vat_id", 20)?.toUpperCase().replace(/\s/g, "") ?? null,
       issue_date: date(fd, "issue_date"),
-      service_from: serviceFrom,
-      service_to: serviceTo,
+      service_from: date(fd, "service_from"),
+      service_to: date(fd, "service_to"),
       due_date: date(fd, "due_date"),
       valid_until: date(fd, "valid_until"),
       intro: text(fd, "intro", 5000),
       outro: text(fd, "outro", 5000),
       notes: text(fd, "notes", 5000),
-      tax_mode: small ? "small_business" : "standard",
-      net_total: sum.net,
-      tax_total: sum.tax,
-      gross_total: sum.gross,
-    })
-    .eq("id", id)
-  if (error) back(here, { error: dbError(t, error) })
-  // Replace items (drafts only; RLS refuses items of issued documents).
-  const del = await ctx.supabase.from("document_items").delete().eq("document_id", id)
-  if (del.error) back(here, { error: dbError(t, del.error) })
-  if (items.length) {
-    const ins = await ctx.supabase.from("document_items").insert(items.map((i) => ({ ...i, unit_price: i.unit_price!, org_id: ctx.org.id, document_id: id })))
-    if (ins.error) back(here, { error: dbError(t, ins.error) })
-  }
+      tax_mode: fd.get("tax_mode") === "small_business" ? "small_business" : "standard",
+    },
+    items.map((i) => ({ ...i, unit_price: i.unit_price! })),
+  )
+  if (error) back(error.message === "not_found" ? PATH : here, { error: draftError(t, error) })
   return id
 }
 
@@ -150,13 +106,8 @@ export async function issueDocument(fd: FormData) {
   const { ctx, t } = await manager()
   const id = await save(ctx, t, fd)
   const here = `${PATH}/${id}`
-  const { data: doc } = await ctx.supabase.from("documents").select("kind, issue_date, due_date").eq("id", id).single()
-  if (doc?.kind === "invoice" && !doc.due_date) {
-    const b = await billing(ctx)
-    await ctx.supabase.from("documents").update({ due_date: addDays(doc.issue_date ?? today(), b?.payment_days ?? 14) }).eq("id", id)
-  }
-  const { data: number, error } = await ctx.supabase.rpc("issue_document", { p_id: id })
-  if (error) back(here, { error: dbError(t, error) })
+  const { number, error } = await issueDraft(ctx.supabase, ctx.org.id, id)
+  if (error) back(here, { error: draftError(t, error) })
   deliverSoon()
   back(here, { ok: t("invoices.issued", { number: String(number) }) })
 }
@@ -178,42 +129,8 @@ export async function setDocumentStatus(fd: FormData) {
 export async function copyDocument(fd: FormData) {
   const { ctx, t } = await manager()
   const id = String(fd.get("id") ?? "")
-  const as = fd.get("as") === "invoice" ? "invoice" : null
-  const { data: src } = await ctx.supabase.from("documents").select("*, document_items(*)").eq("id", id).eq("org_id", ctx.org.id).maybeSingle()
-  if (!src) back(PATH, { error: t("errors.not_allowed") })
-  const kind = as ?? src.kind
-  const b = await billing(ctx)
-  const d = today()
-  const { data: copy, error } = await ctx.supabase
-    .from("documents")
-    .insert({
-      org_id: ctx.org.id,
-      kind,
-      source_id: src.id,
-      contact_id: src.contact_id,
-      title: kind === src.kind ? src.title : null,
-      recipient_name: src.recipient_name,
-      recipient_address: src.recipient_address,
-      recipient_email: src.recipient_email,
-      recipient_vat_id: src.recipient_vat_id,
-      intro: kind === src.kind ? src.intro : b?.invoice_intro,
-      outro: kind === src.kind ? src.outro : b?.invoice_outro,
-      tax_mode: src.tax_mode,
-      currency: src.currency,
-      service_from: kind === "invoice" ? d : null,
-      valid_until: kind === "quote" ? addDays(d, b?.quote_days ?? 30) : null,
-      net_total: src.net_total,
-      tax_total: src.tax_total,
-      gross_total: src.gross_total,
-    })
-    .select("id")
-    .single()
-  if (error) back(`${PATH}/${id}`, { error: dbError(t, error) })
-  const items = src.document_items.map(({ position, title, description, quantity, unit, unit_price, tax_rate }) => ({
-    position, title, description, quantity, unit, unit_price, tax_rate, org_id: ctx.org.id, document_id: copy.id,
-  }))
-  if (items.length) await ctx.supabase.from("document_items").insert(items)
-  if (as === "invoice" && src.kind === "quote" && src.status === "sent") await ctx.supabase.from("documents").update({ status: "accepted" }).eq("id", src.id)
+  const copy = await copyDraft(ctx.supabase, ctx.org.id, id, fd.get("as") === "invoice" ? "invoice" : null)
+  if (copy.error) back(copy.error.message === "not_found" ? PATH : `${PATH}/${id}`, { error: draftError(t, copy.error) })
   redirect(`${PATH}/${copy.id}`)
 }
 
@@ -243,9 +160,9 @@ export async function saveBilling(fd: FormData) {
   const vat = upper("vat_id", 20)
   const iban = upper("iban", 34)
   const bic = upper("bic", 11)
-  if (vat && !/^[A-Z]{2}[A-Z0-9]{2,13}$/.test(vat)) back(here, { error: t("invoices.vatInvalid") })
-  if (iban && !/^[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}$/.test(iban)) back(here, { error: t("invoices.ibanInvalid") })
-  if (bic && !/^[A-Z0-9]{8}([A-Z0-9]{3})?$/.test(bic)) back(here, { error: t("invoices.bicInvalid") })
+  if (vat && !VAT_ID.test(vat)) back(here, { error: t("invoices.vatInvalid") })
+  if (iban && !IBAN.test(iban)) back(here, { error: t("invoices.ibanInvalid") })
+  if (bic && !BIC.test(bic)) back(here, { error: t("invoices.bicInvalid") })
   const template = TEMPLATES.find((x) => x === fd.get("template")) ?? "classic"
   const days = (k: string, d: number) => Math.min(365, Math.max(0, Math.floor(Number(fd.get(k)) || d)))
   const { error } = await ctx.supabase.from("org_billing").upsert({
@@ -284,7 +201,7 @@ export async function saveNumberRange(fd: FormData) {
   const kind = fd.get("kind") === "quote" ? "quote" : "invoice"
   const format = String(fd.get("format") ?? "").trim().slice(0, 60)
   const next = Math.floor(Number(fd.get("next_number")))
-  if (!/\{N+\}/.test(format) || /[^A-Za-z0-9{}\-_/.#]/.test(format.replace(/\{(YYYY|YY|MM|N+)\}/g, ""))) back(here, { error: t("invoices.formatInvalid") })
+  if (!validRangeFormat(format)) back(here, { error: t("invoices.formatInvalid") })
   if (!(next >= 1 && next < 1e9)) back(here, { error: t("errors.invalid_input") })
   const { error } = await ctx.supabase
     .from("number_ranges")

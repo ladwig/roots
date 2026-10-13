@@ -9,6 +9,13 @@ import { contactVars, renderMail } from "./render"
 type Db = SupabaseClient<Database>
 export type Audience = { tags?: string[]; members?: "active" | null }
 
+/** Why a campaign can't go out yet (App + API): an email.* message key, or null. */
+export function sendProblem(c: { subject: string; body: string; audience: Audience }) {
+  if (!c.subject || !c.body.replace(/<[^>]+>/g, "").trim()) return "email.subjectBodyRequired" as const
+  if (!c.audience.tags?.length && !c.audience.members) return "email.audienceRequired" as const
+  return null
+}
+
 /** Who a campaign goes to: live contacts with an email, not unsubscribed, with any of the tags and/or an active membership. */
 export async function resolveAudience(db: Db, orgId: string, audience: Audience) {
   const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })

@@ -23,9 +23,12 @@ export async function createApiKey(_: unknown, fd: FormData): Promise<{ key?: st
   const permissions = [...new Set(fd.getAll("permissions").map(String))].filter((p) => allowed.has(p) && ctx.can(p))
   if (!name) return { error: t("api.nameMissing") }
   if (!permissions.length) return { error: t("api.permsMissing") }
+  // Expiry in days (0 = never). Default in the form: 1 year.
+  const days = [0, 30, 90, 365].includes(Number(fd.get("expires"))) ? Number(fd.get("expires")) : 365
+  const expires_at = days ? new Date(Date.now() + days * 86_400_000).toISOString() : null
   const prefix = `roots_${random(6)}`
   const key = `${prefix}${random(32)}`
-  const { error } = await ctx.supabase.from("api_keys").insert({ org_id: ctx.org.id, name, prefix, key_hash: hashKey(key), permissions })
+  const { error } = await ctx.supabase.from("api_keys").insert({ org_id: ctx.org.id, name, prefix, key_hash: hashKey(key), permissions, expires_at })
   if (error) return { error: dbError(t, error) }
   revalidatePath(PATH)
   return { key }
