@@ -1,7 +1,8 @@
 // Shift planning, server side: generating recurring shifts and the self-service view (own shifts, open shifts, hours).
 // Service role: callers resolve the staff row first (the signed-in member's own row).
 import { createAdminClient } from "@/lib/supabase/admin"
-import { occurrences, workedMinutes } from "./series"
+import { occurrences } from "./series"
+import { minutes } from "./time"
 
 const db = () => createAdminClient()
 const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
@@ -59,10 +60,12 @@ export async function selfView(staffId: string) {
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString()
   const soon = new Date(now.getTime() + 45 * 86_400_000).toISOString()
   const cols = "id, title, starts_at, ends_at, needed, open, position_id, positions(name), locations(name), events(title)"
-  const [{ data: mine }, { data: open }] = await Promise.all([
-    db().from("shift_assignments").select(`status, checked_in_at, checked_out_at, shifts!inner(${cols})`).eq("staff_id", staffId).gte("shifts.ends_at", monthStart).order("created_at"),
+  const [{ data: mine }, { data: open }, { data: entries }] = await Promise.all([
+    db().from("shift_assignments").select(`status, shifts!inner(${cols})`).eq("staff_id", staffId).gte("shifts.ends_at", monthStart).order("created_at"),
     db().from("shifts").select(`${cols}, shift_assignments(staff_id, status)`).eq("org_id", me.org_id).eq("open", true).gte("starts_at", now.toISOString()).lte("starts_at", soon).order("starts_at").limit(100),
+    db().from("time_entries").select("shift_id, started_at, ended_at, break_minutes").eq("staff_id", staffId).gte("started_at", monthStart),
   ])
+  const entryOf = (shiftId: string) => entries?.find((e) => e.shift_id === shiftId)
   const shape = (s: { id: string; title: string | null; starts_at: string; ends_at: string; positions: { name: string } | null; locations: { name: string } | null; events: { title: string } | null }): SelfShift => ({
     id: s.id,
     title: s.title,
@@ -72,13 +75,13 @@ export async function selfView(staffId: string) {
     location: s.locations?.name ?? null,
     event: s.events?.title ?? null,
   })
-  const own = (mine ?? []).map((a) => ({ ...shape(a.shifts), status: a.status, checked_in_at: a.checked_in_at, checked_out_at: a.checked_out_at })).sort((a, b) => a.starts_at.localeCompare(b.starts_at))
+  const own = (mine ?? []).map((a) => ({ ...shape(a.shifts), status: a.status, checked_in_at: entryOf(a.shifts.id)?.started_at ?? null, checked_out_at: entryOf(a.shifts.id)?.ended_at ?? null })).sort((a, b) => a.starts_at.localeCompare(b.starts_at))
   const mineIds = new Set(own.map((s) => s.id))
   const qualified = (pos: string | null) => !me.position_ids.length || !pos || me.position_ids.includes(pos)
   const openShifts = (open ?? [])
     .filter((s) => !mineIds.has(s.id) && qualified(s.position_id))
     .map((s) => ({ ...shape(s), free: s.needed - s.shift_assignments.filter((a) => a.status === "assigned").length }))
     .filter((s) => s.free > 0)
-  const minutes = own.filter((s) => s.status === "assigned").reduce((sum, s) => sum + workedMinutes({ checked_in_at: s.checked_in_at ?? null, checked_out_at: s.checked_out_at ?? null }, s.ends_at), 0)
-  return { me, own: own.filter((s) => s.ends_at >= now.toISOString() || (s.checked_in_at && !s.checked_out_at)), openShifts, hours: minutes / 60 }
+  const worked = (entries ?? []).filter((e) => e.ended_at).reduce((sum, e) => sum + minutes({ id: "", ...e }).net, 0)
+  return { me, own: own.filter((s) => s.ends_at >= now.toISOString() || (s.checked_in_at && !s.checked_out_at)), openShifts, hours: worked / 60 }
 }

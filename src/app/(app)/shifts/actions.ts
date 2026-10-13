@@ -87,13 +87,16 @@ export async function assign(fd: FormData) {
   if (!shift || !staff) back(back_, { error: t("errors.invalid_input") })
   const what = String(fd.get("what") ?? "assign")
   const q = ctx.supabase.from("shift_assignments")
+  const entries = ctx.supabase.from("time_entries")
+  const now = new Date().toISOString()
+  // Check-in/out on someone's behalf = their time entry for this shift.
   const { error } =
     what === "remove"
       ? await q.delete().eq("shift_id", shift).eq("staff_id", staff).eq("org_id", ctx.org.id)
       : what === "check_in"
-        ? await q.update({ checked_in_at: new Date().toISOString() }).eq("shift_id", shift).eq("staff_id", staff).eq("org_id", ctx.org.id)
+        ? await entries.insert({ org_id: ctx.org.id, staff_id: staff, shift_id: shift, started_at: now })
         : what === "check_out"
-          ? await q.update({ checked_out_at: new Date().toISOString() }).eq("shift_id", shift).eq("staff_id", staff).eq("org_id", ctx.org.id)
+          ? await entries.update({ ended_at: now }).eq("shift_id", shift).eq("staff_id", staff).eq("org_id", ctx.org.id).is("ended_at", null)
           : await q.upsert({ org_id: ctx.org.id, shift_id: shift, staff_id: staff, status: "assigned" }, { onConflict: "shift_id,staff_id" })
   if (error) back(back_, { error: dbError(t, error) })
   deliverSoon()

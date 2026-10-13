@@ -57,7 +57,7 @@ export const modules: ModuleDef[] = [
   { key: "invoices", permissions: ["invoices.view", "invoices.manage"], nav: [{ href: "/invoices", label: "invoices.nav", icon: FileTextIcon, permission: "invoices.view" }] },
   {
     key: "shifts",
-    permissions: ["shifts.view", "shifts.manage", "shifts.self"],
+    permissions: ["shifts.view", "shifts.manage", "shifts.approve", "shifts.self"],
     // One entry: planners get the plan (with a "my shifts" tab), everyone else lands on their own shifts.
     nav: [{ href: "/shifts", label: "shifts.nav", icon: CalendarClockIcon, permission: ["shifts.view", "shifts.self"] }],
   },

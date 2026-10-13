@@ -26,5 +26,3 @@ export function occurrences(s: Series, from: string, to: string) {
 }
 
 /** Worked minutes of an assignment: from check-in to check-out (or the planned end if not checked out). */
-export const workedMinutes = (a: { checked_in_at: string | null; checked_out_at: string | null }, shiftEnd: string) =>
-  a.checked_in_at ? Math.max(0, Math.round((new Date(a.checked_out_at ?? shiftEnd).getTime() - new Date(a.checked_in_at).getTime()) / 60_000)) : 0

@@ -48,7 +48,10 @@
     "submit": "Create organisation",
     "nameRequired": "Give your organisation a name.",
     "addressInvalid": "The slug needs 3–40 characters: lowercase letters, numbers and dashes.",
-    "addressTaken": "That slug is already taken."
+    "addressTaken": "That slug is already taken.",
+    "invites": "You've been invited",
+    "join": "Join",
+    "orCreate": "Or start your own organisation:"
   },
   "invite": {
     "invalidTitle": "Invite not valid",
@@ -57,7 +60,10 @@
     "invitedAs": "You're invited as {role}. The invite was sent to {email}.",
     "accept": "Accept invite",
     "signedInAs": "Signed in as {email}",
-    "signInFirst": "Sign in or create an account"
+    "signInFirst": "Sign in or create an account",
+    "mailSubject": "Invitation to {org} on roots",
+    "mailIntro": "You've been invited to join {org} on roots. Open the link and sign in with this email address:",
+    "mailNote": "The link is valid for 7 days."
   },
   "site": {
     "comingSoon": "This organisation's public pages will live here.",
@@ -256,7 +262,8 @@
     "forms.view": "View forms and submissions",
     "forms.manage": "Build forms and handle submissions",
     "email.view": "View campaigns and sends",
-    "email.manage": "Manage and send campaigns and automations"
+    "email.manage": "Manage and send campaigns and automations",
+    "shifts.approve": "Approve time"
   },
   "integrations": {
     "connect": "Connect",
@@ -466,7 +473,8 @@
     "invalid_bic": "The BIC is invalid.",
     "mandate_required": "Please grant the direct debit mandate.",
     "consent_required": "Please confirm the consent.",
-    "unknown_membership_type": "Unknown membership type"
+    "unknown_membership_type": "Unknown membership type",
+    "clock_running": "You're already clocked in."
   },
   "admin": {
     "title": "Platform",
@@ -2538,5 +2546,72 @@
     "remove": "Remove",
     "removed": "Removed from the waiting list.",
     "hint": "When a spot frees up, the next person automatically gets an email and can secure it for 24 hours."
+  },
+  "time": {
+    "title": "Time tracking",
+    "clockIn": "Clock in",
+    "clockOut": "Clock out",
+    "clockedIn": "Clocked in.",
+    "clockedOut": "Clocked out.",
+    "since": "Clocked in since {time}",
+    "clockHint": "Clock in without a shift (for shifts, check in at the shift below).",
+    "add": "Add time",
+    "edit": "Edit time entry",
+    "save": "Save",
+    "saved": "Time entry saved.",
+    "delete": "Delete entry",
+    "deleted": "Time entry deleted.",
+    "empty": "No time entries this month.",
+    "day": "Day",
+    "span": "From–to",
+    "break": "Break",
+    "auto": "auto",
+    "net": "Working time",
+    "what": "Shift / note",
+    "status": "Status",
+    "running": "running",
+    "approvedBadge": "approved",
+    "openBadge": "open",
+    "start": "Start",
+    "end": "End",
+    "breakMinutes": "Break (minutes)",
+    "breakAuto": "automatic",
+    "breakHint": "Leave empty = legal break (over 6 h: 30 min, over 9 h: 45 min).",
+    "note": "Note",
+    "monthTotal": "Working time this month: {hours}",
+    "approveMonth": "Approve {count} entries",
+    "reopen": "Undo approval",
+    "approved": "Month approved.",
+    "reopened": "Approval undone.",
+    "toApprove": "{count} open",
+    "warningCount": "{count} warnings",
+    "exportOnlyApproved": "{count} entries aren't approved yet and are missing from the export.",
+    "exportTotals": "Totals per person",
+    "exportEntries": "All entries",
+    "roleLabel": "Employment",
+    "month": "Month",
+    "days": "Days",
+    "hours": "Hours",
+    "endBeforeStart": "The end must be after the start.",
+    "tooLong": "An entry can be at most 24 hours long.",
+    "breakTooLong": "The break is longer than the time.",
+    "warnings": {
+      "break_short": {
+        "label": "break too short",
+        "hint": "By law: over 6 h at least 30 min, over 9 h at least 45 min break (§ 4 ArbZG)."
+      },
+      "day_over_10h": {
+        "label": "over 10 h",
+        "hint": "More than 10 hours of work on one day (§ 3 ArbZG)."
+      },
+      "rest_short": {
+        "label": "rest period",
+        "hint": "Less than 11 hours of rest since the last working day (§ 5 ArbZG)."
+      },
+      "still_open": {
+        "label": "not clocked out",
+        "hint": "Running for over 16 hours – probably forgot to clock out."
+      }
+    }
   }
 }

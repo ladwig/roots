@@ -48,7 +48,10 @@
     "submit": "Organisation anlegen",
     "nameRequired": "Gib deiner Organisation einen Namen.",
     "addressInvalid": "Der Slug braucht 3–40 Zeichen: Kleinbuchstaben, Zahlen und Bindestriche.",
-    "addressTaken": "Dieser Slug ist schon vergeben."
+    "addressTaken": "Dieser Slug ist schon vergeben.",
+    "invites": "Du wurdest eingeladen",
+    "join": "Beitreten",
+    "orCreate": "Oder gründe eine eigene Organisation:"
   },
   "invite": {
     "invalidTitle": "Einladung ungültig",
@@ -57,7 +60,10 @@
     "invitedAs": "Du bist als {role} eingeladen. Die Einladung ging an {email}.",
     "accept": "Einladung annehmen",
     "signedInAs": "Angemeldet als {email}",
-    "signInFirst": "Anmelden oder Konto erstellen"
+    "signInFirst": "Anmelden oder Konto erstellen",
+    "mailSubject": "Einladung zu {org} auf roots",
+    "mailIntro": "Du wurdest eingeladen, bei {org} auf roots mitzumachen. Öffne den Link und melde dich mit dieser E-Mail-Adresse an:",
+    "mailNote": "Der Link ist 7 Tage gültig."
   },
   "site": {
     "comingSoon": "Hier entstehen die öffentlichen Seiten dieser Organisation.",
@@ -256,7 +262,8 @@
     "forms.view": "Formulare und Einsendungen ansehen",
     "forms.manage": "Formulare bauen und Einsendungen bearbeiten",
     "email.view": "Kampagnen und Versand ansehen",
-    "email.manage": "Kampagnen und Automationen verwalten und versenden"
+    "email.manage": "Kampagnen und Automationen verwalten und versenden",
+    "shifts.approve": "Zeiten freigeben"
   },
   "integrations": {
     "connect": "Verbinden",
@@ -466,7 +473,8 @@
     "invalid_bic": "Die BIC ist ungültig.",
     "mandate_required": "Bitte erteile das Lastschriftmandat.",
     "consent_required": "Bitte bestätige die Einwilligung.",
-    "unknown_membership_type": "Unbekannte Mitgliedsart"
+    "unknown_membership_type": "Unbekannte Mitgliedsart",
+    "clock_running": "Du bist schon eingestempelt."
   },
   "admin": {
     "title": "Plattform",
@@ -2538,5 +2546,72 @@
     "remove": "Entfernen",
     "removed": "Von der Warteliste entfernt.",
     "hint": "Wird ein Platz frei, bekommt der oder die Nächste automatisch eine E-Mail und kann ihn 24 Stunden lang sichern."
+  },
+  "time": {
+    "title": "Zeiterfassung",
+    "clockIn": "Einstempeln",
+    "clockOut": "Ausstempeln",
+    "clockedIn": "Eingestempelt.",
+    "clockedOut": "Ausgestempelt.",
+    "since": "Eingestempelt seit {time}",
+    "clockHint": "Ohne Schicht einstempeln (Schichten stempelst du unten bei der Schicht).",
+    "add": "Zeit nachtragen",
+    "edit": "Zeiteintrag bearbeiten",
+    "save": "Speichern",
+    "saved": "Zeiteintrag gespeichert.",
+    "delete": "Eintrag löschen",
+    "deleted": "Zeiteintrag gelöscht.",
+    "empty": "Keine Zeiteinträge in diesem Monat.",
+    "day": "Tag",
+    "span": "Von–Bis",
+    "break": "Pause",
+    "auto": "auto",
+    "net": "Arbeitszeit",
+    "what": "Schicht / Notiz",
+    "status": "Status",
+    "running": "läuft",
+    "approvedBadge": "freigegeben",
+    "openBadge": "offen",
+    "start": "Beginn",
+    "end": "Ende",
+    "breakMinutes": "Pause (Minuten)",
+    "breakAuto": "automatisch",
+    "breakHint": "Leer lassen = gesetzliche Pause (über 6 h: 30 min, über 9 h: 45 min).",
+    "note": "Notiz",
+    "monthTotal": "Arbeitszeit diesen Monat: {hours}",
+    "approveMonth": "{count} Einträge freigeben",
+    "reopen": "Freigabe aufheben",
+    "approved": "Monat freigegeben.",
+    "reopened": "Freigabe aufgehoben.",
+    "toApprove": "{count} offen",
+    "warningCount": "{count} Hinweise",
+    "exportOnlyApproved": "{count} Einträge sind noch nicht freigegeben und fehlen im Export.",
+    "exportTotals": "Summen pro Person",
+    "exportEntries": "Alle Einträge",
+    "roleLabel": "Beschäftigung",
+    "month": "Monat",
+    "days": "Tage",
+    "hours": "Stunden",
+    "endBeforeStart": "Das Ende muss nach dem Beginn liegen.",
+    "tooLong": "Ein Eintrag darf höchstens 24 Stunden lang sein.",
+    "breakTooLong": "Die Pause ist länger als die Zeit.",
+    "warnings": {
+      "break_short": {
+        "label": "Pause zu kurz",
+        "hint": "Gesetzlich: über 6 h mind. 30 min, über 9 h mind. 45 min Pause (§ 4 ArbZG)."
+      },
+      "day_over_10h": {
+        "label": "über 10 h",
+        "hint": "Mehr als 10 Stunden Arbeit an einem Tag (§ 3 ArbZG)."
+      },
+      "rest_short": {
+        "label": "Ruhezeit",
+        "hint": "Weniger als 11 Stunden Ruhe seit dem letzten Arbeitstag (§ 5 ArbZG)."
+      },
+      "still_open": {
+        "label": "nicht ausgestempelt",
+        "hint": "Läuft seit über 16 Stunden – wahrscheinlich vergessen auszustempeln."
+      }
+    }
   }
 }

@@ -1,13 +1,14 @@
 import { z } from "zod"
 import { deliverSoon } from "@/events/worker"
 import { fromLocalInput } from "@/lib/time"
-import { workedMinutes } from "@/shifts/series"
+import { entryProblem, minutes, warnings } from "@/shifts/time"
 import { generateSeries } from "@/shifts/server"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
 import { day, ts, type Db } from "./shared"
 
-// Planning only: a key has no user behind it, so the staff self-service (apply, withdraw, own check-in via
-// shift_self) is not part of the API. Locations are core settings (org.settings.manage), not this module.
+// Planning + time tracking. A key has no user behind it, so the staff self-service (apply, withdraw, own clock
+// via shift_self) is not part of the API; time entries are written for a given staff member instead (e.g. a
+// terminal or another time clock). Locations are core settings (org.settings.manage), not this module.
 const TAG = "Shifts"
 const time = z.string().regex(/^\d{2}:\d{2}$/).describe("HH:MM (Europe/Berlin)")
 const iso = z.iso.datetime({ offset: true })
@@ -16,10 +17,8 @@ const deleted = z.object({ id: uuid, deleted: z.literal(true) })
 const Assignment = z.object({
   staff_id: uuid,
   status: z.enum(["assigned", "applied"]).describe("applied = a staff member asked for this shift, assign to approve"),
-  checked_in_at: ts.nullable(),
-  checked_out_at: ts.nullable(),
 })
-const ASSIGNMENT_COLS = "staff_id, status, checked_in_at, checked_out_at"
+const ASSIGNMENT_COLS = "staff_id, status"
 const Shift = z.object({
   id: uuid,
   title: z.string().nullable(),
@@ -138,6 +137,46 @@ function checkSeries(s: SeriesIn) {
 }
 const hhmm = (t: string) => t.slice(0, 5)
 const thisMonth = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" }).slice(0, 7)
+
+const TimeEntry = z.object({
+  id: uuid,
+  staff_id: uuid,
+  shift_id: uuid.nullable(),
+  started_at: ts,
+  ended_at: ts.nullable().describe("null = still clocked in"),
+  break_minutes: z.number().int().nullable().describe("null = automatic legal break"),
+  break_used: z.number().int().describe("Break that counts (manual or automatic)"),
+  net_minutes: z.number().int(),
+  note: z.string().nullable(),
+  approved_at: ts.nullable(),
+  warnings: z.array(z.enum(["break_short", "day_over_10h", "rest_short", "still_open"])).describe("Within the returned entries of the same person"),
+  created_at: ts,
+  updated_at: ts,
+})
+const ENTRY_COLS = "id, staff_id, shift_id, started_at, ended_at, break_minutes, note, approved_at, created_at, updated_at"
+const EntryInput = z.object({ ended_at: iso.nullable(), break_minutes: z.number().int().min(0).max(1440).nullable(), note: z.string().max(500).nullable() }).partial()
+type EntryRow = { id: string; staff_id: string; started_at: string; ended_at: string | null; break_minutes: number | null }
+function entriesOut<R extends EntryRow>(rows: R[]) {
+  const byStaff = new Map<string, R[]>()
+  rows.forEach((r) => byStaff.set(r.staff_id, [...(byStaff.get(r.staff_id) ?? []), r]))
+  const warn = new Map([...byStaff.values()].flatMap((list) => [...warnings(list)]))
+  return rows.map((r) => {
+    const m = minutes(r)
+    return { ...r, break_used: m.break, net_minutes: m.net, warnings: warn.get(r.id) ?? [] }
+  })
+}
+// Same check as the App (src/shifts/time.ts); ISO strings normalised.
+function entryRow(b: { started_at?: string; ended_at?: string | null; break_minutes?: number | null; note?: string | null }) {
+  const row = {
+    ...(b.started_at !== undefined ? { started_at: new Date(b.started_at).toISOString() } : {}),
+    ...(b.ended_at !== undefined ? { ended_at: b.ended_at ? new Date(b.ended_at).toISOString() : null } : {}),
+    ...(b.break_minutes !== undefined ? { break_minutes: b.break_minutes } : {}),
+    ...(b.note !== undefined ? { note: b.note?.trim() || null } : {}),
+  }
+  const problem = entryProblem({ started_at: b.started_at ?? "", ended_at: b.ended_at ?? null, break_minutes: b.break_minutes ?? null })
+  if (problem) throw new ApiError(422, problem.split(".").pop()!.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`), problem)
+  return row
+}
 
 export const endpoints: Endpoint[] = [
   // --- Shifts -------------------------------------------------------------------------------------
@@ -280,30 +319,6 @@ export const endpoints: Endpoint[] = [
     },
   }),
   endpoint({
-    method: "PATCH",
-    path: "/shifts/{id}/assignments/{staff_id}",
-    permission: "shifts.manage",
-    tag: TAG,
-    summary: "Set check-in/out times of an assignment",
-    description: "Time recording by hand; null clears a time. Check-out must be after check-in.",
-    body: z.object({ checked_in_at: iso.nullable(), checked_out_at: iso.nullable() }).partial().strict(),
-    response: Shift,
-    async handler({ db, orgId, params, body }) {
-      const at = (v: string | null | undefined) => (v ? new Date(v).toISOString() : v)
-      const { data, error } = await db
-        .from("shift_assignments")
-        .update({ checked_in_at: at(body.checked_in_at), checked_out_at: at(body.checked_out_at) })
-        .eq("shift_id", params.id)
-        .eq("staff_id", params.staff_id)
-        .eq("org_id", orgId)
-        .select("id")
-      if (error) throw dbError(error)
-      if (!data.length) throw notFound()
-      deliverSoon()
-      return getShift(db, orgId, params.id)
-    },
-  }),
-  endpoint({
     method: "DELETE",
     path: "/shifts/{id}/assignments/{staff_id}",
     permission: "shifts.manage",
@@ -418,7 +433,8 @@ export const endpoints: Endpoint[] = [
           target_hours: z.number().nullable(),
           shifts: z.number().int(),
           planned_minutes: z.number().int(),
-          worked_minutes: z.number().int(),
+          worked_minutes: z.number().int().describe("Net of breaks, from finished time entries"),
+          unapproved_entries: z.number().int(),
         }),
       ),
     }),
@@ -426,15 +442,22 @@ export const endpoints: Endpoint[] = [
       const month = query.month ?? thisMonth()
       const [y, m] = month.split("-").map(Number)
       const next = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`
-      const [{ data: staff }, { data: rows }] = await Promise.all([
+      const [{ data: staff }, { data: rows }, { data: entries }] = await Promise.all([
         db.from("staff").select("id, name, target_hours, active").eq("org_id", orgId).order("name"),
         db
           .from("shift_assignments")
-          .select("staff_id, checked_in_at, checked_out_at, shifts!inner(starts_at, ends_at)")
+          .select("staff_id, shifts!inner(starts_at, ends_at)")
           .eq("org_id", orgId)
           .eq("status", "assigned")
           .gte("shifts.starts_at", fromLocalInput(`${month}-01T00:00`)!.toISOString())
           .lt("shifts.starts_at", fromLocalInput(`${next}-01T00:00`)!.toISOString()),
+        db
+          .from("time_entries")
+          .select("id, staff_id, started_at, ended_at, break_minutes, approved_at")
+          .eq("org_id", orgId)
+          .not("ended_at", "is", null)
+          .gte("started_at", fromLocalInput(`${month}-01T00:00`)!.toISOString())
+          .lt("started_at", fromLocalInput(`${next}-01T00:00`)!.toISOString()),
       ])
       const data = (staff ?? [])
         .map((s) => {
@@ -446,7 +469,8 @@ export const endpoints: Endpoint[] = [
             target_hours: s.target_hours,
             shifts: mine.length,
             planned_minutes: Math.round(mine.reduce((sum, r) => sum + (new Date(r.shifts.ends_at).getTime() - new Date(r.shifts.starts_at).getTime()) / 60_000, 0)),
-            worked_minutes: mine.reduce((sum, r) => sum + workedMinutes(r, r.shifts.ends_at), 0),
+            worked_minutes: (entries ?? []).filter((e) => e.staff_id === s.id).reduce((sum, e) => sum + minutes(e).net, 0),
+            unapproved_entries: (entries ?? []).filter((e) => e.staff_id === s.id && !e.approved_at).length,
           }
         })
         .filter((s) => s.active || s.shifts)
@@ -612,6 +636,111 @@ export const endpoints: Endpoint[] = [
       const { error } = await db.from("shift_series").delete().eq("id", params.id).eq("org_id", orgId)
       if (error) throw dbError(error)
       return { id: cur.id as string, deleted: true as const }
+    },
+  }),
+
+  // --- Time tracking ------------------------------------------------------------------------------
+  endpoint({
+    method: "GET",
+    path: "/time-entries",
+    permission: "shifts.view",
+    tag: "Time tracking",
+    summary: "List time entries",
+    description: "Worked periods (with or without a shift). `net_minutes` = presence minus break; `break_minutes` null = automatic legal break (6 h → 30 min, 9 h → 45 min). `warnings` are German working-time rules (never blocking).",
+    query: page.extend({
+      staff_id: uuid.optional(),
+      from: iso.optional().describe("Started at or after"),
+      to: iso.optional().describe("Started before"),
+      approved: z.enum(["true", "false"]).optional(),
+    }),
+    response: list(TimeEntry),
+    async handler({ db, orgId, query }) {
+      let q = db.from("time_entries").select(ENTRY_COLS).eq("org_id", orgId).order("started_at").range(query.offset, query.offset + query.limit)
+      if (query.staff_id) q = q.eq("staff_id", query.staff_id)
+      if (query.from) q = q.gte("started_at", query.from)
+      if (query.to) q = q.lt("started_at", query.to)
+      if (query.approved) q = query.approved === "true" ? q.not("approved_at", "is", null) : q.is("approved_at", null)
+      const { data } = await q
+      return paged(entriesOut(data ?? []), query)
+    },
+  }),
+  endpoint({
+    method: "POST",
+    path: "/time-entries",
+    permission: "shifts.manage",
+    tag: "Time tracking",
+    summary: "Record time for a staff member",
+    description: "Without `ended_at` the person is clocked in (one open entry per person, else 409 `clock_running`).",
+    body: EntryInput.extend({ staff_id: uuid, shift_id: uuid.nullable().optional(), started_at: iso }).strict(),
+    response: TimeEntry,
+    status: 201,
+    async handler({ db, orgId, body }) {
+      const row = entryRow(body)
+      const { data, error } = await db
+        .from("time_entries")
+        .insert({ ...row, started_at: row.started_at!, org_id: orgId, staff_id: body.staff_id, shift_id: body.shift_id ?? null })
+        .select(ENTRY_COLS)
+        .single()
+      if (error) throw error.code === "23505" ? new ApiError(409, "clock_running", "This person is already clocked in.") : dbError(error)
+      return entriesOut([data])[0]
+    },
+  }),
+  endpoint({
+    method: "PATCH",
+    path: "/time-entries/{id}",
+    permission: "shifts.manage",
+    tag: "Time tracking",
+    summary: "Correct a time entry",
+    description: "Also clocks out (`ended_at`). `break_minutes: null` = automatic break.",
+    body: EntryInput.extend({ started_at: iso }).partial().strict(),
+    response: TimeEntry,
+    async handler({ db, orgId, params, body }) {
+      const { data: old } = await db.from("time_entries").select("started_at, ended_at, break_minutes").eq("id", params.id).eq("org_id", orgId).maybeSingle()
+      if (!old) throw notFound()
+      const row = entryRow({ ...old, ...body })
+      const { data, error } = await db.from("time_entries").update(row).eq("id", params.id).eq("org_id", orgId).select(ENTRY_COLS).single()
+      if (error) throw dbError(error)
+      return entriesOut([data])[0]
+    },
+  }),
+  endpoint({
+    method: "DELETE",
+    path: "/time-entries/{id}",
+    permission: "shifts.manage",
+    tag: "Time tracking",
+    summary: "Delete a time entry",
+    response: deleted,
+    async handler({ db, orgId, params }) {
+      const { data, error } = await db.from("time_entries").delete().eq("id", params.id).eq("org_id", orgId).select("id")
+      if (error) throw dbError(error)
+      if (!data.length) throw notFound()
+      return { id: params.id, deleted: true as const }
+    },
+  }),
+  endpoint({
+    method: "POST",
+    path: "/time-entries/approve",
+    permission: "shifts.approve",
+    tag: "Time tracking",
+    summary: "Approve (or reopen) a month",
+    description: "All finished entries of the month (optionally of one person). Approved entries are locked for the staff member and are what the payroll export contains.",
+    body: z.object({ month: z.string().regex(/^\d{4}-\d{2}$/), staff_id: uuid.optional(), undo: z.boolean().default(false) }).strict(),
+    response: z.object({ updated: z.number().int() }),
+    async handler({ db, orgId, body }) {
+      const [y, m] = body.month.split("-").map(Number)
+      const next = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`
+      let q = db
+        .from("time_entries")
+        .update({ approved_at: body.undo ? null : new Date().toISOString() })
+        .eq("org_id", orgId)
+        .not("ended_at", "is", null)
+        .gte("started_at", fromLocalInput(`${body.month}-01T00:00`)!.toISOString())
+        .lt("started_at", fromLocalInput(`${next}-01T00:00`)!.toISOString())
+      if (body.staff_id) q = q.eq("staff_id", body.staff_id)
+      q = body.undo ? q.not("approved_at", "is", null) : q.is("approved_at", null)
+      const { data, error } = await q.select("id")
+      if (error) throw dbError(error)
+      return { updated: data.length }
     },
   }),
 ]

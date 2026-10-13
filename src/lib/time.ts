@@ -28,3 +28,12 @@ export function toLocalInput(value: string | Date, zone = TIME_ZONE) {
   const d = new Date(value)
   return new Date(d.getTime() + offset(d, zone)).toISOString().slice(0, 16)
 }
+
+/** "2026-10" → the month's bounds (Berlin time) and its neighbours; invalid/missing → this month. */
+export function monthOf(value?: string) {
+  const month = /^\d{4}-\d{2}$/.test(value ?? "") ? value! : new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" }).slice(0, 7)
+  const [y, m] = month.split("-").map(Number)
+  const next = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`
+  const prev = m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, "0")}`
+  return { month, next, prev, from: fromLocalInput(`${month}-01T00:00`)!.toISOString(), to: fromLocalInput(`${next}-01T00:00`)!.toISOString() }
+}

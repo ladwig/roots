@@ -553,11 +553,16 @@ begin
     exception when raise_exception then null; end;
     update public.shift_assignments set status = 'assigned' where shift_id = v_shift;
     v_res := public.shift_self('check_in', v_shift);                            assert v_res = 'checked_in', 'check-in';
+    select count(*) into n from public.time_entries where shift_id = v_shift and ended_at is null;  assert n = 1, 'check-in opens a time entry';
+    v_res := public.shift_self('check_out', v_shift);                           assert v_res = 'checked_out', 'check-out';
+    update public.time_entries set approved_at = now() where shift_id = v_shift;  -- A is owner: may approve
+    select count(*) into n from public.time_entries where shift_id = v_shift and approved_by = a;  assert n = 1, 'approval stamps the approver';
     reset role;
     perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
     set local role authenticated;
     select count(*) into n from public.staff where org_id = org_a;              assert n = 0, 'B sees staff of A';
     select count(*) into n from public.shifts where org_id = org_a;             assert n = 0, 'B sees shifts of A';
+    select count(*) into n from public.time_entries where org_id = org_a;       assert n = 0, 'B sees time entries of A';
     begin
       perform public.shift_self('apply', v_shift, null);
       assert false, 'B must not apply in A';

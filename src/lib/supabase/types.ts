@@ -1173,14 +1173,14 @@ isOneToOne: false
                   ]
                 },"shift_assignments": {
                   Row: {
-                    "checked_in_at": string | null,"checked_out_at": string | null,"created_at": string,"created_by": string | null,"id": string,"org_id": string,"shift_id": string,"staff_id": string,"status": string,"updated_at": string,"updated_by": string | null
+                    "created_at": string,"created_by": string | null,"id": string,"org_id": string,"shift_id": string,"staff_id": string,"status": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "checked_in_at"?: string | null,"checked_out_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id": string,"shift_id": string,"staff_id": string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id": string,"shift_id": string,"staff_id": string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "checked_in_at"?: string | null,"checked_out_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id"?: string,"shift_id"?: string,"staff_id"?: string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id"?: string,"shift_id"?: string,"staff_id"?: string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -1197,6 +1197,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     },{
       foreignKeyName: "shift_assignments_staff_id_fkey"
+      columns: ["staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"time_entries": {
+                  Row: {
+                    "approved_at": string | null,"approved_by": string | null,"break_minutes": number | null,"created_at": string,"created_by": string | null,"ended_at": string | null,"id": string,"note": string | null,"org_id": string,"shift_id": string | null,"staff_id": string,"started_at": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "approved_at"?: string | null,"approved_by"?: string | null,"break_minutes"?: number | null,"created_at"?: string,"created_by"?: string | null,"ended_at"?: string | null,"id"?: string,"note"?: string | null,"org_id": string,"shift_id"?: string | null,"staff_id": string,"started_at": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "approved_at"?: string | null,"approved_by"?: string | null,"break_minutes"?: number | null,"created_at"?: string,"created_by"?: string | null,"ended_at"?: string | null,"id"?: string,"note"?: string | null,"org_id"?: string,"shift_id"?: string | null,"staff_id"?: string,"started_at"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "time_entries_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "time_entries_shift_id_fkey"
+      columns: ["shift_id"]
+isOneToOne: false
+      referencedRelation: "shifts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "time_entries_staff_id_fkey"
       columns: ["staff_id"]
 isOneToOne: false
       referencedRelation: "staff"
@@ -1459,7 +1491,15 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "accept_invite":
+            "accept_my_invite":
+{ Args: { "p_invite": string }; Returns: string
+                           },
+"my_invites":
+{ Args: never; Returns: {
+              "id": string,"org_name": string,"role_name": Json
+            }[]
+                           },
+"accept_invite":
 { Args: { "p_token": string }; Returns: string
                            },
 "admin_create_org":

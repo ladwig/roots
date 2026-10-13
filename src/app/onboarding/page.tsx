@@ -5,13 +5,15 @@ import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
 import { getSession } from "@/lib/context"
 import { param, ROOT_DOMAIN } from "@/lib/url"
-import { createOrg } from "./actions"
+import { acceptMyInvite, createOrg } from "./actions"
 import { SubmitButton } from "@/components/submit-button"
 
 export default async function OnboardingPage({ searchParams }: PageProps<"/onboarding">) {
-  if (!(await getSession())) redirect("/login?next=/onboarding")
+  const session = await getSession()
+  if (!session) redirect("/login?next=/onboarding")
   const sp = await searchParams
   const t = await getT()
+  const { data: invites } = await session.supabase.rpc("my_invites")
 
   return (
     <main className="mx-auto flex min-h-full w-full max-w-md flex-col justify-center gap-6 px-4 py-12">
@@ -20,6 +22,24 @@ export default async function OnboardingPage({ searchParams }: PageProps<"/onboa
         <p className="text-sm text-muted-foreground">{t("onboarding.subtitle")}</p>
       </div>
       <Notice error={param(sp, "error")} />
+      {!!invites?.length && (
+        <section aria-labelledby="invites" className="grid gap-3">
+          <h2 id="invites" className="font-medium">
+            {t("onboarding.invites")}
+          </h2>
+          {invites.map((i) => (
+            <form key={i.id} action={acceptMyInvite} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+              <input type="hidden" name="id" value={i.id} />
+              <span className="grid text-sm">
+                <span className="font-medium">{i.org_name}</span>
+                <span className="text-muted-foreground">{t.pick(i.role_name as never)}</span>
+              </span>
+              <SubmitButton size="sm">{t("onboarding.join")}</SubmitButton>
+            </form>
+          ))}
+          <p className="pt-3 text-sm text-muted-foreground">{t("onboarding.orCreate")}</p>
+        </section>
+      )}
       <form action={createOrg} className="grid gap-4">
         <div className="grid gap-2">
           <Label htmlFor="name">{t("onboarding.name")}</Label>

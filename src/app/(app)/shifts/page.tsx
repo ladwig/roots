@@ -42,7 +42,7 @@ export default async function ShiftPlan({ searchParams }: PageProps<"/shifts">) 
 
   let q = ctx.supabase
     .from("shifts")
-    .select("*, positions(name, color), locations(name), events(title), shift_assignments(staff_id, status, checked_in_at, checked_out_at, staff(name, color))")
+    .select("*, positions(name, color), locations(name), events(title), shift_assignments(staff_id, status, staff(name, color)), time_entries(staff_id, started_at, ended_at)")
     .eq("org_id", ctx.org.id)
     .order("starts_at")
   q = eventId
@@ -56,7 +56,14 @@ export default async function ShiftPlan({ searchParams }: PageProps<"/shifts">) 
     ctx.supabase.from("locations").select("id, name").eq("org_id", ctx.org.id).order("name"),
     ctx.supabase.from("events").select("id, title, starts_at").eq("org_id", ctx.org.id).is("deleted_at", null).gte("starts_at", new Date(new Date().getTime() - 30 * 86_400_000).toISOString()).order("starts_at").limit(100),
   ])
-  const list = shifts ?? []
+  // Check-in/out of a shift = its time entry per person.
+  const list = (shifts ?? []).map((s) => ({
+    ...s,
+    shift_assignments: s.shift_assignments.map((a) => {
+      const e = s.time_entries.find((x) => x.staff_id === a.staff_id)
+      return { ...a, checked_in_at: e?.started_at ?? null, checked_out_at: e?.ended_at ?? null }
+    }),
+  }))
   const assigned = (s: (typeof list)[number]) => s.shift_assignments.filter((a) => a.status === "assigned")
   // Coverage of the focused week (or the whole event).
   const inWeek = eventId ? list : list.filter((s) => berlinDay(s.starts_at) >= week && berlinDay(s.starts_at) < addDays(week, 7))

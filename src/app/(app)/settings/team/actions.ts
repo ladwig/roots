@@ -8,6 +8,7 @@ import { deliverSoon } from "@/events/worker"
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { ACTIVE_ORG_COOKIE, getContext } from "@/lib/context"
+import { sendPlatformEmail } from "@/lib/org-email"
 import { APP_URL, back, APP_HOME } from "@/lib/url"
 
 const PATH = "/settings/team"
@@ -62,8 +63,12 @@ export async function createInvite(_: InviteState, formData: FormData): Promise<
 
   revalidatePath(PATH)
   deliverSoon()
-  // ponytail: link is shown to copy; send it by email once a platform mail provider is set up.
-  return { link: `${APP_URL}/invite/${token}`, email }
+  // Emailed when the platform mail is set up (best effort); the link is shown to copy either way. Without the
+  // link, signing in with the invited email also works (onboarding lists open invites).
+  const link = `${APP_URL}/invite/${token}`
+  const text = [t("invite.mailIntro", { org: ctx.org.name }), "", link, "", t("invite.mailNote")].join("\n")
+  await sendPlatformEmail({ to: email, subject: t("invite.mailSubject", { org: ctx.org.name }), text, html: text.split("\n").map((l) => (l === link ? `<p><a href="${link}">${link}</a></p>` : `<p>${l.replace(/[<>&]/g, "")}</p>`)).join("") }).catch(() => false)
+  return { link, email }
 }
 
 export async function revokeInvite(inviteId: string) {

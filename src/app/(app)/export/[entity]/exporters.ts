@@ -4,6 +4,8 @@ import type { getContext } from "@/lib/context"
 import { loadFields } from "@/lib/custom-fields"
 import type { Table } from "@/lib/export"
 import { MEMBER_FIELDS } from "@/members/fields"
+import { monthOf } from "@/lib/time"
+import { minutes } from "@/shifts/time"
 
 type Ctx = Awaited<ReturnType<typeof getContext>>
 type T = Awaited<ReturnType<typeof getT>>
@@ -152,4 +154,58 @@ export const EXPORTERS: Record<string, Exporter> = {
       }
     },
   },
+  // Payroll: approved time only (entries still open for approval are left out; the hours page says how many).
+  hours: {
+    perm: "shifts.view",
+    module: "shifts",
+    name: "hours",
+    async load(ctx, t, sp) {
+      const rows = await approvedTime(ctx, sp)
+      const people = new Map<string, { name: string; role: string; days: Set<string>; net: number; brk: number }>()
+      for (const e of rows) {
+        const p = people.get(e.staff_id) ?? { name: e.staff?.name ?? "", role: e.staff?.role_label ?? "", days: new Set(), net: 0, brk: 0 }
+        const m = minutes(e)
+        p.days.add(e.started_at.slice(0, 10))
+        p.net += m.net
+        p.brk += m.break
+        people.set(e.staff_id, p)
+      }
+      return {
+        headers: [t("shifts.name"), t("time.roleLabel"), t("time.month"), t("time.days"), t("time.hours"), t("time.breakMinutes")],
+        rows: [...people.values()].sort((a, b) => a.name.localeCompare(b.name)).map((p) => [p.name, p.role, monthOf(sp.get("month") ?? undefined).month, p.days.size, Math.round((p.net / 60) * 100) / 100, p.brk]),
+      }
+    },
+  },
+  time: {
+    perm: "shifts.view",
+    module: "shifts",
+    name: "time",
+    async load(ctx, t, sp) {
+      const rows = await approvedTime(ctx, sp)
+      const at = (iso: string) => new Date(iso).toLocaleString("sv-SE", { timeZone: "Europe/Berlin" }).slice(0, 16)
+      return {
+        headers: [t("shifts.name"), t("time.start"), t("time.end"), t("time.breakMinutes"), t("time.hours"), t("time.what"), t("time.note")],
+        rows: rows.map((e) => {
+          const m = minutes(e)
+          return [e.staff?.name ?? "", at(e.started_at), e.ended_at ? at(e.ended_at) : "", m.break, Math.round((m.net / 60) * 100) / 100, e.shifts?.positions?.name ?? e.shifts?.title ?? "", e.note ?? ""]
+        }),
+      }
+    },
+  },
+}
+
+async function approvedTime(ctx: Ctx, sp: URLSearchParams) {
+  const month = monthOf(sp.get("month") ?? undefined)
+  return all((from, to) =>
+    ctx.supabase
+      .from("time_entries")
+      .select("id, staff_id, started_at, ended_at, break_minutes, note, staff(name, role_label), shifts(title, positions(name))")
+      .eq("org_id", ctx.org.id)
+      .not("approved_at", "is", null)
+      .not("ended_at", "is", null)
+      .gte("started_at", month.from)
+      .lt("started_at", month.to)
+      .order("started_at")
+      .range(from, to),
+  )
 }
