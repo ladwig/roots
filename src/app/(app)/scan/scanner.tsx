@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useT } from "@/i18n/client"
 import { cn } from "@/lib/utils"
-import { admitMember, checkIn, scanList, syncCheckIns, type ScanEntry, type ScanResult } from "./actions"
+import type { MemberAtDoor } from "@/members/door"
+import { admitMember, checkIn, scanList, scanMembers, syncCheckIns, type ScanEntry, type ScanResult } from "./actions"
 import { MemberCard } from "./member-card"
 import { SubmitButton } from "@/components/submit-button"
 
@@ -14,9 +15,10 @@ type Detector = { detect(source: CanvasImageSource): Promise<{ rawValue: string 
 
 // Camera QR scanning: native BarcodeDetector (Chrome/Android) or jsQR (Safari/iPhone), plus typing the code.
 // Offline: the ticket list is kept on the device (localStorage); without connection codes are checked against it and
-// check-ins queue up until the device is online again. Member cards (12-character codes) are looked up online only. ponytail: two offline devices can both let in the same ticket
+// check-ins queue up until the device is online again. Members (card code or member number) work the same way: their
+// list is kept too, letting one in offline queues "member:<contact id>". ponytail: two offline devices can both let in the same ticket
 // (reported as conflict on sync); the page must stay open (no service worker yet).
-type Store = { list: Record<string, ScanEntry>; at: string; queue: string[] }
+type Store = { list: Record<string, ScanEntry>; members?: MemberAtDoor[]; at: string; queue: string[] }
 const KEY = (eventId: string) => `roots-scan-${eventId}`
 const load = (eventId: string): Store => {
   try {
@@ -59,11 +61,13 @@ export function Scanner({ eventId }: { eventId: string }) {
 
   async function refresh() {
     try {
-      const list = await scanList(eventId)
+      const [list, members] = await Promise.all([scanList(eventId), scanMembers(eventId)])
       const cur = load(eventId)
       // Keep local check-ins that haven't been synced yet.
       const map = Object.fromEntries(list.map((e) => [e.code, cur.queue.includes(e.code) ? { ...e, status: "used" as const } : e]))
-      update({ list: map, at: new Date().toISOString(), queue: cur.queue })
+      const local = new Map(cur.members?.map((m) => [m.contact_id, m]))
+      const mine = members.map((m) => (cur.queue.includes(`member:${m.contact_id}`) ? (local.get(m.contact_id) ?? m) : m))
+      update({ list: map, members: mine, at: new Date().toISOString(), queue: cur.queue })
     } catch {}
   }
 
@@ -94,7 +98,10 @@ export function Scanner({ eventId }: { eventId: string }) {
     const clean = code.trim().toUpperCase().replace(/[^A-Z0-9]/g, "")
     const cur = load(eventId)
     const e = cur.list[clean]
-    if (!e) return { result: "invalid" }
+    if (!e) {
+      const m = cur.members?.find((x) => x.code === clean || x.number === clean)
+      return m ? { result: "ok", member: { ...m, result: m.checked_in_at ? "already" : "member" } } : { result: "invalid" }
+    }
     if (e.status === "used") return { result: "used", holder: e.holder, type: e.type }
     update({ ...cur, list: { ...cur.list, [clean]: { ...e, status: "used" } }, queue: [...cur.queue, clean] })
     return { result: "ok", holder: e.holder, type: e.type, at: new Date().toISOString() }
@@ -166,12 +173,29 @@ export function Scanner({ eventId }: { eventId: string }) {
   // Who's in, per ticket type (from the device list; member check-ins appear after the next refresh).
   const inside = Object.values(store.list).filter((e) => e.status === "used")
   const byType = Object.entries(Object.groupBy(inside, (e) => e.type ?? "–")).map(([type, list]) => `${type} ${list!.length}`)
+  // No connection: let in on the device, sync later (conflict if another device let them in meanwhile).
+  function admitLocally(contactId: string): MemberAtDoor {
+    const cur = load(eventId)
+    const m = cur.members?.find((x) => x.contact_id === contactId)
+    if (!m) return { result: "invalid" }
+    if (m.checked_in_at) return { ...m, result: "already" }
+    const now = { ...m, checked_in_at: new Date().toISOString(), visits: (m.visits ?? 0) + 1 }
+    update({ ...cur, members: cur.members!.map((x) => (x.contact_id === contactId ? now : x)), queue: [...cur.queue, `member:${contactId}`] })
+    return { ...now, result: "ok" }
+  }
+
   function admit(contactId: string) {
     start(async () => {
-      const r = await admitMember(eventId, contactId)
+      let r: MemberAtDoor | { result: "error"; message: string }
+      try {
+        r = navigator.onLine ? await admitMember(eventId, contactId) : admitLocally(contactId)
+        if (r.result === "error" && !navigator.onLine) r = admitLocally(contactId)
+      } catch {
+        r = admitLocally(contactId)
+      }
       setLast((l) => l && (r.result === "error" ? { ...l, result: "error", message: r.message, member: undefined } : { ...l, member: r }))
       navigator.vibrate?.(r.result === "ok" ? 80 : [80, 60, 80])
-      if (r.result === "ok") refresh()
+      if (r.result === "ok" && navigator.onLine) refresh()
     })
   }
   return (

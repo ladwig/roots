@@ -4,7 +4,7 @@ import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { back } from "@/lib/url"
-import { isMemberCode, memberDoor, type MemberAtDoor } from "@/members/door"
+import { isMemberCode, memberDoor, memberDoorList, type MemberAtDoor } from "@/members/door"
 
 export type ScanResult = { result: "ok" | "used" | "invalid" | "error"; holder?: string | null; type?: string | null; at?: string | null; message?: string; member?: MemberAtDoor }
 
@@ -14,17 +14,20 @@ export async function checkIn(eventId: string, code: string): Promise<ScanResult
   const t = await getT()
   const clean = String(code).trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 20)
   if (!/^[0-9a-f-]{36}$/.test(eventId) || !clean) return { result: "invalid" }
-  if (isMemberCode(clean) && ctx.modules.has("members")) {
-    // A member card: show who it is; letting in is a second step (admitMember).
+  const members = ctx.modules.has("members")
+  const member = async (): Promise<ScanResult> => {
+    // A member card or number: show who it is; letting in is a second step (admitMember).
     try {
-      const member = await memberDoor(ctx.supabase, eventId, { code: clean }, false)
-      return member.result === "invalid" ? { result: "invalid" } : { result: "ok", member }
+      const m = await memberDoor(ctx.supabase, eventId, { code: clean }, false)
+      return m.result === "invalid" ? { result: "invalid" } : { result: "ok", member: m }
     } catch (e) {
       return { result: "error", message: (e as { message?: string }).message === "not_allowed" ? t("errors.not_allowed") : t("tickets.scanFailed") }
     }
   }
+  if (members && isMemberCode(clean)) return member()
   const { data, error } = await ctx.supabase.rpc("check_in_ticket", { p_event: eventId, p_code: clean }).maybeSingle()
   if (error || !data) return { result: "error", message: error?.message === "not_allowed" ? t("errors.not_allowed") : t("tickets.scanFailed") }
+  if (data.result === "invalid" && members) return member()
   return { result: data.result as ScanResult["result"], holder: data.holder_name, type: data.type_name, at: data.checked_in_at }
 }
 
@@ -38,6 +41,13 @@ export async function admitMember(eventId: string, contactId: string): Promise<M
   } catch {
     return { result: "error", message: t("tickets.scanFailed") }
   }
+}
+
+// Offline: the members for the device (when the members module is on).
+export async function scanMembers(eventId: string): Promise<MemberAtDoor[]> {
+  const ctx = await requirePerm("tickets.scan")
+  if (!ctx.modules.has("members") || !/^[0-9a-f-]{36}$/.test(eventId)) return []
+  return memberDoorList(ctx.supabase, eventId)
 }
 
 export type ScanEntry = { code: string; status: "valid" | "used"; holder: string | null; type: string | null }
@@ -60,11 +70,19 @@ export async function scanList(eventId: string): Promise<ScanEntry[]> {
   }
 }
 
-// Offline check-ins, sent when the device is back online. "conflict" = someone else let this ticket in already.
+// Offline check-ins, sent when the device is back online ("member:<contact id>" = a member let in).
+// "conflict" = someone else let this ticket/member in already.
 export async function syncCheckIns(eventId: string, codes: string[]): Promise<{ synced: number; conflicts: string[] }> {
   let synced = 0
   const conflicts: string[] = []
   for (const code of codes.slice(0, 2000)) {
+    if (code.startsWith("member:")) {
+      const m = await admitMember(eventId, code.slice(7))
+      if (m.result === "ok") synced++
+      else if (m.result === "error") throw new Error(m.message)
+      else conflicts.push(m.name ?? code)
+      continue
+    }
     const r = await checkIn(eventId, code)
     if (r.result === "ok") synced++
     else if (r.result === "error") throw new Error(r.message)

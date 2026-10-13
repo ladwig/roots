@@ -1545,7 +1545,7 @@
       "member": "Mitglied",
       "ok": "Eingelassen",
       "already": "Schon drin",
-      "full": "Ausverkauft",
+      "full": "Veranstaltung ist voll",
       "not_member": "Kein Mitglied",
       "invalid": "Unbekannte Karte",
       "state": {

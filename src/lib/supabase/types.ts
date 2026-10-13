@@ -1972,6 +1972,12 @@ isOneToOne: false
 "member_door":
 { Args: { "p_admit"?: boolean,"p_code": string,"p_contact"?: string,"p_event": string }; Returns: Json
                            },
+"member_door_list":
+{ Args: { "p_event": string }; Returns: Json
+                           },
+"member_door_rows":
+{ Args: { "p_contact"?: string,"p_event": string,"p_org": string }; Returns: Json[]
+                           },
 "member_door_search":
 { Args: { "p_event": string,"p_q": string }; Returns: {
               "contact_id": string,"member_no": string,"name": string

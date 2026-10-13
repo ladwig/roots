@@ -458,11 +458,12 @@ export const endpoints: Endpoint[] = [
     tag: "Members",
     summary: "Member check-in at the door",
     description:
-      "Find a member by `code` (the 12-character member card code) or `contact_id`. Without `admit` it only looks them up (`member`). With `admit: true` they are let in: a used, free ticket of the event's member ticket type (counts against capacity), event `membership.checked_in`. Results: `ok`, `member`, `already` (in since `checked_in_at`), `full`, `not_member`, `invalid`. Needs the members and tickets modules.",
+      "Find a member by `code` (the 12-character member card code, or the member number) or `contact_id`. Without `admit` it only looks them up (`member`). With `admit: true` they are let in: a used, free ticket of the event's member ticket type (counts against capacity), event `membership.checked_in`. Results: `ok`, `member`, `already` (in since `checked_in_at`), `not_member`, `invalid`; `full` = event capacity reached (not enforced for members). Needs the members and tickets modules.",
     body: z.object({ code: z.string().max(40).optional(), contact_id: uuid.optional(), admit: z.boolean().optional() }).strict(),
     response: z.object({
-      result: z.enum(["invalid", "not_member", "member", "ok", "already", "full"]),
+      result: z.enum(["invalid", "not_member", "member", "ok", "already"]),
       contact_id: uuid.optional(),
+      full: z.boolean().optional().describe("Event capacity reached (members are still let in; the door decides)"),
       name: z.string().nullable().optional(),
       membership_id: uuid.nullable().optional(),
       member_no: z.string().nullable().optional(),

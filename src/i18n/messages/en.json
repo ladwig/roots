@@ -1545,7 +1545,7 @@
       "member": "Member",
       "ok": "Let in",
       "already": "Already inside",
-      "full": "Sold out",
+      "full": "Event is full",
       "not_member": "Not a member",
       "invalid": "Unknown card",
       "state": {
