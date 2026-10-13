@@ -324,7 +324,6 @@ function Editor({ id, name: initialName, description: initialDescription, graph,
         return { key: stepKey(n.id), object: n.type === "aggregate" ? "aggregate" : String(n.data.object ?? ""), label: same.length > 1 ? `${base(n)} ${same.indexOf(n) + 1}` : base(n) }
       })
     })(),
-  })),
   }
 
   return (
