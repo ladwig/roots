@@ -15,7 +15,7 @@ const backTo = (fd: FormData) => {
   return p.startsWith("/") && !p.startsWith("//") ? p : PATH
 }
 
-export type UploadedFile = { name: string; path: string; mime: string; size: number }
+export type UploadedFile = { id?: string; name: string; path: string; mime: string; size: number } // id: chosen by the browser (optional)
 
 /** Called by <FileUpload> after the browser put the objects into Storage. */
 export async function registerFiles(files: UploadedFile[], target: { entity?: string; entityId?: string; folder?: string }): Promise<{ error?: string; ids?: string[] }> {
@@ -25,6 +25,7 @@ export async function registerFiles(files: UploadedFile[], target: { entity?: st
   if (target.entity && (!/^[a-z_]{1,40}$/.test(target.entity) || !UUID.test(target.entityId ?? ""))) return { error: t("errors.not_allowed") }
   const folder = target.folder?.trim().slice(0, 200) || null
   const rows = files.map((f) => ({
+    ...(f.id && UUID.test(f.id) ? { id: f.id } : {}),
     org_id: ctx.org.id,
     name: String(f.name).trim().slice(0, 255) || "file",
     path: String(f.path),
@@ -38,7 +39,7 @@ export async function registerFiles(files: UploadedFile[], target: { entity?: st
     return { error: t("errors.not_allowed") }
   const { data, error } = await ctx.supabase.from("files").insert(rows).select("id, path")
   // ids in the order of the given files (the editor links them right away)
-  return error ? { error: dbError(t, error) } : { ids: rows.map((r) => data?.find((d) => d.path === r.path)?.id ?? "") }
+  return error ? { error: dbError(t, error) } : { ids: rows.map((r) => ("id" in r ? (r.id as string) : (data?.find((d) => d.path === r.path)?.id ?? ""))) }
 }
 
 export async function updateFile(fd: FormData) {

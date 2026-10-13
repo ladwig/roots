@@ -45,7 +45,7 @@ export async function uploadFiles(orgId: string, list: File[], target: { entity?
     const path = `orgs/${orgId}/${crypto.randomUUID()}.${ext}`
     const { error } = await supabase.storage.from("files").upload(path, file, { contentType: file.type || "application/octet-stream" })
     if (error) toast.error(t("files.uploadFailed", { name: file.name }))
-    else done.push({ name: file.name, path, mime: file.type, size: file.size })
+    else done.push({ id: crypto.randomUUID(), name: file.name, path, mime: file.type, size: file.size })
   }
   if (!done.length) return []
   const r = await registerFiles(done, target)
@@ -53,7 +53,7 @@ export async function uploadFiles(orgId: string, list: File[], target: { entity?
     toast.error(r.error)
     return []
   }
-  return done.map((f, i) => ({ ...f, id: r.ids?.[i] ?? "" })).filter((f) => f.id)
+  return done.map((f, i) => ({ ...f, id: r.ids?.[i] || f.id! })) // the id we chose, if the server didn't echo it
 }
 
 /** Upload button for any record (entity + entityId) or the Files page (folder). Uploads go straight to Storage. */

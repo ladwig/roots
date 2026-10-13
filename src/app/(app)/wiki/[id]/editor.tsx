@@ -38,6 +38,9 @@ import { cn } from "@/lib/utils"
 import { autosavePage } from "../actions"
 
 type Block = { key: string; icon: LucideIcon; run: (e: Editor) => void }
+// The mounted editor per page: an upload inserts into the editor that is on screen when it finishes, even if the
+// component was rebuilt meanwhile.
+const live = new Map<string, Editor>()
 type Slash = { from: number; to: number; query: string; x: number; y: number; index: number }
 
 // Notion-like page editor: big title, write straight into the formatted page. Markdown shortcuts while typing
@@ -89,8 +92,9 @@ export function WikiEditor({ page, orgId }: { page: { id: string; title: string;
     }
     // No router.refresh() here: refreshing this page can remount the editor and drop what was just inserted.
     // The attachments list catches up on the next visit.
-    const editor = editorRef.current
-    if (!done.length || !editor || editor.isDestroyed) return
+    const editor = live.get(page.id) ?? editorRef.current
+    if (!done.length) return toast.error(`${t("wiki.insertFailed")} (upload)`)
+    if (!editor || editor.isDestroyed) return toast.error(`${t("wiki.insertFailed")} (editor)`)
     const nodes = done.map((f) =>
       f.mime.startsWith("image/")
         ? { type: "image", attrs: { src: `/files/${f.id}`, alt: f.name } }
@@ -104,7 +108,7 @@ export function WikiEditor({ page, orgId }: { page: { id: string; title: string;
       console.error(err)
     }
     if (ok) save(editor) // store it right away
-    else toast.error(t("wiki.insertFailed"))
+    else toast.error(`${t("wiki.insertFailed")} (insert)`)
   }
   const pickFiles = (editor: Editor) => {
     const input = document.createElement("input")
@@ -232,7 +236,12 @@ export function WikiEditor({ page, orgId }: { page: { id: string; title: string;
   })
   useEffect(() => {
     editorRef.current = editor
-  }, [editor])
+    if (!editor) return
+    live.set(page.id, editor)
+    return () => {
+      if (live.get(page.id) === editor) live.delete(page.id)
+    }
+  }, [editor, page.id])
 
   useEffect(() => {
     if (state !== "dirty" && state !== "saving") return
