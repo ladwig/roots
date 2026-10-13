@@ -477,3 +477,38 @@ export function PayrollMock() {
     </div>
   )
 }
+
+/** Automations canvas: a trial-visit flow (check-in → count → 4th visit → email), steps dropping in one by one. */
+export function AutomationsMock() {
+  const node = (kind: string, title: string, d: number, tone: "dark" | "light" = "light") => (
+    <div
+      className={cn("anim-drop w-[15em] rounded-[0.8em] border px-[0.9em] py-[0.6em] shadow-[0_8px_20px_-12px_rgb(0_0_0/.35)]", tone === "dark" ? "border-transparent bg-[#0c0d0b] text-white" : "border-black/10 bg-white")}
+      style={delay(d)}
+    >
+      <div className={cn("text-[0.85em]", tone === "dark" ? "text-white/55" : "text-black/45")}>{kind}</div>
+      <div className="font-semibold">{title}</div>
+    </div>
+  )
+  const line = (d: number, label?: string) => (
+    <div className="anim-drop flex h-[1.6em] items-center gap-[0.5em]" style={delay(d)}>
+      <span className="h-full w-px bg-black/25" />
+      {label && <Badge tone="lime">{label}</Badge>}
+    </div>
+  )
+  return (
+    <div className="grid justify-items-center bg-[radial-gradient(rgb(0_0_0/.12)_1px,transparent_1px)] [background-size:1.2em_1.2em] p-[1.4em] text-[clamp(8px,0.95vw,13px)]">
+      {node("Auslöser", "Mitglied beim Einlass eingecheckt", 0, "dark")}
+      {line(0.4)}
+      {node("Bedingung", "Zählt als Probebesuch?", 0.6)}
+      {line(1, "ja")}
+      {node("Feld ändern", "Probebesuche + 1", 1.2)}
+      {line(1.6)}
+      {node("Bedingung", "4. Besuch?", 1.8)}
+      {line(2.2, "ja")}
+      <div className="flex gap-[0.8em]">
+        {node("E-Mail", "Mitgliedsantrag senden", 2.4)}
+        {node("Team", "Benachrichtigung", 2.6)}
+      </div>
+    </div>
+  )
+}

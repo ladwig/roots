@@ -2311,17 +2311,17 @@
       "members": {
         "label": "Members",
         "title": "Members and dues, without the paperwork.",
-        "text": "Membership types, numbers, joining and leaving, SEPA mandates. Dues follow your rules, the direct debit file is one click.",
+        "text": "Membership types with fixed or minimum fees, own fees per member, pauses and fee-free periods, SEPA mandates. Dues follow your rules, the direct debit file is one click.",
         "b1": "Import from Excel or your previous club software",
         "b2": "SEPA direct debit in your bank's format",
-        "b3": "Member area for address, bank details and cancellation"
+        "b3": "Member card with QR – on the phone or printed"
       },
       "tickets": {
         "label": "Tickets and door",
         "title": "Sell, check in, settle up.",
-        "text": "Ticket types, price tiers and discount codes – or free sign-ups with a limit. The money goes straight to your Stripe or SumUp account, entry works on any phone.",
+        "text": "Ticket types, price tiers and discount codes – or free sign-ups with a limit. The money goes straight to your Stripe or SumUp account. At the door one phone scans tickets and member cards.",
         "b1": "QR tickets as PDF and by email",
-        "b2": "A scanner that works without signal",
+        "b2": "One scanner for tickets and member cards, even without signal",
         "b3": "Waiting list when everything is booked"
       },
       "shifts": {
@@ -2344,7 +2344,7 @@
         "label": "Invoices",
         "title": "Invoices by German rules.",
         "text": "Quotes and invoices with gap-free numbers, required details and small business mode. Corrections by cancellation, never by deletion.",
-        "b1": "Number ranges per document type",
+        "b1": "Your own number ranges – with year, month or random parts",
         "b2": "A quote becomes an invoice in one click",
         "b3": "PDF, print and export for accounting"
       },
@@ -2354,20 +2354,20 @@
         "text": "Events with their own page, line-up and timetable. Guest lists per night or permanent, with links for promoters and artists.",
         "b1": "Public event page with timetable",
         "b2": "Guest lists with quota and invite link",
-        "b3": "Door: tickets and guests in one view"
+        "b3": "Door: tickets, guests and members in one view"
       },
       "contacts": {
         "label": "Contacts",
         "title": "Everyone. One list.",
         "text": "Members, ticket buyers, volunteers and partners in one place – with tags, custom fields, notes and history.",
         "b1": "CSV import with automatic mapping",
-        "b2": "Custom fields for whatever you need",
+        "b2": "Custom fields for contacts, events and memberships",
         "b3": "Export to Excel, anytime"
       },
       "portal": {
         "label": "Member area",
         "title": "Self-service instead of email ping-pong.",
-        "text": "Members sign in by link, see their membership and dues, and update address or bank details themselves.",
+        "text": "Members sign in by link, see their membership, dues and member card, and update address or bank details themselves.",
         "b1": "Sign-in without password",
         "b2": "New bank details with SEPA mandate",
         "b3": "Cancellation with the earliest date"
@@ -2379,6 +2379,14 @@
         "b1": "Personal data only for those who need it",
         "b2": "Absences in a calendar, holiday left calculated",
         "b3": "Hints for the Minijob limit and minimum wage"
+      },
+      "automations": {
+        "label": "Automations",
+        "title": "What repeats runs by itself.",
+        "text": "Draw flows on a canvas: when someone checks in, signs up or a date is reached, send an email, change a field, create a record or notify the team. Every flow can be played through with real data first.",
+        "b1": "Triggers from every area, also at set times",
+        "b2": "Conditions, waits, counters and lookups",
+        "b3": "Risk-free test runs – nothing is sent"
       }
     },
     "manifesto": {
@@ -2399,7 +2407,7 @@
       },
       "members": {
         "name": "Members",
-        "text": "Membership types, numbers, dues, SEPA direct debit and reminders."
+        "text": "Membership types with fixed or minimum fees, own fees, pauses, SEPA direct debit and a member card with QR."
       },
       "events": {
         "name": "Events",
@@ -2407,11 +2415,11 @@
       },
       "tickets": {
         "name": "Tickets",
-        "text": "Sales or free sign-ups, capacity, waiting list, QR tickets and entry by phone."
+        "text": "Sales or free sign-ups, capacity, waiting list, QR tickets – and entry by phone, for members with their card too."
       },
       "guestlists": {
         "name": "Guest lists",
-        "text": "Lists per event or permanent, with links for promoters and artists."
+        "text": "One guest list per event, more lists or permanent ones, with links for promoters and artists."
       },
       "shifts": {
         "name": "Shifts",
@@ -2427,7 +2435,7 @@
       },
       "invoices": {
         "name": "Invoices",
-        "text": "Quotes, invoices and cancellations by German rules."
+        "text": "Quotes, invoices and cancellations by German rules, with your own number ranges."
       },
       "files": {
         "name": "Files",
@@ -2451,7 +2459,7 @@
       },
       "automations": {
         "name": "Automations",
-        "text": "Build flows on a canvas: when this happens, send an email, set a tag, call a webhook – with templates."
+        "text": "Flows on a canvas: when something happens or at set times, send an email, change a field, create a record, call a webhook – with templates and test runs."
       }
     },
     "events": {
@@ -2589,6 +2597,10 @@
         "hr": {
           "title": "People",
           "text": "Contracts, absences, payroll prep"
+        },
+        "automations": {
+          "title": "Automations",
+          "text": "Flows that run by themselves"
         }
       }
     },

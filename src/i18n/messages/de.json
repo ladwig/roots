@@ -2311,17 +2311,17 @@
       "members": {
         "label": "Mitglieder",
         "title": "Mitglieder und Beiträge, ohne Zettelwirtschaft.",
-        "text": "Mitgliedsarten, Nummern, Ein- und Austritte, SEPA-Mandate. Beiträge entstehen aus den Regeln, die Lastschriftdatei ist ein Klick.",
+        "text": "Mitgliedsarten mit festem oder Mindestbeitrag, eigene Beiträge pro Mitglied, Pausen und beitragsfreie Zeiten, SEPA-Mandate. Beiträge entstehen aus den Regeln, die Lastschriftdatei ist ein Klick.",
         "b1": "Import aus Excel oder der bisherigen Vereinssoftware",
         "b2": "SEPA-Lastschrift im Format eurer Bank",
-        "b3": "Mitgliederbereich für Adresse, Bankdaten und Kündigung"
+        "b3": "Mitgliedskarte mit QR – auf dem Handy oder gedruckt"
       },
       "tickets": {
         "label": "Tickets und Einlass",
         "title": "Verkaufen, einlassen, abrechnen.",
-        "text": "Ticketarten, Preisstufen und Rabattcodes – oder kostenlose Anmeldungen mit Platzlimit. Das Geld geht direkt auf euer Stripe- oder SumUp-Konto, der Einlass läuft über jedes Handy.",
+        "text": "Ticketarten, Preisstufen und Rabattcodes – oder kostenlose Anmeldungen mit Platzlimit. Das Geld geht direkt auf euer Stripe- oder SumUp-Konto. Am Einlass scannt ein Handy Tickets und Mitgliedskarten.",
         "b1": "QR-Tickets als PDF und per E-Mail",
-        "b2": "Scanner, der auch ohne Netz funktioniert",
+        "b2": "Ein Scanner für Tickets und Mitgliedskarten, auch ohne Netz",
         "b3": "Warteliste, wenn alles ausgebucht ist"
       },
       "shifts": {
@@ -2344,7 +2344,7 @@
         "label": "Rechnungen",
         "title": "Rechnungen nach deutschen Regeln.",
         "text": "Angebote und Rechnungen mit lückenlosen Nummern, Pflichtangaben und Kleinunternehmerregelung. Korrigiert wird per Storno, nicht per Löschen.",
-        "b1": "Nummernkreise pro Belegart",
+        "b1": "Eigene Nummernkreise – mit Jahr, Monat oder Zufall",
         "b2": "Aus dem Angebot wird mit einem Klick die Rechnung",
         "b3": "PDF, Druck und Export für die Buchhaltung"
       },
@@ -2354,20 +2354,20 @@
         "text": "Events mit eigener Seite, Line-up und Timetable. Gästelisten pro Abend oder dauerhaft, mit Links für Promoter und Artists.",
         "b1": "Öffentliche Eventseite mit Timetable",
         "b2": "Gästelisten mit Kontingent und Einladungslink",
-        "b3": "Tür: Tickets und Gäste in einer Ansicht"
+        "b3": "Tür: Tickets, Gäste und Mitglieder in einer Ansicht"
       },
       "contacts": {
         "label": "Kontakte",
         "title": "Alle Menschen. Eine Liste.",
         "text": "Mitglieder, Ticketkäufer, Helfer und Partner an einem Ort – mit Tags, eigenen Feldern, Notizen und Verlauf.",
         "b1": "Import per CSV mit automatischer Zuordnung",
-        "b2": "Eigene Felder für alles, was ihr braucht",
+        "b2": "Eigene Felder für Kontakte, Events und Mitgliedschaften",
         "b3": "Export als Excel, jederzeit"
       },
       "portal": {
         "label": "Mitgliederbereich",
         "title": "Selbstservice statt E-Mail-Pingpong.",
-        "text": "Mitglieder melden sich per Link an, sehen ihre Mitgliedschaft und Beiträge und ändern Adresse oder Bankdaten selbst.",
+        "text": "Mitglieder melden sich per Link an, sehen Mitgliedschaft, Beiträge und ihre Mitgliedskarte und ändern Adresse oder Bankdaten selbst.",
         "b1": "Anmeldung ohne Passwort",
         "b2": "Neue Bankverbindung mit SEPA-Mandat",
         "b3": "Kündigung mit frühestem Termin"
@@ -2379,6 +2379,14 @@
         "b1": "Persönliche Daten nur für die, die sie brauchen",
         "b2": "Abwesenheiten im Kalender, Resturlaub automatisch",
         "b3": "Hinweise bei Minijob-Grenze und Mindestlohn"
+      },
+      "automations": {
+        "label": "Automationen",
+        "title": "Was sich wiederholt, läuft von selbst.",
+        "text": "Abläufe auf einer Fläche zeichnen: wenn jemand eincheckt, sich anmeldet oder ein Datum erreicht ist, dann E-Mail, Feld ändern, Datensatz anlegen oder Team benachrichtigen. Jeder Ablauf lässt sich vorher mit echten Daten durchspielen.",
+        "b1": "Auslöser aus allen Bereichen, auch zu festen Zeiten",
+        "b2": "Bedingungen, Wartezeiten, Zähler und Suchen",
+        "b3": "Testlauf ohne Risiko – nichts wird gesendet"
       }
     },
     "manifesto": {
@@ -2399,7 +2407,7 @@
       },
       "members": {
         "name": "Mitglieder",
-        "text": "Mitgliedsarten, Nummern, Beiträge, SEPA-Lastschrift und Mahnungen."
+        "text": "Mitgliedsarten mit festem oder Mindestbeitrag, eigene Beiträge, Pausen, SEPA-Lastschrift und Mitgliedskarte mit QR."
       },
       "events": {
         "name": "Events",
@@ -2407,11 +2415,11 @@
       },
       "tickets": {
         "name": "Tickets",
-        "text": "Verkauf oder kostenlose Anmeldung, Platzlimit, Warteliste, QR-Tickets und Einlass per Handy."
+        "text": "Verkauf oder kostenlose Anmeldung, Platzlimit, Warteliste, QR-Tickets – und Einlass per Handy, auch für Mitglieder mit ihrer Karte."
       },
       "guestlists": {
         "name": "Gästelisten",
-        "text": "Listen pro Event oder dauerhaft, mit Links für Promoter und Artists."
+        "text": "Eine Gästeliste pro Event, weitere Listen oder dauerhafte, mit Links für Promoter und Artists."
       },
       "shifts": {
         "name": "Schichten",
@@ -2427,7 +2435,7 @@
       },
       "invoices": {
         "name": "Rechnungen",
-        "text": "Angebote, Rechnungen und Stornos nach deutschen Vorgaben."
+        "text": "Angebote, Rechnungen und Stornos nach deutschen Vorgaben, mit eigenen Nummernkreisen."
       },
       "files": {
         "name": "Dateien",
@@ -2451,7 +2459,7 @@
       },
       "automations": {
         "name": "Automationen",
-        "text": "Abläufe auf einer Fläche bauen: wenn das passiert, dann E-Mail, Tag, Webhook – mit Vorlagen."
+        "text": "Abläufe auf einer Fläche: wenn etwas passiert oder zu festen Zeiten, dann E-Mail, Feld ändern, Datensatz anlegen, Webhook – mit Vorlagen und Testlauf."
       }
     },
     "events": {
@@ -2589,6 +2597,10 @@
         "hr": {
           "title": "Personal",
           "text": "Verträge, Abwesenheiten, Lohnvorbereitung"
+        },
+        "automations": {
+          "title": "Automationen",
+          "text": "Abläufe, die von selbst laufen"
         }
       }
     },
