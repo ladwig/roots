@@ -40,21 +40,28 @@ export default async function CashbookPage({ searchParams }: { searchParams: Pro
   const last = iso(y, m, 0)
   const before = iso(y, m - 1, 0)
 
-  const { data: accounts } = await ctx.supabase.from("cash_accounts").select("*").eq("org_id", ctx.org.id).order("active", { ascending: false }).order("name")
-  const account = accounts?.find((a) => a.id === param(sp, "account")) ?? accounts?.find((a) => a.active) ?? accounts?.[0]
+  // With ?account= everything loads in one round; without it the default account has to be found first.
+  const wanted = /^[0-9a-f-]{36}$/.test(param(sp, "account") ?? "") ? param(sp, "account")! : null
+  const accountsQuery = ctx.supabase.from("cash_accounts").select("*").eq("org_id", ctx.org.id).order("active", { ascending: false }).order("name")
+  const initial = wanted ? null : (await accountsQuery).data
+  const pick = (list: Tables<"cash_accounts">[] | null | undefined) => list?.find((a) => a.id === wanted) ?? list?.find((a) => a.active) ?? list?.[0]
+  const preliminary = wanted ?? pick(initial)?.id ?? null
   const editId = param(sp, "edit")
-  const [{ data: entries }, { data: start }, { data: closing }, { data: cats }, { data: invoices }, { data: editing }] = await Promise.all([
-    account
-      ? ctx.supabase.from("cash_entries").select("*").eq("org_id", ctx.org.id).eq("account_id", account.id).gte("booked_on", first).lte("booked_on", last).order("booked_on").order("number")
+  const [{ data: listed }, { data: entries }, { data: start }, { data: closing }, { data: cats }, { data: invoices }, { data: editing }] = await Promise.all([
+    wanted ? accountsQuery : Promise.resolve({ data: initial }),
+    preliminary
+      ? ctx.supabase.from("cash_entries").select("*").eq("org_id", ctx.org.id).eq("account_id", preliminary).gte("booked_on", first).lte("booked_on", last).order("booked_on").order("number")
       : Promise.resolve({ data: [] as Entry[] }),
-    account ? ctx.supabase.rpc("cash_balances", { p_org: ctx.org.id, p_until: before }) : Promise.resolve({ data: [] }),
-    account ? ctx.supabase.from("cash_closings").select("*").eq("account_id", account.id).eq("month", first).maybeSingle() : Promise.resolve({ data: null }),
+    preliminary ? ctx.supabase.rpc("cash_balances", { p_org: ctx.org.id, p_until: before }) : Promise.resolve({ data: [] }),
+    preliminary ? ctx.supabase.from("cash_closings").select("*").eq("account_id", preliminary).eq("month", first).maybeSingle() : Promise.resolve({ data: null }),
     canManage ? ctx.supabase.from("cash_entries").select("category").eq("org_id", ctx.org.id).not("category", "is", null).order("created_at", { ascending: false }).limit(500) : Promise.resolve({ data: [] }),
     canManage && param(sp, "new") === "entry" && ctx.modules.has("invoices")
       ? ctx.supabase.from("documents").select("id, number, recipient_name, gross_total").eq("org_id", ctx.org.id).eq("kind", "invoice").eq("status", "sent").order("issue_date", { ascending: false }).limit(100)
       : Promise.resolve({ data: [] }),
     editId && /^[0-9a-f-]{36}$/.test(editId) ? ctx.supabase.from("cash_entries").select("*").eq("id", editId).eq("org_id", ctx.org.id).maybeSingle() : Promise.resolve({ data: null }),
   ])
+  const accounts = listed
+  const account = accounts?.find((a) => a.id === preliminary) // an unknown ?account= shows the empty state
   const ids = (entries ?? []).map((e) => e.id)
   const [{ data: reversals }, { data: receipts }] = await Promise.all([
     ids.length ? ctx.supabase.from("cash_entries").select("reverses_id, number").in("reverses_id", ids) : Promise.resolve({ data: [] }),
