@@ -3943,6 +3943,7 @@
     "blocksMenu": "Blöcke",
     "linkPrompt": "Link-Adresse",
     "editorHint": "„/“ für Blöcke · Markdown geht beim Tippen (# Überschrift, - Liste, [] Aufgabe, > Zitat) · Bilder und Dateien hineinziehen oder einfügen · speichert automatisch (⌘S sofort)",
-    "dropTopLevel": "Hier ablegen = oberste Ebene"
+    "dropTopLevel": "Hier ablegen = oberste Ebene",
+    "insertFailed": "Hochgeladen, aber nicht in den Text eingefügt – du findest es unter Anhänge."
   }
 }

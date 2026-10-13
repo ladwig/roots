@@ -78,32 +78,48 @@ export function WikiEditor({ page, orgId }: { page: { id: string; title: string;
     timer.current = setTimeout(() => save(editor), 1200)
   }
 
-  // Upload, then images as image blocks, other files as links – at `pos` (drop point / cursor).
-  const attach = async (editor: Editor, files: File[], pos: number) => {
+  // Upload, then images as image blocks, other files as links – at `pos` (drop point / cursor). Inserts into the
+  // editor as it is after the upload (not the one from before the file dialog), falls back to the end of the page.
+  const attach = async (_e: Editor, files: File[], pos: number) => {
     if (!files.length) return
     setUploading((n) => n + files.length)
-    const done = await uploadFiles(orgId, files, { entity: "wiki_pages", entityId: page.id }, t)
-    setUploading((n) => n - files.length)
-    if (!done.length) return
-    editor
-      .chain()
-      .focus()
-      .insertContentAt(
-        Math.min(pos, editor.state.doc.content.size),
-        done.map((f) =>
-          f.mime.startsWith("image/")
-            ? { type: "image", attrs: { src: `/files/${f.id}`, alt: f.name } }
-            : { type: "paragraph", content: [{ type: "text", text: f.name, marks: [{ type: "link", attrs: { href: `/files/${f.id}` } }] }] },
-        ),
-      )
-      .run()
+    let done: Awaited<ReturnType<typeof uploadFiles>> = []
+    try {
+      done = await uploadFiles(orgId, files, { entity: "wiki_pages", entityId: page.id }, t)
+    } finally {
+      setUploading((n) => n - files.length)
+    }
     router.refresh() // attachments list (the editor keeps its state: keyed by page)
+    const editor = editorRef.current
+    if (!done.length || !editor || editor.isDestroyed) return
+    const nodes = done.map((f) =>
+      f.mime.startsWith("image/")
+        ? { type: "image", attrs: { src: `/files/${f.id}`, alt: f.name } }
+        : { type: "paragraph", content: [{ type: "text", text: f.name, marks: [{ type: "link", attrs: { href: `/files/${f.id}` } }] }] },
+    )
+    const end = editor.state.doc.content.size
+    try {
+      if (!editor.chain().insertContentAt(Math.min(Math.max(pos, 0), end), nodes).run()) editor.chain().insertContentAt(end, nodes).run()
+    } catch (err) {
+      console.error(err)
+      try {
+        editor.chain().insertContentAt(editor.state.doc.content.size, nodes).run()
+      } catch {
+        toast.error(t("wiki.insertFailed"))
+      }
+    }
   }
   const pickFiles = (editor: Editor) => {
     const input = document.createElement("input")
     input.type = "file"
     input.multiple = true
-    input.onchange = () => attach(editor, [...(input.files ?? [])], editor.state.selection.from)
+    input.hidden = true
+    document.body.append(input) // Safari only fires change for inputs in the page
+    const pos = editor.state.selection.from
+    input.onchange = () => {
+      attach(editor, [...(input.files ?? [])], pos)
+      input.remove()
+    }
     input.click()
   }
 

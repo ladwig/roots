@@ -3943,6 +3943,7 @@
     "blocksMenu": "Blocks",
     "linkPrompt": "Link address",
     "editorHint": "\"/\" for blocks · Markdown works while typing (# heading, - list, [] task, > quote) · drop or paste images and files · saves automatically (⌘S now)",
-    "dropTopLevel": "Drop here = top level"
+    "dropTopLevel": "Drop here = top level",
+    "insertFailed": "Uploaded, but not inserted into the text – you find it under attachments."
   }
 }
