@@ -98,12 +98,14 @@ export async function issueTickets(order: PaidOrder) {
       contactId = created?.id ?? null
     }
   }
-  const { error } = await db()
+  const { data: changed, error } = await db()
     .from("tickets")
     .update({ status: "valid", expires_at: null, contact_id: contactId })
     .eq("order_id", order.id)
     .eq("status", "reserved")
+    .select("id")
   if (error) throw error
+  if (!changed?.length) return // already issued: don't mail again
   // Email with link + PDF. Never fails the payment: tickets are valid either way (the buyer page has them too).
   await emailTickets(order.id).catch((e) => console.error("ticket email", order.id, e))
 }

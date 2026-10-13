@@ -907,14 +907,14 @@ isOneToOne: false
                   ]
                 },"integration_events": {
                   Row: {
-                    "attempts": number,"error": string | null,"external_id": string,"id": number,"org_id": string | null,"payload": NonNullable<Json>,"processed_at": string | null,"provider": string,"received_at": string,"type": string | null
+                    "attempts": number,"error": string | null,"external_id": string,"id": number,"locked_at": string | null,"org_id": string | null,"payload": NonNullable<Json>,"processed_at": string | null,"provider": string,"received_at": string,"type": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "attempts"?: number,"error"?: string | null,"external_id": string,"id"?: never,"org_id"?: string | null,"payload": NonNullable<Json>,"processed_at"?: string | null,"provider": string,"received_at"?: string,"type"?: string | null
+                    "attempts"?: number,"error"?: string | null,"external_id": string,"id"?: never,"locked_at"?: string | null,"org_id"?: string | null,"payload": NonNullable<Json>,"processed_at"?: string | null,"provider": string,"received_at"?: string,"type"?: string | null
                   }
                   Update: {
-                    "attempts"?: number,"error"?: string | null,"external_id"?: string,"id"?: never,"org_id"?: string | null,"payload"?: NonNullable<Json>,"processed_at"?: string | null,"provider"?: string,"received_at"?: string,"type"?: string | null
+                    "attempts"?: number,"error"?: string | null,"external_id"?: string,"id"?: never,"locked_at"?: string | null,"org_id"?: string | null,"payload"?: NonNullable<Json>,"processed_at"?: string | null,"provider"?: string,"received_at"?: string,"type"?: string | null
                   }
                   Relationships: [
                     {
@@ -1773,14 +1773,14 @@ isOneToOne: false
                   ]
                 },"tickets": {
                   Row: {
-                    "checked_in_at": string | null,"checked_in_by": string | null,"code": string,"code_id": string | null,"contact_id": string | null,"created_at": string,"created_by": string | null,"event_id": string,"expires_at": string | null,"holder_name": string | null,"id": string,"order_id": string,"org_id": string,"price": number | null,"status": string,"tier_id": string | null,"type_id": string,"updated_at": string,"updated_by": string | null,"ticket_live": boolean | null
+                    "checked_in_at": string | null,"checked_in_by": string | null,"code": string,"code_id": string | null,"contact_id": string | null,"created_at": string,"created_by": string | null,"event_id": string,"expires_at": string | null,"guest_entry_id": string | null,"holder_name": string | null,"id": string,"order_id": string,"org_id": string,"price": number | null,"status": string,"tier_id": string | null,"type_id": string,"updated_at": string,"updated_by": string | null,"ticket_live": boolean | null
                   }
                   ComputedFields: "ticket_live"
                   Insert: {
-                    "checked_in_at"?: string | null,"checked_in_by"?: string | null,"code": string,"code_id"?: string | null,"contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"event_id": string,"expires_at"?: string | null,"holder_name"?: string | null,"id"?: string,"order_id": string,"org_id": string,"price"?: number | null,"status"?: string,"tier_id"?: string | null,"type_id": string,"updated_at"?: string,"updated_by"?: string | null
+                    "checked_in_at"?: string | null,"checked_in_by"?: string | null,"code": string,"code_id"?: string | null,"contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"event_id": string,"expires_at"?: string | null,"guest_entry_id"?: string | null,"holder_name"?: string | null,"id"?: string,"order_id": string,"org_id": string,"price"?: number | null,"status"?: string,"tier_id"?: string | null,"type_id": string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "checked_in_at"?: string | null,"checked_in_by"?: string | null,"code"?: string,"code_id"?: string | null,"contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"event_id"?: string,"expires_at"?: string | null,"holder_name"?: string | null,"id"?: string,"order_id"?: string,"org_id"?: string,"price"?: number | null,"status"?: string,"tier_id"?: string | null,"type_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "checked_in_at"?: string | null,"checked_in_by"?: string | null,"code"?: string,"code_id"?: string | null,"contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"event_id"?: string,"expires_at"?: string | null,"guest_entry_id"?: string | null,"holder_name"?: string | null,"id"?: string,"order_id"?: string,"org_id"?: string,"price"?: number | null,"status"?: string,"tier_id"?: string | null,"type_id"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -1800,6 +1800,12 @@ isOneToOne: false
       columns: ["event_id"]
 isOneToOne: false
       referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tickets_guest_entry_id_fkey"
+      columns: ["guest_entry_id"]
+isOneToOne: false
+      referencedRelation: "guest_entries"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "tickets_order_id_fkey"
@@ -2289,6 +2295,7 @@ isOneToOne: false
 "created_by": string | null,
 "event_id": string,
 "expires_at": string | null,
+"guest_entry_id": string | null,
 "holder_name": string | null,
 "id": string,
 "order_id": string,

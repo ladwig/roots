@@ -13,41 +13,34 @@ export async function syncTickets(listId: string) {
   const { data: list } = await db().from("guest_lists").select("id, org_id, event_id, ticket_type_id, name, deleted_at").eq("id", listId).maybeSingle()
   if (!list?.ticket_type_id || !list.event_id || list.deleted_at) return
   const { data: entries } = await db().from("guest_entries").select("id, name, email, ticket_id, tickets(holder_name, status)").eq("list_id", listId)
-  for (const e of entries ?? []) {
-    if (e.ticket_id && e.tickets && e.tickets.status !== "void") {
-      if (e.tickets.holder_name !== e.name) await db().from("tickets").update({ holder_name: e.name }).eq("id", e.ticket_id)
-      continue
-    }
-    // One free, paid order per entry keeps tickets ↔ orders consistent (refunds, buyer page, API).
-    const { data: order, error } = await db()
-      .from("pay_orders")
-      .insert({
-        org_id: list.org_id,
-        source_module: "guestlists",
-        source_id: list.id,
-        amount_total: 0,
-        status: "paid",
-        paid_at: new Date().toISOString(),
-        fulfilled_at: new Date().toISOString(),
-        customer_name: e.name,
-        customer_email: e.email,
-        metadata: { guest_entry: e.id, list: list.name },
-      })
-      .select("id")
-      .single()
-    if (error) throw error
-    let ticket
-    for (let attempt = 0; attempt < 3 && !ticket; attempt++) {
-      const { data, error: tErr } = await db()
-        .from("tickets")
-        .insert({ org_id: list.org_id, event_id: list.event_id, type_id: list.ticket_type_id, order_id: order.id, code: ticketCode(), holder_name: e.name, status: "valid", price: 0 })
-        .select("id")
-        .single()
-      if (tErr && tErr.code !== "23505") throw tErr
-      ticket = data
-    }
-    if (ticket) await db().from("guest_entries").update({ ticket_id: ticket.id }).eq("id", e.id)
+  const missing: NonNullable<typeof entries> = []
+  await Promise.all(
+    (entries ?? []).map(async (e) => {
+      if (e.ticket_id && e.tickets && e.tickets.status !== "void") {
+        if (e.tickets.holder_name !== e.name) await db().from("tickets").update({ holder_name: e.name }).eq("id", e.ticket_id)
+      } else missing.push(e)
+    }),
+  )
+  if (!missing.length) return
+  // One free, paid order per entry keeps tickets ↔ orders consistent (refunds, buyer page, API). Batched: 3 queries total.
+  const now = new Date().toISOString()
+  const { data: orders, error } = await db()
+    .from("pay_orders")
+    .insert(missing.map((e) => ({ org_id: list.org_id, source_module: "guestlists", source_id: list.id, amount_total: 0, status: "paid", paid_at: now, fulfilled_at: now, customer_name: e.name, customer_email: e.email, metadata: { guest_entry: e.id, list: list.name } })))
+    .select("id, metadata")
+  if (error) throw error
+  const orderOf = new Map((orders ?? []).map((o) => [(o.metadata as { guest_entry: string }).guest_entry, o.id]))
+  const { data: tickets, error: tErr } = await db()
+    .from("tickets")
+    .insert(missing.map((e) => ({ org_id: list.org_id, event_id: list.event_id!, type_id: list.ticket_type_id!, order_id: orderOf.get(e.id)!, code: ticketCode(), holder_name: e.name, status: "valid", price: 0, guest_entry_id: e.id })))
+    .select("id, guest_entry_id")
+  if (tErr) {
+    // 23505 = a concurrent run already issued these tickets (unique index): drop our orders and let that run win.
+    await db().from("pay_orders").update({ status: "cancelled" }).in("id", [...orderOf.values()])
+    if (tErr.code === "23505") return
+    throw tErr
   }
+  await Promise.all((tickets ?? []).map((t) => db().from("guest_entries").update({ ticket_id: t.id }).eq("id", t.guest_entry_id!)))
 }
 
 /** Entry removed (or list unlinked): its ticket can't be used any more. */

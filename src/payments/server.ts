@@ -147,12 +147,24 @@ export async function markPaid(provider: string, providerRef: string, providerPa
 async function fulfil(orderId: string) {
   const { data: order } = await db()
     .from("pay_orders")
-    .select("id, org_id, source_module, source_id, customer_email, metadata, fulfilled_at")
+    .select("id, org_id, source_module, source_id, customer_email, metadata")
     .eq("id", orderId)
     .single()
-  if (!order || order.fulfilled_at) return
-  await fulfilment[order.source_module]?.onPaid?.(order as PaidOrder)
-  await db().from("pay_orders").update({ fulfilled_at: new Date().toISOString() }).eq("id", orderId)
+  if (!order) return
+  // Claim atomically: only the caller that flips fulfilled_at runs onPaid (webhook vs. reconcileOrder race).
+  const { data: claimed } = await db()
+    .from("pay_orders")
+    .update({ fulfilled_at: new Date().toISOString() })
+    .eq("id", orderId)
+    .is("fulfilled_at", null)
+    .select("id")
+  if (!claimed?.length) return
+  try {
+    await fulfilment[order.source_module]?.onPaid?.(order as PaidOrder)
+  } catch (e) {
+    await db().from("pay_orders").update({ fulfilled_at: null }).eq("id", orderId) // let the provider retry
+    throw e
+  }
 }
 
 async function closePayment(provider: string, providerRef: string, status: "failed" | "expired") {

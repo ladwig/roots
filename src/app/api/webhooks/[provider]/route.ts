@@ -38,15 +38,27 @@ export async function POST(request: Request, { params }: RouteContext<"/api/webh
   if (error) return new NextResponse("Could not store event", { status: 500 })
   if (row.processed_at) return NextResponse.json({ duplicate: true })
 
+  // Atomic claim: only one delivery wins; a lock older than 5 min counts as a crashed handler.
+  const stale = new Date(Date.now() - 5 * 60_000).toISOString()
+  const { data: claimed, error: claimError } = await db
+    .from("integration_events")
+    .update({ locked_at: new Date().toISOString() })
+    .eq("id", row.id)
+    .is("processed_at", null)
+    .or(`locked_at.is.null,locked_at.lt.${stale}`)
+    .select("id")
+  if (claimError) return new NextResponse("Could not claim event", { status: 500 })
+  if (!claimed?.length) return NextResponse.json({ duplicate: true })
+
   try {
     await webhook.handle(event)
-    await db.from("integration_events").update({ processed_at: new Date().toISOString(), error: null }).eq("id", row.id)
+    await db.from("integration_events").update({ processed_at: new Date().toISOString(), error: null, locked_at: null }).eq("id", row.id)
     deliverSoon() // e.g. order.paid → org notifications
     return NextResponse.json({ ok: true })
   } catch (e) {
     await db
       .from("integration_events")
-      .update({ attempts: row.attempts + 1, error: e instanceof Error ? e.message : String(e) })
+      .update({ attempts: row.attempts + 1, error: e instanceof Error ? e.message : String(e), locked_at: null })
       .eq("id", row.id)
     return new NextResponse("Handler failed", { status: 500 })
   }
