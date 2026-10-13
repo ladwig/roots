@@ -3615,7 +3615,8 @@
     "testStop": "Testlauf beenden",
     "testOwn": "Eigene Testdaten wählen …",
     "testNone": "– keine –",
-    "noSamplesOwn": "Für diesen Auslöser ist noch nichts passiert – wähl einfach Datensätze, mit denen du testen willst."
+    "noSamplesOwn": "Für diesen Auslöser ist noch nichts passiert – wähl einfach Datensätze, mit denen du testen willst.",
+    "defaultGuestList": "Leer lassen = Standard-Gästeliste der Veranstaltung dieses Ablaufs (wird bei Bedarf angelegt)."
   },
   "numbers": {
     "next": "Nächste Nummer",

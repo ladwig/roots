@@ -18,7 +18,8 @@ import { berlinDay, dateMatches, nextRun, resolveDate, type Schedule } from "./s
 type Db = ReturnType<typeof createAdminClient>
 type Run = { id: string; org_id: string; workflow_id: string; contact_id: string | null; node_id: string | null; context: Json; log: Json }
 type Row = Record<string, unknown>
-type Ctx = Record<string, unknown> & { event?: string; payload: Row; contact: Row | null; org: { name: string } }
+// `trigger` = what started the run ("membership.checked_in"); `event` = the Events module record, if any.
+type Ctx = Record<string, unknown> & { trigger?: string; payload: Row; contact: Row | null; org: { name: string } }
 type LogEntry = { at: string; node: string; type: NodeType; ok: boolean; note?: string }
 const MAX_STEPS = 50 // per run and turn (graphs have no cycles, this only guards against surprises)
 const UUID = /^[0-9a-f-]{36}$/
@@ -226,7 +227,8 @@ export async function context(db: Db, run: Pick<Run, "org_id" | "contact_id" | "
   return {
     ...(((base as { steps?: Row }).steps ?? {}) as Row),
     ...out,
-    event,
+    trigger: event,
+    event: out.event ?? null,
     payload,
     contact: contact ? { ...contact, name } : null,
     membership: out.membership ?? current ?? null,
@@ -347,11 +349,11 @@ async function act(db: Db, run: Run, node: GraphNode, type: NodeType, d: Record<
     case "webhook": {
       const url = String(d.url)
       if (!isAllowedUrl(url)) throw new Error("webhook URL not allowed")
-      const { payload, event, org, ...objects } = ctx
+      const { payload, trigger, org, ...objects } = ctx
       const res = await fetch(url, {
         method: "POST",
         headers: { "content-type": "application/json", "user-agent": "roots-automations/1" },
-        body: JSON.stringify({ workflow_id: run.workflow_id, run_id: run.id, event, org: org.name, payload, ...objects }),
+        body: JSON.stringify({ workflow_id: run.workflow_id, run_id: run.id, trigger, org: org.name, payload, ...objects }),
         signal: AbortSignal.timeout(10_000),
         redirect: "manual",
       })
@@ -443,6 +445,17 @@ async function coerce(db: Db, orgId: string, f: Field, raw: string, path: string
 // "Create record": an object the catalog marks creatable, its fields from the step (placeholders + relative dates),
 // links to the run's objects (e.g. the person) set automatically. The DB's own rules apply (member numbers,
 // course places …).
+/** The event's standard guest list ("Gästeliste"), created if it doesn't exist yet. */
+async function defaultGuestList(db: Db, orgId: string, eventId: string) {
+  const find = () => db.from("guest_lists").select("id").eq("org_id", orgId).eq("event_id", eventId).eq("is_default", true).is("deleted_at", null).maybeSingle()
+  const { data } = await find()
+  if (data) return data.id
+  const { data: made, error } = await db.from("guest_lists").insert({ org_id: orgId, event_id: eventId, name: "Gästeliste", is_default: true }).select("id").single()
+  if (made) return made.id
+  if (error?.code !== "23505") throw new Error(error?.message ?? "guest list")
+  return (await find()).data!.id // created at the same moment by another run
+}
+
 async function createRecord(db: Db, run: Run, object: string, values: Record<string, string>, ctx: Ctx): Promise<string | void> {
   const d = def(object as ObjectKey)
   if (!d?.create) throw new Error(`${object} can't be created`)
@@ -459,6 +472,12 @@ async function createRecord(db: Db, run: Run, object: string, values: Record<str
   }
   // Sensible defaults: a guest is the person of the run, a membership starts today.
   const person = ctx.contact as { name?: string; email?: string | null } | null
+  if (object === "guest" && !row.list_id) {
+    // No list chosen: the standard guest list of the run's event (created on first use).
+    const eventId = (ctx.event as Row | null)?.id as string | undefined
+    if (!eventId) throw new Error("no guest list and no event in this run")
+    row.list_id = await defaultGuestList(db, run.org_id, eventId)
+  }
   if (object === "guest") {
     row.name ??= person?.name || null
     row.email ??= person?.email ?? null

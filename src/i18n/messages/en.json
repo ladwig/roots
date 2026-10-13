@@ -3615,7 +3615,8 @@
     "testStop": "End test run",
     "testOwn": "Pick own test data …",
     "testNone": "– none –",
-    "noSamplesOwn": "Nothing has happened for this trigger yet – just pick records to test with."
+    "noSamplesOwn": "Nothing has happened for this trigger yet – just pick records to test with.",
+    "defaultGuestList": "Leave empty = the standard guest list of this run's event (created when needed)."
   },
   "numbers": {
     "next": "Next number",

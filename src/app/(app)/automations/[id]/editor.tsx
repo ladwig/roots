@@ -1153,6 +1153,7 @@ function CreateRecord({ d, options, trigger, canEdit, onChange }: { d: Record<st
             <div key={key} className="grid gap-1">
               <Label>{t.dynamic(`automations.fields.${object}.${key}`)}</Label>
               <ValueInput f={f} value={values[key] ?? ""} options={options} dates={bases} disabled={!canEdit} onChange={(v) => onChange({ values: { ...values, [key]: v } })} />
+              {object === "guest" && key === "list_id" && <p className="text-xs text-muted-foreground">{t("automations.defaultGuestList")}</p>}
             </div>
           )
         })}

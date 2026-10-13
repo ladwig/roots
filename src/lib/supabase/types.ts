@@ -759,14 +759,14 @@ isOneToOne: false
                   ]
                 },"guest_lists": {
                   Row: {
-                    "artist_id": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"door_price": number,"event_id": string | null,"id": string,"link_closes_at": string | null,"link_enabled": boolean,"link_token": string | null,"name": string,"notes": string | null,"org_id": string,"per_submission": number,"quota": number | null,"ticket_type_id": string | null,"updated_at": string,"updated_by": string | null
+                    "artist_id": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"door_price": number,"event_id": string | null,"id": string,"is_default": boolean,"link_closes_at": string | null,"link_enabled": boolean,"link_token": string | null,"name": string,"notes": string | null,"org_id": string,"per_submission": number,"quota": number | null,"ticket_type_id": string | null,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "artist_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"door_price"?: number,"event_id"?: string | null,"id"?: string,"link_closes_at"?: string | null,"link_enabled"?: boolean,"link_token"?: string | null,"name": string,"notes"?: string | null,"org_id": string,"per_submission"?: number,"quota"?: number | null,"ticket_type_id"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "artist_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"door_price"?: number,"event_id"?: string | null,"id"?: string,"is_default"?: boolean,"link_closes_at"?: string | null,"link_enabled"?: boolean,"link_token"?: string | null,"name": string,"notes"?: string | null,"org_id": string,"per_submission"?: number,"quota"?: number | null,"ticket_type_id"?: string | null,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "artist_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"door_price"?: number,"event_id"?: string | null,"id"?: string,"link_closes_at"?: string | null,"link_enabled"?: boolean,"link_token"?: string | null,"name"?: string,"notes"?: string | null,"org_id"?: string,"per_submission"?: number,"quota"?: number | null,"ticket_type_id"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "artist_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"door_price"?: number,"event_id"?: string | null,"id"?: string,"is_default"?: boolean,"link_closes_at"?: string | null,"link_enabled"?: boolean,"link_token"?: string | null,"name"?: string,"notes"?: string | null,"org_id"?: string,"per_submission"?: number,"quota"?: number | null,"ticket_type_id"?: string | null,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
