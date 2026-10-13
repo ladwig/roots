@@ -4024,10 +4024,13 @@
     "icon": {
       "add": "Add icon",
       "change": "Change icon",
-      "own": "Paste your own emoji",
-      "set": "Set",
       "remove": "Remove icon"
     },
     "iconInvalid": "Please pick an emoji."
+  },
+  "emoji": {
+    "search": "Search emoji …",
+    "loading": "Loading …",
+    "none": "No emoji found."
   }
 }

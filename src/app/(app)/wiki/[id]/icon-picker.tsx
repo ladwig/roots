@@ -4,15 +4,15 @@ import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { SmilePlusIcon } from "lucide-react"
 import { toast } from "sonner"
+import { EmojiPicker } from "@/components/emoji-picker"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useT } from "@/i18n/client"
+import { cn } from "@/lib/utils"
 import { setIconAction } from "../actions"
 
-// A choice of common page icons; any other emoji can be typed or pasted (or picked with the system emoji keyboard).
-const EMOJIS = "📄 📝 📌 📎 📚 📖 📒 📋 ✅ ☑️ ⭐ 💡 🔥 🎉 🎶 🎧 🎤 🎸 🥁 🎟️ 🍻 🍸 ☕ 🍕 🏠 🏢 🗺️ 📍 🗓️ ⏰ 💶 💳 🧾 📈 📊 🛠️ 🔧 🔑 🔒 ⚠️ ❓ ℹ️ 👋 🤝 👥 🧑‍🤝‍🧑 💬 📣 ✉️ 📞 🌱 🌍 ☀️ 🌙 ❤️ 💚 🖤 🚀 🎨 📷 🎬 🏃 ⚽ 🧘 🛡️ ⚖️ 🗳️".split(" ")
-
+// Page icon: a square in front of the title (the emoji, or an empty outlined square), click = emoji picker.
 export function IconPicker({ pageId, icon }: { pageId: string; icon: string | null }) {
   const t = useT()
   const router = useRouter()
@@ -27,46 +27,34 @@ export function IconPicker({ pageId, icon }: { pageId: string; icon: string | nu
       setOpen(false)
       router.refresh() // tree + other places
     })
+  const label = value ? t("wiki.icon.change") : t("wiki.icon.add")
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        render={
-          value ? (
-            <button type="button" className="justify-self-start rounded-lg px-1 text-5xl leading-none hover:bg-muted" aria-label={t("wiki.icon.change")} />
-          ) : (
-            <Button type="button" size="sm" variant="ghost" className="justify-self-start text-muted-foreground" />
-          )
-        }
-      >
-        {value ?? (
-          <>
-            <SmilePlusIcon /> {t("wiki.icon.add")}
-          </>
-        )}
-      </PopoverTrigger>
-      <PopoverContent align="start" className="grid w-80 gap-3">
-        <div className="grid grid-cols-8 gap-1">
-          {EMOJIS.map((e) => (
-            <button key={e} type="button" disabled={pending} onClick={() => pick(e)} className="rounded-md p-1 text-xl hover:bg-muted" aria-label={e}>
-              {e}
-            </button>
-          ))}
-        </div>
-        <form
-          className="flex gap-2"
-          onSubmit={(e) => {
-            e.preventDefault()
-            const v = String(new FormData(e.currentTarget).get("emoji") ?? "").trim()
-            if (v) pick(v)
-          }}
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <PopoverTrigger
+              render={
+                <button
+                  type="button"
+                  aria-label={label}
+                  className={cn(
+                    "grid size-12 shrink-0 place-items-center rounded-lg text-4xl leading-none transition-colors hover:bg-muted",
+                    !value && "border border-dashed text-muted-foreground/60 hover:text-muted-foreground",
+                  )}
+                />
+              }
+            />
+          }
         >
-          <Input name="emoji" maxLength={16} placeholder={t("wiki.icon.own")} aria-label={t("wiki.icon.own")} />
-          <Button type="submit" size="sm" variant="outline" disabled={pending}>
-            {t("wiki.icon.set")}
-          </Button>
-        </form>
+          {value ?? <SmilePlusIcon className="size-5" />}
+        </TooltipTrigger>
+        <TooltipContent>{label}</TooltipContent>
+      </Tooltip>
+      <PopoverContent align="start" className="grid w-fit gap-1 p-0">
+        <EmojiPicker onSelect={(e) => !pending && pick(e)} />
         {value && (
-          <Button type="button" size="sm" variant="ghost" disabled={pending} onClick={() => pick(null)} className="justify-self-start">
+          <Button type="button" size="sm" variant="ghost" disabled={pending} onClick={() => pick(null)} className="m-1.5 mt-0 justify-self-start">
             {t("wiki.icon.remove")}
           </Button>
         )}

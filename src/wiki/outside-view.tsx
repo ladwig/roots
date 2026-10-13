@@ -19,8 +19,10 @@ export function OutsideView({ org, page, href, fileHref, back }: { org: string; 
             </span>
           ))}
         </nav>
-        {page.icon && <span className="text-5xl leading-none">{page.icon}</span>}
-        <h1 className="font-heading text-3xl font-semibold break-words">{page.title}</h1>
+        <h1 className="flex items-center gap-3 font-heading text-3xl font-semibold break-words">
+          {page.icon && <span className="text-4xl leading-none">{page.icon}</span>}
+          {page.title}
+        </h1>
       </header>
       <article className="text-base">
         <Markdown links={{ file: fileHref, page: href }}>{page.body}</Markdown>

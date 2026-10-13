@@ -66,8 +66,10 @@ export default async function WikiPageView({ params, searchParams }: { params: P
                   <span />
                 ) : (
                   <div className="grid gap-1">
-                    {page.icon && <span className="text-5xl leading-none">{page.icon}</span>}
-                    <h1 className="font-heading text-2xl font-semibold break-words">{page.title}</h1>
+                    <h1 className="flex items-center gap-3 font-heading text-2xl font-semibold break-words">
+                      {page.icon && <span className="text-4xl leading-none">{page.icon}</span>}
+                      {page.title}
+                    </h1>
                     <p className="text-xs text-muted-foreground">{t("wiki.updated", { date: t.date(page.updated_at, { dateStyle: "medium", timeStyle: "short" }) })}</p>
                   </div>
                 )}

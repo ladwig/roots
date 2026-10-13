@@ -394,21 +394,23 @@ export function WikiEditor({ page, orgId }: { page: { id: string; title: string;
         )}
         <span className={state === "error" ? "text-destructive" : ""}>{t.dynamic(`wiki.state.${state}`)}</span>
       </div>
-      <IconPicker pageId={page.id} icon={page.icon} />
-      <textarea
-        value={title}
-        rows={1}
-        maxLength={200}
-        placeholder={t("wiki.untitled")}
-        aria-label={t("wiki.pageTitle")}
-        onChange={(e) => (setTitle(e.target.value), later(editor))}
-        onKeyDown={(e) => {
-          if (e.key !== "Enter") return
-          e.preventDefault()
-          editor?.commands.focus("start")
-        }}
-        className="field-sizing-content resize-none bg-transparent font-heading text-4xl font-semibold outline-none placeholder:text-muted-foreground/50"
-      />
+      <div className="flex items-start gap-3">
+        <IconPicker pageId={page.id} icon={page.icon} />
+        <textarea
+          value={title}
+          rows={1}
+          maxLength={200}
+          placeholder={t("wiki.untitled")}
+          aria-label={t("wiki.pageTitle")}
+          onChange={(e) => (setTitle(e.target.value), later(editor))}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter") return
+            e.preventDefault()
+            editor?.commands.focus("start")
+          }}
+          className="field-sizing-content min-w-0 flex-1 resize-none bg-transparent font-heading text-4xl font-semibold outline-none placeholder:text-muted-foreground/50"
+        />
+      </div>
       {editor && (
         <BubbleMenu editor={editor} className="flex gap-0.5 rounded-lg border bg-popover p-1 shadow-md">
           {editor.isActive("image") ? (
