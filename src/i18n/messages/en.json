@@ -3478,8 +3478,6 @@
     "waitMode": "Wait",
     "waitFor": "For a duration",
     "waitUntil": "Until a date",
-    "stepName": "Name of the result",
-    "stepNamePlaceholder": "e.g. Active membership",
     "where": "Which records?",
     "aggOp": "Calculation",
     "aggOps": {
@@ -3500,6 +3498,7 @@
     "onceNo": "Every time",
     "oncePerPerson": "Only once per person",
     "oncePerRecord": "Only once per record",
-    "againAfter": "Allowed again after"
+    "againAfter": "Allowed again after",
+    "aggResultOf": "Count/value"
   }
 }

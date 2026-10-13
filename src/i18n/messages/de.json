@@ -3478,8 +3478,6 @@
     "waitMode": "Warten",
     "waitFor": "Für eine Dauer",
     "waitUntil": "Bis zu einem Datum",
-    "stepName": "Name des Ergebnisses",
-    "stepNamePlaceholder": "z. B. Aktive Mitgliedschaft",
     "where": "Welche Datensätze?",
     "aggOp": "Berechnung",
     "aggOps": {
@@ -3500,6 +3498,7 @@
     "onceNo": "Jedes Mal",
     "oncePerPerson": "Nur einmal pro Person",
     "oncePerRecord": "Nur einmal pro Datensatz",
-    "againAfter": "Wieder erlaubt nach"
+    "againAfter": "Wieder erlaubt nach",
+    "aggResultOf": "Anzahl/Wert"
   }
 }

@@ -314,13 +314,17 @@ function Editor({ id, name: initialName, description: initialDescription, graph,
   // Results of data steps, usable by every step as objects ("Ergebnis: Mitgliedschaft").
   const flowOptions: EditorOptions = {
     ...options,
-    steps: nodes
-      .filter((n) => n.type === "find_record" || n.type === "aggregate")
-      .map((n) => ({
-        key: stepKey(n.id),
-        object: n.type === "aggregate" ? "aggregate" : String(n.data.object ?? ""),
-        label: String(n.data.label ?? "") || `${t("automations.result")}: ${n.data.object ? t.dynamic(`automations.objects.${n.data.object}`) : t.dynamic(`automations.nodes.${n.type}`)}`,
-      })),
+    steps: (() => {
+      // Named after what they look up; numbered when the same thing is looked up twice.
+      const data = nodes.filter((n) => n.type === "find_record" || n.type === "aggregate")
+      const base = (n: (typeof data)[number]) =>
+        `${t(n.type === "aggregate" ? "automations.aggResultOf" : "automations.result")}: ${n.data.object ? t.dynamic(`automations.objects.${n.data.object}`) : t.dynamic(`automations.nodes.${n.type}`)}`
+      return data.map((n) => {
+        const same = data.filter((x) => base(x) === base(n))
+        return { key: stepKey(n.id), object: n.type === "aggregate" ? "aggregate" : String(n.data.object ?? ""), label: same.length > 1 ? `${base(n)} ${same.indexOf(n) + 1}` : base(n) }
+      })
+    })(),
+  })),
   }
 
   return (
@@ -979,10 +983,6 @@ function DataStepForm({ type, d, options, trigger, extra = [], canEdit, onChange
   const sortable = object ? def(object).fields.filter((f) => f.kind === "date" || f.kind === "number" || f.kind === "text") : []
   return (
     <div className="grid gap-3">
-      <div className="grid gap-1">
-        <Label htmlFor="ds-label">{t("automations.stepName")}</Label>
-        <Input id="ds-label" value={String(d.label ?? "")} maxLength={60} disabled={!canEdit} placeholder={t("automations.stepNamePlaceholder")} onChange={(e) => onChange({ label: e.target.value })} />
-      </div>
       <NativeSelect value={object} disabled={!canEdit} aria-label={t("automations.object")} className="w-full" onChange={(e) => onChange({ object: e.target.value, rules: [], sort: "", field: "" })}>
         <NativeSelectOption value="">{t("automations.pickObject")}</NativeSelectOption>
         {objects.map((o) => (
