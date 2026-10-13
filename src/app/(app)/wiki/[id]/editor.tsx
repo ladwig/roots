@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
 import Image from "@tiptap/extension-image"
 import { TaskItem, TaskList } from "@tiptap/extension-list"
 import { TableKit } from "@tiptap/extension-table"
@@ -47,7 +46,6 @@ type Slash = { from: number; to: number; query: string; x: number; y: number; in
 // page is stored as Markdown, so view, search, API and history stay as they are.
 export function WikiEditor({ page, orgId }: { page: { id: string; title: string; body: string }; orgId: string }) {
   const t = useT()
-  const router = useRouter()
   const [title, setTitle] = useState(page.title === t("wiki.untitled") ? "" : page.title)
   const [state, setState] = useState<"saved" | "dirty" | "saving" | "error">("saved")
   const [uploading, setUploading] = useState(0)
@@ -89,7 +87,8 @@ export function WikiEditor({ page, orgId }: { page: { id: string; title: string;
     } finally {
       setUploading((n) => n - files.length)
     }
-    router.refresh() // attachments list (the editor keeps its state: keyed by page)
+    // No router.refresh() here: refreshing this page can remount the editor and drop what was just inserted.
+    // The attachments list catches up on the next visit.
     const editor = editorRef.current
     if (!done.length || !editor || editor.isDestroyed) return
     const nodes = done.map((f) =>
@@ -98,16 +97,14 @@ export function WikiEditor({ page, orgId }: { page: { id: string; title: string;
         : { type: "paragraph", content: [{ type: "text", text: f.name, marks: [{ type: "link", attrs: { href: `/files/${f.id}` } }] }] },
     )
     const end = editor.state.doc.content.size
+    let ok = false
     try {
-      if (!editor.chain().insertContentAt(Math.min(Math.max(pos, 0), end), nodes).run()) editor.chain().insertContentAt(end, nodes).run()
+      ok = editor.chain().insertContentAt(Math.min(Math.max(pos, 0), end), nodes).run() || editor.chain().insertContentAt(end, nodes).run()
     } catch (err) {
       console.error(err)
-      try {
-        editor.chain().insertContentAt(editor.state.doc.content.size, nodes).run()
-      } catch {
-        toast.error(t("wiki.insertFailed"))
-      }
     }
+    if (ok) save(editor) // store it right away
+    else toast.error(t("wiki.insertFailed"))
   }
   const pickFiles = (editor: Editor) => {
     const input = document.createElement("input")
