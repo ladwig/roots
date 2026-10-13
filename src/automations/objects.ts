@@ -107,7 +107,15 @@ export const OBJECTS = {
     idKey: "order_id",
     fields: [num("amount_total"), pick("status", ["open", "paid", "cancelled", "refunded"]), pick("source_module", ["tickets", "members", "invoices"]), text("customer_email"), text("customer_name")],
   },
-  guest_list: { table: "guest_lists", remove: "soft", module: "guestlists", idKey: "list_id", record: true, fields: [{ key: "id", kind: "ref", ref: "guest_lists" }, text("name")], relations: { event_id: "event" } },
+  guest_list: {
+    table: "guest_lists", remove: "soft",
+    module: "guestlists",
+    idKey: "list_id",
+    record: true,
+    fields: [{ key: "id", kind: "ref", ref: "guest_lists" }, text("name")],
+    relations: { event_id: "event" },
+    create: { fields: ["name"], parents: { event_id: "event" } },
+  },
   guest: {
     table: "guest_entries", remove: "hard",
     module: "guestlists",
@@ -127,7 +135,7 @@ export const OBJECTS = {
     create: { fields: ["title", "starts_at", "ends_at", "needed", "event_id"] },
   },
   shift_assignment: { table: "shift_assignments", remove: "hard", module: "shifts", record: true, fields: [pick("status", ["assigned", "applied"])], relations: { shift_id: "shift", staff_id: "staff" } },
-  staff: { table: "staff", module: "shifts", record: true, fields: [text("name"), text("email"), text("role_label", true), num("target_hours", true), bool("active", true)], relations: { contact_id: "contact" } },
+  staff: { table: "staff", module: "shifts", idKey: "staff_id", record: true, fields: [text("name"), text("email"), text("role_label", true), num("target_hours", true), bool("active", true)], relations: { contact_id: "contact" } },
   time_entry: {
     table: "time_entries",
     module: "shifts",
@@ -253,6 +261,7 @@ export const EVENT_OBJECTS: Record<string, ObjectKey[]> = {
   "quote.accepted": ["invoice", "contact"],
   "guestlist.signed_up": ["guest_list", "contact"],
   "shift.applied": ["shift"],
+  "shift.assigned": ["shift", "staff", "event", "contact"],
   "membership.started": ["membership", "contact"],
   "membership.self_updated": ["membership", "contact"],
   "membership.ended": ["membership", "contact"],
@@ -328,7 +337,7 @@ export function pickFields(object: ObjectKey, row: Record<string, unknown> | nul
   const out: Record<string, unknown> = { id: row.id }
   for (const f of def(object).fields) if (f.key in row) out[f.key] = row[f.key]
   for (const col of Object.keys(def(object).relations ?? {})) if (col in row) out[col] = row[col]
-  if (object === "contact" || object === "event") out.custom = row.custom ?? {} // the org's custom fields
+  if (object === "contact" || object === "event" || object === "membership") out.custom = row.custom ?? {} // the org's custom fields
   if (object === "submission") out.answers = answers(row.data)
   return out
 }

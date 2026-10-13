@@ -6,6 +6,7 @@ import { dbError, type T } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { back } from "@/lib/url"
 import type { ImportOutcome } from "@/components/csv-import"
+import { loadFields, readCustom } from "@/lib/custom-fields"
 import { validRangeFormat } from "@/lib/number-ranges"
 import { INTERVALS } from "@/members/dues"
 import * as members from "@/members/server"
@@ -52,9 +53,12 @@ export async function saveMembership(fd: FormData) {
     payment_method: PAYMENT_METHODS.find((p) => p === fd.get("payment_method")) ?? null,
     fee_free_until: date(fd, "fee_free_until"),
   }
+  const c = readCustom(await loadFields(ctx.supabase, ctx.org.id, "memberships"), (k) => String(fd.get(`custom.${k}`) ?? ""))
+  if ("error" in c) back(here, { error: `${c.field}: ${t.dynamic(c.error)}` })
+  const withCustom = { ...input, custom: c.custom }
 
   if (id) {
-    const r = await members.updateMembership(ctx.supabase, ctx.org.id, id, input)
+    const r = await members.updateMembership(ctx.supabase, ctx.org.id, id, withCustom)
     if ("error" in r) back(here, { error: message(t, r) })
     deliverSoon()
     back(here, { ok: t("membership.saved") })
@@ -71,7 +75,7 @@ export async function saveMembership(fd: FormData) {
     if (error || !c) back(here, { error: error?.code === "23505" ? t("errors.email_taken") : dbError(t, error) })
     contactId = c.id
   }
-  const r = await members.insertMembership(ctx.supabase, ctx.org.id, contactId, input, t)
+  const r = await members.insertMembership(ctx.supabase, ctx.org.id, contactId, withCustom, t)
   if ("error" in r) back(here, { error: message(t, r) })
   deliverSoon()
   back(`${PATH}?edit=${r.id}`, { ok: t("membership.created") })

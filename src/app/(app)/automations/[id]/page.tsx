@@ -57,10 +57,11 @@ export default async function WorkflowPage({ params, searchParams }: { params: P
   const on = (m: string) => ctx.modules.has(m)
   const none = Promise.resolve({ data: null })
   const org = ctx.org.id
-  const [{ data: wf }, defs, eventDefs, { data: tagRows }, { data: events }, { data: types }, { data: forms }, { data: courses }, { data: lists }] = await Promise.all([
+  const [{ data: wf }, defs, eventDefs, membershipDefs, { data: tagRows }, { data: events }, { data: types }, { data: forms }, { data: courses }, { data: lists }] = await Promise.all([
     ctx.supabase.from("workflows").select("id, name, description, active, graph").eq("id", id).eq("org_id", org).is("deleted_at", null).maybeSingle(),
     loadFields(ctx.supabase, org, "contacts"),
     on("events") ? loadFields(ctx.supabase, org, "events") : [],
+    on("members") ? loadFields(ctx.supabase, org, "memberships") : [],
     ctx.supabase.rpc("contact_tags", { p_org: org }),
     // Records to pick as condition values (ponytail: newest 200 each; a search picker if orgs have more).
     on("events") ? ctx.supabase.from("events").select("id, title, starts_at").eq("org_id", org).is("deleted_at", null).order("starts_at", { ascending: false }).limit(200) : none,
@@ -94,7 +95,7 @@ export default async function WorkflowPage({ params, searchParams }: { params: P
       chats: (((telegramRow?.config as { chats?: { id: number; title: string }[] } | null)?.chats ?? []) as { id: number; title: string }[]).map((c) => ({ id: String(c.id), title: c.title })),
     },
     customFields: Object.fromEntries(
-      [["contact", defs] as const, ["event", eventDefs] as const].map(([o, list]) => [o, list.map((d) => ({ key: d.key, label: d.label, type: d.type, options: d.options }))]),
+      [["contact", defs] as const, ["event", eventDefs] as const, ["membership", membershipDefs] as const].map(([o, list]) => [o, list.map((d) => ({ key: d.key, label: d.label, type: d.type, options: d.options }))]),
     ),
     tags: ((tagRows ?? []) as unknown as string[]).sort((a, b) => a.localeCompare(b, t.locale)).slice(0, 500),
     modules: [...ctx.modules],

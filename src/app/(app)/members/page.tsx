@@ -21,6 +21,8 @@ import type { Tables } from "@/lib/supabase/types"
 import { pageParam, param, withParams, type SearchParams } from "@/lib/url"
 import { earliestEnd, INTERVALS, isPaused, type Interval } from "@/members/dues"
 import { PAYMENT_METHODS } from "@/members/server"
+import { CustomFieldInputs } from "@/components/custom-field-inputs"
+import { loadFields, type CustomValues, type FieldDef } from "@/lib/custom-fields"
 import { IdCard } from "@/members/id-card"
 import { endMembership, pauseMembership, resetMemberCode, restoreMembership, resumeMembership, saveMembership, sendReminders, setDueStatus, trashMembership } from "./actions"
 
@@ -52,7 +54,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
   if (status === "ended") query = query.lt("ends_on", now)
   if (typeFilter) query = query.eq("type_id", typeFilter)
   if (q) query = query.or(["first_name", "last_name", "company", "email"].map((c) => `${c}.ilike.%${q}%`).join(","), { referencedTable: "contacts" })
-  const [{ data }, { data: types }, { count: activeCount }, { data: editing }, { data: preset }] = await Promise.all([
+  const [{ data }, { data: types }, { count: activeCount }, { data: editing }, { data: preset }, defs] = await Promise.all([
     query,
     ctx.supabase.from("membership_types").select("id, name, fee_cents, fee_is_minimum, interval, notice_months, active").eq("org_id", ctx.org.id).order("name"),
     ctx.supabase.from("memberships").select("id", { count: "exact", head: true }).eq("org_id", ctx.org.id).is("deleted_at", null).lte("starts_on", now).or(`ends_on.is.null,ends_on.gte.${now}`),
@@ -62,6 +64,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
     creating && param(sp, "contact")
       ? ctx.supabase.from("contacts").select("id, first_name, last_name, company, email").eq("id", param(sp, "contact")!).eq("org_id", ctx.org.id).maybeSingle()
       : Promise.resolve({ data: null }),
+    creating || editId ? loadFields(ctx.supabase, ctx.org.id, "memberships") : [],
   ])
   const rows = data?.slice(0, PAGE_SIZE) ?? []
   const typeName = (id: string) => types?.find((x) => x.id === id)?.name ?? ""
@@ -172,12 +175,12 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
               <Field id="m-email" name="email" type="email" label={t("contacts.email")} maxLength={320} autoComplete="off" />
             </fieldset>
             <Separator />
-            <MembershipFields t={t} types={types ?? []} />
+            <MembershipFields t={t} types={types ?? []} defs={defs} />
             <SubmitButton className="justify-self-start">{t("membership.create")}</SubmitButton>
           </form>
         </UrlSheet>
       )}
-      {editing && <EditMembership t={t} ctx={ctx} m={editing} types={types ?? []} sp={sp} canManage={canManage} />}
+      {editing && <EditMembership t={t} ctx={ctx} m={editing} types={types ?? []} defs={defs} sp={sp} canManage={canManage} />}
     </>
   )
 }
@@ -191,7 +194,7 @@ function Field({ id, label, ...props }: { id: string; label: string } & React.Co
   )
 }
 
-function MembershipFields({ t, types, m }: { t: T; types: Type[]; m?: Tables<"memberships"> }) {
+function MembershipFields({ t, types, m, defs }: { t: T; types: Type[]; m?: Tables<"memberships">; defs: FieldDef[] }) {
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -253,6 +256,7 @@ function MembershipFields({ t, types, m }: { t: T; types: Type[]; m?: Tables<"me
           <Field id="m-signed" name="mandate_signed_on" type="date" label={t("membership.mandateSigned")} defaultValue={m?.mandate_signed_on ?? ""} />
         </div>
       </fieldset>
+      <CustomFieldInputs defs={defs} values={m?.custom as CustomValues | undefined} idPrefix="m-custom" />
       <div className="grid gap-2">
         <Label htmlFor="m-note">{t("membership.note")}</Label>
         <textarea
@@ -273,6 +277,7 @@ async function EditMembership({
   ctx,
   m,
   types,
+  defs,
   sp,
   canManage,
 }: {
@@ -280,6 +285,7 @@ async function EditMembership({
   ctx: Ctx
   m: Tables<"memberships"> & { contacts: { id: string; first_name: string | null; last_name: string | null; company: string | null; email: string | null; member_code: string | null } | null }
   types: Type[]
+  defs: FieldDef[]
   sp: SearchParams
   canManage: boolean
 }) {
@@ -338,7 +344,7 @@ async function EditMembership({
       <form action={saveMembership} className="grid gap-4">
         <input type="hidden" name="id" value={m.id} />
         <fieldset disabled={!canManage || !!m.deleted_at} className="grid gap-4">
-          <MembershipFields t={t} types={types} m={m} />
+          <MembershipFields t={t} types={types} m={m} defs={defs} />
         </fieldset>
         {canManage && !m.deleted_at && <SubmitButton className="justify-self-start">{t("common.save")}</SubmitButton>}
       </form>

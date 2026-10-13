@@ -10,6 +10,7 @@ import { loadFields } from "@/lib/custom-fields"
 import { sendOrgEmail } from "@/lib/org-email"
 import type { Database } from "@/lib/supabase/types"
 import { siteUrl } from "@/lib/url"
+import type { CustomValues } from "@/lib/custom-fields"
 import { billable, earliestEnd, periodFee, periods, type Interval } from "./dues"
 import { IMPORT_FIELDS, readMember, type MemberRow } from "./fields"
 import { pain008 } from "./sepa"
@@ -51,6 +52,7 @@ export type MembershipInput = {
   fee_interval?: Interval | null
   payment_method?: PaymentMethod | null // null = SEPA with a mandate, else transfer
   fee_free_until?: string | null
+  custom?: CustomValues // the org's custom fields for memberships (validated by the caller)
 }
 export const PAYMENT_METHODS = ["sepa", "transfer", "cash", "paypal", "other"] as const
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
@@ -74,6 +76,7 @@ function membershipRow(m: MembershipInput) {
       ...(m.fee_interval !== undefined && { fee_interval: m.fee_interval }),
       ...(m.payment_method !== undefined && { payment_method: m.payment_method }),
       ...(m.fee_free_until !== undefined && { fee_free_until: m.fee_free_until }),
+      ...(m.custom !== undefined && { custom: m.custom }),
     },
   }
 }

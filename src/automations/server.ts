@@ -209,7 +209,7 @@ export async function context(db: Db, run: Pick<Run, "org_id" | "contact_id" | "
     !out.membership && contact && keys.includes("membership")
       ? db
           .from("memberships")
-          .select("id, type_id, member_no, starts_on, ends_on, note, contact_id")
+          .select("id, type_id, member_no, starts_on, ends_on, note, contact_id, custom")
           .eq("contact_id", contact.id as string)
           .eq("org_id", run.org_id)
           .is("deleted_at", null)
@@ -390,9 +390,10 @@ async function setField(db: Db, run: Run, rawPath: string, raw: string, ctx: Ctx
   const type = (object.startsWith("step_") ? String(row.__object ?? "") : object) as ObjectKey
   const d = def(type)
   if (!d) throw new Error(`${object} can't be changed`)
-  if ((type === "contact" || type === "event") && field.startsWith("custom.")) {
+  const customTable = ({ contact: "contacts", event: "events", membership: "memberships" } as const)[type as "contact"]
+  if (customTable && field.startsWith("custom.")) {
     // Same rules as every other way of entering custom values (type, options).
-    const table = type === "contact" ? "contacts" : "events"
+    const table = customTable
     const fdef = (await loadFields(db, run.org_id, table)).find((f) => f.key === field.slice(7))
     if (!fdef) throw new Error(`unknown field ${field}`)
     const parsed = parseValue(fdef, fdef.type === "number" ? calc(raw) : raw)

@@ -752,7 +752,8 @@
       "course.enrolled": "Anmeldung zu Kurs",
       "course.moved_up": "Nachgerückt von der Warteliste",
       "workflow.notified": "Nachricht aus einer Automation",
-      "membership.checked_in": "Mitglied eingelassen"
+      "membership.checked_in": "Mitglied eingelassen",
+      "shift.assigned": "Schicht zugeteilt"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -784,7 +785,8 @@
       "course.enrolled": "🎓 Neu im Kurs „{title}“",
       "course.moved_up": "🎓 Von der Warteliste nachgerückt: „{title}“",
       "workflow.notified": "⚙️ {text}",
-      "membership.checked_in": "🚪 {name} ist da ({title}, Besuch {visits})"
+      "membership.checked_in": "🚪 {name} ist da ({title}, Besuch {visits})",
+      "shift.assigned": "👷 {name} hat die Schicht {title} ({when})"
     }
   },
   "inbox": {
@@ -928,7 +930,8 @@
     "deleteHint": "Das Feld verschwindet aus Formularen. Gespeicherte Werte bleiben erhalten und sind wieder da, wenn du ein Feld mit derselben Bezeichnung anlegst.",
     "entities": {
       "contacts": "Kontakte",
-      "events": "Veranstaltungen"
+      "events": "Veranstaltungen",
+      "memberships": "Mitgliedschaften"
     },
     "types": {
       "text": "Text",

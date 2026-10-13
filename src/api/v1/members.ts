@@ -3,13 +3,14 @@ import { deliverSoon } from "@/events/worker"
 import { messages } from "@/i18n/config"
 import { createT } from "@/i18n/translate"
 import * as members from "@/members/server"
+import { loadFields, readCustomObject, type CustomValues } from "@/lib/custom-fields"
 import { validRangeFormat } from "@/lib/number-ranges"
 import { isPaused, type Interval } from "@/members/dues"
 import { memberDoor } from "@/members/door"
 import { BIC, compact, CREDITOR_ID, IBAN, type Fail } from "@/members/server"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
 import { ImportResult, trashRow } from "./contacts"
-import { berlinToday, day, ts, type Db } from "./shared"
+import { berlinToday, Custom, day, ts, type Db } from "./shared"
 
 const en = createT("en", messages.en) // API messages
 const de = createT("de", messages.de) // text that ends up in data or mails (German first, like the org's public pages)
@@ -88,6 +89,7 @@ const Membership = z.object({
   fee_interval: Interval.nullable().describe("Own interval (null = the type's)"),
   payment_method: z.enum(["sepa", "transfer", "cash", "paypal", "other"]).nullable().describe("null = SEPA when a mandate is on file, else transfer. Only SEPA members go into SEPA runs"),
   fee_free_until: day.nullable().describe("No fees for periods ending on or before this date (e.g. a DJ voucher)"),
+  custom: Custom.describe("Custom fields of the org for memberships"),
   active: z.boolean().describe("Started and not ended (today)"),
   has_mandate: z.boolean().describe("SEPA direct debit mandate on file (bank details are not exposed)"),
   mandate_ref: z.string().nullable(),
@@ -95,12 +97,18 @@ const Membership = z.object({
   created_at: ts,
   updated_at: ts,
 })
-const MEMBERSHIP_COLS = "id, member_no, contact_id, type_id, starts_on, ends_on, paused_from, paused_until, pause_reason, fee_cents, fee_interval, payment_method, fee_free_until, iban, mandate_ref, note, created_at, updated_at"
+const MEMBERSHIP_COLS = "id, member_no, contact_id, type_id, starts_on, ends_on, paused_from, paused_until, pause_reason, fee_cents, fee_interval, payment_method, fee_free_until, custom, iban, mandate_ref, note, created_at, updated_at"
 type MembershipRow = { iban: string | null; starts_on: string; ends_on: string | null; paused_from: string | null; paused_until: string | null } & Record<string, unknown>
 const membershipOut = ({ iban, ...m }: MembershipRow) => {
   const now = berlinToday()
   delete m.contacts // only joined for the search filter
   return { ...m, has_mandate: !!iban, paused: isPaused(m, now), active: m.starts_on <= now && (!m.ends_on || m.ends_on >= now) }
+}
+// Custom field values through the same validator as the App's form.
+async function membershipCustom(db: Db, orgId: string, values: Record<string, string | number | boolean> | undefined) {
+  const r = readCustomObject(await loadFields(db, orgId, "memberships"), values)
+  if ("error" in r) throw new ApiError(422, r.error.replace(/^errors\./, ""), `${r.field}: ${en.dynamic(r.error)}`)
+  return r.custom
 }
 async function getMembership(db: Db, orgId: string, id: string) {
   const { data } = await db.from("memberships").select(MEMBERSHIP_COLS).eq("id", id).eq("org_id", orgId).is("deleted_at", null).maybeSingle()
@@ -118,6 +126,7 @@ const Bank = {
   fee_interval: Interval.nullable(),
   payment_method: z.enum(["sepa", "transfer", "cash", "paypal", "other"]).nullable(),
   fee_free_until: day.nullable().describe("No fees for periods ending on or before this date"),
+  custom: Custom.optional().describe("Custom fields of the org for memberships: { key: value } (validated like in the App; on update merged)"),
 }
 
 const Due = z.object({
@@ -397,6 +406,7 @@ export const endpoints: Endpoint[] = [
           fee_interval: body.fee_interval ?? null,
           payment_method: body.payment_method ?? null,
           fee_free_until: body.fee_free_until ?? null,
+          custom: await membershipCustom(db, orgId, body.custom),
         },
         de,
       )
@@ -420,13 +430,13 @@ export const endpoints: Endpoint[] = [
     async handler({ db, orgId, params, body }) {
       const { data: cur } = await db
         .from("memberships")
-        .select("type_id, starts_on, ends_on, account_holder, iban, bic, mandate_signed_on, mandate_ref, note, fee_cents, fee_interval, payment_method, fee_free_until")
+        .select("type_id, starts_on, ends_on, account_holder, iban, bic, mandate_signed_on, mandate_ref, note, fee_cents, fee_interval, payment_method, fee_free_until, custom")
         .eq("id", params.id)
         .eq("org_id", orgId)
         .is("deleted_at", null)
         .maybeSingle()
       if (!cur) throw notFound()
-      const r = await members.updateMembership(db, orgId, params.id, { ...cur, fee_interval: cur.fee_interval as Interval | null, payment_method: cur.payment_method as members.PaymentMethod | null, ...body, account_holder: (body.account_holder ?? cur.account_holder) || null, mandate_ref: body.mandate_ref === undefined ? cur.mandate_ref : body.mandate_ref || null })
+      const r = await members.updateMembership(db, orgId, params.id, { ...cur, fee_interval: cur.fee_interval as Interval | null, payment_method: cur.payment_method as members.PaymentMethod | null, ...body, custom: body.custom ? await membershipCustom(db, orgId, { ...(cur.custom as Record<string, string>), ...body.custom }) : (cur.custom as CustomValues), account_holder: (body.account_holder ?? cur.account_holder) || null, mandate_ref: body.mandate_ref === undefined ? cur.mandate_ref : body.mandate_ref || null })
       if ("error" in r) fail(r)
       deliverSoon()
       return getMembership(db, orgId, params.id)
