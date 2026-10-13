@@ -7,6 +7,7 @@ import { PageCrumbs } from "@/components/page-crumbs"
 import { SubmitButton } from "@/components/submit-button"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { getT } from "@/i18n/server"
@@ -14,7 +15,7 @@ import type { T } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { loadFields } from "@/lib/custom-fields"
 import { param } from "@/lib/url"
-import { addNote, deleteNote, restoreContact, trashContact, updateContact } from "../actions"
+import { addNote, deleteNote, linkContactUser, restoreContact, trashContact, updateContact } from "../actions"
 import { ContactForm } from "../contact-form"
 import { contactName } from "../fields"
 
@@ -55,6 +56,14 @@ export default async function ContactPage({ params, searchParams }: PageProps<"/
       : none,
   ])
   if (!c) notFound()
+  // Team access: the linked account, and (for managers) the team members who could be linked.
+  const [{ data: team }, { data: linkedElsewhere }] = await Promise.all([
+    canManage || c.user_id ? ctx.supabase.from("org_members").select("user_id").eq("org_id", ctx.org.id) : Promise.resolve({ data: [] }),
+    canManage ? ctx.supabase.from("contacts").select("user_id").eq("org_id", ctx.org.id).not("user_id", "is", null).is("deleted_at", null) : Promise.resolve({ data: [] }),
+  ])
+  const { data: people } = team?.length ? await ctx.supabase.from("profiles").select("id, full_name, email").in("id", team.map((m) => m.user_id)) : { data: [] }
+  const linked = people?.find((p) => p.id === c.user_id)
+  const linkable = (people ?? []).filter((p) => !linkedElsewhere?.some((l) => l.user_id === p.id))
   const name = contactName(c)
   const tags = ((tagRows ?? []) as unknown as string[]).sort((a, b) => a.localeCompare(b, t.locale))
   const day = (v: string) => t.date(v, { dateStyle: "medium" })
@@ -121,6 +130,45 @@ export default async function ContactPage({ params, searchParams }: PageProps<"/
           </div>
 
           <aside className="grid min-w-0 gap-6">
+            {(linked || canManage) && (
+              <Section id="team" title={t("contacts.team.title")}>
+                {linked ? (
+                  <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm">
+                    <span className="grid min-w-0">
+                      <span className="truncate font-medium">{linked.full_name || linked.email}</span>
+                      <span className="truncate text-xs text-muted-foreground">{t("contacts.team.hasAccess")}</span>
+                    </span>
+                    {canManage && (
+                      <form action={linkContactUser}>
+                        <input type="hidden" name="id" value={c.id} />
+                        <input type="hidden" name="user_id" value="" />
+                        <SubmitButton size="sm" variant="ghost">
+                          {t("contacts.team.unlink")}
+                        </SubmitButton>
+                      </form>
+                    )}
+                  </div>
+                ) : linkable.length ? (
+                  <form action={linkContactUser} className="flex flex-wrap items-center gap-2">
+                    <input type="hidden" name="id" value={c.id} />
+                    <NativeSelect name="user_id" aria-label={t("contacts.team.pick")} defaultValue="" className="min-w-0 flex-1">
+                      <NativeSelectOption value="">{t("contacts.team.pick")}</NativeSelectOption>
+                      {linkable.map((p) => (
+                        <NativeSelectOption key={p.id} value={p.id}>
+                          {p.full_name ? `${p.full_name} · ${p.email}` : p.email}
+                        </NativeSelectOption>
+                      ))}
+                    </NativeSelect>
+                    <SubmitButton size="sm" variant="outline">
+                      {t("contacts.team.link")}
+                    </SubmitButton>
+                  </form>
+                ) : (
+                  <p className="text-sm text-muted-foreground">{t("contacts.team.none")}</p>
+                )}
+                <p className="text-xs text-muted-foreground">{t("contacts.team.hint")}</p>
+              </Section>
+            )}
             {ctx.modules.has("members") && ctx.can("members.view") && (
               <Section id="membership" title={t("membership.nav")}>
                 {membership ? (

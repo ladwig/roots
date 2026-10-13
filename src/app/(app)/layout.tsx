@@ -10,9 +10,11 @@ import { modules } from "@/modules/registry"
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getContext()
   const t = await getT()
-  const [{ count: unread }, { data: me }] = await Promise.all([
+  const [{ count: unread }, { data: me }, { data: myContact }] = await Promise.all([
     ctx.supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", ctx.userId).is("read_at", null),
     ctx.supabase.from("profiles").select("full_name, avatar_path").eq("id", ctx.userId).maybeSingle(),
+    // Linked to a contact of this org → "Mein Mitgliederbereich" in the user menu (members module on).
+    ctx.modules.has("members") ? ctx.supabase.from("contacts").select("id").eq("org_id", ctx.org.id).eq("user_id", ctx.userId).is("deleted_at", null).maybeSingle() : Promise.resolve({ data: null }),
   ])
   const moduleLinks: SidebarLink[] = modules
     .filter((m) => ctx.modules.has(m.key))
@@ -43,7 +45,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       search
       header={<OrgSwitcher orgs={ctx.orgs} current={ctx.org} />}
       groups={groups}
-      me={{ name: me?.full_name || ctx.email, email: ctx.email, avatar: me?.avatar_path ?? null }}
+      me={{ name: me?.full_name || ctx.email, email: ctx.email, avatar: me?.avatar_path ?? null, memberArea: !!myContact }}
       title={ctx.org.name}
     >
       {ctx.viaPlatform && (

@@ -100,3 +100,13 @@ export async function importContacts(input: { rows: Record<string, string>[]; mo
   if (!("error" in r)) deliverSoon()
   return r
 }
+
+/** Link this contact to a team member's App account (one person behind both), or unlink (user_id empty). */
+export async function linkContactUser(fd: FormData) {
+  const { ctx, t } = await manager()
+  const id = idOf(fd)
+  const user = String(fd.get("user_id") ?? "")
+  const value = /^[0-9a-f-]{36}$/.test(user) ? user : null
+  const { error } = await ctx.supabase.from("contacts").update({ user_id: value }).eq("id", id).eq("org_id", ctx.org.id)
+  back(`${PATH}/${id}#team`, error ? { error: error.code === "23505" ? t("contacts.team.taken") : dbError(t, error) } : { ok: t(value ? "contacts.team.linked" : "contacts.team.unlinked") })
+}

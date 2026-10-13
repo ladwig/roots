@@ -632,7 +632,8 @@
       "light": "Light",
       "dark": "Dark",
       "system": "System"
-    }
+    },
+    "memberArea": "My member area"
   },
   "payments": {
     "nav": "Payments",
@@ -964,7 +965,20 @@
     "submissions": "Forms",
     "emails": "Emails",
     "memberSince": "Member since {date}",
-    "noMembership": "Not a member."
+    "noMembership": "Not a member.",
+    "team": {
+      "title": "Team access",
+      "hasAccess": "Has access to the app",
+      "unlink": "Unlink",
+      "pick": "Pick a team member …",
+      "link": "Link",
+      "none": "All team members are linked already.",
+      "hint": "One person behind contact and app access. Happens automatically when the email matches uniquely; members then open their member area right from the app.",
+      "linked": "Linked to the team access.",
+      "unlinked": "Unlinked.",
+      "taken": "This team access is already linked to another contact.",
+      "badge": "Team"
+    }
   },
   "fields": {
     "intro": "Your own fields for your data, e.g. member number or shirt size on contacts. They show up in forms and in the CSV import.",

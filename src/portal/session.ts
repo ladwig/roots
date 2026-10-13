@@ -28,6 +28,16 @@ export async function createLoginToken(orgId: string, email: string) {
   return { token, firstName: contact.first_name }
 }
 
+/** Login link token for a known contact (team user opening their own member area from the App). */
+export async function loginTokenForContact(orgId: string, contactId: string) {
+  const token = newToken()
+  const { error } = await createAdminClient()
+    .from("portal_tokens")
+    .insert({ org_id: orgId, contact_id: contactId, token_hash: hash(token), kind: "login", expires_at: new Date(Date.now() + LOGIN_MINUTES * 60_000).toISOString() })
+  if (error) throw error
+  return token
+}
+
 /** Trade a login token for a session cookie. False if the link is unknown, used or expired. */
 export async function signIn(orgId: string, token: string) {
   const db = createAdminClient()

@@ -4,7 +4,8 @@ import Link, { useLinkStatus } from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { appRoute } from "@/lib/url"
 import { useState, useTransition } from "react"
-import { CheckIcon, ChevronsUpDownIcon, LanguagesIcon, Loader2Icon, LogOutIcon, UserIcon } from "lucide-react"
+import { CheckIcon, ChevronsUpDownIcon, IdCardIcon, LanguagesIcon, Loader2Icon, LogOutIcon, UserIcon } from "lucide-react"
+import { openMyMemberArea } from "@/app/(app)/actions"
 import { signOut } from "@/app/login/actions"
 import { CommandSearch } from "@/components/command-search"
 import { Picture } from "@/components/picture"
@@ -42,7 +43,7 @@ function NavIcon({ icon }: { icon: React.ReactNode }) {
 }
 
 export type SidebarLink = { href: string; label: string; icon: React.ReactNode; count?: number; newTab?: boolean }
-export type Me = { name: string; email: string; avatar: string | null }
+export type Me = { name: string; email: string; avatar: string | null; memberArea?: boolean } // memberArea: linked to a contact of the org
 
 export function AppSidebar({
   header,
@@ -121,6 +122,7 @@ function UserMenu({ me }: { me: Me }) {
     <SidebarMenu>
       <SidebarMenuItem>
         <form id="sign-out" action={signOut} hidden />
+        {me.memberArea && <form id="member-area" action={openMyMemberArea} hidden />}
         <DropdownMenu>
           <DropdownMenuTrigger render={<SidebarMenuButton size="lg" disabled={pending} className="data-popup-open:bg-sidebar-accent" />}>
             <Picture path={me.avatar} name={me.name} size="sm" />
@@ -138,6 +140,11 @@ function UserMenu({ me }: { me: Me }) {
             <DropdownMenuItem render={<Link href="/settings/profile" />}>
               <UserIcon /> {t("account.link")}
             </DropdownMenuItem>
+            {me.memberArea && (
+              <DropdownMenuItem nativeButton render={<button type="submit" form="member-area" className="w-full" />}>
+                <IdCardIcon /> {t("account.memberArea")}
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuLabel className="flex items-center gap-2">

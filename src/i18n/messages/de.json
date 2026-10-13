@@ -632,7 +632,8 @@
       "light": "Hell",
       "dark": "Dunkel",
       "system": "System"
-    }
+    },
+    "memberArea": "Mein Mitgliederbereich"
   },
   "payments": {
     "nav": "Zahlungen",
@@ -964,7 +965,20 @@
     "submissions": "Formulare",
     "emails": "E-Mails",
     "memberSince": "Mitglied seit {date}",
-    "noMembership": "Kein Mitglied."
+    "noMembership": "Kein Mitglied.",
+    "team": {
+      "title": "Teamzugang",
+      "hasAccess": "Hat Zugang zur App",
+      "unlink": "Verknüpfung lösen",
+      "pick": "Teammitglied wählen …",
+      "link": "Verknüpfen",
+      "none": "Alle Teammitglieder sind schon verknüpft.",
+      "hint": "Eine Person hinter Kontakt und App-Zugang. Passiert automatisch, wenn die E-Mail eindeutig passt; Mitglieder öffnen dann ihren Mitgliederbereich direkt aus der App.",
+      "linked": "Mit dem Teamzugang verknüpft.",
+      "unlinked": "Verknüpfung gelöst.",
+      "taken": "Dieser Teamzugang ist schon mit einem anderen Kontakt verknüpft.",
+      "badge": "Team"
+    }
   },
   "fields": {
     "intro": "Eigene Felder für deine Daten, z. B. Mitgliedsnummer oder Kleidergröße bei Kontakten. Sie erscheinen in Formularen und im CSV-Import.",

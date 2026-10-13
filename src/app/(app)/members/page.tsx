@@ -45,7 +45,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
 
   let query = ctx.supabase
     .from("memberships")
-    .select("id, number, member_no, starts_on, ends_on, paused_from, paused_until, type_id, contacts!inner(first_name, last_name, company, email)")
+    .select("id, number, member_no, starts_on, ends_on, paused_from, paused_until, type_id, contacts!inner(first_name, last_name, company, email, user_id)")
     .eq("org_id", ctx.org.id)
     .order("number")
     .range(...pageRange(page))
@@ -144,7 +144,14 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
             header: t("membership.name"),
             cell: (r) => (
               <span className="grid">
-                <span className="font-medium">{r.contacts ? contactName(r.contacts) : ""}</span>
+                <span className="font-medium">
+                  {r.contacts ? contactName(r.contacts) : ""}
+                  {r.contacts?.user_id && (
+                    <Badge variant="outline" className="ml-2">
+                      {t("contacts.team.badge")}
+                    </Badge>
+                  )}
+                </span>
                 <span className="text-xs text-muted-foreground">{t("membership.numberShort", { number: r.member_no ?? "" })}</span>
               </span>
             ),
