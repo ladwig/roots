@@ -128,7 +128,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
               {
                 header: t("reports.events.event"),
                 cell: (x) => (
-                  <Link href={`/events?edit=${x.id}`} className="grid underline-offset-4 hover:underline">
+                  <Link href={`/events/${x.id}`} className="grid underline-offset-4 hover:underline">
                     <span className="font-medium">{x.title}</span>
                     <span className="text-xs text-muted-foreground">{t.date(x.starts_at, { dateStyle: "medium" })}</span>
                   </Link>

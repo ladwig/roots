@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeftIcon, ExternalLinkIcon, ScanLineIcon } from "lucide-react"
+import { ExternalLinkIcon, ScanLineIcon } from "lucide-react"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { UrlSheet } from "@/components/url-sheet"
@@ -81,11 +81,8 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
   return (
     <div className="grid max-w-5xl gap-6">
       <div className="grid gap-1">
-        <Link href={`/events?edit=${ev.id}`} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeftIcon className="size-4" /> {ev.title}
-        </Link>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="font-heading text-2xl font-semibold">{t("tickets.title")}</h1>
+          <h2 className="font-medium">{t("tickets.title")}</h2>
           <div className="flex flex-wrap gap-2">
             {ctx.can("tickets.scan") && (
               <Button render={<Link href={`/scan?event=${ev.id}`} />} nativeButton={false} size="sm" variant="outline">

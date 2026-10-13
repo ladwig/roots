@@ -62,14 +62,14 @@ export async function createEvent(fd: FormData) {
   const res = await insertEvent(ctx.supabase, { ...r.row!, custom: c.custom, org_id: ctx.org.id }, r.slug ?? null)
   if (res.error) back(`${PATH}?new=event`, { error: res.error.code === "23505" ? t("errors.slug_taken") : dbError(t, res.error) })
   refreshPublic(ctx.org.id) // public pages show this
-  back(`${PATH}?edit=${res.data!.id}`, { ok: t("eventsPage.created") })
+  back(`${PATH}/${res.data!.id}`, { ok: t("eventsPage.created") })
 }
 
 export async function updateEvent(fd: FormData) {
   const { ctx, t } = await manager()
   const id = idOf(fd)
   const r = readEvent(fd)
-  const here = `${PATH}?edit=${id}`
+  const here = `${PATH}/${id}`
   if ("error" in r) back(here, { error: t.dynamic(r.error!) })
   const c = await readEventCustom(ctx, fd)
   if ("error" in c) back(here, { error: `${c.field}: ${t.dynamic(c.error)}` })
@@ -89,7 +89,7 @@ export async function setEventStatus(fd: FormData) {
   const { ctx, t } = await manager()
   const id = idOf(fd)
   const status = fd.get("status") as (typeof EVENT_STATUSES)[number]
-  const here = `${PATH}?edit=${id}`
+  const here = `${PATH}/${id}`
   if (!EVENT_STATUSES.includes(status)) back(here, { error: t("errors.invalid_input") })
   const { error, count } = await ctx.supabase.from("events").update({ status }, { count: "exact" }).eq("id", id).eq("org_id", ctx.org.id)
   if (error || !count) back(here, { error: error ? dbError(t, error) : t("errors.not_allowed") })
@@ -104,7 +104,7 @@ export async function trashEvent(fd: FormData) {
   const { ctx, t } = await manager()
   const id = idOf(fd)
   const { error } = await ctx.supabase.rpc("soft_delete", { p_table: "public.events", p_id: id })
-  if (error) back(`${PATH}?edit=${id}`, { error: dbError(t, error) })
+  if (error) back(`${PATH}/${id}`, { error: dbError(t, error) })
   refreshPublic(ctx.org.id) // public pages show this
   back(PATH, { ok: t("eventsPage.trashed") })
 }
@@ -114,15 +114,15 @@ export async function restoreEvent(fd: FormData) {
   const id = idOf(fd)
   const { error } = await ctx.supabase.rpc("restore_deleted", { p_table: "public.events", p_id: id })
   // A live event took the address meanwhile → unique violation.
-  if (error) back(`${PATH}?trash=1&edit=${id}`, { error: error.code === "23505" ? t("errors.slug_taken") : dbError(t, error) })
+  if (error) back(`${PATH}/${id}`, { error: error.code === "23505" ? t("errors.slug_taken") : dbError(t, error) })
   refreshPublic(ctx.org.id) // public pages show this
-  back(`${PATH}?edit=${id}`, { ok: t("eventsPage.restored") })
+  back(`${PATH}/${id}`, { ok: t("eventsPage.restored") })
 }
 
 export async function updateEventImage(fd: FormData) {
   const { ctx, t } = await manager()
   const id = idOf(fd)
-  const here = `${PATH}?edit=${id}`
+  const here = `${PATH}/${id}`
   const { data: ev } = await ctx.supabase.from("events").select("image_path").eq("id", id).eq("org_id", ctx.org.id).maybeSingle()
   if (!ev) back(here, { error: t("errors.not_allowed") })
   let image_path: string | null = null

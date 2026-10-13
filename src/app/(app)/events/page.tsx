@@ -1,30 +1,17 @@
 import Link from "next/link"
-import { notFound } from "next/navigation"
-import { CalendarClockIcon, ExternalLinkIcon, ListChecksIcon, MicVocalIcon, TicketIcon } from "lucide-react"
+import { notFound, redirect } from "next/navigation"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
-import { ImageForm } from "@/components/image-form"
 import { Notice } from "@/components/notice"
 import { UrlSheet } from "@/components/url-sheet"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
-import { Separator } from "@/components/ui/separator"
 import { getT } from "@/i18n/server"
-import type { T } from "@/i18n/translate"
-import { CustomFieldInputs } from "@/components/custom-field-inputs"
-import { loadFields, type CustomValues } from "@/lib/custom-fields"
-import { getContext, requirePerm } from "@/lib/context"
-import { toLocalInput } from "@/lib/time"
-import { pageParam, param, siteUrl, withParams, type SearchParams } from "@/lib/url"
-import type { Tables } from "@/lib/supabase/types"
-import { createEvent, restoreEvent, setEventStatus, trashEvent, updateEvent, updateEventImage } from "./actions"
-import { SubmitButton } from "@/components/submit-button"
+import { requirePerm } from "@/lib/context"
+import { pageParam, param, withParams } from "@/lib/url"
+import { createEvent } from "./actions"
+import { EventForm, StatusBadge } from "./event-form"
 
 const VIEWS = ["upcoming", "past", "all"] as const
 const STATUSES = ["draft", "published", "cancelled"] as const
-type Ev = Tables<"events">
 
 export default async function EventsPage({ searchParams }: PageProps<"/events">) {
   const ctx = await requirePerm("events.view")
@@ -39,7 +26,9 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
   const view = VIEWS.find((v) => v === param(sp, "view")) ?? "upcoming"
   const status = STATUSES.find((s) => s === param(sp, "status"))
   const page = pageParam(sp)
+  // Old drawer links (?edit=<id>) → the event's page.
   const editId = param(sp, "edit")
+  if (editId && /^[0-9a-f-]{36}$/.test(editId)) redirect(`/events/${editId}`)
   const creating = canManage && param(sp, "new") === "event"
 
   // All filtering happens here in the query; the UI only writes the URL.
@@ -59,12 +48,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
     if (status) query = query.eq("status", status)
   }
   if (q) query = query.or(`title.ilike.%${q}%,venue_name.ilike.%${q}%`)
-  const [{ data }, { data: editing }] = await Promise.all([
-    query,
-    editId
-      ? ctx.supabase.from("events").select("*").eq("id", editId).eq("org_id", ctx.org.id).maybeSingle()
-      : Promise.resolve({ data: null }),
-  ])
+  const { data } = await query
   const rows = data?.slice(0, PAGE_SIZE) ?? []
   const chip = (href: string, current: boolean, label: string) => (
     <Link
@@ -123,7 +107,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
       <DataTable
         rows={rows}
         rowKey={(r) => r.id}
-        rowHref={(r) => withParams(sp, { edit: r.id, new: undefined })}
+        rowHref={(r) => `/events/${r.id}`}
         empty={trash ? t("eventsPage.emptyTrash") : t("eventsPage.empty")}
         columns={[
           { header: t("eventsPage.titleLabel"), cell: (r) => <span className="font-medium">{r.title}</span> },
@@ -144,217 +128,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
           <EventForm t={t} action={createEvent} />
         </UrlSheet>
       )}
-      {editing && <EditEvent t={t} ev={editing} sp={sp} canManage={canManage} orgSlug={ctx.org.slug} tickets={ctx.modules.has("tickets") && ctx.can("tickets.view")} guestlists={ctx.modules.has("guestlists") && ctx.can("guestlists.view")} shifts={ctx.modules.has("shifts") && ctx.can("shifts.view")} />}
     </div>
-  )
-}
-
-function StatusBadge({ t, status }: { t: T; status: string }) {
-  const variant = status === "published" ? "default" : status === "cancelled" ? "destructive" : "secondary"
-  return <Badge variant={variant}>{t.dynamic(`eventsPage.statuses.${status}`)}</Badge>
-}
-
-async function EventForm({ t, action, ev, disabled }: { t: T; action: (fd: FormData) => Promise<void>; ev?: Ev; disabled?: boolean }) {
-  const ctx = await getContext()
-  const [{ data: locations }, defs] = await Promise.all([
-    ctx.supabase.from("locations").select("id, name").eq("org_id", ctx.org.id).order("name"),
-    loadFields(ctx.supabase, ctx.org.id, "events"),
-  ])
-  return (
-    <form action={action} className="grid gap-4">
-      {ev && <input type="hidden" name="id" value={ev.id} />}
-      <fieldset disabled={disabled} className="grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="ev-title">{t("eventsPage.titleLabel")}</Label>
-          <Input id="ev-title" name="title" defaultValue={ev?.title} required maxLength={200} />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2">
-            <Label htmlFor="ev-starts">{t("eventsPage.startsAt")}</Label>
-            <Input
-              id="ev-starts"
-              name="starts_at"
-              type="datetime-local"
-              defaultValue={ev ? toLocalInput(ev.starts_at) : undefined}
-              required
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="ev-ends">{t("eventsPage.endsAt")}</Label>
-            <Input id="ev-ends" name="ends_at" type="datetime-local" defaultValue={ev?.ends_at ? toLocalInput(ev.ends_at) : undefined} />
-          </div>
-        </div>
-        {(locations?.length ?? 0) > 0 && (
-          <div className="grid gap-2">
-            <Label htmlFor="ev-location">{t("locations.title")}</Label>
-            <NativeSelect id="ev-location" name="location" defaultValue={ev?.location_id ?? ""} className="w-full">
-              <NativeSelectOption value="">–</NativeSelectOption>
-              {locations?.map((l) => (
-                <NativeSelectOption key={l.id} value={l.id}>
-                  {l.name}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </div>
-        )}
-        <div className="grid gap-2">
-          <Label htmlFor="ev-venue">{t("eventsPage.venueName")}</Label>
-          <Input id="ev-venue" name="venue_name" defaultValue={ev?.venue_name ?? ""} maxLength={200} />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="ev-address">{t("eventsPage.venueAddress")}</Label>
-          <Input id="ev-address" name="venue_address" defaultValue={ev?.venue_address ?? ""} maxLength={500} autoComplete="off" />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="ev-description">{t("eventsPage.description")}</Label>
-          <textarea
-            id="ev-description"
-            name="description"
-            defaultValue={ev?.description ?? ""}
-            maxLength={20000}
-            rows={6}
-            className="rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="ev-capacity">{t("eventsPage.capacity")}</Label>
-          <Input id="ev-capacity" name="capacity" type="number" min={1} step={1} defaultValue={ev?.capacity ?? ""} className="sm:max-w-40" />
-        </div>
-        <CustomFieldInputs defs={defs} values={ev?.custom as CustomValues | undefined} idPrefix="ev-custom" />
-        <div className="grid gap-2">
-          <Label htmlFor="ev-slug">{t("eventsPage.slug")}</Label>
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <span className="shrink-0">/e/</span>
-            <Input id="ev-slug" name="slug" defaultValue={ev?.slug} placeholder="sommerfest-2026" pattern="[a-z0-9][a-z0-9\-]{0,78}[a-z0-9]" />
-          </div>
-        </div>
-        {!disabled && (
-          <SubmitButton className="justify-self-start">
-            {ev ? t("common.save") : t("eventsPage.new")}
-          </SubmitButton>
-        )}
-      </fieldset>
-    </form>
-  )
-}
-
-function EditEvent({ t, ev, sp, canManage, orgSlug, tickets, guestlists, shifts }: { t: T; ev: Ev; sp: SearchParams; canManage: boolean; orgSlug: string; tickets: boolean; guestlists: boolean; shifts: boolean }) {
-  const publicHref = siteUrl(orgSlug, `/e/${ev.slug}`)
-  return (
-    <UrlSheet params={["edit"]} title={ev.title} description={t.date(ev.starts_at, { dateStyle: "full", timeStyle: "short" })}>
-      <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
-      {ev.deleted_at ? (
-        <>
-          <p className="rounded-lg border bg-muted px-3 py-2 text-sm">
-            {t("eventsPage.deletedOn", {
-              date: t.date(ev.deleted_at),
-              purge: t.date(new Date(new Date(ev.deleted_at).getTime() + 30 * 86_400_000)),
-            })}
-          </p>
-          {canManage && (
-            <form action={restoreEvent}>
-              <input type="hidden" name="id" value={ev.id} />
-              <SubmitButton>{t("eventsPage.restore")}</SubmitButton>
-            </form>
-          )}
-        </>
-      ) : (
-        <>
-          <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge t={t} status={ev.status} />
-            {ev.status !== "draft" && (
-              <a
-                href={publicHref}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-sm underline underline-offset-4"
-              >
-                {t("eventsPage.publicLink")} <ExternalLinkIcon className="size-3.5" />
-              </a>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button render={<Link href={`/events/${ev.id}/lineup`} />} nativeButton={false} size="sm" variant="outline">
-              <MicVocalIcon /> {t("lineup.title")}
-            </Button>
-            {tickets && (
-              <Button render={<Link href={`/events/${ev.id}/tickets`} />} nativeButton={false} size="sm" variant="outline">
-                <TicketIcon /> {t("tickets.manage")}
-              </Button>
-            )}
-            {shifts && (
-              <Button render={<Link href={`/shifts?event=${ev.id}`} />} nativeButton={false} size="sm" variant="outline">
-                <CalendarClockIcon /> {t("shifts.title")}
-              </Button>
-            )}
-            {guestlists && (
-              <Button render={<Link href={`/guestlists?event=${ev.id}`} />} nativeButton={false} size="sm" variant="outline">
-                <ListChecksIcon /> {t("guestlists.title")}
-              </Button>
-            )}
-          </div>
-          {canManage ? (
-            <div className="flex flex-wrap gap-2">
-              {ev.status !== "published" && (
-                <form action={setEventStatus}>
-                  <input type="hidden" name="id" value={ev.id} />
-                  <input type="hidden" name="status" value="published" />
-                  <SubmitButton size="sm">
-                    {t("eventsPage.publish")}
-                  </SubmitButton>
-                </form>
-              )}
-              {ev.status === "published" && (
-                <form action={setEventStatus}>
-                  <input type="hidden" name="id" value={ev.id} />
-                  <input type="hidden" name="status" value="draft" />
-                  <SubmitButton size="sm" variant="outline">
-                    {t("eventsPage.unpublish")}
-                  </SubmitButton>
-                </form>
-              )}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">{t("eventsPage.readOnly")}</p>
-          )}
-          <Separator />
-          {canManage && (
-            <ImageForm
-              action={updateEventImage}
-              id="ev-image"
-              label={t("eventsPage.image")}
-              hint={t("eventsPage.imageHint")}
-              name={ev.title}
-              path={ev.image_path}
-              square
-              hidden={{ id: ev.id }}
-            />
-          )}
-          <EventForm t={t} action={updateEvent} ev={ev} disabled={!canManage} />
-          {canManage && (
-            <section className="grid gap-3 rounded-lg border border-destructive/30 p-3">
-              <h3 className="font-medium text-destructive">{t("admin.dangerZone")}</h3>
-              {ev.status === "published" && (
-                <form action={setEventStatus} className="grid gap-2">
-                  <input type="hidden" name="id" value={ev.id} />
-                  <input type="hidden" name="status" value="cancelled" />
-                  <p className="text-sm text-muted-foreground">{t("eventsPage.cancelConfirm")}</p>
-                  <SubmitButton variant="destructive" size="sm" className="justify-self-start">
-                    {t("eventsPage.cancel")}
-                  </SubmitButton>
-                </form>
-              )}
-              <form action={trashEvent}>
-                <input type="hidden" name="id" value={ev.id} />
-                <SubmitButton variant="outline" size="sm">
-                  {t("eventsPage.toTrash")}
-                </SubmitButton>
-              </form>
-            </section>
-          )}
-        </>
-      )}
-    </UrlSheet>
   )
 }
 

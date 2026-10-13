@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeftIcon, ListChecksIcon, Trash2Icon } from "lucide-react"
+import { ListChecksIcon, Trash2Icon } from "lucide-react"
 import { DataTable } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
@@ -43,11 +43,8 @@ export default async function LineupPage({ params, searchParams }: PageProps<"/e
   return (
     <div className="grid max-w-5xl gap-6">
       <div className="grid gap-1">
-        <Link href={`/events?edit=${ev.id}`} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeftIcon className="size-4" /> {ev.title}
-        </Link>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="font-heading text-2xl font-semibold">{t("lineup.title")}</h1>
+          <h2 className="font-medium">{t("lineup.title")}</h2>
           {canManage && (
             <Button render={<Link href={withParams(sp, { new: "slot", slot: undefined })} scroll={false} />} nativeButton={false} size="sm">
               {t("lineup.newSlot")}
