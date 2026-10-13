@@ -747,8 +747,11 @@ begin
   -- API keys: the service role gets org rights only with a live key of that org (x-api-key-hash + x-org-id),
   -- only for the key's permissions that its creator (A, owner) still has; never owner rights.
   reset role;
-  insert into public.api_keys (org_id, name, prefix, key_hash, permissions, created_by)
-    values (org_a, 'k', 'roots_aaaaaa', repeat('b', 64), '{events.manage}', a), (org_a, 'c', 'roots_cccccc', repeat('d', 64), '{events.manage}', c);
+  -- created_by comes from the audit trigger (auth.uid()), so insert each key "as" its creator
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  insert into public.api_keys (org_id, name, prefix, key_hash, permissions) values (org_a, 'k', 'roots_aaaaaa', repeat('b', 64), '{events.manage}');
+  perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
+  insert into public.api_keys (org_id, name, prefix, key_hash, permissions) values (org_a, 'c', 'roots_cccccc', repeat('d', 64), '{events.manage}');
   perform set_config('request.jwt.claims', json_build_object('role', 'service_role')::text, true);
   perform set_config('request.headers', json_build_object('x-org-id', org_a)::text, true);
   assert not public.has_perm(org_a, 'events.manage'), 'service role without key has no org rights';

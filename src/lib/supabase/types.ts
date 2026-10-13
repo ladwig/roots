@@ -7,14 +7,14 @@ export type Database = {
           Tables: {
             "absences": {
                   Row: {
-                    "id": string,"org_id": string,"employee_id": string,"kind": string,"starts_on": string,"ends_on": string,"half_day": boolean,"note": string | null,"created_at": string,"created_by": string | null,"updated_at": string,"updated_by": string | null
+                    "created_at": string,"created_by": string | null,"employee_id": string,"ends_on": string,"half_day": boolean,"id": string,"kind": string,"note": string | null,"org_id": string,"starts_on": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "id"?: string,"org_id": string,"employee_id": string,"kind": string,"starts_on": string,"ends_on": string,"half_day"?: boolean,"note"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"employee_id": string,"ends_on": string,"half_day"?: boolean,"id"?: string,"kind": string,"note"?: string | null,"org_id": string,"starts_on": string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "id"?: string,"org_id"?: string,"employee_id"?: string,"kind"?: string,"starts_on"?: string,"ends_on"?: string,"half_day"?: boolean,"note"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"employee_id"?: string,"ends_on"?: string,"half_day"?: boolean,"id"?: string,"kind"?: string,"note"?: string | null,"org_id"?: string,"starts_on"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -293,6 +293,64 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"employee_private": {
+                  Row: {
+                    "bic": string | null,"birthday": string | null,"city": string | null,"country": string | null,"created_at": string,"created_by": string | null,"emergency_contact": string | null,"employee_id": string,"health_insurance": string | null,"iban": string | null,"id": string,"nationality": string | null,"org_id": string,"postal_code": string | null,"social_security_no": string | null,"street": string | null,"tax_class": string | null,"tax_id": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "bic"?: string | null,"birthday"?: string | null,"city"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"emergency_contact"?: string | null,"employee_id": string,"health_insurance"?: string | null,"iban"?: string | null,"id"?: string,"nationality"?: string | null,"org_id": string,"postal_code"?: string | null,"social_security_no"?: string | null,"street"?: string | null,"tax_class"?: string | null,"tax_id"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "bic"?: string | null,"birthday"?: string | null,"city"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"emergency_contact"?: string | null,"employee_id"?: string,"health_insurance"?: string | null,"iban"?: string | null,"id"?: string,"nationality"?: string | null,"org_id"?: string,"postal_code"?: string | null,"social_security_no"?: string | null,"street"?: string | null,"tax_class"?: string | null,"tax_id"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "employee_private_employee_id_fkey"
+      columns: ["employee_id"]
+isOneToOne: true
+      referencedRelation: "employees"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "employee_private_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"employees": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"department": string | null,"email": string | null,"employment_type": string,"ends_on": string | null,"hourly_rate_cents": number | null,"id": string,"job_title": string | null,"manager_id": string | null,"monthly_salary_cents": number | null,"name": string,"notes": string | null,"org_id": string,"pay_type": string,"phone": string | null,"staff_id": string | null,"starts_on": string | null,"updated_at": string,"updated_by": string | null,"user_id": string | null,"vacation_days": number | null,"weekly_hours": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"department"?: string | null,"email"?: string | null,"employment_type"?: string,"ends_on"?: string | null,"hourly_rate_cents"?: number | null,"id"?: string,"job_title"?: string | null,"manager_id"?: string | null,"monthly_salary_cents"?: number | null,"name": string,"notes"?: string | null,"org_id": string,"pay_type"?: string,"phone"?: string | null,"staff_id"?: string | null,"starts_on"?: string | null,"updated_at"?: string,"updated_by"?: string | null,"user_id"?: string | null,"vacation_days"?: number | null,"weekly_hours"?: number | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"department"?: string | null,"email"?: string | null,"employment_type"?: string,"ends_on"?: string | null,"hourly_rate_cents"?: number | null,"id"?: string,"job_title"?: string | null,"manager_id"?: string | null,"monthly_salary_cents"?: number | null,"name"?: string,"notes"?: string | null,"org_id"?: string,"pay_type"?: string,"phone"?: string | null,"staff_id"?: string | null,"starts_on"?: string | null,"updated_at"?: string,"updated_by"?: string | null,"user_id"?: string | null,"vacation_days"?: number | null,"weekly_hours"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "employees_manager_id_fkey"
+      columns: ["manager_id"]
+isOneToOne: false
+      referencedRelation: "employees"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "employees_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "employees_staff_id_fkey"
+      columns: ["staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"event_deliveries": {
                   Row: {
                     "attempts": number,"channel": string | null,"created_at": string,"delivered_at": string | null,"event_id": number,"id": number,"last_error": string | null,"next_attempt_at": string,"org_id": string | null,"status": string,"subscription_id": string | null,"user_id": string | null
@@ -322,64 +380,6 @@ isOneToOne: false
       columns: ["subscription_id"]
 isOneToOne: false
       referencedRelation: "event_subscriptions"
-      referencedColumns: ["id"]
-    }
-                  ]
-                },"employee_private": {
-                  Row: {
-                    "id": string,"org_id": string,"employee_id": string,"birthday": string | null,"street": string | null,"postal_code": string | null,"city": string | null,"country": string | null,"nationality": string | null,"iban": string | null,"bic": string | null,"tax_id": string | null,"tax_class": string | null,"social_security_no": string | null,"health_insurance": string | null,"emergency_contact": string | null,"created_at": string,"created_by": string | null,"updated_at": string,"updated_by": string | null
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "id"?: string,"org_id": string,"employee_id": string,"birthday"?: string | null,"street"?: string | null,"postal_code"?: string | null,"city"?: string | null,"country"?: string | null,"nationality"?: string | null,"iban"?: string | null,"bic"?: string | null,"tax_id"?: string | null,"tax_class"?: string | null,"social_security_no"?: string | null,"health_insurance"?: string | null,"emergency_contact"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
-                  }
-                  Update: {
-                    "id"?: string,"org_id"?: string,"employee_id"?: string,"birthday"?: string | null,"street"?: string | null,"postal_code"?: string | null,"city"?: string | null,"country"?: string | null,"nationality"?: string | null,"iban"?: string | null,"bic"?: string | null,"tax_id"?: string | null,"tax_class"?: string | null,"social_security_no"?: string | null,"health_insurance"?: string | null,"emergency_contact"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "employee_private_employee_id_fkey"
-      columns: ["employee_id"]
-isOneToOne: false
-      referencedRelation: "employees"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "employee_private_org_id_fkey"
-      columns: ["org_id"]
-isOneToOne: false
-      referencedRelation: "orgs"
-      referencedColumns: ["id"]
-    }
-                  ]
-                },"employees": {
-                  Row: {
-                    "id": string,"org_id": string,"staff_id": string | null,"user_id": string | null,"name": string,"email": string | null,"phone": string | null,"job_title": string | null,"department": string | null,"manager_id": string | null,"employment_type": string,"starts_on": string | null,"ends_on": string | null,"pay_type": string,"hourly_rate_cents": number | null,"monthly_salary_cents": number | null,"weekly_hours": number | null,"vacation_days": number | null,"notes": string | null,"deleted_at": string | null,"deleted_by": string | null,"created_at": string,"created_by": string | null,"updated_at": string,"updated_by": string | null
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "id"?: string,"org_id": string,"staff_id"?: string | null,"user_id"?: string | null,"name": string,"email"?: string | null,"phone"?: string | null,"job_title"?: string | null,"department"?: string | null,"manager_id"?: string | null,"employment_type"?: string,"starts_on"?: string | null,"ends_on"?: string | null,"pay_type"?: string,"hourly_rate_cents"?: number | null,"monthly_salary_cents"?: number | null,"weekly_hours"?: number | null,"vacation_days"?: number | null,"notes"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
-                  }
-                  Update: {
-                    "id"?: string,"org_id"?: string,"staff_id"?: string | null,"user_id"?: string | null,"name"?: string,"email"?: string | null,"phone"?: string | null,"job_title"?: string | null,"department"?: string | null,"manager_id"?: string | null,"employment_type"?: string,"starts_on"?: string | null,"ends_on"?: string | null,"pay_type"?: string,"hourly_rate_cents"?: number | null,"monthly_salary_cents"?: number | null,"weekly_hours"?: number | null,"vacation_days"?: number | null,"notes"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"updated_at"?: string,"updated_by"?: string | null
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "employees_manager_id_fkey"
-      columns: ["manager_id"]
-isOneToOne: false
-      referencedRelation: "employees"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "employees_org_id_fkey"
-      columns: ["org_id"]
-isOneToOne: false
-      referencedRelation: "orgs"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "employees_staff_id_fkey"
-      columns: ["staff_id"]
-isOneToOne: false
-      referencedRelation: "staff"
       referencedColumns: ["id"]
     }
                   ]
@@ -1287,38 +1287,6 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"time_entries": {
-                  Row: {
-                    "approved_at": string | null,"approved_by": string | null,"break_minutes": number | null,"created_at": string,"created_by": string | null,"ended_at": string | null,"id": string,"note": string | null,"org_id": string,"shift_id": string | null,"staff_id": string,"started_at": string,"updated_at": string,"updated_by": string | null
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "approved_at"?: string | null,"approved_by"?: string | null,"break_minutes"?: number | null,"created_at"?: string,"created_by"?: string | null,"ended_at"?: string | null,"id"?: string,"note"?: string | null,"org_id": string,"shift_id"?: string | null,"staff_id": string,"started_at": string,"updated_at"?: string,"updated_by"?: string | null
-                  }
-                  Update: {
-                    "approved_at"?: string | null,"approved_by"?: string | null,"break_minutes"?: number | null,"created_at"?: string,"created_by"?: string | null,"ended_at"?: string | null,"id"?: string,"note"?: string | null,"org_id"?: string,"shift_id"?: string | null,"staff_id"?: string,"started_at"?: string,"updated_at"?: string,"updated_by"?: string | null
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "time_entries_org_id_fkey"
-      columns: ["org_id"]
-isOneToOne: false
-      referencedRelation: "orgs"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "time_entries_shift_id_fkey"
-      columns: ["shift_id"]
-isOneToOne: false
-      referencedRelation: "shifts"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "time_entries_staff_id_fkey"
-      columns: ["staff_id"]
-isOneToOne: false
-      referencedRelation: "staff"
-      referencedColumns: ["id"]
-    }
-                  ]
                 },"shift_series": {
                   Row: {
                     "created_at": string,"created_by": string | null,"default_staff": (string)[],"end_date": string | null,"end_time": string,"every_weeks": number,"generated_until": string | null,"id": string,"location_id": string | null,"name": string | null,"needed": number,"org_id": string,"position_id": string | null,"start_date": string,"start_time": string,"updated_at": string,"updated_by": string | null,"weekdays": (number)[]
@@ -1569,22 +1537,49 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"time_entries": {
+                  Row: {
+                    "approved_at": string | null,"approved_by": string | null,"break_minutes": number | null,"created_at": string,"created_by": string | null,"ended_at": string | null,"id": string,"note": string | null,"org_id": string,"shift_id": string | null,"staff_id": string,"started_at": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "approved_at"?: string | null,"approved_by"?: string | null,"break_minutes"?: number | null,"created_at"?: string,"created_by"?: string | null,"ended_at"?: string | null,"id"?: string,"note"?: string | null,"org_id": string,"shift_id"?: string | null,"staff_id": string,"started_at": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "approved_at"?: string | null,"approved_by"?: string | null,"break_minutes"?: number | null,"created_at"?: string,"created_by"?: string | null,"ended_at"?: string | null,"id"?: string,"note"?: string | null,"org_id"?: string,"shift_id"?: string | null,"staff_id"?: string,"started_at"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "time_entries_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "time_entries_shift_id_fkey"
+      columns: ["shift_id"]
+isOneToOne: false
+      referencedRelation: "shifts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "time_entries_staff_id_fkey"
+      columns: ["staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    }
+                  ]
                 }
           }
           Views: {
             [_ in never]: never
           }
           Functions: {
-            "accept_my_invite":
-{ Args: { "p_invite": string }; Returns: string
-                           },
-"my_invites":
-{ Args: never; Returns: {
-              "id": string,"org_name": string,"role_name": Json
-            }[]
-                           },
-"accept_invite":
+            "accept_invite":
 { Args: { "p_token": string }; Returns: string
+                           },
+"accept_my_invite":
+{ Args: { "p_invite": string }; Returns: string
                            },
 "admin_create_org":
 { Args: { "p_name": string,"p_owner": string,"p_slug": string }; Returns: string
@@ -1601,6 +1596,9 @@ isOneToOne: false
 { Args: { "p_hash": string }; Returns: {
               "key_id": string,"modules": (string)[],"org_id": string,"permissions": (string)[]
             }[]
+                           },
+"api_perm":
+{ Args: { "p_org": string,"p_perm": string }; Returns: boolean
                            },
 "artist_visible":
 { Args: { "p_artist": string }; Returns: boolean
@@ -1679,6 +1677,9 @@ isOneToOne: false
 "events_public":
 { Args: { "p_org": string }; Returns: boolean
                            },
+"file_allowed":
+{ Args: { "p_entity": string,"p_org": string,"p_perm": string }; Returns: boolean
+                           },
 "file_org":
 { Args: { "p_name": string }; Returns: string
                            },
@@ -1724,6 +1725,12 @@ isOneToOne: false
 "has_perm":
 { Args: { "p_org": string,"p_perm": string }; Returns: boolean
                            },
+"hr_employee_ok":
+{ Args: { "p_employee": string,"p_org": string }; Returns: boolean
+                           },
+"hr_refs_ok":
+{ Args: { "p_manager": string,"p_org": string,"p_staff": string,"p_user": string }; Returns: boolean
+                           },
 "invite_info":
 { Args: { "p_token": string }; Returns: {
               "email": string,"org_name": string,"role_name": Json,"valid": boolean
@@ -1747,6 +1754,11 @@ isOneToOne: false
 "module_enabled":
 { Args: { "p_key": string,"p_org": string }; Returns: boolean
                            },
+"my_invites":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "id": string,"org_name": string,"role_name": Json
+            }[]
+                           },
 "my_staff_id":
 { Args: { "p_org": string }; Returns: string
                            },
@@ -1767,6 +1779,28 @@ isOneToOne: false
 "purge_portal_tokens":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
+"request_api_key":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "created_at": string,
+"created_by": string | null,
+"expires_at": string | null,
+"id": string,
+"key_hash": string,
+"last_used_at": string | null,
+"name": string,
+"org_id": string,
+"permissions": (string)[],
+"prefix": string,
+"revoked_at": string | null,
+"updated_at": string,
+"updated_by": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "api_keys"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "request_org":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
@@ -1840,6 +1874,12 @@ isOneToOne: false
                            },
 "tickets_public":
 { Args: { "p_org": string }; Returns: boolean
+                           },
+"time_entry_refs_ok":
+{ Args: { "p_org": string,"p_shift": string,"p_staff": string }; Returns: boolean
+                           },
+"user_has_perm":
+{ Args: { "p_org": string,"p_perm": string,"p_user": string }; Returns: boolean
                            }
           }
           Enums: {
