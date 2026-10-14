@@ -55,7 +55,7 @@ export default async function DoorPage({ searchParams }: PageProps<"/scan">) {
       {!events?.length ? (
         <p className="text-sm text-muted-foreground">{t("tickets.noEventsToScan")}</p>
       ) : (
-        <nav aria-label={t("tickets.pickEvent")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
+        <nav aria-label={t("tickets.pickEvent")} className="flex w-fit max-w-full flex-wrap gap-1 justify-self-end rounded-lg bg-muted p-1">
           {events.map((e) => chip(`/scan?event=${e.id}&tab=${tab}`, e.id === current?.id, `${e.title} · ${t.date(e.starts_at, { dateStyle: "short" })}`))}
         </nav>
       )}
@@ -126,7 +126,7 @@ async function Guests({
         <SearchBox q={q} label={t("door.searchGuests")} keep={{ event: eventId, tab: "guests", ...(list ? { list } : {}) }} />
         <span className="text-sm text-muted-foreground">{t("door.guestCount", { in: inCount, total: rows.length })}</span>
       </div>
-      <nav aria-label={t("door.lists")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
+      <nav aria-label={t("door.lists")} className="flex w-fit max-w-full flex-wrap gap-1 justify-self-end rounded-lg bg-muted p-1">
         {chip(withParams(sp, { list: undefined }), !list, t("door.allLists"))}
         {lists?.map((l) => chip(withParams(sp, { list: l.id }), l.id === list, l.name))}
       </nav>

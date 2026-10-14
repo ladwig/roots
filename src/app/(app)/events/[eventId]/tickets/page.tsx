@@ -236,7 +236,7 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
       <FormCard id="sold" title={t("tickets.soldTickets")}>
         <div className="flex flex-wrap items-center gap-3">
           <SearchBox q={q} label={t("tickets.search")} />
-          <nav aria-label={t("tickets.status")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
+          <nav aria-label={t("tickets.status")} className="flex w-fit max-w-full flex-wrap gap-1 rounded-lg bg-muted p-1">
             {[undefined, ...STATUSES].map((s) => (
               <Link
                 key={s ?? "all"}

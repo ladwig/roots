@@ -122,7 +122,7 @@ export default async function CashbookPage({ searchParams }: { searchParams: Pro
         />
       ) : (
         <>
-          <nav aria-label={t("cashbook.accounts")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
+          <nav aria-label={t("cashbook.accounts")} className="flex w-fit max-w-full flex-wrap gap-1 justify-self-end rounded-lg bg-muted p-1">
             {accounts!.map((a) => (
               <Link
                 key={a.id}

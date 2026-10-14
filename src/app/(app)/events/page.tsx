@@ -85,7 +85,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
         <SearchBox q={q} label={t("common.search")} />
         {!trash && (
           <>
-            <nav aria-label={t("eventsPage.when")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
+            <nav aria-label={t("eventsPage.when")} className="flex w-fit max-w-full flex-wrap gap-1 rounded-lg bg-muted p-1">
               {VIEWS.map((v) => chip(withParams(sp, { view: v === "upcoming" ? undefined : v, page: undefined, edit: undefined }), v === view, t.dynamic(`eventsPage.${v}`)))}
             </nav>
             <FilterMenu param="status" label={t("eventsPage.status")} options={STATUSES.map((s) => ({ value: s, label: t.dynamic(`eventsPage.statuses.${s}`) }))} />

@@ -63,7 +63,7 @@ export default async function SubmissionsPage({ params, searchParams }: PageProp
     <>
       <Notice error={!openId ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <nav aria-label={t("forms.status")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
+        <nav aria-label={t("forms.status")} className="flex w-fit max-w-full flex-wrap gap-1 rounded-lg bg-muted p-1">
           {(["all", "new", "accepted", "rejected"] as const).map(chip)}
         </nav>
         <ExportMenu entity="submissions" query={{ form: id }} />

@@ -44,7 +44,7 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
           </form>
         }
       />
-      <nav aria-label={t("inbox.title")} className="flex gap-1 justify-self-start rounded-lg bg-muted p-1">
+      <nav aria-label={t("inbox.title")} className="flex w-fit gap-1 justify-self-end rounded-lg bg-muted p-1">
         {[
           [undefined, t("inbox.all")],
           ["unread", t("inbox.unread")],

@@ -115,7 +115,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
 
       <div className="flex flex-wrap items-center gap-3">
         <SearchBox q={q} label={t("common.search")} keep={{ ...(status !== "active" && { status }), ...(typeFilter && { type: typeFilter }) }} />
-        <nav aria-label={t("membership.filter")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
+        <nav aria-label={t("membership.filter")} className="flex w-fit max-w-full flex-wrap gap-1 rounded-lg bg-muted p-1">
           {status !== "trash" &&
             (["active", "ended", "all"] as const).map((s) => chip(withParams(sp, { status: s === "active" ? undefined : s, page: undefined, edit: undefined }), s === status, t(`membership.filters.${s}`)))}
         </nav>

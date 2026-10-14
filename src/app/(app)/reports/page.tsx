@@ -32,7 +32,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
     <Page>
       <PageHeader area="reports" title={t("reports.title")} meta={t("reports.range", { from: day(p.from), to: day(p.to) })} />
       <div className="flex flex-wrap items-end gap-3">
-        <nav aria-label={t("reports.period")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
+        <nav aria-label={t("reports.period")} className="flex w-fit max-w-full flex-wrap gap-1 rounded-lg bg-muted p-1">
           {PRESETS.map((k) => (
             <Link
               key={k}

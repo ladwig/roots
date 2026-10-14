@@ -187,7 +187,7 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
         </FormCard>
       )}
 
-      <nav aria-label={t("membership.status")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
+      <nav aria-label={t("membership.status")} className="flex w-fit max-w-full flex-wrap gap-1 justify-self-end rounded-lg bg-muted p-1">
         {(["open", "paid", "cancelled", "all"] as const).map((s) =>
           chip(withParams(sp, { status: s === "open" ? undefined : s, page: undefined, run: undefined }), s === status, s === "all" ? t("membership.filters.all") : t(`membership.dueStatus.${s}`)),
         )}

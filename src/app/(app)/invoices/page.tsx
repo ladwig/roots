@@ -73,7 +73,7 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/invoice
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
       <div className="flex flex-wrap items-center gap-2">
         <SearchBox q={q} label={t("invoices.search")} />
-        <nav aria-label={t("invoices.kind")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
+        <nav aria-label={t("invoices.kind")} className="flex w-fit max-w-full flex-wrap gap-1 rounded-lg bg-muted p-1">
           {[undefined, ...KINDS].map((k) => chip(withParams(sp, { kind: k, page: undefined }), k === kind, k ? t.dynamic(`invoices.kinds.${k}`) : t("invoices.all")))}
         </nav>
         <FilterMenu param="status" label={t("invoices.status")} allLabel={t("invoices.allStatus")} options={["draft", "sent", "overdue", "paid", "accepted", "cancelled"].map((x) => ({ value: x, label: t.dynamic(`invoices.filters.${x}`) }))} />

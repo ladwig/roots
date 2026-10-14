@@ -12,7 +12,7 @@ export type ChoiceOption = { value: string; label: string }
 export function Choice({ name, options, defaultValue, required, disabled, id, label, className }: { name: string; options: ChoiceOption[]; defaultValue?: string | null; required?: boolean; disabled?: boolean; id?: string; label?: string; className?: string }) {
   if (options.length <= 5)
     return (
-      <div role="radiogroup" id={id} aria-label={label} className={cn("flex flex-wrap gap-1 rounded-lg bg-muted p-1 has-disabled:opacity-60", className)}>
+      <div role="radiogroup" id={id} aria-label={label} className={cn("flex w-fit max-w-full flex-wrap gap-1 rounded-lg bg-muted p-1 has-disabled:opacity-60", className)}>
         {!required && <Segment name={name} value="" label="–" checked={!defaultValue} disabled={disabled} />}
         {options.map((o) => (
           <Segment key={o.value} name={name} value={o.value} label={o.label} checked={defaultValue === o.value} disabled={disabled} required={required} />
