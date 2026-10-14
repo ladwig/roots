@@ -33,7 +33,7 @@ export async function sendOrgEmail(orgId: string, mail: OrgEmail): Promise<boole
 /** Can this org send at all (own connected provider, or roots' account)? Lets callers say so before trying. */
 export async function emailReady(orgId: string) {
   if (process.env.RESEND_API_KEY && process.env.EMAIL_FROM) return true
-  const { data } = await createAdminClient().from("org_integrations").select("provider").eq("org_id", orgId).in("provider", emailProviders.map((i) => i.key)).eq("status", "connected").limit(1)
+  const { data } = await createAdminClient().from("org_integrations").select("provider").eq("org_id", orgId).in("provider", emailProviders().map((i) => i.key)).eq("status", "connected").limit(1)
   return !!data?.length
 }
 
