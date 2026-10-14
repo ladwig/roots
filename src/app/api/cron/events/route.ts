@@ -6,6 +6,7 @@ import { processSchedules, processWorkflowRuns } from "@/automations/server"
 import { processEmailQueue } from "@/email/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { offerWaitlist } from "@/tickets/waitlist"
+import { fulfilPending } from "@/payments/server"
 
 // Called every minute (vercel.json cron, or `npm run worker` locally). Protected by CRON_SECRET.
 export async function GET(request: Request) {
@@ -26,6 +27,7 @@ export async function GET(request: Request) {
   await generateAllSeries().catch(console.error) // recurring shifts stay 8 weeks ahead
   await offerWaitlist().catch(console.error) // freed seats → next on the event waiting lists
   await createAdminClient().rpc("renew_rentals") // contracts that renew themselves (no notice) run on
+  await fulfilPending().catch(console.error) // paid orders whose fulfilment crashed or failed
   // Empty the trash (soft-deleted rows past their retention).
   const { data: purged } = await createAdminClient().rpc("purge_deleted")
   await createAdminClient().rpc("purge_portal_tokens") // expired portal logins/sessions

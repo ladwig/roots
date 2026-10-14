@@ -11,6 +11,7 @@ import { sumupProvider } from "./providers/sumup"
 const providers: PaymentProvider[] = [stripeProvider, sumupProvider] // first ready one wins
 const db = () => createAdminClient()
 const CHECKOUT_MINUTES = 30 // Stripe allows 30 min – 24 h
+const CLAIM_MINUTES = 5 // a fulfilment claim older than this died with its process
 
 /** The org's connected, ready payment provider, or null. */
 export async function providerFor(orgId: string) {
@@ -143,30 +144,45 @@ export async function markPaid(provider: string, providerRef: string, providerPa
   await fulfil(payment.order_id)
 }
 
-// Runs the selling module's onPaid once; on failure the webhook errors and the provider retries.
+// Runs the selling module's onPaid until it succeeded once (fulfilled_at). Only the caller holding the claim runs it
+// (webhook vs. reconcileOrder vs. worker race); a claim older than CLAIM_MINUTES died with its process and is taken over.
+// onPaid is idempotent, so taking over a slow run costs nothing (issueTickets mails only on reserved → valid).
 async function fulfil(orderId: string) {
+  const now = new Date()
+  const stale = new Date(now.getTime() - CLAIM_MINUTES * 60_000).toISOString()
   const { data: order } = await db()
     .from("pay_orders")
-    .select("id, org_id, source_module, source_id, customer_email, metadata")
-    .eq("id", orderId)
-    .single()
-  if (!order) return
-  // TODO: a crash between this claim and onPaid leaves fulfilled_at set forever (paid, tickets never issued, no retry).
-  // issueTickets already mails once on its own (status reserved → valid), so go back to: onPaid, then set fulfilled_at.
-  // Claim atomically: only the caller that flips fulfilled_at runs onPaid (webhook vs. reconcileOrder race).
-  const { data: claimed } = await db()
-    .from("pay_orders")
-    .update({ fulfilled_at: new Date().toISOString() })
+    .update({ fulfil_claimed_at: now.toISOString() })
     .eq("id", orderId)
     .is("fulfilled_at", null)
-    .select("id")
-  if (!claimed?.length) return
+    .or(`fulfil_claimed_at.is.null,fulfil_claimed_at.lt.${stale}`)
+    .select("id, org_id, source_module, source_id, customer_email, metadata")
+    .maybeSingle()
+  if (!order) return
   try {
     await fulfilment[order.source_module]?.onPaid?.(order as PaidOrder)
   } catch (e) {
-    await db().from("pay_orders").update({ fulfilled_at: null }).eq("id", orderId) // let the provider retry
+    await db().from("pay_orders").update({ fulfil_claimed_at: null }).eq("id", orderId) // provider or worker retries
     throw e
   }
+  await db().from("pay_orders").update({ fulfilled_at: new Date().toISOString() }).eq("id", orderId)
+}
+
+/** Minute worker: paid orders whose fulfilment failed or crashed (no live claim) get another run. */
+export async function fulfilPending() {
+  const stale = new Date(Date.now() - CLAIM_MINUTES * 60_000).toISOString()
+  const { data } = await db()
+    .from("pay_orders")
+    .select("id")
+    .eq("status", "paid")
+    .is("fulfilled_at", null)
+    .gt("paid_at", new Date(Date.now() - 2 * 86_400_000).toISOString()) // give up after 2 days
+    .lt("paid_at", stale) // fresh ones are still in their webhook
+    .or(`fulfil_claimed_at.is.null,fulfil_claimed_at.lt.${stale}`)
+    .limit(50)
+  let n = 0
+  for (const o of data ?? []) await fulfil(o.id).then(() => n++, (e) => console.error("fulfil", o.id, e))
+  return n
 }
 
 async function closePayment(provider: string, providerRef: string, status: "failed" | "expired") {
