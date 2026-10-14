@@ -2143,7 +2143,12 @@
     "moreFields": "Weitere Angaben",
     "dangerHint": "Nur möglich, solange es keine Beiträge gibt.",
     "typeInactive": "Inaktiv",
-    "portalHint": "Hier melden sich eure Mitglieder an: Beiträge, eigene Daten, Lastschrift, Kündigung."
+    "portalHint": "Hier melden sich eure Mitglieder an: Beiträge, eigene Daten, Lastschrift, Kündigung.",
+    "otherPeriods": {
+      "one": "+ {count} weitere Mitgliedschaft",
+      "other": "+ {count} weitere Mitgliedschaften"
+    },
+    "open": "offen"
   },
   "forms": {
     "nav": "Formulare",

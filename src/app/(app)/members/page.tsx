@@ -37,7 +37,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
 
   let query = ctx.supabase
     .from("memberships")
-    .select("id, number, member_no, starts_on, ends_on, paused_from, paused_until, type_id, contacts!inner(first_name, last_name, company, email, user_id)")
+    .select("id, number, member_no, starts_on, ends_on, paused_from, paused_until, type_id, contact_id, contacts!inner(first_name, last_name, company, email, user_id)")
     .eq("org_id", ctx.org.id)
     .order("number")
     .range(...pageRange(page))
@@ -51,7 +51,14 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
     ctx.supabase.from("membership_types").select(TYPE_COLS).eq("org_id", ctx.org.id).order("name"),
     ctx.supabase.from("memberships").select("id", { count: "exact", head: true }).eq("org_id", ctx.org.id).is("deleted_at", null).lte("starts_on", now).or(`ends_on.is.null,ends_on.gte.${now}`),
   ])
-  const rows = data?.slice(0, PAGE_SIZE) ?? []
+  // One row per person: the newest membership of each contact on this page; their other periods fold out under the name.
+  // ponytail: grouping per page, a person whose periods straddle a page break shows on both pages.
+  const rows = [...new Map((data?.slice(0, PAGE_SIZE) ?? []).sort((a, b) => b.starts_on.localeCompare(a.starts_on)).reverse().map((m) => [m.contact_id, m])).values()].sort((a, b) => (a.number ?? 0) - (b.number ?? 0))
+  const { data: others } =
+    rows.length && status !== "trash"
+      ? await ctx.supabase.from("memberships").select("id, contact_id, starts_on, ends_on, type_id").eq("org_id", ctx.org.id).is("deleted_at", null).in("contact_id", rows.map((r) => r.contact_id)).order("starts_on", { ascending: false })
+      : { data: [] }
+  const earlier = (r: (typeof rows)[number]) => (others ?? []).filter((o) => o.contact_id === r.contact_id && o.id !== r.id)
   const typeName = (id: string) => types?.find((x) => x.id === id)?.name ?? ""
   const chip = (href: string, current: boolean, label: string) => (
     <Link
@@ -144,6 +151,20 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
                   )}
                 </span>
                 <span className="text-xs text-muted-foreground">{t("membership.numberShort", { number: r.member_no ?? "" })}</span>
+                {earlier(r).length > 0 && (
+                  <details className="relative z-10 text-xs text-muted-foreground">
+                    <summary className="cursor-pointer select-none hover:text-foreground">{t("membership.otherPeriods", { count: earlier(r).length })}</summary>
+                    <ul className="mt-1 grid gap-0.5">
+                      {earlier(r).map((o) => (
+                        <li key={o.id}>
+                          <Link href={`/members/${o.id}`} className="underline-offset-4 hover:text-foreground hover:underline">
+                            {typeName(o.type_id)} · {t.date(o.starts_on)} – {o.ends_on ? t.date(o.ends_on) : t("membership.open")}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
               </span>
             ),
           },

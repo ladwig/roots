@@ -2143,7 +2143,12 @@
     "moreFields": "More details",
     "dangerHint": "Only possible while there are no dues.",
     "typeInactive": "Inactive",
-    "portalHint": "Your members sign in here: dues, own details, direct debit, cancellation."
+    "portalHint": "Your members sign in here: dues, own details, direct debit, cancellation.",
+    "otherPeriods": {
+      "one": "+ {count} other membership",
+      "other": "+ {count} other memberships"
+    },
+    "open": "open"
   },
   "forms": {
     "nav": "Forms",
