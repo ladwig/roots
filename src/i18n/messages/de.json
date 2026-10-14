@@ -4213,7 +4213,8 @@
     "view": "Ansicht",
     "views": {
       "board": "Board",
-      "list": "Liste"
+      "list": "Liste",
+      "calendar": "Kalender"
     },
     "search": "Aufgaben suchen",
     "assignee": "Zuständig",

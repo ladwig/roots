@@ -4213,7 +4213,8 @@
     "view": "View",
     "views": {
       "board": "Board",
-      "list": "List"
+      "list": "List",
+      "calendar": "Calendar"
     },
     "search": "Search tasks",
     "assignee": "Assignee",

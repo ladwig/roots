@@ -1,12 +1,13 @@
 import { Segments } from "@/components/segments"
+import { CalendarView } from "@/components/calendar-view"
 import { BulkBar } from "@/components/bulk-bar"
 import { SubmitButton } from "@/components/submit-button"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
-import { bulkTasks } from "./actions"
+import { bulkTasks, moveTaskDue } from "./actions"
 import { FilterMenu } from "@/components/filter-menu"
 import { Page, PageHeader } from "@/components/page"
 import { notFound } from "next/navigation"
-import { ArrowRightIcon, KanbanSquareIcon, ListIcon, Trash2Icon } from "lucide-react"
+import { ArrowRightIcon, CalendarDaysIcon, KanbanSquareIcon, ListIcon, Trash2Icon } from "lucide-react"
 import { DataTable, SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { Badge } from "@/components/ui/badge"
@@ -20,7 +21,7 @@ import { TASK_COLS } from "@/projects/server"
 import { Board } from "./board"
 import { TaskDrawer } from "./task-drawer"
 
-const VIEWS = ["board", "list"] as const
+const VIEWS = ["board", "list", "calendar"] as const
 const DUES = ["overdue", "week", "none"] as const
 
 // Projects: tasks as a board or a list, filtered by search, tag (e.g. a project), assignee ("me" too) and due date –
@@ -79,6 +80,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
             items={[
               { href: withParams(sp, { view: undefined, task: undefined }), current: view === "board", label: <><KanbanSquareIcon /> {t("projects.views.board")}</> },
               { href: withParams(sp, { view: "list", task: undefined }), current: view === "list", label: <><ListIcon /> {t("projects.views.list")}</> },
+              { href: withParams(sp, { view: "calendar", task: undefined }), current: view === "calendar", label: <><CalendarDaysIcon /> {t("projects.views.calendar")}</> },
             ]}
           />
         }
@@ -93,6 +95,26 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
 
       {view === "board" ? (
         <Board statuses={statuses} tasks={tasks} canManage={canManage} back={here} today={today} />
+      ) : view === "calendar" ? (
+        // Tasks with a due date as all-day entries in their column's colour; click opens the task panel.
+        <CalendarView
+          viewParam="cal"
+          onMove={canManage ? moveTaskDue : undefined}
+          views={["month", "week", "agenda"]}
+          defaultView="month"
+          events={tasks
+            .filter((x) => x.due_on)
+            .map((x) => ({
+              id: x.id,
+              title: x.done ? `✓ ${x.title}` : x.title,
+              start: `${x.due_on}T00:00:00`,
+              end: `${x.due_on}T23:59:00`,
+              allDay: true,
+              color: DOT[statuses.find((st) => st.id === x.status_id)?.color ?? "gray"] ?? DOT.gray,
+              href: x.href,
+              readOnly: !canManage,
+            }))}
+        />
       ) : (
         <DataTable
           rows={tasks}

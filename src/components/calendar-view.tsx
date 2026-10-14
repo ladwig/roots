@@ -16,7 +16,7 @@ import { useT } from "@/i18n/client"
 //   length `newMinutes`) or drag across a range → newHref + &start=…&end=…(&resource=…) to create something there.
 // - Optional drag & drop: `onMove` (a server action) gets the new times; it returns an error text to reject.
 // - "resource" view = one column per person/room; pass `resourceEvents` (entries with resourceId) for it.
-export type CalendarItem = { id: string; title: string; start: string; end: string; color?: string; href?: string; resourceId?: string; readOnly?: boolean }
+export type CalendarItem = { id: string; title: string; start: string; end: string; allDay?: boolean; color?: string; href?: string; resourceId?: string; readOnly?: boolean }
 
 export function CalendarView({
   events,
@@ -28,6 +28,7 @@ export function CalendarView({
   onMove,
   newMinutes = 240,
   className = "h-[70dvh] min-h-[480px]",
+  viewParam = "view",
 }: {
   events: CalendarItem[]
   resourceEvents?: CalendarItem[]
@@ -39,12 +40,14 @@ export function CalendarView({
   /** Length of a new entry when an empty slot is clicked (dragging picks the length). */
   newMinutes?: number
   className?: string
+  /** URL param for the calendar's own view (month/week…), when the page already uses ?view= for something else. */
+  viewParam?: string
 }) {
   const t = useT()
   const router = useRouter()
   const pathname = usePathname()
   const sp = useSearchParams()
-  const view = (views.find((v) => v === sp.get("view")) ?? defaultView) as View
+  const view = (views.find((v) => v === sp.get(viewParam)) ?? defaultView) as View
   const dateParam = sp.get("date")
   const date = useMemo(() => (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? new Date(`${dateParam}T12:00:00`) : new Date()), [dateParam])
   const source = view === "resource" && resourceEvents ? resourceEvents : events
@@ -56,6 +59,7 @@ export function CalendarView({
         start: new Date(e.start),
         end: new Date(e.end),
         color: e.color,
+        allDay: e.allDay,
         resourceId: e.resourceId,
         readOnly: e.readOnly ?? !onMove,
         data: { href: e.href },
@@ -95,7 +99,7 @@ export function CalendarView({
             }
           : { viewNames: { agenda: "List", resource: "People" } }
       }
-      onViewChange={(v) => setParams({ view: v })}
+      onViewChange={(v) => setParams({ [viewParam]: v })}
       onDateChange={(d) => setParams({ date: day(d) })}
       onEventClick={(occ, e) => {
         const href = occ.event.data?.href

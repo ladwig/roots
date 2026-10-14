@@ -131,3 +131,12 @@ export async function bulkTasks(fd: FormData) {
   deliverSoon()
   back(to, failed && "error" in failed ? { error: message(t, failed) } : { ok: t("common.bulkDone", { count: ids.length }) })
 }
+
+/** Calendar drag & drop: the task's new due date (the day it was dropped on, Berlin time). */
+export async function moveTaskDue(id: string, start: string): Promise<{ error?: string }> {
+  const { ctx, t } = await manager()
+  const day = new Date(start).toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
+  if (!UUID.test(id) || !/^\d{4}-\d{2}-\d{2}$/.test(day)) return { error: t("errors.invalid_input") }
+  const r = await updateTask(ctx.supabase, ctx.org.id, id, { due_on: day })
+  return "error" in r ? { error: message(t, r) } : {}
+}
