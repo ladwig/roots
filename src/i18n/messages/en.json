@@ -18,7 +18,8 @@
     "moreActions": "More actions",
     "unsaved": "Unsaved changes",
     "discard": "Discard",
-    "settings": "Settings"
+    "settings": "Settings",
+    "all": "All"
   },
   "auth": {
     "title": "Sign in to roots",
@@ -1005,7 +1006,13 @@
     "quickCreateNamed": "Create “{name}” as a new contact",
     "quickSave": "Create and select",
     "quickNeedsName": "Please enter a name, company or email.",
-    "unsubscribed": "Unsubscribed from emails"
+    "unsubscribed": "Unsubscribed from emails",
+    "emptyText": "Contacts are the people and companies you deal with: members, guests, partners. Add the first one or import a list.",
+    "person": "Person",
+    "reach": "Contact details",
+    "more": "Tags & custom fields",
+    "personHint": "A name or a company is enough.",
+    "create": "Create contact"
   },
   "fields": {
     "intro": "Your own fields for your data, e.g. member number or shirt size on contacts. They show up in forms and in the CSV import.",

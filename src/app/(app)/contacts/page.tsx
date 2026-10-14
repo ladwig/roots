@@ -2,8 +2,10 @@ import Link from "next/link"
 import { ContactImportBody } from "./import/body"
 import { UrlSheet } from "@/components/url-sheet"
 import { notFound, redirect } from "next/navigation"
-import { UploadIcon } from "lucide-react"
-import { ExportMenu } from "@/components/export-menu"
+import { PlusIcon, Trash2Icon, UploadIcon, UsersIcon } from "lucide-react"
+import { ActionsMenu, MenuExport, MenuLink, MenuSeparator } from "@/components/actions-menu"
+import { FilterMenu } from "@/components/filter-menu"
+import { EmptyState, Page, PageHeader } from "@/components/page"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { Badge } from "@/components/ui/badge"
@@ -44,52 +46,67 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
   const [{ data }, { data: tagRows }] = await Promise.all([query, ctx.supabase.rpc("contact_tags", { p_org: ctx.org.id })])
   const rows = data?.slice(0, PAGE_SIZE) ?? []
   const tags = ((tagRows ?? []) as unknown as string[]).sort((a, b) => a.localeCompare(b, t.locale))
-  const chip = (href: string, current: boolean, label: string) => (
-    <Link
-      key={label}
-      href={href}
-      aria-current={current ? "true" : undefined}
-      className="rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground aria-[current=true]:bg-primary aria-[current=true]:text-primary-foreground"
-    >
-      {label}
-    </Link>
-  )
+  const empty = !q && !tag && !trash && page === 1 && !rows.length
 
   return (
-    <div className="grid max-w-5xl gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{t("contacts.title")}</h1>
-        <div className="flex flex-wrap gap-2">
-          <ExportMenu entity="contacts" query={{ q, tag }} />
-          {canManage && (
-            <>
-              <Button render={<Link href={withParams(sp, { import: "1" })} scroll={false} />} nativeButton={false} size="sm" variant="outline">
-                <UploadIcon /> {t("contacts.import")}
-              </Button>
-              <Button render={<Link href="/contacts/new" />} nativeButton={false} size="sm">
-                {t("contacts.new")}
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
+    <Page>
+      <PageHeader
+        area="contacts"
+        title={trash ? `${t("contacts.title")} · ${t("contacts.trash")}` : t("contacts.title")}
+        menu={
+          <ActionsMenu>
+            {canManage && (
+              <MenuLink href={withParams(sp, { import: "1" })} icon={UploadIcon}>
+                {t("contacts.import")}
+              </MenuLink>
+            )}
+            <MenuExport entity="contacts" query={{ q, tag }} />
+            {canManage && (
+              <>
+                <MenuSeparator />
+                <MenuLink href={trash ? "/contacts" : "/contacts?trash=1"} icon={trash ? UsersIcon : Trash2Icon}>
+                  {trash ? t("contacts.all") : t("contacts.trash")}
+                </MenuLink>
+              </>
+            )}
+          </ActionsMenu>
+        }
+        primary={canManage && !trash ? { href: "/contacts/new", label: t("contacts.new") } : undefined}
+      />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
 
-      <div className="flex flex-wrap items-center gap-3">
-        <SearchBox q={q} label={t("common.search")} />
-        <nav aria-label={t("contacts.tags")} className="flex flex-wrap gap-1.5">
-          {chip(withParams(sp, { tag: undefined, trash: undefined, page: undefined }), !trash && !tag, t("contacts.all"))}
-          {!trash && tags.map((tg) => chip(withParams(sp, { tag: tg, page: undefined }), tg === tag, tg))}
-          {canManage && chip(withParams(sp, { trash: "1", tag: undefined, page: undefined }), trash, t("contacts.trash"))}
-        </nav>
-      </div>
+      {!empty && (
+        <div className="flex flex-wrap items-center gap-2">
+          <SearchBox q={q} label={t("common.search")} />
+          {!trash && tags.length > 0 && <FilterMenu param="tag" label={t("contacts.tags")} options={tags.map((tg) => ({ value: tg, label: tg }))} />}
+        </div>
+      )}
       {trash && <p className="text-sm text-muted-foreground">{t("contacts.trashHint", { days: 30 })}</p>}
 
       <DataTable
         rows={rows}
         rowKey={(r) => r.id}
         rowHref={(r) => `/contacts/${r.id}`}
-        empty={trash ? t("contacts.emptyTrash") : q || tag ? t("contacts.noMatch") : t("contacts.empty")}
+        empty={
+          trash ? (
+            t("contacts.emptyTrash")
+          ) : q || tag ? (
+            t("contacts.noMatch")
+          ) : (
+            <EmptyState
+              area="contacts"
+              title={t("contacts.empty")}
+              text={t("contacts.emptyText")}
+              action={
+                canManage && (
+                  <Button render={<Link href="/contacts/new" />} nativeButton={false} size="sm">
+                    <PlusIcon /> {t("contacts.new")}
+                  </Button>
+                )
+              }
+            />
+          )
+        }
         columns={[
           {
             header: t("contacts.name"),
@@ -124,7 +141,7 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
           <ContactImportBody ctx={ctx} />
         </UrlSheet>
       )}
-    </div>
+    </Page>
   )
 }
 

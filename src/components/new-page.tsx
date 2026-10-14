@@ -1,14 +1,13 @@
 import { Notice } from "@/components/notice"
-import { PageCrumbs } from "@/components/page-crumbs"
+import { Page, PageHeader } from "@/components/page"
 
-// Frame of a "new <record>" page: breadcrumbs back to the list, title, the action's error, the form.
+// Frame of a "new <record>" page: breadcrumbs back to the list, title, the action's error, the form (FormCards + SaveBar).
 export function NewPage({ list, title, error, children }: { list: { href: string; label: string }; title: string; error?: string; children: React.ReactNode }) {
   return (
-    <div className="grid max-w-3xl gap-6">
-      <PageCrumbs items={[list, { label: title }]} />
-      <h1 className="font-heading text-2xl font-semibold">{title}</h1>
+    <Page size="form">
+      <PageHeader crumbs={[list, { label: title }]} title={title} />
       <Notice error={error} />
       {children}
-    </div>
+    </Page>
   )
 }

@@ -3,7 +3,8 @@ import { notFound } from "next/navigation"
 import { FileTextIcon, MailIcon, PhoneIcon, Trash2Icon } from "lucide-react"
 import { FileList } from "@/components/file-list"
 import { Notice } from "@/components/notice"
-import { PageCrumbs } from "@/components/page-crumbs"
+import { ActionsMenu, MenuLink, MenuSeparator, MenuSubmit } from "@/components/actions-menu"
+import { FormCard, Page, PageHeader, RecordLayout } from "@/components/page"
 import { SubmitButton } from "@/components/submit-button"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -70,42 +71,65 @@ export default async function ContactPage({ params, searchParams }: PageProps<"/
   const day = (v: string) => t.date(v, { dateStyle: "medium" })
 
   return (
-    <div className="grid max-w-6xl gap-6">
-      <PageCrumbs items={[{ href: "/contacts", label: t("contacts.title") }, { label: name }]} />
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="grid min-w-0 gap-1">
-          <h1 className="font-heading text-2xl font-semibold break-words">{name}</h1>
-          {(c.company && name !== c.company) || c.tags.length ? (
-            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+    <Page size="record">
+      <PageHeader
+        crumbs={[{ href: "/contacts", label: t("contacts.title") }, { label: name }]}
+        title={name}
+        badge={c.deleted_at && <Badge variant="destructive">{t("contacts.trash")}</Badge>}
+        meta={
+          (c.company && name !== c.company) || c.tags.length ? (
+            <>
               {c.company && name !== c.company && <span>{c.company}</span>}
               {c.tags.map((tg) => (
                 <Badge key={tg} variant="secondary">
                   {tg}
                 </Badge>
               ))}
-            </div>
-          ) : null}
-        </div>
-        {!c.deleted_at && (
-          <div className="flex flex-wrap gap-2">
-            {c.email && (
-              <Button render={<a href={`mailto:${c.email}`} />} nativeButton={false} variant="outline" size="sm">
-                <MailIcon /> {t("contacts.email")}
-              </Button>
-            )}
-            {c.phone && (
-              <Button render={<a href={`tel:${c.phone.replace(/[^\d+]/g, "")}`} />} nativeButton={false} variant="outline" size="sm">
-                <PhoneIcon /> {t("contacts.phone")}
-              </Button>
-            )}
-            {ctx.can("org.files.view") && (
-              <Button render={<Link href={`/files/templates?contact=${c.id}`} />} nativeButton={false} variant="outline" size="sm">
-                <FileTextIcon /> {t("contacts.writeLetter")}
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
+            </>
+          ) : null
+        }
+        actions={
+          !c.deleted_at && (
+            <>
+              {c.email && (
+                <Button render={<a href={`mailto:${c.email}`} />} nativeButton={false} variant="outline" size="sm">
+                  <MailIcon /> {t("contacts.email")}
+                </Button>
+              )}
+              {c.phone && (
+                <Button render={<a href={`tel:${c.phone.replace(/[^\d+]/g, "")}`} />} nativeButton={false} variant="outline" size="sm">
+                  <PhoneIcon /> {t("contacts.phone")}
+                </Button>
+              )}
+            </>
+          )
+        }
+        menu={
+          !c.deleted_at &&
+          (canManage || ctx.can("org.files.view")) && (
+            <ActionsMenu>
+              {ctx.can("org.files.view") && (
+                <MenuLink href={`/files/templates?contact=${c.id}`} icon={FileTextIcon}>
+                  {t("contacts.writeLetter")}
+                </MenuLink>
+              )}
+              {canManage && (
+                <>
+                  <MenuSeparator />
+                  <MenuSubmit form="trash-contact" icon={Trash2Icon} destructive>
+                    {t("contacts.toTrash")}
+                  </MenuSubmit>
+                </>
+              )}
+            </ActionsMenu>
+          )
+        }
+      />
+      {canManage && (
+        <form id="trash-contact" action={trashContact} hidden>
+          <input type="hidden" name="id" value={c.id} />
+        </form>
+      )}
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
 
       {c.deleted_at ? (
@@ -121,16 +145,9 @@ export default async function ContactPage({ params, searchParams }: PageProps<"/
           )}
         </div>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start">
-          <div className="grid min-w-0 gap-6">
-            <Section id="details" title={t("contacts.details")}>
-              {!canManage && <p className="text-sm text-muted-foreground">{t("contacts.readOnly")}</p>}
-              <ContactForm t={t} action={updateContact} c={c} disabled={!canManage} defs={defs} tags={tags} />
-            </Section>
-            <Timeline t={t} ctx={ctx} c={c} notes={notes ?? []} changes={changes ?? []} defs={defs} canManage={canManage} />
-          </div>
-
-          <aside className="grid min-w-0 gap-6">
+        <RecordLayout
+          aside={
+            <>
             {(linked || canManage) && (
               <Section id="team" title={t("contacts.team.title")}>
                 {linked ? (
@@ -245,32 +262,23 @@ export default async function ContactPage({ params, searchParams }: PageProps<"/
               </Section>
             )}
             <FileList ctx={ctx} entity="contacts" entityId={c.id} back={`/contacts/${c.id}`} />
-            {canManage && (
-              <section className="grid gap-3 rounded-lg border border-destructive/30 p-3">
-                <h2 className="font-medium text-destructive">{t("admin.dangerZone")}</h2>
-                <form action={trashContact}>
-                  <input type="hidden" name="id" value={c.id} />
-                  <SubmitButton variant="outline" size="sm">
-                    {t("contacts.toTrash")}
-                  </SubmitButton>
-                </form>
-              </section>
-            )}
-          </aside>
-        </div>
+            </>
+          }
+        >
+          {!canManage && <p className="text-sm text-muted-foreground">{t("contacts.readOnly")}</p>}
+          <ContactForm t={t} action={updateContact} c={c} disabled={!canManage} defs={defs} tags={tags} />
+          <Timeline t={t} ctx={ctx} c={c} notes={notes ?? []} changes={changes ?? []} defs={defs} canManage={canManage} />
+        </RecordLayout>
       )}
-    </div>
+    </Page>
   )
 }
 
-function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
+function Section({ id, title, description, children }: { id: string; title: string; description?: string; children: React.ReactNode }) {
   return (
-    <section id={id} aria-labelledby={`${id}-h`} className="grid scroll-mt-20 content-start gap-3">
-      <h2 id={`${id}-h`} className="font-medium">
-        {title}
-      </h2>
+    <FormCard id={id} title={title} description={description}>
       {children}
-    </section>
+    </FormCard>
   )
 }
 

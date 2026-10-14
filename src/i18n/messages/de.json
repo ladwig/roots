@@ -18,7 +18,8 @@
     "moreActions": "Weitere Aktionen",
     "unsaved": "Ungespeicherte Änderungen",
     "discard": "Verwerfen",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "all": "Alle"
   },
   "auth": {
     "title": "Bei roots anmelden",
@@ -1005,7 +1006,13 @@
     "quickCreateNamed": "„{name}“ als neuen Kontakt anlegen",
     "quickSave": "Anlegen und auswählen",
     "quickNeedsName": "Bitte einen Namen, eine Firma oder eine E-Mail angeben.",
-    "unsubscribed": "Von E-Mails abgemeldet"
+    "unsubscribed": "Von E-Mails abgemeldet",
+    "emptyText": "Kontakte sind Personen und Firmen, mit denen ihr zu tun habt: Mitglieder, Gäste, Partner. Lege den ersten an oder importiere eine Liste.",
+    "person": "Person",
+    "reach": "Erreichbarkeit",
+    "more": "Tags & eigene Felder",
+    "personHint": "Name oder Firma reicht.",
+    "create": "Kontakt anlegen"
   },
   "fields": {
     "intro": "Eigene Felder für deine Daten, z. B. Mitgliedsnummer oder Kleidergröße bei Kontakten. Sie erscheinen in Formularen und im CSV-Import.",
