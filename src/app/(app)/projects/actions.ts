@@ -10,7 +10,7 @@ import { parseTags } from "@/app/(app)/contacts/fields"
 import { createTask, moveTask, saveStatus, setAssignees, updateTask, type ProjectFail } from "@/projects/server"
 
 const UUID = /^[0-9a-f-]{36}$/
-const SETUP = "/projects/setup"
+const SETUP = "/projects/settings"
 const id = (fd: FormData, key: string) => (UUID.test(String(fd.get(key) ?? "")) ? String(fd.get(key)) : null)
 const message = (t: T, f: ProjectFail) => (f.db ? dbError(t, f.db) : t.dynamic(f.error))
 // Where the form came from (board / list / page), only App paths under /projects.

@@ -36,7 +36,7 @@ export const NAV: Area[] = [
     children: [
       { href: "/members", label: "nav.overview", module: "members", permission: "members.view" },
       { href: "/members/dues", label: "membership.tabs.dues", module: "members", permission: "members.view" },
-      { href: "/members/setup", label: "membership.tabs.setup", module: "members", permission: "members.manage" },
+      { href: "/members/settings", label: "common.settings", module: "members", permission: "members.manage" },
     ],
   },
   {
@@ -58,7 +58,7 @@ export const NAV: Area[] = [
       { href: "/shifts/me", label: "shifts.tabs.me", module: "shifts", permission: "shifts.self" },
       { href: "/shifts/hours", label: "shifts.tabs.hours", module: "shifts", permission: "shifts.view" },
       { href: "/shifts/team", label: "shifts.tabs.team", module: "shifts", permission: "shifts.view" },
-      { href: "/shifts/setup", label: "shifts.tabs.setup", module: "shifts", permission: "shifts.manage" },
+      { href: "/shifts/settings", label: "common.settings", module: "shifts", permission: "shifts.manage" },
     ],
   },
   {
@@ -81,6 +81,7 @@ export const NAV: Area[] = [
       { href: "/invoices", label: "invoices.nav", module: "invoices", permission: "invoices.view" },
       { href: "/cashbook", label: "cashbook.nav", module: "cashbook", permission: "cashbook.view" },
       { href: "/payments", label: "payments.nav", module: "payments", permission: "payments.view" },
+      { href: "/invoices/settings", label: "common.settings", module: "invoices", permission: "invoices.manage" },
     ],
   },
   {
@@ -101,7 +102,7 @@ export const NAV: Area[] = [
     icon: KanbanSquareIcon,
     children: [
       { href: "/projects", label: "nav.overview", module: "projects", permission: "projects.view" },
-      { href: "/projects/setup", label: "projects.setup", module: "projects", permission: "projects.manage" },
+      { href: "/projects/settings", label: "common.settings", module: "projects", permission: "projects.manage" },
     ],
   },
   { key: "wiki", label: "wiki.nav", icon: BookOpenIcon, children: [{ href: "/wiki", label: "wiki.nav", module: "wiki", permission: "wiki.view" }] },

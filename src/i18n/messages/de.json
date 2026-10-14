@@ -104,8 +104,11 @@
       "fields": "Felder",
       "api": "API",
       "locations": "Orte",
-      "team": "Team"
-    }
+      "team": "Team",
+      "areas": "Bereiche"
+    },
+    "areasIntro": "Einstellungen, die nur einen Bereich betreffen, findest du dort als letzten Punkt „Einstellungen“ in der Seitenleiste – oder hier gesammelt.",
+    "areasNone": "Für deine Bereiche gibt es keine eigenen Einstellungen, die du ändern darfst."
   },
   "general": {
     "name": "Name",

@@ -99,7 +99,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
         <p className="rounded-lg border bg-muted px-3 py-2 text-sm">
           {t("membership.noTypes")}{" "}
           {canManage && (
-            <Link href="/members/setup" className="underline">
+            <Link href="/members/settings" className="underline">
               {t("membership.tabs.setup")}
             </Link>
           )}

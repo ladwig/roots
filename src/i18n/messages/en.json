@@ -104,8 +104,11 @@
       "fields": "Fields",
       "api": "API",
       "locations": "Locations",
-      "team": "Team"
-    }
+      "team": "Team",
+      "areas": "Areas"
+    },
+    "areasIntro": "Settings that only concern one area live there as the last sidebar item “Settings” – or collected here.",
+    "areasNone": "None of your areas has settings you're allowed to change."
   },
   "general": {
     "name": "Name",

@@ -9,7 +9,7 @@ import { earliestEnd, type Interval } from "@/members/dues"
 import { sendLoginLink } from "@/portal/login"
 import { getPortalContact, signIn, signOut } from "@/portal/session"
 import { getSite } from "../data"
-import { bicValid, ibanValid } from "@/lib/inputs"
+import { ibanValid } from "@/lib/inputs"
 
 const str = (fd: FormData, key: string, max: number) => String(fd.get(key) ?? "").trim().slice(0, max) || null
 const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })

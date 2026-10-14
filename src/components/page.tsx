@@ -1,7 +1,8 @@
 import Link from "next/link"
-import { PlusIcon, type LucideIcon } from "lucide-react"
+import { PlusIcon, SettingsIcon, type LucideIcon } from "lucide-react"
 import { PageCrumbs } from "@/components/page-crumbs"
 import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { NAV } from "@/modules/nav"
 import { cn } from "@/lib/utils"
@@ -17,7 +18,7 @@ export function Page({ size = "list", className, children }: { size?: keyof type
 }
 
 /**
- * Title row of every page. Right side, always in this order: `actions` (outline buttons, few), `menu` (the ⋯
+ * Title row of every page. Right side, always in this order: `settings` (gear → the area's Einstellungen), `actions` (outline buttons, few), `menu` (the ⋯
  * <ActionsMenu> with import, export, trash, delete…), `primary` (the one filled button, "+ New …", key N).
  * `area` shows the area's icon from the nav (same icon as in the sidebar and ⌘K), `crumbs` the way back on record pages.
  */
@@ -31,6 +32,7 @@ export function PageHeader({
   actions,
   menu,
   primary,
+  settings,
 }: {
   title: React.ReactNode
   area?: string
@@ -41,6 +43,7 @@ export function PageHeader({
   actions?: React.ReactNode
   menu?: React.ReactNode
   primary?: { href: string; label: string; icon?: LucideIcon } | React.ReactNode
+  settings?: { href: string; label: string } | false
 }) {
   const Icon = area ? NAV.find((a) => a.key === area)?.icon : undefined
   const isLink = (p: unknown): p is { href: string; label: string; icon?: LucideIcon } => !!p && typeof p === "object" && "href" in p && "label" in p
@@ -64,8 +67,16 @@ export function PageHeader({
             {description && <p className="max-w-prose text-sm text-muted-foreground">{description}</p>}
           </div>
         </div>
-        {(actions || menu || primary) && (
+        {(actions || menu || primary || settings) && (
           <div className="flex flex-wrap items-center gap-2">
+            {settings && (
+              <Tooltip>
+                <TooltipTrigger render={<Button render={<Link href={settings.href} />} nativeButton={false} size="icon-sm" variant="ghost" aria-label={settings.label} />}>
+                  <SettingsIcon />
+                </TooltipTrigger>
+                <TooltipContent>{settings.label}</TooltipContent>
+              </Tooltip>
+            )}
             {actions}
             {menu}
             {isLink(primary) && PrimaryIcon ? (

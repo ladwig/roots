@@ -5,6 +5,7 @@ export const SETTINGS_TABS: { key: string; permission?: string }[] = [
   { key: "team" },
   { key: "roles" },
   { key: "modules" },
+  { key: "areas" },
   { key: "fields" },
   { key: "locations" },
   { key: "integrations", permission: "org.integrations.manage" },

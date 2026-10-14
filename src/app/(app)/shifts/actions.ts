@@ -138,26 +138,26 @@ export async function savePosition(fd: FormData) {
   const posId = id(fd, "id")
   const name = str(fd, "name", 100)
   const needed = Number(fd.get("needed") ?? 1)
-  if (!name || !(Number.isInteger(needed) && needed >= 1 && needed <= 100)) back("/shifts/setup", { error: t("errors.invalid_input") })
+  if (!name || !(Number.isInteger(needed) && needed >= 1 && needed <= 100)) back("/shifts/settings", { error: t("errors.invalid_input") })
   const row = { name, needed, location_id: id(fd, "location") }
   const { error } = posId
     ? await ctx.supabase.from("positions").update(row).eq("id", posId).eq("org_id", ctx.org.id)
     : await ctx.supabase.from("positions").insert({ ...row, org_id: ctx.org.id })
-  if (error) back("/shifts/setup", { error: dbError(t, error) })
-  back("/shifts/setup", { ok: t("shifts.saved") })
+  if (error) back("/shifts/settings", { error: dbError(t, error) })
+  back("/shifts/settings", { ok: t("shifts.saved") })
 }
 
 export async function deletePosition(fd: FormData) {
   const { ctx, t } = await manager()
   const { error } = await ctx.supabase.from("positions").delete().eq("id", String(fd.get("id"))).eq("org_id", ctx.org.id)
-  if (error) back("/shifts/setup", { error: dbError(t, error) })
-  back("/shifts/setup", { ok: t("shifts.deleted") })
+  if (error) back("/shifts/settings", { error: dbError(t, error) })
+  back("/shifts/settings", { ok: t("shifts.deleted") })
 }
 
 export async function saveSeries(fd: FormData) {
   const { ctx, t } = await manager()
   const seriesId = id(fd, "id")
-  const retry = `/shifts/setup?${seriesId ? `series=${seriesId}` : "new=series"}`
+  const retry = `/shifts/settings?${seriesId ? `series=${seriesId}` : "new=series"}`
   const weekdays = fd.getAll("weekdays").map(Number).filter((d) => d >= 1 && d <= 7)
   const every = Number(fd.get("every_weeks") ?? 1)
   const start = String(fd.get("start_date") ?? "")
@@ -196,7 +196,7 @@ export async function saveSeries(fd: FormData) {
     sid = data.id
   }
   const n = await generateSeries(sid!)
-  back("/shifts/setup", { ok: t("shifts.generated", { count: n }) })
+  back("/shifts/settings", { ok: t("shifts.generated", { count: n }) })
 }
 
 export async function deleteSeries(fd: FormData) {
@@ -204,8 +204,8 @@ export async function deleteSeries(fd: FormData) {
   const seriesId = String(fd.get("id"))
   await ctx.supabase.from("shifts").delete().eq("series_id", seriesId).gt("starts_at", new Date().toISOString())
   const { error } = await ctx.supabase.from("shift_series").delete().eq("id", seriesId).eq("org_id", ctx.org.id)
-  if (error) back("/shifts/setup", { error: dbError(t, error) })
-  back("/shifts/setup", { ok: t("shifts.deleted") })
+  if (error) back("/shifts/settings", { error: dbError(t, error) })
+  back("/shifts/settings", { ok: t("shifts.deleted") })
 }
 
 // --- Self-service (logged-in staff) -------------------------------------------------------------
