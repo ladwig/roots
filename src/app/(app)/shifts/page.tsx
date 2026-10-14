@@ -1,11 +1,10 @@
-import Link from "next/link"
+import { FilterMenu } from "@/components/filter-menu"
+import { Page, PageHeader } from "@/components/page"
 import { notFound, redirect } from "next/navigation"
-import { PlusIcon } from "lucide-react"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { UrlSheet } from "@/components/url-sheet"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
@@ -88,43 +87,18 @@ export default async function ShiftPlan({ searchParams }: PageProps<"/shifts">) 
   const returnTo = `/shifts?${new URLSearchParams(Object.entries({ view: param(sp, "view") ?? "", date: dateParam ?? "", event: eventId ?? "", location: locationId ?? "" }).filter(([, v]) => v))}`
 
   return (
-    <div className="grid gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{event ? `${t("shifts.title")} · ${event.title}` : t("shifts.title")}</h1>
-        {canManage && (
-          <Button render={<Link href={withParams(sp, { new: "shift", shift: undefined })} scroll={false} />} nativeButton={false} size="sm">
-            <PlusIcon /> {t("shifts.newShift")}
-          </Button>
-        )}
-      </div>
+    <Page>
+      <PageHeader
+        area="shifts"
+        title={event ? `${t("shifts.title")} · ${event.title}` : t("shifts.title")}
+        meta={t("shifts.coverage", { filled, needed })}
+        settings={canManage && { href: "/shifts/settings", label: t("common.settings") }}
+        primary={canManage ? { href: withParams(sp, { new: "shift", shift: undefined }), label: t("shifts.newShift") } : undefined}
+      />
       <Notice error={!editing && !creating ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
-      <div className="flex flex-wrap items-center gap-3">
-        <form className="flex flex-wrap items-center gap-2">
-          {param(sp, "view") && <input type="hidden" name="view" value={param(sp, "view")} />}
-          {dateParam && <input type="hidden" name="date" value={dateParam} />}
-          <NativeSelect name="event" defaultValue={eventId ?? ""} aria-label={t("shifts.event")} className="w-56 max-w-full">
-            <NativeSelectOption value="">{t("shifts.allWeek")}</NativeSelectOption>
-            {events?.map((e) => (
-              <NativeSelectOption key={e.id} value={e.id}>
-                {e.title} · {t.date(e.starts_at, { dateStyle: "short" })}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-          {(locations?.length ?? 0) > 0 && (
-            <NativeSelect name="location" defaultValue={locationId ?? ""} aria-label={t("shifts.location")} className="w-44">
-              <NativeSelectOption value="">{t("shifts.allLocations")}</NativeSelectOption>
-              {locations?.map((l) => (
-                <NativeSelectOption key={l.id} value={l.id}>
-                  {l.name}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          )}
-          <Button type="submit" size="sm" variant="outline">
-            {t("shifts.show")}
-          </Button>
-        </form>
-        <span className="text-sm text-muted-foreground">{t("shifts.coverage", { filled, needed })}</span>
+      <div className="flex flex-wrap items-center gap-2">
+        {!!events?.length && <FilterMenu param="event" label={t("shifts.event")} allLabel={t("shifts.allWeek")} options={events.map((e) => ({ value: e.id, label: `${e.title} · ${t.date(e.starts_at, { dateStyle: "short" })}` }))} />}
+        {(locations?.length ?? 0) > 0 && <FilterMenu param="location" label={t("shifts.location")} allLabel={t("shifts.allLocations")} options={(locations ?? []).map((l) => ({ value: l.id, label: l.name }))} />}
       </div>
 
       <CalendarView
@@ -170,7 +144,7 @@ export default async function ShiftPlan({ searchParams }: PageProps<"/shifts">) 
           )}
         </UrlSheet>
       )}
-    </div>
+    </Page>
   )
 }
 

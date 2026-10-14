@@ -1,7 +1,8 @@
 import Link from "next/link"
+import { ActionsMenu, MenuExport } from "@/components/actions-menu"
+import { Page, PageHeader } from "@/components/page"
 import { notFound } from "next/navigation"
 import { DataTable } from "@/components/data-table"
-import { ExportMenu } from "@/components/export-menu"
 import { Notice } from "@/components/notice"
 import { hoursText, MonthNav, monthOf } from "@/components/time-entries"
 import { Badge } from "@/components/ui/badge"
@@ -42,14 +43,18 @@ export default async function HoursPage({ searchParams }: PageProps<"/shifts/hou
   const unapproved = table.reduce((n, s) => n + s.unapproved, 0)
 
   return (
-    <div className="grid gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{t("shifts.tabs.hours")}</h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <MonthNav month={month} href={(m) => `/shifts/hours?month=${m}`} />
-          <ExportMenu query={{ month: month.month }} choices={[{ entity: "hours", label: t("time.exportTotals") }, { entity: "time", label: t("time.exportEntries") }]} />
-        </div>
-      </div>
+    <Page>
+      <PageHeader
+        area="shifts"
+        title={t("shifts.tabs.hours")}
+        actions={<MonthNav month={month} href={(m) => `/shifts/hours?month=${m}`} />}
+        menu={
+          <ActionsMenu>
+            <MenuExport entity="hours" query={{ month: month.month }} label={t("time.exportTotals")} />
+            <MenuExport entity="time" query={{ month: month.month }} label={t("time.exportEntries")} />
+          </ActionsMenu>
+        }
+      />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
       <p className="text-sm text-muted-foreground">
         {t("shifts.hoursHint")} {unapproved > 0 && t("time.exportOnlyApproved", { count: unapproved })}
@@ -91,7 +96,7 @@ export default async function HoursPage({ searchParams }: PageProps<"/shifts/hou
           },
         ]}
       />
-    </div>
+    </Page>
   )
 }
 

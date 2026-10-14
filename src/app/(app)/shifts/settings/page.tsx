@@ -1,6 +1,7 @@
 import Link from "next/link"
+import { FormCard, Page, PageHeader } from "@/components/page"
 import { notFound } from "next/navigation"
-import { Trash2Icon } from "lucide-react"
+import { PlusIcon, Trash2Icon } from "lucide-react"
 import { DataTable } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
@@ -34,14 +35,10 @@ export default async function ShiftSetup({ searchParams }: PageProps<"/shifts/se
   const staffName = new Map(staff?.map((s) => [s.id, s.name]))
 
   return (
-    <div className="grid gap-8">
-      <h1 className="font-heading text-2xl font-semibold">{t("shifts.setupTitle")}</h1>
+    <Page size="form">
+      <PageHeader crumbs={[{ href: "/shifts", label: t("shifts.nav") }, { label: t("common.settings") }]} title={t("common.settings")} />
       <Notice error={!editing && !creating ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
-      <section className="grid gap-3" aria-labelledby="positions">
-        <h2 id="positions" className="font-medium">
-          {t("shifts.positionsTitle")}
-        </h2>
-        <p className="text-sm text-muted-foreground">{t("shifts.positionsHint")}</p>
+      <FormCard id="positions" title={t("shifts.positionsTitle")} description={t("shifts.positionsHint")}>
         <ul className="grid gap-2">
           {[...(positions ?? []), null].map((p) => (
             <li key={p?.id ?? "new"} className="flex flex-wrap items-end gap-2 rounded-lg border p-2">
@@ -82,18 +79,18 @@ export default async function ShiftSetup({ searchParams }: PageProps<"/shifts/se
             </Link>
           </p>
         )}
-      </section>
+      </FormCard>
 
-      <section className="grid gap-3" aria-labelledby="series">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 id="series" className="font-medium">
-            {t("shifts.seriesTitle")}
-          </h2>
+      <FormCard
+        id="series"
+        title={t("shifts.seriesTitle")}
+        description={t("shifts.seriesHint")}
+        action={
           <Button render={<Link href={withParams(sp, { new: "series", series: undefined })} scroll={false} />} nativeButton={false} size="sm" variant="outline">
-            {t("shifts.newSeries")}
+            <PlusIcon /> {t("shifts.newSeries")}
           </Button>
-        </div>
-        <p className="text-sm text-muted-foreground">{t("shifts.seriesHint")}</p>
+        }
+      >
         <DataTable
           rows={series ?? []}
           rowKey={(s) => s.id}
@@ -110,7 +107,7 @@ export default async function ShiftSetup({ searchParams }: PageProps<"/shifts/se
             { header: t("shifts.location"), cell: (s) => s.locations?.name },
           ]}
         />
-      </section>
+      </FormCard>
 
       {(creating || editing) && (
         <UrlSheet params={["new", "series"]} title={editing ? (editing.positions?.name ?? editing.name ?? "") : t("shifts.newSeries")}>
@@ -217,7 +214,7 @@ export default async function ShiftSetup({ searchParams }: PageProps<"/shifts/se
           )}
         </UrlSheet>
       )}
-    </div>
+    </Page>
   )
 }
 

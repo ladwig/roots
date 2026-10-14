@@ -2,7 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { PlusIcon } from "lucide-react"
 import { Notice } from "@/components/notice"
-import { PageCrumbs } from "@/components/page-crumbs"
+import { Page, PageHeader } from "@/components/page"
 import { SubmitButton } from "@/components/submit-button"
 import { hoursText, MonthNav, monthOf, TIME_COLS, TimeEntryForm, TimeEntryList, type TimeRow } from "@/components/time-entries"
 import { Button } from "@/components/ui/button"
@@ -49,12 +49,12 @@ export default async function PersonHours({ params, searchParams }: { params: Pr
   )
 
   return (
-    <div className="grid gap-6">
-      <PageCrumbs items={[{ href: `/shifts/hours?month=${month.month}`, label: t("shifts.tabs.hours") }, { label: person.name }]} />
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{person.name}</h1>
-        <MonthNav month={month} href={(m) => `${base}?month=${m}`} />
-      </div>
+    <Page>
+      <PageHeader
+        crumbs={[{ href: `/shifts/hours?month=${month.month}`, label: t("shifts.tabs.hours") }, { label: person.name }]}
+        title={person.name}
+        actions={<MonthNav month={month} href={(m) => `${base}?month=${m}`} />}
+      />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
       <div className="flex flex-wrap items-center gap-3">
         <p className="text-sm text-muted-foreground">
@@ -78,7 +78,7 @@ export default async function PersonHours({ params, searchParams }: { params: Pr
           <TimeEntryForm entry={editing} staffId={staffId} returnTo={here} canDelete={ctx.can("shifts.manage")} />
         </UrlSheet>
       )}
-    </div>
+    </Page>
   )
 }
 

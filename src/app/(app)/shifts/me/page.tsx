@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { EmptyState, Page, PageHeader } from "@/components/page"
 import { notFound } from "next/navigation"
 import { PlusIcon } from "lucide-react"
 import { Notice } from "@/components/notice"
@@ -24,10 +25,10 @@ export default async function MyShifts({ searchParams }: PageProps<"/shifts/me">
   const { data: staffId } = await ctx.supabase.rpc("my_staff_id", { p_org: ctx.org.id })
   if (!staffId)
     return (
-      <div className="grid gap-6">
-        <h1 className="font-heading text-2xl font-semibold">{t("shifts.tabs.me")}</h1>
-        <p className="text-sm text-muted-foreground">{t("shifts.notInTeam")}</p>
-      </div>
+      <Page>
+        <PageHeader area="shifts" title={t("shifts.tabs.me")} />
+        <EmptyState area="shifts" title={t("shifts.notInTeam")} />
+      </Page>
     )
   const [data, { data: rows }, { data: running }] = await Promise.all([
     selfView(staffId),
@@ -41,8 +42,8 @@ export default async function MyShifts({ searchParams }: PageProps<"/shifts/me">
   const total = entries.filter((e) => e.ended_at).reduce((s, e) => s + minutes(e).net, 0)
 
   return (
-    <div className="grid gap-6">
-      <h1 className="font-heading text-2xl font-semibold">{t("shifts.tabs.me")}</h1>
+    <Page>
+      <PageHeader area="shifts" title={t("shifts.tabs.me")} />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
 
       <section aria-labelledby="time" className="grid gap-4">
@@ -75,7 +76,7 @@ export default async function MyShifts({ searchParams }: PageProps<"/shifts/me">
           <TimeEntryForm entry={editing} returnTo={here} canDelete />
         </UrlSheet>
       )}
-    </div>
+    </Page>
   )
 }
 

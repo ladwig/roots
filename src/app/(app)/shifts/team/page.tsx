@@ -1,11 +1,10 @@
-import Link from "next/link"
+import { Page, PageHeader } from "@/components/page"
 import { notFound } from "next/navigation"
 import { DataTable } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { UrlSheet } from "@/components/url-sheet"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
@@ -37,15 +36,8 @@ export default async function TeamPage({ searchParams }: PageProps<"/shifts/team
   }
 
   return (
-    <div className="grid gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{t("shifts.tabs.team")}</h1>
-        {canManage && (
-          <Button render={<Link href={withParams(sp, { new: "staff", edit: undefined })} scroll={false} />} nativeButton={false} size="sm">
-            {t("shifts.newStaff")}
-          </Button>
-        )}
-      </div>
+    <Page>
+      <PageHeader area="shifts" title={t("shifts.tabs.team")} primary={canManage ? { href: withParams(sp, { new: "staff", edit: undefined }), label: t("shifts.newStaff") } : undefined} />
       <Notice error={!editing && !creating ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
       <DataTable
         rows={staff ?? []}
@@ -123,7 +115,7 @@ export default async function TeamPage({ searchParams }: PageProps<"/shifts/team
           </form>
         </UrlSheet>
       )}
-    </div>
+    </Page>
   )
 }
 
