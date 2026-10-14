@@ -506,7 +506,7 @@ begin
   insert into public.org_modules (org_id, module_key) values (org_a, 'events') on conflict do nothing;
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   set local role authenticated;
-  declare v_ev uuid := (select id from public.events where org_id = org_a and slug = 'live'); v_art uuid; v_list uuid;
+  declare v_ev uuid := (select id from public.events where org_id = org_a and slug = 'live'); v_art uuid; v_list uuid; v_gt uuid;
   begin
     insert into public.artists (org_id, name) values (org_a, 'DJ Test') returning id into v_art;
     insert into public.event_slots (org_id, event_id, artist_id, stage, starts_at) values (org_a, v_ev, v_art, 'Main', now() + interval '7 days');
@@ -521,6 +521,26 @@ begin
     exception when raise_exception then null; end;
     reset role;
     select count(*) into n from public.hub_events where org_id = org_a and type = 'guestlist.signed_up'; assert n = 1, 'one sign-up event per submission';
+    -- Linked to a ticket type: one live ticket + one paid order per entry, however often it syncs. A live ticket the entry
+    -- doesn't point to yet (a concurrent run still writing back) is linked, not issued twice; voided ones are re-issued.
+    insert into public.ticket_types (org_id, event_id, name, price) values (org_a, v_ev, 'Gäste', 0) returning id into v_gt;
+    update public.guest_lists set ticket_type_id = v_gt where id = v_list;
+    set local role service_role;
+    n := public.guest_sync_tickets(v_list);                                    assert n = 2, 'sync issues a ticket per entry';
+    update public.guest_entries set ticket_id = null, name = 'Anna B' where list_id = v_list and name = 'Anna';
+    n := public.guest_sync_tickets(v_list);                                    assert n = 0, 'second sync issues nothing';
+    reset role;
+    select count(*) into n from public.guest_entries g join public.tickets t on t.id = g.ticket_id
+      where g.list_id = v_list and t.guest_entry_id = g.id and t.status = 'valid' and t.holder_name = g.name; assert n = 2, 'entries point to their live, renamed ticket';
+    select count(*) into n from public.pay_orders where source_id = v_list::text and status = 'paid'; assert n = 2, 'one paid order per entry';
+    begin
+      insert into public.tickets (org_id, event_id, type_id, order_id, code, holder_name, status, price, guest_entry_id)
+        select org_a, v_ev, v_gt, order_id, 'GUESTDUPXZ', 'x', 'valid', 0, guest_entry_id from public.tickets where type_id = v_gt limit 1;
+      assert false, 'second live ticket for a guest entry';
+    exception when unique_violation then null; end;
+    update public.tickets set status = 'void' where type_id = v_gt and holder_name = 'Ben';
+    n := public.guest_sync_tickets(v_list);                                    assert n = 1, 'voided ticket is re-issued';
+    select count(*) into n from public.tickets where type_id = v_gt and status = 'valid'; assert n = 2, 'one live ticket each after re-issue';
     perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
     set local role authenticated;
     select count(*) into n from public.guest_entries where org_id = org_a;     assert n = 0, 'B sees guest entries of A';
