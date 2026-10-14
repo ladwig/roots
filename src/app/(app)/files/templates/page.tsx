@@ -45,7 +45,7 @@ export default async function TemplatesPage({ searchParams }: PageProps<"/files/
       </div>
       <Notice error={!creating ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
       {canManage && (
-        <nav aria-label={t("letters.kind")} className="flex flex-wrap gap-1.5">
+        <nav aria-label={t("letters.kind")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
           {[
             { href: "/files/templates", current: !trash, label: t("letters.all") },
             { href: "/files/templates?trash=1", current: trash, label: t("letters.trash") },
@@ -54,7 +54,7 @@ export default async function TemplatesPage({ searchParams }: PageProps<"/files/
               key={c.href}
               href={c.href}
               aria-current={c.current ? "true" : undefined}
-              className="rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground aria-[current=true]:bg-primary aria-[current=true]:text-primary-foreground"
+              className="inline-flex min-h-7 items-center gap-1.5 rounded-md px-3 text-sm text-muted-foreground transition-colors hover:text-foreground aria-[current=true]:bg-background aria-[current=true]:font-medium aria-[current=true]:text-foreground aria-[current=true]:shadow-sm"
             >
               {c.label}
             </Link>

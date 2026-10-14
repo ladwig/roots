@@ -122,13 +122,13 @@ export default async function CashbookPage({ searchParams }: { searchParams: Pro
         />
       ) : (
         <>
-          <nav aria-label={t("cashbook.accounts")} className="flex flex-wrap items-center gap-1.5">
+          <nav aria-label={t("cashbook.accounts")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
             {accounts!.map((a) => (
               <Link
                 key={a.id}
                 href={`/cashbook?account=${a.id}&month=${month}`}
                 aria-current={a.id === account.id ? "true" : undefined}
-                className="rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground aria-[current=true]:bg-primary aria-[current=true]:text-primary-foreground"
+                className="inline-flex min-h-7 items-center gap-1.5 rounded-md px-3 text-sm text-muted-foreground transition-colors hover:text-foreground aria-[current=true]:bg-background aria-[current=true]:font-medium aria-[current=true]:text-foreground aria-[current=true]:shadow-sm"
               >
                 {a.name}
                 {!a.active && ` · ${t("cashbook.inactive")}`}

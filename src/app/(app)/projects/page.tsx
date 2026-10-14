@@ -1,10 +1,12 @@
-import Link from "next/link"
+import { Segments } from "@/components/segments"
+import { FilterMenu } from "@/components/filter-menu"
+import { Page, PageHeader } from "@/components/page"
+import { ActionsMenu, MenuSubmit } from "@/components/actions-menu"
 import { notFound } from "next/navigation"
-import { KanbanSquareIcon, ListIcon } from "lucide-react"
+import { KanbanSquareIcon, ListIcon, Trash2Icon } from "lucide-react"
 import { DataTable, SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { Badge } from "@/components/ui/badge"
-import { NativeSelectOption } from "@/components/ui/native-select"
 import { UrlSheet } from "@/components/url-sheet"
 import { berlinToday } from "@/api/v1/shared"
 import { getT } from "@/i18n/server"
@@ -14,8 +16,7 @@ import { DOT, progress, type ChecklistItem } from "@/projects/fields"
 import { initials, projectBasics } from "@/projects/load"
 import { TASK_COLS } from "@/projects/server"
 import { Board } from "./board"
-import { FilterSelect } from "./filter-select"
-import { TaskEditor } from "./task-editor"
+import { TaskEditor, taskMeta } from "./task-editor"
 
 const VIEWS = ["board", "list"] as const
 const DUES = ["overdue", "week", "none"] as const
@@ -67,53 +68,30 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
     href: `/projects${withParams(sp, { task: r.id })}`,
   }))
   const here = `/projects${withParams(sp, { task: undefined, error: undefined, ok: undefined })}`
-  const chip = (href: string, active: boolean, label: React.ReactNode, key: string) => (
-    <Link
-      key={key}
-      href={href}
-      aria-current={active ? "true" : undefined}
-      className="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground aria-[current=true]:bg-primary aria-[current=true]:text-primary-foreground"
-    >
-      {label}
-    </Link>
-  )
 
   return (
-    <div className="grid gap-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{t("projects.title")}</h1>
-        <nav aria-label={t("projects.view")} className="flex gap-1">
-          {chip(withParams(sp, { view: undefined, task: undefined }), view === "board", <><KanbanSquareIcon className="size-3.5" /> {t("projects.views.board")}</>, "board")}
-          {chip(withParams(sp, { view: "list", task: undefined }), view === "list", <><ListIcon className="size-3.5" /> {t("projects.views.list")}</>, "list")}
-        </nav>
-      </div>
+    <Page className="max-w-none">
+      <PageHeader
+        area="projects"
+        title={t("projects.title")}
+        settings={canManage && { href: "/projects/settings", label: t("common.settings") }}
+        actions={
+          <Segments
+            label={t("projects.view")}
+            items={[
+              { href: withParams(sp, { view: undefined, task: undefined }), current: view === "board", label: <><KanbanSquareIcon /> {t("projects.views.board")}</> },
+              { href: withParams(sp, { view: "list", task: undefined }), current: view === "list", label: <><ListIcon /> {t("projects.views.list")}</> },
+            ]}
+          />
+        }
+      />
       <Notice error={!open ? param(sp, "error") : undefined} ok={!open ? param(sp, "ok") : undefined} />
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <SearchBox q={q} label={t("projects.search")} />
-        <FilterSelect param="assignee" value={who ?? ""} label={t("projects.assignee")}>
-          <NativeSelectOption value="">{t("projects.everyone")}</NativeSelectOption>
-          <NativeSelectOption value="me">{t("projects.mine")}</NativeSelectOption>
-          {team.map((p) => (
-            <NativeSelectOption key={p.id} value={p.id}>
-              {p.name}
-            </NativeSelectOption>
-          ))}
-        </FilterSelect>
-        <FilterSelect param="due" value={due ?? ""} label={t("projects.due")}>
-          <NativeSelectOption value="">{t("projects.anyDue")}</NativeSelectOption>
-          {DUES.map((d) => (
-            <NativeSelectOption key={d} value={d}>
-              {t.dynamic(`projects.dues.${d}`)}
-            </NativeSelectOption>
-          ))}
-        </FilterSelect>
+        <FilterMenu param="assignee" label={t("projects.assignee")} allLabel={t("projects.everyone")} options={[{ value: "me", label: t("projects.mine") }, ...team.map((p) => ({ value: p.id, label: p.name }))]} />
+        <FilterMenu param="due" label={t("projects.due")} allLabel={t("projects.anyDue")} options={DUES.map((d) => ({ value: d, label: t.dynamic(`projects.dues.${d}`) }))} />
+        {tags.length > 0 && <FilterMenu param="tag" label={t("projects.tags")} allLabel={t("projects.allTags")} options={tags.map((x) => ({ value: x, label: x }))} />}
       </div>
-      {tags.length > 0 && (
-        <nav aria-label={t("projects.tags")} className="flex flex-wrap gap-1.5">
-          {chip(withParams(sp, { tag: undefined, task: undefined }), !tag, t("projects.allTags"), "_all")}
-          {tags.map((x) => chip(withParams(sp, { tag: x === tag ? undefined : x, task: undefined }), x === tag, x, x))}
-        </nav>
-      )}
 
       {view === "board" ? (
         <Board statuses={statuses} tasks={tasks} canManage={canManage} back={here} today={today} />
@@ -153,12 +131,26 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       )}
 
       {open && (
-        <UrlSheet params={["task"]} title={open.title} wide>
+        <UrlSheet
+          params={["task"]}
+          title={open.title}
+          wide
+          meta={taskMeta(t, open)}
+          menu={
+            canManage && (
+              <ActionsMenu>
+                <MenuSubmit form="trash-task" icon={Trash2Icon} destructive>
+                  {t("projects.toTrash")}
+                </MenuSubmit>
+              </ActionsMenu>
+            )
+          }
+        >
           <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
           <TaskEditor t={t} task={open} statuses={statuses} team={team} tags={tags} canManage={canManage} back={`/projects${withParams(sp, { error: undefined, ok: undefined })}`} />
         </UrlSheet>
       )}
-    </div>
+    </Page>
   )
 }
 

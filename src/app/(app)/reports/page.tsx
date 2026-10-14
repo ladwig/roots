@@ -31,13 +31,13 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
     <div className="grid max-w-5xl gap-8">
       <div className="grid gap-3">
         <h1 className="font-heading text-2xl font-semibold">{t("reports.title")}</h1>
-        <nav aria-label={t("reports.period")} className="flex flex-wrap gap-1.5">
+        <nav aria-label={t("reports.period")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
           {PRESETS.map((k) => (
             <Link
               key={k}
               href={`/reports?p=${k}`}
               aria-current={p.preset === k ? "true" : undefined}
-              className="rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground aria-[current=true]:bg-primary aria-[current=true]:text-primary-foreground"
+              className="inline-flex min-h-7 items-center gap-1.5 rounded-md px-3 text-sm text-muted-foreground transition-colors hover:text-foreground aria-[current=true]:bg-background aria-[current=true]:font-medium aria-[current=true]:text-foreground aria-[current=true]:shadow-sm"
             >
               {t.dynamic(`reports.presets.${k}`)}
             </Link>

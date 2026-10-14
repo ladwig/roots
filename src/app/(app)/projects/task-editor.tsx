@@ -1,5 +1,4 @@
 import { Markdown } from "@/components/markdown"
-import { SubmitButton } from "@/components/submit-button"
 import { PeopleSelect } from "./people-select"
 import { TagSelect } from "@/components/tag-select"
 import { Input } from "@/components/ui/input"
@@ -14,8 +13,8 @@ import { Checklist } from "./checklist"
 
 export type EditorTask = { id: string; title: string; description: string; status_id: string; due_on: string | null; tags: string[]; checklist: unknown; created_at: string; completed_at: string | null; task_assignees: { user_id: string }[] }
 
-// Everything about one task: fields (save themselves), checklist (saves at once), trash. Used by the board's
-// side panel.
+// Everything about one task: fields (save themselves), checklist (saves at once), the hidden trash form (the drawer's
+// ⋯ menu posts it). Used by the board's side panel.
 export function TaskEditor({
   t,
   task,
@@ -75,19 +74,17 @@ export function TaskEditor({
       </AutosaveForm>
       {!canManage && task.description.trim() && <Markdown>{task.description}</Markdown>}
       <Checklist taskId={task.id} initial={(Array.isArray(task.checklist) ? task.checklist : []) as ChecklistItem[]} disabled={!canManage} />
-      <p className="text-xs text-muted-foreground">
-        {t("projects.created", { date: t.date(task.created_at, { dateStyle: "medium" }) })}
-        {task.completed_at && ` · ${t("projects.completedOn", { date: t.date(task.completed_at, { dateStyle: "medium" }) })}`}
-      </p>
       {canManage && (
-        <form action={trashTaskAction}>
+        <form id="trash-task" action={trashTaskAction} hidden>
           <input type="hidden" name="id" value={task.id} />
           <input type="hidden" name="back" value={back} />
-          <SubmitButton size="sm" variant="ghost" className="text-muted-foreground">
-            {t("projects.toTrash")}
-          </SubmitButton>
         </form>
       )}
     </div>
   )
+}
+
+/** Under the drawer title: when the task was created / completed. */
+export function taskMeta(t: T, task: Pick<EditorTask, "created_at" | "completed_at">) {
+  return [t("projects.created", { date: t.date(task.created_at, { dateStyle: "medium" }) }), task.completed_at && t("projects.completedOn", { date: t.date(task.completed_at, { dateStyle: "medium" }) })].filter(Boolean).join(" · ")
 }

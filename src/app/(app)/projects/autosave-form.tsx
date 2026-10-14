@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
+import { createPortal } from "react-dom"
 import { useRouter } from "next/navigation"
 import { CheckIcon, Loader2Icon } from "lucide-react"
 import { toast } from "sonner"
@@ -41,10 +42,11 @@ export function AutosaveForm({ action, children, className }: { action: (fd: For
     [action],
   )
 
-  return (
-    <form ref={form} onInput={later} onSubmit={(e) => (e.preventDefault(), save())} className={className}>
-      {children}
-      <p className="flex h-4 items-center gap-1 text-xs text-muted-foreground" aria-live="polite">
+  // In a drawer the status shows under its title (UrlSheet's sheet-status slot), elsewhere under the form.
+  const [slot, setSlot] = useState<Element | null>(null)
+  useEffect(() => setSlot(form.current?.closest("[data-slot=sheet-content]")?.querySelector("[data-slot=sheet-status]") ?? null), [])
+  const status = (
+      <span className="inline-flex h-4 items-center gap-1 text-xs text-muted-foreground" aria-live="polite">
         {saving ? (
           <>
             <Loader2Icon className="size-3 animate-spin" /> {t("projects.saving")}
@@ -56,7 +58,12 @@ export function AutosaveForm({ action, children, className }: { action: (fd: For
             </>
           )
         )}
-      </p>
+      </span>
+  )
+  return (
+    <form ref={form} onInput={later} onSubmit={(e) => (e.preventDefault(), save())} className={className}>
+      {children}
+      {slot ? createPortal(status, slot) : status}
     </form>
   )
 }

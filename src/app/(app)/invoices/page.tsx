@@ -47,7 +47,7 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/invoice
       key={label}
       href={href}
       aria-current={current ? "true" : undefined}
-      className="rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground aria-[current=true]:bg-primary aria-[current=true]:text-primary-foreground"
+      className="inline-flex min-h-7 items-center gap-1.5 rounded-md px-3 text-sm text-muted-foreground transition-colors hover:text-foreground aria-[current=true]:bg-background aria-[current=true]:font-medium aria-[current=true]:text-foreground aria-[current=true]:shadow-sm"
     >
       {label}
     </Link>
@@ -73,7 +73,7 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/invoice
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
       <div className="flex flex-wrap items-center gap-2">
         <SearchBox q={q} label={t("invoices.search")} />
-        <nav aria-label={t("invoices.kind")} className="flex flex-wrap gap-1.5">
+        <nav aria-label={t("invoices.kind")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
           {[undefined, ...KINDS].map((k) => chip(withParams(sp, { kind: k, page: undefined }), k === kind, k ? t.dynamic(`invoices.kinds.${k}`) : t("invoices.all")))}
         </nav>
         <FilterMenu param="status" label={t("invoices.status")} allLabel={t("invoices.allStatus")} options={["draft", "sent", "overdue", "paid", "accepted", "cancelled"].map((x) => ({ value: x, label: t.dynamic(`invoices.filters.${x}`) }))} />

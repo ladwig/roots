@@ -43,7 +43,7 @@ export default async function DoorPage({ searchParams }: PageProps<"/scan">) {
       key={href}
       href={href}
       aria-current={active ? "true" : undefined}
-      className="rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground aria-[current=true]:bg-primary aria-[current=true]:text-primary-foreground"
+      className="inline-flex min-h-7 items-center gap-1.5 rounded-md px-3 text-sm text-muted-foreground transition-colors hover:text-foreground aria-[current=true]:bg-background aria-[current=true]:font-medium aria-[current=true]:text-foreground aria-[current=true]:shadow-sm"
     >
       {label}
     </Link>
@@ -55,7 +55,7 @@ export default async function DoorPage({ searchParams }: PageProps<"/scan">) {
       {!events?.length ? (
         <p className="text-sm text-muted-foreground">{t("tickets.noEventsToScan")}</p>
       ) : (
-        <nav aria-label={t("tickets.pickEvent")} className="flex flex-wrap gap-1.5">
+        <nav aria-label={t("tickets.pickEvent")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
           {events.map((e) => chip(`/scan?event=${e.id}&tab=${tab}`, e.id === current?.id, `${e.title} · ${t.date(e.starts_at, { dateStyle: "short" })}`))}
         </nav>
       )}
@@ -126,7 +126,7 @@ async function Guests({
         <SearchBox q={q} label={t("door.searchGuests")} keep={{ event: eventId, tab: "guests", ...(list ? { list } : {}) }} />
         <span className="text-sm text-muted-foreground">{t("door.guestCount", { in: inCount, total: rows.length })}</span>
       </div>
-      <nav aria-label={t("door.lists")} className="flex flex-wrap gap-1.5">
+      <nav aria-label={t("door.lists")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
         {chip(withParams(sp, { list: undefined }), !list, t("door.allLists"))}
         {lists?.map((l) => chip(withParams(sp, { list: l.id }), l.id === list, l.name))}
       </nav>

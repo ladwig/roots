@@ -57,7 +57,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
       key={label}
       href={href}
       aria-current={current ? "true" : undefined}
-      className="rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground aria-[current=true]:bg-primary aria-[current=true]:text-primary-foreground"
+      className="inline-flex min-h-7 items-center gap-1.5 rounded-md px-3 text-sm text-muted-foreground transition-colors hover:text-foreground aria-[current=true]:bg-background aria-[current=true]:font-medium aria-[current=true]:text-foreground aria-[current=true]:shadow-sm"
     >
       {label}
     </Link>
@@ -85,7 +85,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
         <SearchBox q={q} label={t("common.search")} />
         {!trash && (
           <>
-            <nav aria-label={t("eventsPage.when")} className="flex flex-wrap gap-1.5">
+            <nav aria-label={t("eventsPage.when")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
               {VIEWS.map((v) => chip(withParams(sp, { view: v === "upcoming" ? undefined : v, page: undefined, edit: undefined }), v === view, t.dynamic(`eventsPage.${v}`)))}
             </nav>
             <FilterMenu param="status" label={t("eventsPage.status")} options={STATUSES.map((s) => ({ value: s, label: t.dynamic(`eventsPage.statuses.${s}`) }))} />

@@ -48,7 +48,7 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
             key={label}
             href={withParams(sp, { filter: f, page: undefined })}
             aria-current={(f === "unread") === unreadOnly ? "true" : undefined}
-            className="rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground aria-[current=true]:bg-primary aria-[current=true]:text-primary-foreground"
+            className="inline-flex min-h-7 items-center gap-1.5 rounded-md px-3 text-sm text-muted-foreground transition-colors hover:text-foreground aria-[current=true]:bg-background aria-[current=true]:font-medium aria-[current=true]:text-foreground aria-[current=true]:shadow-sm"
           >
             {label}
           </Link>

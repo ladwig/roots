@@ -51,7 +51,7 @@ export default async function FilesPage({ searchParams }: PageProps<"/files">) {
       key={label}
       href={href}
       aria-current={current ? "true" : undefined}
-      className="rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground aria-[current=true]:bg-primary aria-[current=true]:text-primary-foreground"
+      className="inline-flex min-h-7 items-center gap-1.5 rounded-md px-3 text-sm text-muted-foreground transition-colors hover:text-foreground aria-[current=true]:bg-background aria-[current=true]:font-medium aria-[current=true]:text-foreground aria-[current=true]:shadow-sm"
     >
       {label}
     </Link>
@@ -68,7 +68,7 @@ export default async function FilesPage({ searchParams }: PageProps<"/files">) {
 
       <div className="flex flex-wrap items-center gap-3">
         <SearchBox q={q} label={t("common.search")} />
-        <nav aria-label={t("files.folder")} className="flex flex-wrap gap-1.5">
+        <nav aria-label={t("files.folder")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
           {chip(withParams(sp, { folder: undefined, trash: undefined, page: undefined, edit: undefined }), !trash && !folder, t("files.all"))}
           {!trash && folders.map((f) => chip(withParams(sp, { folder: f, page: undefined, edit: undefined }), f === folder, f))}
           {canManage && chip(withParams(sp, { trash: "1", folder: undefined, page: undefined, edit: undefined }), trash, t("files.trash"))}

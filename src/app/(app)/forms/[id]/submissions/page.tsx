@@ -52,7 +52,7 @@ export default async function SubmissionsPage({ params, searchParams }: PageProp
       key={s}
       href={withParams(sp, { status: s === "all" ? undefined : s, page: undefined, sub: undefined })}
       aria-current={s === status ? "true" : undefined}
-      className="rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground aria-[current=true]:bg-primary aria-[current=true]:text-primary-foreground"
+      className="inline-flex min-h-7 items-center gap-1.5 rounded-md px-3 text-sm text-muted-foreground transition-colors hover:text-foreground aria-[current=true]:bg-background aria-[current=true]:font-medium aria-[current=true]:text-foreground aria-[current=true]:shadow-sm"
     >
       {s === "all" ? t("forms.all") : t(`forms.subStatus.${s}`)}
     </Link>
@@ -63,7 +63,7 @@ export default async function SubmissionsPage({ params, searchParams }: PageProp
     <>
       <Notice error={!openId ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <nav aria-label={t("forms.status")} className="flex flex-wrap gap-1.5">
+        <nav aria-label={t("forms.status")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
           {(["all", "new", "accepted", "rejected"] as const).map(chip)}
         </nav>
         <ExportMenu entity="submissions" query={{ form: id }} />

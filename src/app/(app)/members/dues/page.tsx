@@ -56,7 +56,7 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
       key={label}
       href={href}
       aria-current={current ? "true" : undefined}
-      className="rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground aria-[current=true]:bg-primary aria-[current=true]:text-primary-foreground"
+      className="inline-flex min-h-7 items-center gap-1.5 rounded-md px-3 text-sm text-muted-foreground transition-colors hover:text-foreground aria-[current=true]:bg-background aria-[current=true]:font-medium aria-[current=true]:text-foreground aria-[current=true]:shadow-sm"
     >
       {label}
     </Link>
@@ -190,7 +190,7 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
         </section>
       )}
 
-      <nav aria-label={t("membership.status")} className="flex flex-wrap gap-1.5">
+      <nav aria-label={t("membership.status")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
         {(["open", "paid", "cancelled", "all"] as const).map((s) =>
           chip(withParams(sp, { status: s === "open" ? undefined : s, page: undefined, run: undefined }), s === status, s === "all" ? t("membership.filters.all") : t(`membership.dueStatus.${s}`)),
         )}
