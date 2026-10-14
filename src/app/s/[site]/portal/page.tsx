@@ -5,7 +5,7 @@ import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { getT } from "@/i18n/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { param, sitePath } from "@/lib/url"
+import { param } from "@/lib/url"
 import { PORTAL_SECTIONS } from "@/portal/sections"
 import { getPortalContact } from "@/portal/session"
 import { PortalLoginForm } from "@/portal/login-form"
@@ -91,7 +91,7 @@ async function PortalBody({
               return (
                 <li key={x.key} className="flex-1">
                   <Link
-                    href={`${sitePath(site, "/portal")}?tab=${x.key}`}
+                    href={`?tab=${x.key}`}
                     aria-current={x.key === tab ? "page" : undefined}
                     className="flex flex-col items-center gap-1 px-1 py-2.5 text-xs text-muted-foreground transition-colors hover:text-foreground aria-[current=page]:font-medium aria-[current=page]:text-primary"
                   >
