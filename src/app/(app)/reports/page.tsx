@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { FormCard, Page, PageHeader } from "@/components/page"
 import { notFound } from "next/navigation"
 import { DataTable } from "@/components/data-table"
 import { SubmitButton } from "@/components/submit-button"
@@ -28,9 +29,9 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const admitted = e ? e.tickets_in + e.members_in + e.guests_in : 0
 
   return (
-    <div className="grid max-w-5xl gap-8">
-      <div className="grid gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{t("reports.title")}</h1>
+    <Page>
+      <PageHeader area="reports" title={t("reports.title")} meta={t("reports.range", { from: day(p.from), to: day(p.to) })} />
+      <div className="flex flex-wrap items-end gap-3">
         <nav aria-label={t("reports.period")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
           {PRESETS.map((k) => (
             <Link
@@ -56,7 +57,6 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
             {t("reports.show")}
           </SubmitButton>
         </form>
-        <p className="text-sm text-muted-foreground">{t("reports.range", { from: day(p.from), to: day(p.to) })}</p>
       </div>
 
       {r.members && (
@@ -230,18 +230,15 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
           </Tiles>
         </Section>
       )}
-    </div>
+    </Page>
   )
 }
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
-    <section className="grid scroll-mt-20 gap-4" aria-labelledby={id}>
-      <h2 id={id} className="font-medium">
-        {title}
-      </h2>
+    <FormCard id={id} title={title}>
       {children}
-    </section>
+    </FormCard>
   )
 }
 

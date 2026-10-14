@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { CheckCheckIcon, InboxIcon } from "lucide-react"
+import { Page, PageHeader } from "@/components/page"
 import { DataTable, Pager, pageRange, PAGE_SIZE } from "@/components/data-table"
 import { Badge } from "@/components/ui/badge"
 import { renderEvent } from "@/events/render"
@@ -30,16 +32,19 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
   const rows = data?.slice(0, PAGE_SIZE) ?? []
 
   return (
-    <div className="grid max-w-3xl gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{t("inbox.title")}</h1>
-        <form action={markAllRead}>
-          <SubmitButton variant="outline" size="sm">
-            {t("inbox.markAllRead")}
-          </SubmitButton>
-        </form>
-      </div>
-      <nav className="flex gap-1.5">
+    <Page size="form">
+      <PageHeader
+        icon={InboxIcon}
+        title={t("inbox.title")}
+        actions={
+          <form action={markAllRead}>
+            <SubmitButton variant="outline" size="sm">
+              <CheckCheckIcon /> {t("inbox.markAllRead")}
+            </SubmitButton>
+          </form>
+        }
+      />
+      <nav aria-label={t("inbox.title")} className="flex gap-1 justify-self-start rounded-lg bg-muted p-1">
         {[
           [undefined, t("inbox.all")],
           ["unread", t("inbox.unread")],
@@ -74,7 +79,7 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
         ]}
       />
       <Pager sp={sp} page={page} hasNext={(data?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
-    </div>
+    </Page>
   )
 }
 
