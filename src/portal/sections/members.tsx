@@ -53,8 +53,7 @@ export async function MembersSection({ orgId, orgName, site, contact, tab }: Sec
   if (tab === "card")
     return card?.member_code && !ended ? (
       <section className="grid justify-items-center gap-4 pt-2 text-center" aria-label={t("membership.card")}>
-        {status}
-        <IdCard t={t} org={orgName} name={name} number={m.member_no} type={m.types?.name ?? null} code={card.member_code} large />
+        <IdCard t={t} org={orgName} name={name} number={m.member_no} type={m.types?.name ?? null} code={card.member_code} large status={m.ends_on ? t("membership.state.ending", { date: t.date(m.ends_on) }) : t("membership.state.active")} />
       </section>
     ) : (
       <p className="py-8 text-center text-muted-foreground">{ended ? t("membership.state.ended") : t("portal.noCard")}</p>
