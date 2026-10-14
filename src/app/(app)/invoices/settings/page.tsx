@@ -1,12 +1,12 @@
-import Link from "next/link"
+import { Choice } from "@/components/choice"
+import { FormCard, Page, PageHeader } from "@/components/page"
+import { SaveBar } from "@/components/save-bar"
+import { TypedInput } from "@/components/typed-input"
 import { notFound } from "next/navigation"
-import { ArrowLeftIcon } from "lucide-react"
 import { Notice } from "@/components/notice"
-import { SubmitButton } from "@/components/submit-button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
-import { Separator } from "@/components/ui/separator"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param } from "@/lib/url"
@@ -40,74 +40,66 @@ export default async function InvoiceSettings({ searchParams }: PageProps<"/invo
   )
 
   return (
-    <div className="grid max-w-3xl gap-6">
-      <div className="grid gap-1">
-        <Link href="/invoices" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeftIcon className="size-4" /> {t("invoices.title")}
-        </Link>
-        <h1 className="font-heading text-2xl font-semibold">{t("invoices.settings")}</h1>
-      </div>
+    <Page size="form">
+      <PageHeader crumbs={[{ href: "/invoices", label: t("invoices.title") }, { label: t("common.settings") }]} title={t("common.settings")} />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
 
       <form action={saveBilling} className="grid gap-6">
-        <section className="grid gap-4" aria-labelledby="seller">
-          <h2 id="seller" className="font-medium">
-            {t("invoices.seller")}
-          </h2>
+        <FormCard id="seller" title={t("invoices.seller")}>
           {field("legal_name", t("invoices.legalName"), b?.legal_name ?? ctx.org.name, { required: true, maxLength: 200 })}
           {field("street", t("contacts.street"), b?.street, { maxLength: 200 })}
           <div className="grid grid-cols-[minmax(0,7rem)_1fr] gap-4">
-            {field("postal_code", t("contacts.postalCode"), b?.postal_code, { maxLength: 20 })}
+            <div className="grid content-start gap-2">
+              <Label htmlFor="b-postal_code">{t("contacts.postalCode")}</Label>
+              <TypedInput kind="postcode" id="b-postal_code" name="postal_code" defaultValue={b?.postal_code ?? ""} />
+            </div>
             {field("city", t("contacts.city"), b?.city, { maxLength: 100 })}
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
-            {field("email", t("contacts.email"), b?.email, { type: "email" })}
-            {field("phone", t("contacts.phone"), b?.phone, { maxLength: 50 })}
+            <div className="grid content-start gap-2">
+              <Label htmlFor="b-email">{t("contacts.email")}</Label>
+              <TypedInput kind="email" id="b-email" name="email" defaultValue={b?.email ?? ""} />
+            </div>
+            <div className="grid content-start gap-2">
+              <Label htmlFor="b-phone">{t("contacts.phone")}</Label>
+              <TypedInput kind="phone" id="b-phone" name="phone" defaultValue={b?.phone ?? ""} />
+            </div>
             {field("website", t("invoices.website"), b?.website, { maxLength: 200 })}
           </div>
           {field("representatives", t("invoices.representatives"), b?.representatives, { maxLength: 300, placeholder: t("invoices.representativesPlaceholder") })}
           {field("register", t("invoices.register"), b?.register, { maxLength: 200, placeholder: "Amtsgericht Köln, VR 12345" })}
-        </section>
-        <Separator />
+        </FormCard>
 
-        <section className="grid gap-4" aria-labelledby="tax">
-          <h2 id="tax" className="font-medium">
-            {t("invoices.taxSection")}
-          </h2>
+        <FormCard id="tax" title={t("invoices.taxSection")}>
           <div className="grid gap-2">
             <Label htmlFor="b-tax_mode">{t("invoices.taxStatus")}</Label>
-            <NativeSelect id="b-tax_mode" name="tax_mode" defaultValue={b?.tax_mode ?? "standard"} className="w-full">
-              <NativeSelectOption value="standard">{t("invoices.taxModes.standard")}</NativeSelectOption>
-              <NativeSelectOption value="small_business">{t("invoices.taxModes.small_business")}</NativeSelectOption>
-            </NativeSelect>
+            <Choice id="b-tax_mode" name="tax_mode" label={t("invoices.taxStatus")} required defaultValue={b?.tax_mode ?? "standard"} options={(["standard", "small_business"] as const).map((x) => ({ value: x, label: t(`invoices.taxModes.${x}`) }))} />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {field("tax_number", t("invoices.taxNumber"), b?.tax_number, { maxLength: 50, placeholder: "214/5678/1234" })}
             {field("vat_id", t("invoices.vatId"), b?.vat_id, { maxLength: 20, placeholder: "DE123456789" })}
           </div>
-          <p className="text-xs text-muted-foreground">{t("invoices.taxHint")}</p>
-        </section>
-        <Separator />
+          <p className="text-sm text-muted-foreground">{t("invoices.taxHint")}</p>
+        </FormCard>
 
-        <section className="grid gap-4" aria-labelledby="bank">
-          <h2 id="bank" className="font-medium">
-            {t("invoices.bank")}
-          </h2>
+        <FormCard id="bank" title={t("invoices.bank")}>
           {field("bank_name", t("invoices.bankName"), b?.bank_name, { maxLength: 100 })}
           <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
-            {field("iban", "IBAN", b?.iban, { maxLength: 42 })}
-            {field("bic", "BIC", b?.bic, { maxLength: 11 })}
+            <div className="grid content-start gap-2">
+              <Label htmlFor="b-iban">IBAN</Label>
+              <TypedInput kind="iban" id="b-iban" name="iban" defaultValue={b?.iban ?? ""} />
+            </div>
+            <div className="grid content-start gap-2">
+              <Label htmlFor="b-bic">BIC</Label>
+              <TypedInput kind="bic" id="b-bic" name="bic" defaultValue={b?.bic ?? ""} />
+            </div>
           </div>
-        </section>
-        <Separator />
+        </FormCard>
 
-        <section className="grid gap-4" aria-labelledby="defaults">
-          <h2 id="defaults" className="font-medium">
-            {t("invoices.defaults")}
-          </h2>
+        <FormCard id="defaults" title={t("invoices.defaults")}>
           <div className="grid gap-4 sm:grid-cols-3">
-            {field("payment_days", t("invoices.paymentDays"), String(b?.payment_days ?? 14), { type: "number", min: 0, max: 365 })}
-            {field("quote_days", t("invoices.quoteDays"), String(b?.quote_days ?? 30), { type: "number", min: 1, max: 365 })}
+            {field("payment_days", t("invoices.paymentDays"), String(b?.payment_days ?? 14), { type: "number", min: 0, max: 365, className: "max-w-32" })}
+            {field("quote_days", t("invoices.quoteDays"), String(b?.quote_days ?? 30), { type: "number", min: 1, max: 365, className: "max-w-32" })}
             <div className="grid gap-2">
               <Label htmlFor="b-template">{t("invoices.template")}</Label>
               <NativeSelect id="b-template" name="template" defaultValue={b?.template ?? "classic"} className="w-full">
@@ -123,21 +115,16 @@ export default async function InvoiceSettings({ searchParams }: PageProps<"/invo
           {area("invoice_outro", t("invoices.invoiceOutro"), b?.invoice_outro)}
           {area("quote_intro", t("invoices.quoteIntro"), b?.quote_intro)}
           {area("quote_outro", t("invoices.quoteOutro"), b?.quote_outro)}
-        </section>
-        <SubmitButton className="justify-self-start">{t("common.save")}</SubmitButton>
+        </FormCard>
+        <SaveBar />
       </form>
-      <Separator />
 
-      <section className="grid gap-4" aria-labelledby="numbers">
-        <h2 id="numbers" className="font-medium">
-          {t("invoices.numberRanges")}
-        </h2>
-        <p className="text-sm text-muted-foreground">{t("invoices.numberHint")}</p>
+      <FormCard id="numbers" title={t("invoices.numberRanges")} description={t("invoices.numberHint")}>
         {(["invoice", "quote"] as const).map((kind) => (
           <NumberRangeForm key={kind} t={t} kind={kind} range={ranges?.find((x) => x.kind === kind)} label={t.dynamic(`invoices.kinds.${kind}`)} action={saveNumberRange} />
         ))}
-      </section>
-    </div>
+      </FormCard>
+    </Page>
   )
 }
 

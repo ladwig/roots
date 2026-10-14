@@ -1,8 +1,10 @@
 import Link from "next/link"
+import { TypedInput } from "@/components/typed-input"
+import { ActionsMenu, MenuExport, MenuLink } from "@/components/actions-menu"
+import { EmptyState, Page, PageHeader } from "@/components/page"
 import { notFound } from "next/navigation"
-import { ChevronLeftIcon, ChevronRightIcon, PaperclipIcon, PlusIcon } from "lucide-react"
+import { ChevronLeftIcon, ChevronRightIcon, PaperclipIcon, PencilIcon, PlusIcon } from "lucide-react"
 import { DataTable } from "@/components/data-table"
-import { ExportMenu } from "@/components/export-menu"
 import { FileList } from "@/components/file-list"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
@@ -77,27 +79,47 @@ export default async function CashbookPage({ searchParams }: { searchParams: Pro
   const money = (c: number) => t.money(c)
 
   return (
-    <div className="grid max-w-5xl gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{t("cashbook.title")}</h1>
-        <div className="flex flex-wrap gap-2">
-          {account && <ExportMenu entity="cash_entries" query={{ account: account.id, month }} />}
-          {canManage && (
-            <Button render={<Link href={`/cashbook${withParams(sp, { new: "account" })}`} />} nativeButton={false} size="sm" variant="outline">
-              <PlusIcon /> {t("cashbook.newAccount")}
+    <Page>
+      <PageHeader
+        area="finance"
+        title={t("cashbook.title")}
+        meta={account && closing && <Badge variant="secondary">{t("cashbook.monthClosed")}</Badge>}
+        actions={
+          canManage &&
+          account && (
+            <Button render={<Link href={`/cashbook${withParams(sp, { edit_account: account.id })}`} scroll={false} />} nativeButton={false} size="sm" variant="ghost">
+              <PencilIcon /> {t("cashbook.editAccount")}
             </Button>
-          )}
-          {canManage && account && !closing && (
-            <Button render={<Link href={`/cashbook${withParams(sp, { new: "entry" })}`} />} nativeButton={false} size="sm">
-              <PlusIcon /> {t("cashbook.newEntry")}
-            </Button>
-          )}
-        </div>
-      </div>
+          )
+        }
+        menu={
+          (account || canManage) && (
+            <ActionsMenu>
+              {canManage && (
+                <MenuLink href={`/cashbook${withParams(sp, { new: "account" })}`} icon={PlusIcon}>
+                  {t("cashbook.newAccount")}
+                </MenuLink>
+              )}
+              {account && <MenuExport entity="cash_entries" query={{ account: account.id, month }} />}
+            </ActionsMenu>
+          )
+        }
+        primary={canManage && account && !closing ? { href: `/cashbook${withParams(sp, { new: "entry" })}`, label: t("cashbook.newEntry") } : undefined}
+      />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
 
       {!account ? (
-        <p className="rounded-lg border px-4 py-8 text-center text-sm text-muted-foreground">{t("cashbook.noAccounts")}</p>
+        <EmptyState
+          area="finance"
+          title={t("cashbook.noAccounts")}
+          action={
+            canManage && (
+              <Button render={<Link href={`/cashbook${withParams(sp, { new: "account" })}`} />} nativeButton={false} size="sm">
+                <PlusIcon /> {t("cashbook.newAccount")}
+              </Button>
+            )
+          }
+        />
       ) : (
         <>
           <nav aria-label={t("cashbook.accounts")} className="flex flex-wrap items-center gap-1.5">
@@ -112,11 +134,6 @@ export default async function CashbookPage({ searchParams }: { searchParams: Pro
                 {!a.active && ` · ${t("cashbook.inactive")}`}
               </Link>
             ))}
-            {canManage && (
-              <Link href={`/cashbook${withParams(sp, { edit_account: account.id })}`} className="text-xs text-muted-foreground underline-offset-4 hover:underline">
-                {t("cashbook.editAccount")}
-              </Link>
-            )}
           </nav>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -127,7 +144,6 @@ export default async function CashbookPage({ searchParams }: { searchParams: Pro
             <Button render={<Link href={`/cashbook${nav(m)}`} />} nativeButton={false} size="icon-sm" variant="outline" aria-label={t("cashbook.nextMonth")}>
               <ChevronRightIcon />
             </Button>
-            {closing && <Badge variant="secondary">{t("cashbook.monthClosed")}</Badge>}
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -215,7 +231,7 @@ export default async function CashbookPage({ searchParams }: { searchParams: Pro
         </UrlSheet>
       )}
       {editing && <EntryDrawer t={t} ctx={ctx} e={editing} reversedBy={reversedBy.get(editing.id)} canManage={canManage} sp={sp} />}
-    </div>
+    </Page>
   )
 }
 
@@ -251,7 +267,10 @@ function EntryForm({ t, accountId, today, categories, invoices }: { t: T; accoun
         ))}
       </fieldset>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field id="e-amount" name="amount" label={t("cashbook.amount")} inputMode="decimal" placeholder="0,00" required />
+        <div className="grid content-start gap-2">
+          <Label htmlFor="e-amount">{t("cashbook.amount")}</Label>
+          <TypedInput kind="money" id="e-amount" name="amount" required />
+        </div>
         <Field id="e-date" name="booked_on" type="date" label={t("cashbook.date")} defaultValue={today} required />
       </div>
       <Field id="e-desc" name="description" label={t("cashbook.description")} maxLength={300} required />

@@ -159,7 +159,7 @@ export async function saveBilling(fd: FormData) {
   const here = `${PATH}/settings`
   const upper = (k: string, max: number) => text(fd, k, max)?.toUpperCase().replace(/\s/g, "") ?? null
   const vat = upper("vat_id", 20)
-  const iban = upper("iban", 34)
+  const iban = upper("iban", 42)
   const bic = upper("bic", 11)
   if (vat && !VAT_ID.test(vat)) back(here, { error: t("invoices.vatInvalid") })
   if (iban && !ibanValid(iban)) back(here, { error: t("invoices.ibanInvalid") })

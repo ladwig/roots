@@ -1,6 +1,8 @@
 import Link from "next/link"
+import { ActionsMenu, MenuDownload, MenuSeparator, MenuSubmit } from "@/components/actions-menu"
+import { Page, PageHeader } from "@/components/page"
 import { notFound } from "next/navigation"
-import { ArrowLeftIcon, CopyIcon, FileDownIcon, FileOutputIcon, PrinterIcon } from "lucide-react"
+import { CopyIcon, FileDownIcon, FileOutputIcon, PrinterIcon, Trash2Icon } from "lucide-react"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { Badge } from "@/components/ui/badge"
@@ -59,49 +61,48 @@ export default async function DocumentPage({ params, searchParams }: PageProps<"
   )
 
   return (
-    <div className="grid max-w-5xl gap-6">
-      <div className="grid gap-1">
-        <Link
-          href={`/invoices?kind=${doc.kind}`}
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeftIcon className="size-4" /> {t("invoices.title")}
-        </Link>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="font-heading text-2xl font-semibold">
-            {t.dynamic(`invoices.docTitles.${doc.kind}`)} {doc.number ?? ""}
-          </h1>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge
-              variant={
-                doc.status === "paid" || doc.status === "accepted"
-                  ? "default"
-                  : doc.status === "cancelled" || doc.status === "declined"
-                    ? "destructive"
-                    : "outline"
-              }
-            >
-              {t.dynamic(`invoices.statuses.${doc.kind}.${doc.status}`)}
-            </Badge>
-            <Button
-              render={<a href={`/print/documents/${doc.id}`} target="_blank" rel="noreferrer" />}
-              nativeButton={false}
-              size="sm"
-              variant="outline"
-            >
-              <PrinterIcon /> {t("invoices.pdf")}
-            </Button>
-            <Button render={<a href={`/print/documents/${doc.id}/pdf`} target="_blank" rel="noreferrer" />} nativeButton={false} size="sm" variant="outline">
-              <FileDownIcon /> {t("invoices.pdfDownload")}
-            </Button>
-          </div>
-        </div>
-        {doc.source_id && (
-          <Link href={`/invoices/${doc.source_id}`} className="text-sm text-muted-foreground underline underline-offset-4">
-            {t(doc.kind === "cancellation" ? "invoices.cancels" : "invoices.fromSource")}
-          </Link>
-        )}
-      </div>
+    <Page>
+      <PageHeader
+        crumbs={[{ href: `/invoices?kind=${doc.kind}`, label: t("invoices.title") }, { label: `${t.dynamic(`invoices.docTitles.${doc.kind}`)} ${doc.number ?? ""}`.trim() }]}
+        title={`${t.dynamic(`invoices.docTitles.${doc.kind}`)} ${doc.number ?? ""}`.trim()}
+        badge={
+          <Badge variant={doc.status === "paid" || doc.status === "accepted" ? "default" : doc.status === "cancelled" || doc.status === "declined" ? "destructive" : "outline"}>
+            {t.dynamic(`invoices.statuses.${doc.kind}.${doc.status}`)}
+          </Badge>
+        }
+        meta={
+          doc.source_id && (
+            <Link href={`/invoices/${doc.source_id}`} className="underline underline-offset-4">
+              {t(doc.kind === "cancellation" ? "invoices.cancels" : "invoices.fromSource")}
+            </Link>
+          )
+        }
+        actions={
+          <Button render={<a href={`/print/documents/${doc.id}`} target="_blank" rel="noreferrer" />} nativeButton={false} size="sm" variant="outline">
+            <PrinterIcon /> {t("invoices.pdf")}
+          </Button>
+        }
+        menu={
+          <ActionsMenu>
+            <MenuDownload href={`/print/documents/${doc.id}/pdf`} icon={FileDownIcon}>
+              {t("invoices.pdfDownload")}
+            </MenuDownload>
+            {draft && canManage && (
+              <>
+                <MenuSeparator />
+                <MenuSubmit form="delete-draft" icon={Trash2Icon} destructive>
+                  {t("invoices.deleteDraft")}
+                </MenuSubmit>
+              </>
+            )}
+          </ActionsMenu>
+        }
+      />
+      {draft && canManage && (
+        <form id="delete-draft" action={deleteDraft} hidden>
+          <input type="hidden" name="id" value={doc.id} />
+        </form>
+      )}
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
       {draft && billingMissing && (
         <p className="rounded-lg border bg-muted px-3 py-2 text-sm">
@@ -120,12 +121,6 @@ export default async function DocumentPage({ params, searchParams }: PageProps<"
             contacts={pickable}
             defaultTax={billing?.tax_mode === "small_business" ? 0 : 19}
           />
-          <form action={deleteDraft} className="border-t pt-4">
-            <input type="hidden" name="id" value={doc.id} />
-            <SubmitButton size="sm" variant="ghost">
-              {t("invoices.deleteDraft")}
-            </SubmitButton>
-          </form>
         </>
       ) : (
         <div className="grid gap-4">
@@ -197,7 +192,7 @@ export default async function DocumentPage({ params, searchParams }: PageProps<"
           )}
         </div>
       )}
-    </div>
+    </Page>
   )
 }
 

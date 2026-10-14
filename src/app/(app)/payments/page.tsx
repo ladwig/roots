@@ -1,10 +1,14 @@
 import Link from "next/link"
+import { TypedInput } from "@/components/typed-input"
+import { FlaskConicalIcon } from "lucide-react"
+import { ActionsMenu, MenuLink } from "@/components/actions-menu"
+import { FilterMenu } from "@/components/filter-menu"
+import { Page, PageHeader } from "@/components/page"
 import { notFound } from "next/navigation"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { UrlSheet } from "@/components/url-sheet"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
@@ -43,15 +47,20 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/payment
   const canSeeIntegrations = ctx.can("org.integrations.manage")
 
   return (
-    <div className="grid max-w-5xl gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{t("payments.title")}</h1>
-        {ctx.isPlatformAdmin && (
-          <Button render={<Link href={withParams(sp, { new: "test", edit: undefined })} scroll={false} />} nativeButton={false} size="sm" variant="outline">
-            {t("payments.testPayment")}
-          </Button>
-        )}
-      </div>
+    <Page>
+      <PageHeader
+        area="finance"
+        title={t("payments.title")}
+        menu={
+          ctx.isPlatformAdmin && (
+            <ActionsMenu>
+              <MenuLink href={withParams(sp, { new: "test", edit: undefined })} icon={FlaskConicalIcon}>
+                {t("payments.testPayment")}
+              </MenuLink>
+            </ActionsMenu>
+          )
+        }
+      />
 
       {canSeeIntegrations && stripeRow?.status !== "connected" && (
         <p className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-muted px-3 py-2 text-sm">
@@ -65,18 +74,7 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/payment
 
       <div className="flex flex-wrap items-center gap-3">
         <SearchBox q={q} label={t("common.search")} />
-        <nav aria-label={t("payments.status")} className="flex flex-wrap gap-1.5">
-          {[undefined, ...STATUSES].map((s) => (
-            <Link
-              key={s ?? "all"}
-              href={withParams(sp, { status: s, page: undefined, edit: undefined })}
-              aria-current={s === status ? "true" : undefined}
-              className="rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground aria-[current=true]:bg-primary aria-[current=true]:text-primary-foreground"
-            >
-              {s ? t.dynamic(`payments.statuses.${s}`) : t("payments.all")}
-            </Link>
-          ))}
-        </nav>
+        <FilterMenu param="status" label={t("payments.status")} allLabel={t("payments.all")} options={STATUSES.map((x) => ({ value: x, label: t.dynamic(`payments.statuses.${x}`) }))} />
       </div>
 
       <DataTable
@@ -102,7 +100,7 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/payment
             <Notice error={param(sp, "error")} />
             <div className="grid gap-2">
               <Label htmlFor="test-amount">{t("payments.testAmount")}</Label>
-              <Input id="test-amount" name="amount" inputMode="decimal" defaultValue="1,00" required />
+              <TypedInput kind="money" id="test-amount" name="amount" defaultValue="1,00" required />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="test-email">{t("payments.testEmail")}</Label>
@@ -112,7 +110,7 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/payment
           </form>
         </UrlSheet>
       )}
-    </div>
+    </Page>
   )
 }
 
@@ -202,7 +200,7 @@ async function OrderSheet({ t, orderId, canRefund, error, ok }: { t: T; orderId:
           <h3 className="font-medium">{t("payments.refund")}</h3>
           <div className="grid gap-2">
             <Label htmlFor="refund-amount">{t("payments.refundAmount")}</Label>
-            <Input id="refund-amount" name="amount" inputMode="decimal" />
+            <TypedInput kind="money" id="refund-amount" name="amount" />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="refund-reason">{t("payments.refundReason")}</Label>

@@ -1,11 +1,12 @@
 import Link from "next/link"
+import { PlusIcon } from "lucide-react"
+import { FilterMenu } from "@/components/filter-menu"
+import { Page, PageHeader } from "@/components/page"
 import { notFound } from "next/navigation"
-import { SettingsIcon } from "lucide-react"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { pageParam, param, withParams } from "@/lib/url"
@@ -54,37 +55,28 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/invoice
   const newDoc = (k: (typeof KINDS)[number], label: string, variant: "default" | "outline") => (
     <form action={createDocument}>
       <input type="hidden" name="kind" value={k} />
-      <SubmitButton size="sm" variant={variant}>
-        {label}
+      <SubmitButton size="sm" variant={variant} data-shortcut={variant === "default" ? "new" : undefined}>
+        <PlusIcon /> {label}
       </SubmitButton>
     </form>
   )
 
   return (
-    <div className="grid max-w-5xl gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{t("invoices.title")}</h1>
-        <div className="flex flex-wrap gap-2">
-          {canManage && (
-            <Button render={<Link href="/invoices/settings" />} nativeButton={false} size="sm" variant="ghost">
-              <SettingsIcon /> {t("invoices.settings")}
-            </Button>
-          )}
-          {canManage && newDoc("quote", t("invoices.newQuote"), "outline")}
-          {canManage && newDoc("invoice", t("invoices.newInvoice"), "default")}
-        </div>
-      </div>
+    <Page>
+      <PageHeader
+        area="finance"
+        title={t("invoices.title")}
+        settings={canManage && { href: "/invoices/settings", label: t("common.settings") }}
+        actions={canManage && newDoc("quote", t("invoices.newQuote"), "outline")}
+        primary={canManage && newDoc("invoice", t("invoices.newInvoice"), "default")}
+      />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <SearchBox q={q} label={t("invoices.search")} />
         <nav aria-label={t("invoices.kind")} className="flex flex-wrap gap-1.5">
           {[undefined, ...KINDS].map((k) => chip(withParams(sp, { kind: k, page: undefined }), k === kind, k ? t.dynamic(`invoices.kinds.${k}`) : t("invoices.all")))}
         </nav>
-        <nav aria-label={t("invoices.status")} className="flex flex-wrap gap-1.5">
-          {[undefined, "draft", "sent", "overdue", "paid", "accepted", "cancelled"].map((s) =>
-            chip(withParams(sp, { status: s, page: undefined }), s === param(sp, "status"), s ? t.dynamic(`invoices.filters.${s}`) : t("invoices.allStatus")),
-          )}
-        </nav>
+        <FilterMenu param="status" label={t("invoices.status")} allLabel={t("invoices.allStatus")} options={["draft", "sent", "overdue", "paid", "accepted", "cancelled"].map((x) => ({ value: x, label: t.dynamic(`invoices.filters.${x}`) }))} />
       </div>
       <DataTable
         rows={rows}
@@ -118,7 +110,7 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/invoice
         ]}
       />
       <Pager sp={sp} page={page} hasNext={(data?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
-    </div>
+    </Page>
   )
 }
 
