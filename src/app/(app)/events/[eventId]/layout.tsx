@@ -21,7 +21,7 @@ export default async function EventLayout({ children, params }: { children: Reac
   const on = (m: string, p: string) => ctx.modules.has(m) && ctx.can(p)
   const link = "inline-flex items-center gap-1 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
   return (
-    <div className="grid max-w-5xl gap-6">
+    <div className="grid max-w-6xl gap-6">
       <PageCrumbs items={[{ href: "/events", label: t("eventsPage.nav") }, { label: ev.title }]} />
       <header className="grid gap-2">
         <h1 className="font-heading text-2xl font-semibold break-words">{ev.title}</h1>

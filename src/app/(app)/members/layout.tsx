@@ -8,7 +8,7 @@ export const generateMetadata = titled("membership.nav")
 export default async function MembersLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requirePerm("members.view")
   if (!ctx.modules.has("members")) notFound()
-  return <div className="grid max-w-5xl gap-6">{children}</div>
+  return <div className="grid max-w-6xl gap-6">{children}</div>
 }
 
 export const instant = false

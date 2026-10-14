@@ -15,7 +15,7 @@ export default async function FormLayout({ children, params }: LayoutProps<"/for
   const { data: form } = await ctx.supabase.from("forms").select("title, slug, status").eq("id", id).eq("org_id", ctx.org.id).is("deleted_at", null).maybeSingle()
   if (!form) notFound()
   return (
-    <div className="grid max-w-5xl gap-6">
+    <div className="grid max-w-6xl gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="font-heading text-2xl font-semibold">{form.title}</h1>

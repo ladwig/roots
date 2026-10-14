@@ -1,11 +1,19 @@
 import { notFound } from "next/navigation"
-import { Trash2Icon } from "lucide-react"
+import Link from "next/link"
+import { ChevronRightIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { CopyButton } from "@/components/copy-button"
+import { FormCard, Page, PageHeader } from "@/components/page"
+import { SaveBar } from "@/components/save-bar"
+import { TypedInput } from "@/components/typed-input"
+import { UrlSheet } from "@/components/url-sheet"
+import { formatMoney } from "@/lib/inputs"
 import { getT } from "@/i18n/server"
 import type { T } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
@@ -26,117 +34,151 @@ export default async function MembersSetupPage({ searchParams }: PageProps<"/mem
     ctx.supabase.from("number_ranges").select("format, next_number, yearly_reset").eq("org_id", ctx.org.id).eq("kind", "member").maybeSingle(),
   ])
 
+  const editing = param(sp, "edit")
+  const edit = (types ?? []).find((x) => x.id === editing)
   return (
-    <>
-      <div className="grid gap-1">
-        <h1 className="font-heading text-2xl font-semibold">{t("membership.tabs.setup")}</h1>
-        <p className="text-sm break-all text-muted-foreground">{t("portal.portalLink", { url: siteUrl(ctx.org.slug, "/portal") })}</p>
-      </div>
+    <Page size="form">
+      <PageHeader crumbs={[{ href: "/members", label: t("membership.nav") }, { label: t("common.settings") }]} title={t("common.settings")} />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
 
-      <section className="grid gap-3" aria-labelledby="types">
-        <div>
-          <h2 id="types" className="font-medium">
-            {t("membership.types")}
-          </h2>
-          <p className="text-sm text-muted-foreground">{t("membership.typesHint")}</p>
-        </div>
-        <ul className="grid gap-3">
-          {(types ?? []).map((x) => (
-            <li key={x.id} className="rounded-lg border p-3">
-              <TypeForm t={t} type={x} />
-            </li>
-          ))}
-          <li className="rounded-lg border border-dashed p-3">
-            <TypeForm t={t} />
-          </li>
-        </ul>
-      </section>
+      <FormCard
+        id="types"
+        title={t("membership.types")}
+        description={t("membership.typesHint")}
+        action={
+          <Button render={<Link href="/members/settings?new=type" scroll={false} />} nativeButton={false} size="sm" variant="outline">
+            <PlusIcon /> {t("membership.addType")}
+          </Button>
+        }
+      >
+        {types?.length ? (
+          <ul className="divide-y rounded-lg border">
+            {types.map((x) => (
+              <li key={x.id}>
+                <Link href={`/members/settings?edit=${x.id}`} scroll={false} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted">
+                  <span className="grid min-w-0 flex-1">
+                    <span className="truncate font-medium">{x.name}</span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {[
+                        `${x.fee_is_minimum ? t("membership.feeFrom", { fee: t.money(x.fee_cents) }) : t.money(x.fee_cents)} / ${t(`membership.intervals.${x.interval as Interval}`)}`,
+                        x.entry_fee_cents ? `${t("membership.entryFee")} ${t.money(x.entry_fee_cents)}` : null,
+                        `${t("membership.noticeMonths")}: ${x.notice_months}`,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
+                  </span>
+                  {!x.active && <Badge variant="outline">{t("membership.typeInactive")}</Badge>}
+                  <ChevronRightIcon className="size-4 text-muted-foreground" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">{t("membership.noTypes")}</p>
+        )}
+      </FormCard>
 
-      <section className="grid gap-3" aria-labelledby="sepa">
-        <div>
-          <h2 id="sepa" className="font-medium">
-            {t("membership.sepa")}
-          </h2>
-          <p className="text-sm text-muted-foreground">{t("membership.creditorHint")}</p>
-        </div>
-        <form action={saveSettings} className="grid gap-4 rounded-lg border p-4">
+      <FormCard id="sepa" title={t("membership.sepa")} description={t("membership.creditorHint")}>
+        <form action={saveSettings} className="grid gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field id="s-name" name="creditor_name" label={t("membership.creditorName")} maxLength={70} defaultValue={settings?.creditor_name ?? ctx.org.name} />
-            <Field id="s-cid" name="creditor_id" label={t("membership.creditorId")} maxLength={35} defaultValue={settings?.creditor_id ?? ""} placeholder="DE98ZZZ09999999999" />
+            <Field id="s-cid" name="creditor_id" label={t("membership.creditorId")} maxLength={35} defaultValue={settings?.creditor_id ?? ""} placeholder="DE98ZZZ09999999999" className="font-mono tracking-wide" />
           </div>
-          <div className="grid gap-4 sm:grid-cols-[2fr_1fr_1fr]">
-            <Field id="s-iban" name="iban" label="IBAN" maxLength={40} defaultValue={settings?.iban ?? ""} />
-            <Field id="s-bic" name="bic" label={t("membership.bicOptional")} maxLength={11} defaultValue={settings?.bic ?? ""} />
-            <Field id="s-day" name="due_day" type="number" min={1} max={28} label={t("membership.dueDay")} defaultValue={settings?.due_day ?? 15} />
+          <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+            <div className="grid content-start gap-2">
+              <Label htmlFor="s-iban">IBAN</Label>
+              <TypedInput kind="iban" id="s-iban" name="iban" defaultValue={settings?.iban ?? ""} />
+            </div>
+            <div className="grid content-start gap-2">
+              <Label htmlFor="s-bic">{t("membership.bicOptional")}</Label>
+              <TypedInput kind="bic" id="s-bic" name="bic" defaultValue={settings?.bic ?? ""} />
+            </div>
           </div>
-          <SubmitButton className="justify-self-start">{t("common.save")}</SubmitButton>
+          <div className="grid gap-2">
+            <Label htmlFor="s-day">{t("membership.dueDay")}</Label>
+            <TypedInput kind="number" id="s-day" name="due_day" min={1} max={28} defaultValue={settings?.due_day ?? 15} />
+          </div>
+          <SaveBar />
         </form>
-      </section>
+      </FormCard>
 
-      <section className="grid gap-3" aria-labelledby="numbers">
-        <div>
-          <h2 id="numbers" className="font-medium">
-            {t("membership.numberRange")}
-          </h2>
-          <p className="text-sm text-muted-foreground">{t("membership.numberRangeHint")}</p>
-        </div>
+      <FormCard id="numbers" title={t("membership.numberRange")} description={t("membership.numberRangeHint")}>
         <NumberRangeForm t={t} kind="member" range={range} label={t("membership.numberFormat")} action={saveMemberRange} />
-      </section>
-    </>
+      </FormCard>
+
+      <FormCard id="portal" title={t("portal.title")} description={t("membership.portalHint")}>
+        <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-sm">
+          <span className="min-w-0 flex-1 truncate font-mono text-xs">{siteUrl(ctx.org.slug, "/portal")}</span>
+          <CopyButton value={siteUrl(ctx.org.slug, "/portal")} label={t("common.copy")} />
+        </div>
+      </FormCard>
+
+      {(param(sp, "new") === "type" || edit) && (
+        <UrlSheet params={["new", "edit"]} title={edit ? edit.name : t("membership.addType")}>
+          <TypeForm t={t} type={edit} />
+        </UrlSheet>
+      )}
+    </Page>
   )
 }
 
 function TypeForm({ t, type }: { t: T; type?: Tables<"membership_types"> }) {
-  const euros = (c?: number) => (c ? (c / 100).toFixed(2) : "")
+  const id = type?.id ?? "new"
   return (
-    <div className="flex flex-wrap items-end gap-3">
-      <form action={saveType} className="grid flex-1 gap-3 sm:grid-cols-[2fr_1fr_1fr_1fr_1fr] lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] sm:items-end">
+    <div className="grid gap-6">
+      <form action={saveType} className="grid gap-4">
         {type && <input type="hidden" name="id" value={type.id} />}
-        <Field id={`t-name-${type?.id ?? "new"}`} name="name" label={t("membership.typeName")} required maxLength={100} defaultValue={type?.name ?? ""} placeholder={type ? undefined : t("membership.typePlaceholder")} />
-        <Field id={`t-fee-${type?.id ?? "new"}`} name="fee" type="number" min="0" step="0.01" label={t("membership.fee")} defaultValue={euros(type?.fee_cents)} />
-        <div className="grid gap-2">
-          <Label htmlFor={`t-int-${type?.id ?? "new"}`}>{t("membership.interval")}</Label>
-          <NativeSelect id={`t-int-${type?.id ?? "new"}`} name="interval" defaultValue={type?.interval ?? "year"} className="w-full">
-            {INTERVALS.map((i) => (
-              <NativeSelectOption key={i} value={i}>
-                {t(`membership.intervals.${i as Interval}`)}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+        <Field id={`t-name-${id}`} name="name" label={t("membership.typeName")} required maxLength={100} defaultValue={type?.name ?? ""} placeholder={type ? undefined : t("membership.typePlaceholder")} />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="grid content-start gap-2">
+            <Label htmlFor={`t-fee-${id}`}>{t("membership.fee")}</Label>
+            <TypedInput kind="money" id={`t-fee-${id}`} name="fee" defaultValue={type?.fee_cents ? formatMoney(type.fee_cents) : ""} />
+          </div>
+          <div className="grid content-start gap-2">
+            <Label htmlFor={`t-int-${id}`}>{t("membership.interval")}</Label>
+            <NativeSelect id={`t-int-${id}`} name="interval" defaultValue={type?.interval ?? "year"} className="w-full">
+              {INTERVALS.map((i) => (
+                <NativeSelectOption key={i} value={i}>
+                  {t(`membership.intervals.${i as Interval}`)}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </div>
+          <div className="grid content-start gap-2">
+            <Label htmlFor={`t-entry-${id}`}>{t("membership.entryFee")}</Label>
+            <TypedInput kind="money" id={`t-entry-${id}`} name="entry_fee" defaultValue={type?.entry_fee_cents ? formatMoney(type.entry_fee_cents) : ""} />
+          </div>
+          <div className="grid content-start gap-2">
+            <Label htmlFor={`t-notice-${id}`}>{t("membership.noticeMonths")}</Label>
+            <TypedInput kind="number" id={`t-notice-${id}`} name="notice_months" min={0} max={24} defaultValue={type?.notice_months ?? 3} />
+          </div>
         </div>
-        <Field id={`t-entry-${type?.id ?? "new"}`} name="entry_fee" type="number" min="0" step="0.01" label={t("membership.entryFee")} defaultValue={euros(type?.entry_fee_cents)} />
-        <Field id={`t-notice-${type?.id ?? "new"}`} name="notice_months" type="number" min={0} max={24} label={t("membership.noticeMonths")} defaultValue={type?.notice_months ?? 3} />
-        <div className="flex items-center gap-3">
-          <label className="flex items-center gap-1.5 text-sm">
-            <input type="checkbox" name="prorate" value="on" defaultChecked={type?.prorate ?? false} className="size-4" />
+        <div className="grid gap-2.5">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" className="size-4 accent-primary" name="prorate" value="on" defaultChecked={type?.prorate ?? false} />
             {t("membership.prorate")}
           </label>
-          <label className="flex items-center gap-1.5 text-sm">
-            <input type="checkbox" name="fee_is_minimum" value="on" defaultChecked={type?.fee_is_minimum ?? false} className="size-4" />
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" className="size-4 accent-primary" name="fee_is_minimum" value="on" defaultChecked={type?.fee_is_minimum ?? false} />
             {t("membership.feeIsMinimum")}
           </label>
           {type && (
-            <label className="flex items-center gap-1.5 text-sm">
+            <label className="flex items-center gap-2 text-sm">
               <input type="hidden" name="active" value="off" />
-              <input type="checkbox" name="active" value="on" defaultChecked={type.active} className="size-4" />
+              <input type="checkbox" className="size-4 accent-primary" name="active" value="on" defaultChecked={type.active} />
               {t("membership.typeActive")}
             </label>
           )}
-          <SubmitButton size="sm" variant={type ? "outline" : "default"}>
-            {type ? t("common.save") : t("membership.addType")}
-          </SubmitButton>
         </div>
+        <SubmitButton className="justify-self-end">{type ? t("common.save") : t("membership.addType")}</SubmitButton>
       </form>
       {type && (
-        <form action={deleteType}>
+        <form action={deleteType} className="border-t pt-4">
           <input type="hidden" name="id" value={type.id} />
-          <Tooltip>
-            <TooltipTrigger render={<SubmitButton size="icon-sm" variant="ghost" aria-label={t("membership.deleteType")} />}>
-              <Trash2Icon />
-            </TooltipTrigger>
-            <TooltipContent>{t("membership.deleteType")}</TooltipContent>
-          </Tooltip>
+          <SubmitButton size="sm" variant="ghost" className="text-destructive">
+            <Trash2Icon /> {t("membership.deleteType")}
+          </SubmitButton>
         </form>
       )}
     </div>

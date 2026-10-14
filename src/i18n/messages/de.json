@@ -19,7 +19,8 @@
     "unsaved": "Ungespeicherte Änderungen",
     "discard": "Verwerfen",
     "settings": "Einstellungen",
-    "all": "Alle"
+    "all": "Alle",
+    "copy": "Kopieren"
   },
   "auth": {
     "title": "Bei roots anmelden",
@@ -2076,7 +2077,12 @@
     "typeDefault": "{value} (Mitgliedsart)",
     "paymentAutoSepa": "SEPA-Lastschrift (automatisch, Mandat vorhanden)",
     "paymentAutoTransfer": "Überweisung (automatisch, kein Mandat)",
-    "markOpen": "Wieder offen"
+    "markOpen": "Wieder offen",
+    "period": "Mitgliedschaft",
+    "moreFields": "Weitere Angaben",
+    "dangerHint": "Nur möglich, solange es keine Beiträge gibt.",
+    "typeInactive": "Inaktiv",
+    "portalHint": "Hier melden sich eure Mitglieder an: Beiträge, eigene Daten, Lastschrift, Kündigung."
   },
   "forms": {
     "nav": "Formulare",

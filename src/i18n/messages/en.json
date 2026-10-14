@@ -19,7 +19,8 @@
     "unsaved": "Unsaved changes",
     "discard": "Discard",
     "settings": "Settings",
-    "all": "All"
+    "all": "All",
+    "copy": "Copy"
   },
   "auth": {
     "title": "Sign in to roots",
@@ -2076,7 +2077,12 @@
     "typeDefault": "{value} (membership type)",
     "paymentAutoSepa": "SEPA direct debit (automatic, mandate on file)",
     "paymentAutoTransfer": "Bank transfer (automatic, no mandate)",
-    "markOpen": "Mark open again"
+    "markOpen": "Mark open again",
+    "period": "Membership",
+    "moreFields": "More details",
+    "dangerHint": "Only possible while there are no dues.",
+    "typeInactive": "Inactive",
+    "portalHint": "Your members sign in here: dues, own details, direct debit, cancellation."
   },
   "forms": {
     "nav": "Forms",

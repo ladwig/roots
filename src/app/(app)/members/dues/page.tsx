@@ -1,8 +1,11 @@
 import Link from "next/link"
-import { DownloadIcon } from "lucide-react"
+import { BellIcon, DownloadIcon, LandmarkIcon, PlusIcon, RefreshCwIcon } from "lucide-react"
+import { ActionsMenu, MenuExport } from "@/components/actions-menu"
+import { PageHeader } from "@/components/page"
+import { TypedInput } from "@/components/typed-input"
+import { UrlSheet } from "@/components/url-sheet"
 import { contactName } from "@/app/(app)/contacts/fields"
 import { DataTable, Pager, pageRange, PAGE_SIZE } from "@/components/data-table"
-import { ExportMenu } from "@/components/export-menu"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { Badge } from "@/components/ui/badge"
@@ -61,42 +64,60 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
 
   return (
     <>
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-heading text-2xl font-semibold">{t("membership.tabs.dues")}</h1>
-          <p className="text-sm text-muted-foreground">{t("membership.openSummary", { open: t.money(openTotal), overdue: t.money(overdue) })}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <ExportMenu entity="dues" query={{ status }} />
-          {canManage && overdue > 0 && (
-            <form action={sendReminders}>
-              <SubmitButton size="sm" variant="outline">
-                {t("membership.remindAll")}
-              </SubmitButton>
-            </form>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        title={t("membership.tabs.dues")}
+        area="members"
+        meta={t("membership.openSummary", { open: t.money(openTotal), overdue: t.money(overdue) })}
+        actions={
+          canManage && (
+            <>
+              {overdue > 0 && (
+                <form action={sendReminders}>
+                  <SubmitButton size="sm" variant="outline">
+                    <BellIcon /> {t("membership.remindAll")}
+                  </SubmitButton>
+                </form>
+              )}
+              <Button render={<Link href={withParams(sp, { new: "levy" })} scroll={false} />} nativeButton={false} size="sm" variant="outline">
+                <PlusIcon /> {t("membership.levy")}
+              </Button>
+              <Button render={<Link href={withParams(sp, { new: "sepa" })} scroll={false} />} nativeButton={false} size="sm" variant="outline">
+                <LandmarkIcon /> {t("membership.sepa")}
+              </Button>
+            </>
+          )
+        }
+        menu={
+          <ActionsMenu>
+            <MenuExport entity="dues" query={{ status }} />
+          </ActionsMenu>
+        }
+        primary={canManage ? { href: withParams(sp, { new: "generate" }), label: t("membership.generate"), icon: RefreshCwIcon } : undefined}
+      />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
-
-      {canManage && (
-        <div className="grid gap-4 md:grid-cols-3">
-          <form action={generateDues} className="grid content-start gap-3 rounded-lg border p-4">
-            <h2 className="font-medium">{t("membership.generate")}</h2>
-            <p className="text-xs text-muted-foreground">{t("membership.generateHint")}</p>
+      {canManage && param(sp, "new") === "generate" && (
+        <UrlSheet params={["new"]} title={t("membership.generate")}>
+          <form action={generateDues} className="grid gap-4">
+            <p className="text-sm text-muted-foreground">{t("membership.generateHint")}</p>
             <div className="grid grid-cols-2 gap-2">
               <Field id="g-from" name="from" type="date" label={t("membership.from")} defaultValue={`${year}-01-01`} required />
               <Field id="g-to" name="to" type="date" label={t("membership.to")} defaultValue={`${year}-12-31`} required />
             </div>
-            <SubmitButton size="sm" className="justify-self-start">
+            <SubmitButton className="justify-self-end">
               {t("membership.generate")}
             </SubmitButton>
           </form>
-          <form action={addLevy} className="grid content-start gap-3 rounded-lg border p-4">
-            <h2 className="font-medium">{t("membership.levy")}</h2>
+        </UrlSheet>
+      )}
+      {canManage && param(sp, "new") === "levy" && (
+        <UrlSheet params={["new"]} title={t("membership.levy")}>
+          <form action={addLevy} className="grid gap-4">
             <Field id="l-desc" name="description" label={t("membership.levyText")} maxLength={140} required placeholder={t("membership.levyPlaceholder")} />
             <div className="grid grid-cols-2 gap-2">
-              <Field id="l-amount" name="amount" type="number" min="0.01" step="0.01" label={t("membership.amount")} required />
+              <div className="grid content-start gap-2">
+                <Label htmlFor="l-amount">{t("membership.amount")}</Label>
+                <TypedInput kind="money" id="l-amount" name="amount" required />
+              </div>
               <Field id="l-due" name="due_on" type="date" label={t("membership.dueOn")} defaultValue={now} required />
             </div>
             <div className="grid gap-2">
@@ -110,19 +131,22 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
                 ))}
               </NativeSelect>
             </div>
-            <SubmitButton size="sm" className="justify-self-start">
+            <SubmitButton className="justify-self-end">
               {t("membership.addLevy")}
             </SubmitButton>
           </form>
-          <form action={createSepaRun} className="grid content-start gap-3 rounded-lg border p-4">
-            <h2 className="font-medium">{t("membership.sepa")}</h2>
-            <p className="text-xs text-muted-foreground">{t("membership.sepaHint")}</p>
+        </UrlSheet>
+      )}
+      {canManage && param(sp, "new") === "sepa" && (
+        <UrlSheet params={["new"]} title={t("membership.sepa")}>
+          <form action={createSepaRun} className="grid gap-4">
+            <p className="text-sm text-muted-foreground">{t("membership.sepaHint")}</p>
             <Field id="s-date" name="collection_on" type="date" label={t("membership.collectionOn")} defaultValue={addDays(now, 7)} min={addDays(now, 1)} required />
-            <SubmitButton size="sm" className="justify-self-start">
+            <SubmitButton className="justify-self-end">
               {t("membership.createRun")}
             </SubmitButton>
           </form>
-        </div>
+        </UrlSheet>
       )}
 
       {!!runs?.length && (

@@ -8,7 +8,7 @@ export const generateMetadata = titled("hr.nav")
 export default async function HrLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requirePerm("hr.view")
   if (!ctx.modules.has("hr")) notFound()
-  return <div className="grid max-w-5xl gap-6">{children}</div>
+  return <div className="grid max-w-6xl gap-6">{children}</div>
 }
 
 export const instant = false

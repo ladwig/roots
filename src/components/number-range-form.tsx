@@ -12,7 +12,7 @@ export function NumberRangeForm({ t, kind, range, label, action }: { t: T; kind:
   const format = range?.format ?? RANGE_KINDS[kind].fallback
   const next = range?.next_number ?? 1
   return (
-    <form action={action} className="grid gap-3 rounded-lg border p-3">
+    <form action={action} className="grid gap-3">
       <input type="hidden" name="kind" value={kind} />
       <div className="grid gap-3 sm:grid-cols-[1fr_8rem_auto_auto] sm:items-end">
         <div className="grid gap-2">

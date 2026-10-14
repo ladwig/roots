@@ -2,13 +2,14 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { MemberImportBody } from "./import/body"
 import { UrlSheet } from "@/components/url-sheet"
-import { UploadIcon } from "lucide-react"
+import { IdCardIcon, Trash2Icon, UploadIcon } from "lucide-react"
+import { ActionsMenu, MenuExport, MenuLink, MenuSeparator } from "@/components/actions-menu"
+import { FilterMenu } from "@/components/filter-menu"
+import { PageHeader } from "@/components/page"
 import { contactName } from "@/app/(app)/contacts/fields"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
-import { ExportMenu } from "@/components/export-menu"
 import { Notice } from "@/components/notice"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { pageParam, param, withParams } from "@/lib/url"
@@ -75,25 +76,31 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-heading text-2xl font-semibold">{t("membership.title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("membership.activeCount", { count: activeCount ?? 0 })}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <ExportMenu entity="members" query={{ status, type: typeFilter, q }} />
-          {canManage && ctx.can("crm.manage") && (
-            <Button render={<Link href={withParams(sp, { import: "1" })} scroll={false} />} nativeButton={false} size="sm" variant="outline">
-              <UploadIcon /> {t("membership.import")}
-            </Button>
-          )}
-          {canManage && (
-            <Button render={<Link href="/members/new" />} nativeButton={false} size="sm" disabled={!types?.length}>
-              {t("membership.new")}
-            </Button>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        area="members"
+        title={status === "trash" ? `${t("membership.title")} · ${t("membership.filters.trash")}` : t("membership.title")}
+        meta={t("membership.activeCount", { count: activeCount ?? 0 })}
+        settings={canManage && { href: "/members/settings", label: t("common.settings") }}
+        menu={
+          <ActionsMenu>
+            {canManage && ctx.can("crm.manage") && (
+              <MenuLink href={withParams(sp, { import: "1" })} icon={UploadIcon}>
+                {t("membership.import")}
+              </MenuLink>
+            )}
+            <MenuExport entity="members" query={{ status, type: typeFilter, q }} />
+            {canManage && (
+              <>
+                <MenuSeparator />
+                <MenuLink href={status === "trash" ? "/members" : "/members?status=trash"} icon={status === "trash" ? IdCardIcon : Trash2Icon}>
+                  {status === "trash" ? t("membership.filters.active") : t("membership.filters.trash")}
+                </MenuLink>
+              </>
+            )}
+          </ActionsMenu>
+        }
+        primary={canManage && !!types?.length && status !== "trash" ? { href: "/members/new", label: t("membership.new") } : undefined}
+      />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
       {!types?.length && (
         <p className="rounded-lg border bg-muted px-3 py-2 text-sm">
@@ -109,11 +116,10 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
       <div className="flex flex-wrap items-center gap-3">
         <SearchBox q={q} label={t("common.search")} keep={{ ...(status !== "active" && { status }), ...(typeFilter && { type: typeFilter }) }} />
         <nav aria-label={t("membership.filter")} className="flex flex-wrap gap-1.5">
-          {(["active", "ended", "all", ...(canManage ? (["trash"] as const) : [])] as const).map((s) =>
-            chip(withParams(sp, { status: s === "active" ? undefined : s, page: undefined, edit: undefined }), s === status, t(`membership.filters.${s}`)),
-          )}
-          {(types ?? []).map((x) => chip(withParams(sp, { type: x.id === typeFilter ? undefined : x.id, page: undefined, edit: undefined }), x.id === typeFilter, x.name))}
+          {status !== "trash" &&
+            (["active", "ended", "all"] as const).map((s) => chip(withParams(sp, { status: s === "active" ? undefined : s, page: undefined, edit: undefined }), s === status, t(`membership.filters.${s}`)))}
         </nav>
+        {(types?.length ?? 0) > 1 && <FilterMenu param="type" label={t("membership.type")} options={(types ?? []).map((x) => ({ value: x.id, label: x.name }))} />}
       </div>
 
       <DataTable
