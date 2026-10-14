@@ -40,7 +40,7 @@ export default async function TemplatesPage({ searchParams }: PageProps<"/files/
         menu={
           canManage && (
             <ActionsMenu>
-              <MenuLink href={trash ? "/files/templates" : "/files/templates?trash=1"} icon={trash ? FileTextIcon : Trash2Icon}>
+              <MenuLink href={trash ? "/files/templates" : "/files/templates?trash=1"} icon={trash ? <FileTextIcon /> : <Trash2Icon />}>
                 {trash ? t("letters.all") : t("letters.trash")}
               </MenuLink>
             </ActionsMenu>

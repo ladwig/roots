@@ -71,7 +71,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
         menu={
           canManage && (
             <ActionsMenu>
-              <MenuLink href={trash ? "/events" : "/events?trash=1"} icon={trash ? CalendarDaysIcon : Trash2Icon}>
+              <MenuLink href={trash ? "/events" : "/events?trash=1"} icon={trash ? <CalendarDaysIcon /> : <Trash2Icon />}>
                 {trash ? t("eventsPage.all") : t("eventsPage.trash")}
               </MenuLink>
             </ActionsMenu>

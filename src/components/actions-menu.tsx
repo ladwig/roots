@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { EllipsisIcon, type LucideIcon } from "lucide-react"
+import { EllipsisIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -9,6 +9,7 @@ import { useT } from "@/i18n/client"
 
 /**
  * The ⋯ button in a page header: everything that isn't the main action (import, export, trash, duplicate, delete).
+ * Icons are elements (icon={<Trash2Icon />}): server pages can't pass components into this client file.
  * Items: <MenuLink> (navigation, drawers via ?param), <MenuDownload> (files), <MenuSubmit form="<form id>"> (posts a
  * hidden <form id=…> on the page, so actions stay plain server-action forms), <MenuSeparator>.
  */
@@ -30,26 +31,26 @@ export function ActionsMenu({ children, label }: { children: React.ReactNode; la
   )
 }
 
-export function MenuLink({ href, icon: Icon, children, destructive }: { href: string; icon?: LucideIcon; children: React.ReactNode; destructive?: boolean }) {
+export function MenuLink({ href, icon, children, destructive }: { href: string; icon?: React.ReactNode; children: React.ReactNode; destructive?: boolean }) {
   return (
     <DropdownMenuItem render={<Link href={href} scroll={false} />} variant={destructive ? "destructive" : "default"}>
-      {Icon && <Icon />} {children}
+      {icon} {children}
     </DropdownMenuItem>
   )
 }
 
-export function MenuDownload({ href, icon: Icon, children }: { href: string; icon?: LucideIcon; children: React.ReactNode }) {
+export function MenuDownload({ href, icon, children }: { href: string; icon?: React.ReactNode; children: React.ReactNode }) {
   return (
     <DropdownMenuItem render={<a href={href} />}>
-      {Icon && <Icon />} {children}
+      {icon} {children}
     </DropdownMenuItem>
   )
 }
 
-export function MenuSubmit({ form, icon: Icon, children, destructive }: { form: string; icon?: LucideIcon; children: React.ReactNode; destructive?: boolean }) {
+export function MenuSubmit({ form, icon, children, destructive }: { form: string; icon?: React.ReactNode; children: React.ReactNode; destructive?: boolean }) {
   return (
     <DropdownMenuItem render={<button type="submit" form={form} className="w-full" />} nativeButton variant={destructive ? "destructive" : "default"}>
-      {Icon && <Icon />} {children}
+      {icon} {children}
     </DropdownMenuItem>
   )
 }

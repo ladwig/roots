@@ -40,7 +40,7 @@ export default async function FormsPage({ searchParams }: PageProps<"/forms">) {
         menu={
           canManage && (
             <ActionsMenu>
-              <MenuLink href={trash ? "/forms" : "/forms?trash=1"} icon={trash ? ClipboardListIcon : Trash2Icon}>
+              <MenuLink href={trash ? "/forms" : "/forms?trash=1"} icon={trash ? <ClipboardListIcon /> : <Trash2Icon />}>
                 {trash ? t("forms.all") : t("forms.trash")}
               </MenuLink>
             </ActionsMenu>

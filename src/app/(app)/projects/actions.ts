@@ -13,15 +13,16 @@ const UUID = /^[0-9a-f-]{36}$/
 const SETUP = "/projects/settings"
 const id = (fd: FormData, key: string) => (UUID.test(String(fd.get(key) ?? "")) ? String(fd.get(key)) : null)
 const message = (t: T, f: ProjectFail) => (f.db ? dbError(t, f.db) : t.dynamic(f.error))
-// Where the form came from (board / list / page), only App paths under /projects.
+// Where the form came from (board / list / home), only App paths (no "//host").
 const backTo = (fd: FormData, fallback: string) => {
   const b = String(fd.get("back") ?? "")
-  return b.startsWith("/projects") ? b : fallback
+  return b.startsWith("/") && !b.startsWith("//") ? b : fallback
 }
 
 // Every change drops the client's cached /projects pages (staleTimes), so closing the panel shows the new state.
 async function manager() {
   revalidatePath("/projects", "layout")
+  revalidatePath("/")
   const ctx = await requirePerm("projects.manage")
   const t = await getT()
   if (!ctx.modules.has("projects")) back("/projects", { error: t("errors.not_allowed") })

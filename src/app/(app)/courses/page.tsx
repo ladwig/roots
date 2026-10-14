@@ -48,7 +48,7 @@ export default async function CoursesPage({ searchParams }: PageProps<"/courses"
         menu={
           canManage && (
             <ActionsMenu>
-              <MenuLink href={trash ? "/courses" : "/courses?status=trash"} icon={trash ? GraduationCapIcon : Trash2Icon}>
+              <MenuLink href={trash ? "/courses" : "/courses?status=trash"} icon={trash ? <GraduationCapIcon /> : <Trash2Icon />}>
                 {trash ? t("courses.backToList") : t("courses.trash")}
               </MenuLink>
             </ActionsMenu>

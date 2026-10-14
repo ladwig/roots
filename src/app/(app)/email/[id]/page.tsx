@@ -65,14 +65,14 @@ export default async function CampaignPage({ params, searchParams }: PageProps<"
           (c.status === "scheduled" || c.status !== "sending") && (
             <ActionsMenu>
               {c.status === "scheduled" && (
-                <MenuSubmit form="unschedule" icon={CalendarXIcon}>
+                <MenuSubmit form="unschedule" icon={<CalendarXIcon />}>
                   {t("email.unschedule")}
                 </MenuSubmit>
               )}
               {c.status !== "sending" && (
                 <>
                   <MenuSeparator />
-                  <MenuSubmit form="trash-campaign" icon={Trash2Icon} destructive>
+                  <MenuSubmit form="trash-campaign" icon={<Trash2Icon />} destructive>
                     {t("email.toTrash")}
                   </MenuSubmit>
                 </>

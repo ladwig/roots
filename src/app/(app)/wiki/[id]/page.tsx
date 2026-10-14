@@ -95,13 +95,13 @@ export default async function WikiPageView({ params, searchParams }: { params: P
                     roles={(roles ?? []).filter((r) => !r.is_owner).map((r) => ({ id: r.id, label: t.pick(r.name as Record<string, string>) }))}
                   />
                   <ActionsMenu>
-                    <MenuLink href={`/wiki/${page.id}${withParams(sp, { history: "1" })}`} icon={HistoryIcon}>
+                    <MenuLink href={`/wiki/${page.id}${withParams(sp, { history: "1" })}`} icon={<HistoryIcon />}>
                       {t("wiki.history")}
                     </MenuLink>
                     {canManage && (
                       <>
                         <MenuSeparator />
-                        <MenuSubmit form="trash-page" icon={Trash2Icon} destructive>
+                        <MenuSubmit form="trash-page" icon={<Trash2Icon />} destructive>
                           {t("wiki.toTrash")}
                         </MenuSubmit>
                       </>

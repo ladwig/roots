@@ -71,7 +71,7 @@ async function MembershipBody({
           active &&
           !dues?.length && (
             <ActionsMenu>
-              <MenuSubmit form="trash-membership" icon={Trash2Icon} destructive>
+              <MenuSubmit form="trash-membership" icon={<Trash2Icon />} destructive>
                 {t("membership.toTrash")}
               </MenuSubmit>
             </ActionsMenu>

@@ -84,13 +84,13 @@ export default async function DocumentPage({ params, searchParams }: PageProps<"
         }
         menu={
           <ActionsMenu>
-            <MenuDownload href={`/print/documents/${doc.id}/pdf`} icon={FileDownIcon}>
+            <MenuDownload href={`/print/documents/${doc.id}/pdf`} icon={<FileDownIcon />}>
               {t("invoices.pdfDownload")}
             </MenuDownload>
             {draft && canManage && (
               <>
                 <MenuSeparator />
-                <MenuSubmit form="delete-draft" icon={Trash2Icon} destructive>
+                <MenuSubmit form="delete-draft" icon={<Trash2Icon />} destructive>
                   {t("invoices.deleteDraft")}
                 </MenuSubmit>
               </>

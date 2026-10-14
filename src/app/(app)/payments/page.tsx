@@ -54,7 +54,7 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/payment
         menu={
           ctx.isPlatformAdmin && (
             <ActionsMenu>
-              <MenuLink href={withParams(sp, { new: "test", edit: undefined })} icon={FlaskConicalIcon}>
+              <MenuLink href={withParams(sp, { new: "test", edit: undefined })} icon={<FlaskConicalIcon />}>
                 {t("payments.testPayment")}
               </MenuLink>
             </ActionsMenu>

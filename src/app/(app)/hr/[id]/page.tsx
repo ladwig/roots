@@ -121,11 +121,11 @@ export default async function EmployeePage({ params, searchParams }: { params: P
           canManage &&
           !e.deleted_at && (
             <ActionsMenu>
-              <MenuLink href={`/hr/absences?new=absence&employee=${e.id}`} icon={PlusIcon}>
+              <MenuLink href={`/hr/absences?new=absence&employee=${e.id}`} icon={<PlusIcon />}>
                 {t("hr.addAbsence")}
               </MenuLink>
               <MenuSeparator />
-              <MenuSubmit form="trash-employee" icon={Trash2Icon} destructive>
+              <MenuSubmit form="trash-employee" icon={<Trash2Icon />} destructive>
                 {t("hr.toTrash")}
               </MenuSubmit>
             </ActionsMenu>

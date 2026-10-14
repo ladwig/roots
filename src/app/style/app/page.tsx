@@ -65,12 +65,12 @@ export default function AppStyle() {
             }
             menu={
               <ActionsMenu>
-                <MenuLink href="#" icon={UploadIcon}>
+                <MenuLink href="#" icon={<UploadIcon />}>
                   Importieren
                 </MenuLink>
                 <MenuExport entity="contacts" />
                 <MenuSeparator />
-                <MenuLink href="#" icon={Trash2Icon} destructive>
+                <MenuLink href="#" icon={<Trash2Icon />} destructive>
                   In den Papierkorb
                 </MenuLink>
               </ActionsMenu>

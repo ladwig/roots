@@ -84,7 +84,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
         menu={
           <ActionsMenu>
             {canManage && ctx.can("crm.manage") && (
-              <MenuLink href={withParams(sp, { import: "1" })} icon={UploadIcon}>
+              <MenuLink href={withParams(sp, { import: "1" })} icon={<UploadIcon />}>
                 {t("membership.import")}
               </MenuLink>
             )}
@@ -92,7 +92,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
             {canManage && (
               <>
                 <MenuSeparator />
-                <MenuLink href={status === "trash" ? "/members" : "/members?status=trash"} icon={status === "trash" ? IdCardIcon : Trash2Icon}>
+                <MenuLink href={status === "trash" ? "/members" : "/members?status=trash"} icon={status === "trash" ? <IdCardIcon /> : <Trash2Icon />}>
                   {status === "trash" ? t("membership.filters.active") : t("membership.filters.trash")}
                 </MenuLink>
               </>

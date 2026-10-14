@@ -56,7 +56,7 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
         menu={
           <ActionsMenu>
             {canManage && (
-              <MenuLink href={withParams(sp, { import: "1" })} icon={UploadIcon}>
+              <MenuLink href={withParams(sp, { import: "1" })} icon={<UploadIcon />}>
                 {t("contacts.import")}
               </MenuLink>
             )}
@@ -64,7 +64,7 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
             {canManage && (
               <>
                 <MenuSeparator />
-                <MenuLink href={trash ? "/contacts" : "/contacts?trash=1"} icon={trash ? UsersIcon : Trash2Icon}>
+                <MenuLink href={trash ? "/contacts" : "/contacts?trash=1"} icon={trash ? <UsersIcon /> : <Trash2Icon />}>
                   {trash ? t("contacts.all") : t("contacts.trash")}
                 </MenuLink>
               </>

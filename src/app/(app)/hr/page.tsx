@@ -42,7 +42,7 @@ export default async function HrPage({ searchParams }: PageProps<"/hr">) {
             {canManage && (
               <>
                 <MenuSeparator />
-                <MenuLink href={trash ? "/hr" : "/hr?status=trash"} icon={trash ? BriefcaseBusinessIcon : Trash2Icon}>
+                <MenuLink href={trash ? "/hr" : "/hr?status=trash"} icon={trash ? <BriefcaseBusinessIcon /> : <Trash2Icon />}>
                   {trash ? t("hr.backToList") : t("hr.trash")}
                 </MenuLink>
               </>

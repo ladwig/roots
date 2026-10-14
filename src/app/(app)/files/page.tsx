@@ -60,7 +60,7 @@ export default async function FilesPage({ searchParams }: PageProps<"/files">) {
         menu={
           canManage && (
             <ActionsMenu>
-              <MenuLink href={trash ? "/files" : "/files?trash=1"} icon={trash ? FolderIcon : Trash2Icon}>
+              <MenuLink href={trash ? "/files" : "/files?trash=1"} icon={trash ? <FolderIcon /> : <Trash2Icon />}>
                 {trash ? t("files.all") : t("files.trash")}
               </MenuLink>
             </ActionsMenu>

@@ -6,6 +6,8 @@ import { renderEvent } from "@/events/render"
 import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
 import { titled } from "@/lib/title"
+import { param } from "@/lib/url"
+import { TaskDrawer } from "./projects/task-drawer"
 
 export const generateMetadata = titled("shell.home")
 
@@ -13,9 +15,10 @@ const none = Promise.resolve({ data: null })
 
 // "Heute": what needs this person now, one card per area they use (tasks, shifts, events, dues, inbox). Cards of
 // modules that are off or not allowed don't show; an empty card says so in one line.
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: PageProps<"/">) {
   const ctx = await getContext()
   const t = await getT()
+  const sp = await searchParams
   const on = (m: string, p: string) => ctx.modules.has(m) && ctx.can(p)
   const now = new Date().toISOString()
   const today = now.slice(0, 10)
@@ -64,7 +67,7 @@ export default async function HomePage() {
               empty={t("home.noTasks")}
               rows={tasks.map((x) => ({
                 key: x.id,
-                href: `/projects?task=${x.id}`,
+                href: `/?task=${x.id}`,
                 title: x.title,
                 detail: x.due_on ? t.date(`${x.due_on}T12:00:00`, { weekday: "short", day: "numeric", month: "short" }) : "",
                 warn: !!x.due_on && x.due_on < today,
@@ -104,6 +107,7 @@ export default async function HomePage() {
           />
         </FormCard>
       </div>
+      <TaskDrawer ctx={ctx} t={t} id={param(sp, "task")} back="/" error={param(sp, "error")} ok={param(sp, "ok")} />
     </Page>
   )
 }

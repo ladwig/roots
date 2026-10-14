@@ -109,14 +109,14 @@ export default async function ContactPage({ params, searchParams }: PageProps<"/
           (canManage || ctx.can("org.files.view")) && (
             <ActionsMenu>
               {ctx.can("org.files.view") && (
-                <MenuLink href={`/files/templates?contact=${c.id}`} icon={FileTextIcon}>
+                <MenuLink href={`/files/templates?contact=${c.id}`} icon={<FileTextIcon />}>
                   {t("contacts.writeLetter")}
                 </MenuLink>
               )}
               {canManage && (
                 <>
                   <MenuSeparator />
-                  <MenuSubmit form="trash-contact" icon={Trash2Icon} destructive>
+                  <MenuSubmit form="trash-contact" icon={<Trash2Icon />} destructive>
                     {t("contacts.toTrash")}
                   </MenuSubmit>
                 </>

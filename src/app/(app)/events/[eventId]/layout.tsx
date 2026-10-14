@@ -43,24 +43,24 @@ export default async function EventLayout({ children, params }: { children: Reac
           (canManage || on("shifts", "shifts.view") || on("guestlists", "guestlists.view") || on("tickets", "tickets.scan") || on("guestlists", "guestlists.checkin")) && (
             <ActionsMenu>
               {on("shifts", "shifts.view") && (
-                <MenuLink href={`/shifts?event=${ev.id}`} icon={CalendarClockIcon}>
+                <MenuLink href={`/shifts?event=${ev.id}`} icon={<CalendarClockIcon />}>
                   {t("shifts.title")}
                 </MenuLink>
               )}
               {on("guestlists", "guestlists.view") && (
-                <MenuLink href={`/guestlists?event=${ev.id}`} icon={ListChecksIcon}>
+                <MenuLink href={`/guestlists?event=${ev.id}`} icon={<ListChecksIcon />}>
                   {t("guestlists.title")}
                 </MenuLink>
               )}
               {(on("tickets", "tickets.scan") || on("guestlists", "guestlists.checkin")) && (
-                <MenuLink href={`/scan?event=${ev.id}`} icon={ScanLineIcon}>
+                <MenuLink href={`/scan?event=${ev.id}`} icon={<ScanLineIcon />}>
                   {t("tickets.scanNav")}
                 </MenuLink>
               )}
               {canManage && (
                 <>
                   <MenuSeparator />
-                  <MenuSubmit form="trash-event" icon={Trash2Icon} destructive>
+                  <MenuSubmit form="trash-event" icon={<Trash2Icon />} destructive>
                     {t("eventsPage.toTrash")}
                   </MenuSubmit>
                 </>

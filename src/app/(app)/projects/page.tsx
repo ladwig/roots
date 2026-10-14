@@ -1,13 +1,11 @@
 import { Segments } from "@/components/segments"
 import { FilterMenu } from "@/components/filter-menu"
 import { Page, PageHeader } from "@/components/page"
-import { ActionsMenu, MenuSubmit } from "@/components/actions-menu"
 import { notFound } from "next/navigation"
-import { KanbanSquareIcon, ListIcon, Trash2Icon } from "lucide-react"
+import { KanbanSquareIcon, ListIcon } from "lucide-react"
 import { DataTable, SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { Badge } from "@/components/ui/badge"
-import { UrlSheet } from "@/components/url-sheet"
 import { berlinToday } from "@/api/v1/shared"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
@@ -16,7 +14,7 @@ import { DOT, progress, type ChecklistItem } from "@/projects/fields"
 import { initials, projectBasics } from "@/projects/load"
 import { TASK_COLS } from "@/projects/server"
 import { Board } from "./board"
-import { TaskEditor, taskMeta } from "./task-editor"
+import { TaskDrawer } from "./task-drawer"
 
 const VIEWS = ["board", "list"] as const
 const DUES = ["overdue", "week", "none"] as const
@@ -46,11 +44,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   if (due === "overdue") query = query.lt("due_on", today).is("completed_at", null)
   if (due === "week") query = query.gte("due_on", today).lte("due_on", week)
   if (due === "none") query = query.is("due_on", null)
-  const [basics, { data: rows }, { data: open }] = await Promise.all([
-    projectBasics(ctx),
-    query,
-    openId && /^[0-9a-f-]{36}$/.test(openId) ? ctx.supabase.from("tasks").select(TASK_COLS).eq("id", openId).eq("org_id", ctx.org.id).is("deleted_at", null).maybeSingle() : Promise.resolve({ data: null }),
-  ])
+  const [basics, { data: rows }] = await Promise.all([projectBasics(ctx), query])
   const { statuses, team, tags } = basics
   const nameOf = (id: string) => team.find((p) => p.id === id)?.name ?? "?"
   const done = new Set(statuses.filter((s) => s.is_done).map((s) => s.id))
@@ -85,7 +79,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           />
         }
       />
-      <Notice error={!open ? param(sp, "error") : undefined} ok={!open ? param(sp, "ok") : undefined} />
+      <Notice error={!openId ? param(sp, "error") : undefined} ok={!openId ? param(sp, "ok") : undefined} />
       <div className="flex flex-wrap items-center gap-2">
         <SearchBox q={q} label={t("projects.search")} />
         <FilterMenu param="assignee" label={t("projects.assignee")} allLabel={t("projects.everyone")} options={[{ value: "me", label: t("projects.mine") }, ...team.map((p) => ({ value: p.id, label: p.name }))]} />
@@ -130,26 +124,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         />
       )}
 
-      {open && (
-        <UrlSheet
-          params={["task"]}
-          title={open.title}
-          wide
-          meta={taskMeta(t, open)}
-          menu={
-            canManage && (
-              <ActionsMenu>
-                <MenuSubmit form="trash-task" icon={Trash2Icon} destructive>
-                  {t("projects.toTrash")}
-                </MenuSubmit>
-              </ActionsMenu>
-            )
-          }
-        >
-          <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
-          <TaskEditor t={t} task={open} statuses={statuses} team={team} tags={tags} canManage={canManage} back={`/projects${withParams(sp, { error: undefined, ok: undefined })}`} />
-        </UrlSheet>
-      )}
+      <TaskDrawer ctx={ctx} t={t} id={openId} back={here} error={param(sp, "error")} ok={param(sp, "ok")} />
     </Page>
   )
 }

@@ -96,7 +96,7 @@ export default async function CashbookPage({ searchParams }: { searchParams: Pro
           (account || canManage) && (
             <ActionsMenu>
               {canManage && (
-                <MenuLink href={`/cashbook${withParams(sp, { new: "account" })}`} icon={PlusIcon}>
+                <MenuLink href={`/cashbook${withParams(sp, { new: "account" })}`} icon={<PlusIcon />}>
                   {t("cashbook.newAccount")}
                 </MenuLink>
               )}

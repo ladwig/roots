@@ -87,7 +87,7 @@ export default async function CoursePage({ params, searchParams }: { params: Pro
               {canManage && (
                 <>
                   <MenuSeparator />
-                  <MenuSubmit form="trash-course" icon={Trash2Icon} destructive>
+                  <MenuSubmit form="trash-course" icon={<Trash2Icon />} destructive>
                     {t("courses.toTrash")}
                   </MenuSubmit>
                 </>

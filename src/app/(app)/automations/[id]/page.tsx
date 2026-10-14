@@ -124,7 +124,7 @@ export default async function WorkflowPage({ params, searchParams }: { params: P
         menu={
           canEdit && (
             <ActionsMenu>
-              <MenuSubmit form="trash-workflow" icon={Trash2Icon} destructive>
+              <MenuSubmit form="trash-workflow" icon={<Trash2Icon />} destructive>
                 {t("automations.toTrash")}
               </MenuSubmit>
             </ActionsMenu>
