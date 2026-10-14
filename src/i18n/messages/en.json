@@ -940,7 +940,11 @@
     "restore": "Restore",
     "restored": "Restored.",
     "deletedOn": "Deleted on {date}, removed for good on {purge}.",
-    "readOnly": "You can view events but not edit them."
+    "readOnly": "You can view events but not edit them.",
+    "emptyText": "Create an event, sell tickets or collect sign-ups, and plan shifts and the guest list alongside.",
+    "basics": "Title & time",
+    "publicPage": "Public page",
+    "create": "Create event"
   },
   "contacts": {
     "nav": "Contacts",

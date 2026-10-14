@@ -1,7 +1,11 @@
 import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
+import { CalendarDaysIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { ActionsMenu, MenuLink } from "@/components/actions-menu"
+import { FilterMenu } from "@/components/filter-menu"
 import { Notice } from "@/components/notice"
+import { EmptyState, Page, PageHeader } from "@/components/page"
 import { Button } from "@/components/ui/button"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
@@ -60,44 +64,32 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
   )
 
   return (
-    <div className="grid max-w-5xl gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{t("eventsPage.title")}</h1>
-        {canManage && (
-          <Button render={<Link href="/events/new" />} nativeButton={false} size="sm">
-            {t("eventsPage.new")}
-          </Button>
-        )}
-      </div>
+    <Page>
+      <PageHeader
+        area="events"
+        title={trash ? `${t("eventsPage.title")} · ${t("eventsPage.trash")}` : t("eventsPage.title")}
+        menu={
+          canManage && (
+            <ActionsMenu>
+              <MenuLink href={trash ? "/events" : "/events?trash=1"} icon={trash ? CalendarDaysIcon : Trash2Icon}>
+                {trash ? t("eventsPage.all") : t("eventsPage.trash")}
+              </MenuLink>
+            </ActionsMenu>
+          )
+        }
+        primary={canManage && !trash ? { href: "/events/new", label: t("eventsPage.new") } : undefined}
+      />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <SearchBox q={q} label={t("common.search")} />
-        <nav aria-label={t("eventsPage.when")} className="flex flex-wrap gap-1.5">
-          {VIEWS.map((v) =>
-            chip(
-              withParams(sp, { view: v === "upcoming" ? undefined : v, trash: undefined, page: undefined, edit: undefined }),
-              !trash && v === view,
-              t.dynamic(`eventsPage.${v}`),
-            ),
-          )}
-          {canManage &&
-            chip(
-              withParams(sp, { trash: "1", view: undefined, status: undefined, page: undefined, edit: undefined }),
-              trash,
-              t("eventsPage.trash"),
-            )}
-        </nav>
         {!trash && (
-          <nav aria-label={t("eventsPage.status")} className="flex flex-wrap gap-1.5">
-            {[undefined, ...STATUSES].map((s) =>
-              chip(
-                withParams(sp, { status: s, page: undefined, edit: undefined }),
-                s === status,
-                s ? t.dynamic(`eventsPage.statuses.${s}`) : t("eventsPage.all"),
-              ),
-            )}
-          </nav>
+          <>
+            <nav aria-label={t("eventsPage.when")} className="flex flex-wrap gap-1.5">
+              {VIEWS.map((v) => chip(withParams(sp, { view: v === "upcoming" ? undefined : v, page: undefined, edit: undefined }), v === view, t.dynamic(`eventsPage.${v}`)))}
+            </nav>
+            <FilterMenu param="status" label={t("eventsPage.status")} options={STATUSES.map((s) => ({ value: s, label: t.dynamic(`eventsPage.statuses.${s}`) }))} />
+          </>
         )}
       </div>
       {trash && <p className="text-sm text-muted-foreground">{t("eventsPage.trashHint", { days: 30 })}</p>}
@@ -106,7 +98,26 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
         rows={rows}
         rowKey={(r) => r.id}
         rowHref={(r) => `/events/${r.id}`}
-        empty={trash ? t("eventsPage.emptyTrash") : t("eventsPage.empty")}
+        empty={
+          trash ? (
+            t("eventsPage.emptyTrash")
+          ) : q || status || view !== "upcoming" ? (
+            t("eventsPage.empty")
+          ) : (
+            <EmptyState
+              area="events"
+              title={t("eventsPage.empty")}
+              text={t("eventsPage.emptyText")}
+              action={
+                canManage && (
+                  <Button render={<Link href="/events/new" />} nativeButton={false} size="sm">
+                    <PlusIcon /> {t("eventsPage.new")}
+                  </Button>
+                )
+              }
+            />
+          )
+        }
         columns={[
           { header: t("eventsPage.titleLabel"), cell: (r) => <span className="font-medium">{r.title}</span> },
           {
@@ -119,8 +130,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
         ]}
       />
       <Pager sp={sp} page={page} hasNext={(data?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
-
-    </div>
+    </Page>
   )
 }
 

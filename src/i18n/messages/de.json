@@ -940,7 +940,11 @@
     "restore": "Wiederherstellen",
     "restored": "Wiederhergestellt.",
     "deletedOn": "Gelöscht am {date}, wird am {purge} endgültig entfernt.",
-    "readOnly": "Du kannst Events ansehen, aber nicht bearbeiten."
+    "readOnly": "Du kannst Events ansehen, aber nicht bearbeiten.",
+    "emptyText": "Lege eine Veranstaltung an, verkaufe Tickets oder sammle Anmeldungen und plane Schichten und Gästeliste dazu.",
+    "basics": "Titel & Zeit",
+    "publicPage": "Öffentliche Seite",
+    "create": "Veranstaltung anlegen"
   },
   "contacts": {
     "nav": "Kontakte",

@@ -1,10 +1,9 @@
-import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
 import { DataTable } from "@/components/data-table"
+import { FilterMenu } from "@/components/filter-menu"
 import { Notice } from "@/components/notice"
+import { Page, PageHeader } from "@/components/page"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param } from "@/lib/url"
@@ -35,29 +34,14 @@ export default async function GuestListsPage({ searchParams }: PageProps<"/guest
   const count = (l: (typeof rows)[number]) => (l.guest_entries as unknown as { count: number }[])[0]?.count ?? 0
 
   return (
-    <div className="grid max-w-5xl gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{t("guestlists.title")}</h1>
-        {canManage && (
-          <Button render={<Link href={`/guestlists/new${eventId ? `?event=${eventId}` : ""}`} />} nativeButton={false} size="sm">
-            {t("guestlists.new")}
-          </Button>
-        )}
-      </div>
+    <Page>
+      <PageHeader area="events" title={t("guestlists.title")} primary={canManage ? { href: `/guestlists/new${eventId ? `?event=${eventId}` : ""}`, label: t("guestlists.new") } : undefined} />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
-      <form className="flex flex-wrap items-center gap-2">
-        <NativeSelect name="event" defaultValue={eventId ?? ""} aria-label={t("guestlists.event")} className="w-72 max-w-full">
-          <NativeSelectOption value="">{t("guestlists.allUpcoming")}</NativeSelectOption>
-          {events?.map((e) => (
-            <NativeSelectOption key={e.id} value={e.id}>
-              {e.title} · {t.date(e.starts_at, { dateStyle: "short" })}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
-        <Button type="submit" size="sm" variant="outline">
-          {t("guestlists.filter")}
-        </Button>
-      </form>
+      {!!events?.length && (
+        <div className="flex flex-wrap items-center gap-2">
+          <FilterMenu param="event" label={t("guestlists.event")} allLabel={t("guestlists.allUpcoming")} options={events.map((e) => ({ value: e.id, label: `${e.title} · ${t.date(e.starts_at, { dateStyle: "short" })}` }))} />
+        </div>
+      )}
       <DataTable
         rows={visible}
         rowKey={(l) => l.id}
@@ -82,7 +66,7 @@ export default async function GuestListsPage({ searchParams }: PageProps<"/guest
           { header: t("guestlists.link"), cell: (l) => (l.link_enabled ? <Badge>{t("guestlists.linkOn")}</Badge> : null) },
         ]}
       />
-    </div>
+    </Page>
   )
 }
 

@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { Page, PageHeader } from "@/components/page"
 import { notFound } from "next/navigation"
 import { DataTable, SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
@@ -49,8 +50,8 @@ export default async function DoorPage({ searchParams }: PageProps<"/scan">) {
   )
 
   return (
-    <div className="grid max-w-3xl gap-6">
-      <h1 className="font-heading text-2xl font-semibold">{t("tickets.scanTitle")}</h1>
+    <Page size="form">
+      <PageHeader area="events" title={t("tickets.scanTitle")} />
       {!events?.length ? (
         <p className="text-sm text-muted-foreground">{t("tickets.noEventsToScan")}</p>
       ) : (
@@ -79,7 +80,7 @@ export default async function DoorPage({ searchParams }: PageProps<"/scan">) {
           {tab === "members" && <Members eventId={current.id} q={q} who={param(sp, "who")} sp={sp} />}
         </>
       )}
-    </div>
+    </Page>
   )
 }
 

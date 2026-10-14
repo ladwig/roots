@@ -1,8 +1,9 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeftIcon, ExternalLinkIcon, Trash2Icon } from "lucide-react"
+import { ExternalLinkIcon, PencilIcon, Trash2Icon } from "lucide-react"
 import { DataTable } from "@/components/data-table"
 import { Notice } from "@/components/notice"
+import { Page, PageHeader } from "@/components/page"
 import { SubmitButton } from "@/components/submit-button"
 import { UrlSheet } from "@/components/url-sheet"
 import { Badge } from "@/components/ui/badge"
@@ -36,27 +37,27 @@ export default async function GuestListPage({ params, searchParams }: PageProps<
   const editing = canManage && param(sp, "edit") === "1"
 
   return (
-    <div className="grid max-w-5xl gap-6">
-      <div className="grid gap-1">
-        <Link href={`/guestlists${list.event_id ? `?event=${list.event_id}` : ""}`} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeftIcon className="size-4" /> {t("guestlists.title")}
-        </Link>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="font-heading text-2xl font-semibold">{list.name}</h1>
-          {canManage && (
+    <Page>
+      <PageHeader
+        crumbs={[{ href: `/guestlists${list.event_id ? `?event=${list.event_id}` : ""}`, label: t("guestlists.title") }, { label: list.name }]}
+        title={list.name}
+        meta={
+          <>
+            {list.events ? `${list.events.title} · ${t.date(list.events.starts_at, { dateStyle: "medium", timeStyle: "short" })}` : t("guestlists.permanentHint")}
+            {list.artists?.name && ` · ${list.artists.name}`}
+            {" · "}
+            {list.door_price ? t("guestlists.atDoor", { price: t.money(list.door_price) }) : t("guestlists.free")}
+            {list.ticket_type_id && ` · ${t("guestlists.withTickets")}`}
+          </>
+        }
+        actions={
+          canManage && (
             <Button render={<Link href={withParams(sp, { edit: "1" })} scroll={false} />} nativeButton={false} size="sm" variant="outline">
-              {t("guestlists.settings")}
+              <PencilIcon /> {t("guestlists.settings")}
             </Button>
-          )}
-        </div>
-        <p className="text-sm text-muted-foreground">
-          {list.events ? `${list.events.title} · ${t.date(list.events.starts_at, { dateStyle: "medium", timeStyle: "short" })}` : t("guestlists.permanentHint")}
-          {list.artists?.name && ` · ${list.artists.name}`}
-          {" · "}
-          {list.door_price ? t("guestlists.atDoor", { price: t.money(list.door_price) }) : t("guestlists.free")}
-          {list.ticket_type_id && ` · ${t("guestlists.withTickets")}`}
-        </p>
-      </div>
+          )
+        }
+      />
       <Notice error={!editing ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
 
       <section className="grid gap-3 rounded-lg border p-4" aria-labelledby="link">
@@ -170,7 +171,7 @@ export default async function GuestListPage({ params, searchParams }: PageProps<
           </section>
         </UrlSheet>
       )}
-    </div>
+    </Page>
   )
 }
 
