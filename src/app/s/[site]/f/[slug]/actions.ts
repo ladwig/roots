@@ -28,5 +28,5 @@ export async function submitForm(prev: State, fd: FormData): Promise<State> {
     const label = r.field?.startsWith("custom.") ? form.custom_fields.find((d) => `custom.${d.key}` === r.field)?.label : r.field
     return fail(t.has(r.error) ? t.dynamic(r.error) : t("errors.invalid_input"), label)
   }
-  redirect(`${siteActionPath(site, `/f/${slug}`)}?done=1`)
+  redirect(`${siteActionPath(site, `/f/${slug}`)}?done=${r.mailFailed ? "nomail" : "1"}`)
 }

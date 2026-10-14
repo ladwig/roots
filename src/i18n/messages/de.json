@@ -162,7 +162,8 @@
     "editTitle": "Mitglied",
     "invitesEmpty": "Keine offenen Einladungen.",
     "emptyMembers": "Noch keine Mitglieder.",
-    "expiresHeader": "Läuft ab"
+    "expiresHeader": "Läuft ab",
+    "inviteMailFailed": "Die Einladung konnte nicht per E-Mail verschickt werden. Schick den Link unten selbst weiter."
   },
   "roles": {
     "intro": "Rollen werden von der Plattform festgelegt. Hier siehst du, was jede Rolle darf.",
@@ -2200,7 +2201,8 @@
     "trashHint": "Formulare im Papierkorb werden nach {days} Tagen endgültig gelöscht.",
     "emptyTrash": "Der Papierkorb ist leer.",
     "restore": "Wiederherstellen",
-    "restored": "Formular wiederhergestellt."
+    "restored": "Formular wiederhergestellt.",
+    "confirmFailed": "Deine Angaben sind angekommen – die Bestätigungs-E-Mail konnte aber nicht verschickt werden."
   },
   "export": {
     "button": "Exportieren",
@@ -2374,7 +2376,8 @@
     "whatAddress": "Kontaktdaten",
     "whatBank": "Bankverbindung",
     "portalLink": "Mitgliederbereich für deine Mitglieder: {url}",
-    "cardHint": "Deine Mitgliedskarte: am Einlass auf dem Handy zeigen oder ausdrucken."
+    "cardHint": "Deine Mitgliedskarte: am Einlass auf dem Handy zeigen oder ausdrucken.",
+    "mailFailed": "Die E-Mail mit dem Anmeldelink konnte gerade nicht verschickt werden. Bitte versuche es später noch einmal oder melde dich beim Verein."
   },
   "tags": {
     "remove": "{tag} entfernen",

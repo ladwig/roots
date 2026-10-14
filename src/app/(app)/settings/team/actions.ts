@@ -44,7 +44,7 @@ export async function removeMember(memberId: string) {
   back(PATH, { ok: t("members.removed") })
 }
 
-export type InviteState = { error?: string; link?: string; email?: string }
+export type InviteState = { error?: string; link?: string; email?: string; mailFailed?: boolean }
 
 export async function createInvite(_: InviteState, formData: FormData): Promise<InviteState> {
   const ctx = await getContext()
@@ -67,8 +67,8 @@ export async function createInvite(_: InviteState, formData: FormData): Promise<
   // link, signing in with the invited email also works (onboarding lists open invites).
   const link = `${APP_URL}/invite/${token}`
   const text = [t("invite.mailIntro", { org: ctx.org.name }), "", link, "", t("invite.mailNote")].join("\n")
-  await sendPlatformEmail({ to: email, subject: t("invite.mailSubject", { org: ctx.org.name }), text, html: text.split("\n").map((l) => (l === link ? `<p><a href="${link}">${link}</a></p>` : `<p>${l.replace(/[<>&]/g, "")}</p>`)).join("") }).catch(() => false)
-  return { link, email }
+  const sent = await sendPlatformEmail({ to: email, subject: t("invite.mailSubject", { org: ctx.org.name }), text, html: text.split("\n").map((l) => (l === link ? `<p><a href="${link}">${link}</a></p>` : `<p>${l.replace(/[<>&]/g, "")}</p>`)).join("") }).catch(() => false)
+  return { link, email, mailFailed: !sent }
 }
 
 export async function revokeInvite(inviteId: string) {

@@ -17,7 +17,10 @@ export default async function PublicFormPage({ params, searchParams }: PageProps
   const t = await getT()
   const body = () =>
     param(sp, "done") ? (
-      <p className="rounded-lg border bg-muted px-4 py-3 whitespace-pre-line">{form.success_text || t("forms.thanks")}</p>
+      <>
+        <p className="rounded-lg border bg-muted px-4 py-3 whitespace-pre-line">{form.success_text || t("forms.thanks")}</p>
+        {param(sp, "done") === "nomail" && <p className="text-sm text-muted-foreground">{t("forms.confirmFailed")}</p>}
+      </>
     ) : (
       <FormRenderer form={form} site={site} slug={slug} org={s.org.name} />
     )

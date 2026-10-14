@@ -162,7 +162,8 @@
     "editTitle": "Member",
     "invitesEmpty": "No open invites.",
     "emptyMembers": "No members yet.",
-    "expiresHeader": "Expires"
+    "expiresHeader": "Expires",
+    "inviteMailFailed": "The invitation couldn't be emailed. Please send the link below yourself."
   },
   "roles": {
     "intro": "Roles are set by the platform. Here you can see what each role may do.",
@@ -2200,7 +2201,8 @@
     "trashHint": "Forms in the trash are deleted for good after {days} days.",
     "emptyTrash": "The trash is empty.",
     "restore": "Restore",
-    "restored": "Form restored."
+    "restored": "Form restored.",
+    "confirmFailed": "Your details arrived – but the confirmation email couldn't be sent."
   },
   "export": {
     "button": "Export",
@@ -2374,7 +2376,8 @@
     "whatAddress": "contact details",
     "whatBank": "bank details",
     "portalLink": "Member area for your members: {url}",
-    "cardHint": "Your member card: show it on your phone at the door or print it."
+    "cardHint": "Your member card: show it on your phone at the door or print it.",
+    "mailFailed": "The email with the sign-in link couldn't be sent right now. Please try again later or contact the club."
   },
   "tags": {
     "remove": "Remove {tag}",

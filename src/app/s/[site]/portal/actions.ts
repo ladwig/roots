@@ -27,7 +27,7 @@ export async function requestLink(fd: FormData) {
   const { slug, org, here } = await site(fd)
   const email = str(fd, "email", 320)?.toLowerCase()
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) back(here, { error: t("errors.invalid_email") })
-  await sendLoginLink(org, slug, email, t)
+  if (!(await sendLoginLink(org, slug, email, t))) back(here, { error: t("portal.mailFailed") })
   redirect(`${here}?sent=1`)
 }
 

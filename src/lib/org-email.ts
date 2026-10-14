@@ -30,11 +30,22 @@ export async function sendOrgEmail(orgId: string, mail: OrgEmail): Promise<boole
   return sendPlatformEmail(mail, org?.name)
 }
 
+/** Can this org send at all (own connected provider, or roots' account)? Lets callers say so before trying. */
+export async function emailReady(orgId: string) {
+  if (process.env.RESEND_API_KEY && process.env.EMAIL_FROM) return true
+  const { data } = await createAdminClient().from("org_integrations").select("provider").eq("org_id", orgId).in("provider", emailProviders.map((i) => i.key)).eq("status", "connected").limit(1)
+  return !!data?.length
+}
+
 /** roots' own account. `asName` puts an org's name in front: "Kulturverein via roots <tickets@roots.app>". */
 export async function sendPlatformEmail(mail: OrgEmail, asName?: string | null): Promise<boolean> {
   const key = process.env.RESEND_API_KEY
   let from = process.env.EMAIL_FROM
-  if (!key || !from) return false
+  if (!key || !from) {
+    // Local dev without a provider: print the mail so links (login, invites) can still be used.
+    if (process.env.NODE_ENV !== "production") console.info(`[mail not sent – no RESEND_API_KEY/EMAIL_FROM]\nTo: ${mail.to}\nSubject: ${mail.subject}\n\n${mail.text}`)
+    return false
+  }
   if (asName) from = `${asName.replace(/[<>"]/g, "")} <${from.match(/<([^>]+)>/)?.[1] ?? from}>`
   await resend.email!.send({ ...mail, from }, { config: {}, secret: { apiKey: key } })
   return true

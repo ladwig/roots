@@ -367,9 +367,9 @@ export const publicEndpoints: PublicEndpoint[] = [
     path: "/{org}/forms/{slug}/submissions",
     tag: "Forms",
     summary: "Submit a form",
-    description: "Validated exactly like the hosted form. Contact forms create/update the contact at once; membership applications wait for the board. The submitter gets a confirmation email. Error `invalid` with `details.field`.",
+    description: "Validated exactly like the hosted form. Contact forms create/update the contact at once; membership applications wait for the board. The submitter gets a confirmation email (`confirmation_sent` false = it couldn't be sent). Error `invalid` with `details.field`.",
     body: z.object({ values: z.record(z.string().max(100), z.union([z.string().max(2000), z.boolean(), z.number()])) }).strict(),
-    response: z.object({ id: uuid, success_text: z.string() }),
+    response: z.object({ id: uuid, success_text: z.string(), confirmation_sent: z.boolean() }),
     status: 201,
     async handler({ org, params, body, t }) {
       const f = await publicForm(org, params.slug)
@@ -382,7 +382,7 @@ export const publicEndpoints: PublicEndpoint[] = [
         if (r.error === "errors.generic") throw new ApiError(500, "internal", t("errors.generic"))
         throw new ApiError(422, "invalid", t.has(r.error) ? t.dynamic(r.error) : t("errors.invalid_input"), r.field ? { field: r.field } : undefined)
       }
-      return { id: r.id, success_text: f.success_text || t("forms.thanks") }
+      return { id: r.id, success_text: f.success_text || t("forms.thanks"), confirmation_sent: !r.mailFailed }
     },
   }),
   endpoint({
@@ -420,11 +420,11 @@ export const publicEndpoints: PublicEndpoint[] = [
     path: "/{org}/portal/login-link",
     tag: "Member area",
     summary: "Email a member-area login link",
-    description: "Always answers the same, whether or not the address is known. The link opens the hosted member area.",
+    description: "Answers the same whether or not the address is known. The link opens the hosted member area. 503 email_unavailable: the org can't send emails right now.",
     body: z.object({ email }).strict(),
     response: z.object({ ok: z.literal(true) }),
     async handler({ org, body, t }) {
-      await sendLoginLink(org, org.slug, body.email, t)
+      if (!(await sendLoginLink(org, org.slug, body.email, t))) throw new ApiError(503, "email_unavailable", t("portal.mailFailed"))
       return { ok: true }
     },
   }),

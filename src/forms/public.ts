@@ -14,7 +14,7 @@ export async function submitPublicForm(
   form: PublicForm,
   value: (key: string) => string,
   t: T,
-): Promise<{ error: string; field?: string } | { id: string }> {
+): Promise<{ error: string; field?: string } | { id: string; mailFailed: boolean }> {
   const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
   const r = readSubmission(form.elements, value, {
     purpose: form.purpose,
@@ -53,15 +53,16 @@ export async function submitPublicForm(
     return { error: "errors.generic" }
   }
   deliverSoon()
-  // Confirmation to the submitter (best effort).
+  // Confirmation to the submitter; the submission counts either way, the page says when the mail couldn't go out.
+  let mailFailed = false
   if (r.data.contact.email) {
     const text = [form.success_text || t("forms.thanks"), "", `— ${org.name}`].join("\n")
-    await sendOrgEmail(org.id, {
+    mailFailed = !(await sendOrgEmail(org.id, {
       to: r.data.contact.email,
       subject: t("forms.confirmSubject", { form: form.title }),
       text,
       html: text.split("\n").map((l) => `<p style="margin:0 0 4px">${l.replace(/[<>&]/g, (x) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[x]!)}</p>`).join(""),
-    }).catch(() => false)
+    }).catch(() => false))
   }
-  return { id: row.id }
+  return { id: row.id, mailFailed }
 }
