@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation"
+import { GraduationCapIcon, Trash2Icon } from "lucide-react"
+import { ActionsMenu, MenuLink } from "@/components/actions-menu"
+import { Page, PageHeader } from "@/components/page"
 import Link from "next/link"
-import { PlusIcon } from "lucide-react"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { pageParam, param } from "@/lib/url"
@@ -40,23 +41,24 @@ export default async function CoursesPage({ searchParams }: PageProps<"/courses"
   })
 
   return (
-    <div className="grid gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{t("courses.title")}</h1>
-        {canManage && (
-          <Button render={<Link href="/courses/new" />} nativeButton={false} size="sm">
-            <PlusIcon /> {t("courses.new")}
-          </Button>
-        )}
-      </div>
+    <Page>
+      <PageHeader
+        area="courses"
+        title={trash ? `${t("courses.title")} · ${t("courses.trash")}` : t("courses.title")}
+        menu={
+          canManage && (
+            <ActionsMenu>
+              <MenuLink href={trash ? "/courses" : "/courses?status=trash"} icon={trash ? GraduationCapIcon : Trash2Icon}>
+                {trash ? t("courses.backToList") : t("courses.trash")}
+              </MenuLink>
+            </ActionsMenu>
+          )
+        }
+        primary={canManage && !trash ? { href: "/courses/new", label: t("courses.new") } : undefined}
+      />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <SearchBox q={q} label={t("courses.search")} keep={trash ? { status: "trash" } : undefined} />
-        {canManage && (
-          <Link href={trash ? "/courses" : "/courses?status=trash"} className="text-sm text-muted-foreground underline-offset-4 hover:underline">
-            {trash ? t("courses.backToList") : t("courses.trash")}
-          </Link>
-        )}
       </div>
       <DataTable
         rows={rows}
@@ -86,7 +88,7 @@ export default async function CoursesPage({ searchParams }: PageProps<"/courses"
         ]}
       />
       <Pager sp={sp} page={page} hasNext={(data?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
-    </div>
+    </Page>
   )
 }
 

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { contactName } from "@/app/(app)/contacts/fields"
 import { Notice } from "@/components/notice"
-import { PageCrumbs } from "@/components/page-crumbs"
+import { FormCard, Page, PageHeader } from "@/components/page"
 import { SubmitButton } from "@/components/submit-button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -29,15 +29,13 @@ export default async function SessionPage({ params, searchParams }: { params: Pr
   const title = t.date(s.starts_at, { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })
 
   return (
-    <div className="grid max-w-3xl gap-6">
-      <PageCrumbs items={[{ href: "/courses", label: t("courses.title") }, { href: `/courses/${id}#dates`, label: s.courses.title }, { label: title }]} />
-      <h1 className="font-heading text-2xl font-semibold">{title}</h1>
+    <Page size="form">
+      <PageHeader crumbs={[{ href: "/courses", label: t("courses.title") }, { href: `/courses/${id}#dates`, label: s.courses.title }, { label: title }]} title={title} />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
       {s.cancelled && <p className="rounded-lg border bg-muted px-3 py-2 text-sm">{t("courses.dateIsCancelled")}</p>}
 
       {s.courses.track_attendance && !s.cancelled && (
-        <section id="attendance" className="grid gap-3">
-          <h2 className="font-medium">{t("courses.attendance")}</h2>
+        <FormCard id="attendance" title={t("courses.attendance")}>
           {!people?.length ? (
             <p className="text-sm text-muted-foreground">{t("courses.noParticipants")}</p>
           ) : (
@@ -58,12 +56,11 @@ export default async function SessionPage({ params, searchParams }: { params: Pr
               {canManage && <SubmitButton className="justify-self-start">{t("courses.saveAttendance")}</SubmitButton>}
             </form>
           )}
-        </section>
+        </FormCard>
       )}
 
       {canManage && (
-        <section id="date" className="grid gap-3">
-          <h2 className="font-medium">{t("courses.editDate")}</h2>
+        <FormCard id="date" title={t("courses.editDate")}>
           <form action={updateSession} className="grid gap-4">
             <input type="hidden" name="id" value={sessionId} />
             <input type="hidden" name="course_id" value={id} />
@@ -94,9 +91,9 @@ export default async function SessionPage({ params, searchParams }: { params: Pr
               {t("courses.deleteDate")}
             </SubmitButton>
           </form>
-        </section>
+        </FormCard>
       )}
-    </div>
+    </Page>
   )
 }
 
