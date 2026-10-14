@@ -7,10 +7,11 @@ import { loadFields, readCustomObject, type CustomValues } from "@/lib/custom-fi
 import { validRangeFormat } from "@/lib/number-ranges"
 import { isPaused, type Interval } from "@/members/dues"
 import { memberDoor } from "@/members/door"
-import { BIC, compact, CREDITOR_ID, IBAN, type Fail } from "@/members/server"
+import { compact, CREDITOR_ID, type Fail } from "@/members/server"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
 import { ImportResult, trashRow } from "./contacts"
 import { berlinToday, Custom, day, ts, type Db } from "./shared"
+import { bicValid, ibanValid } from "@/lib/inputs"
 
 const en = createT("en", messages.en) // API messages
 const de = createT("de", messages.de) // text that ends up in data or mails (German first, like the org's public pages)
@@ -270,8 +271,8 @@ export const endpoints: Endpoint[] = [
       ])
       const next = { creditor_name: null, creditor_id: null, iban: null, bic: null, due_day: 15, ...cur, ...rest }
       const row = { ...next, creditor_name: next.creditor_name || null, iban: compact(next.iban), bic: compact(next.bic), creditor_id: compact(next.creditor_id) }
-      if (row.iban && !IBAN.test(row.iban)) throw new ApiError(422, "iban_invalid", en("membership.ibanInvalid"))
-      if (row.bic && !BIC.test(row.bic)) throw new ApiError(422, "bic_invalid", en("membership.bicInvalid"))
+      if (row.iban && !ibanValid(row.iban)) throw new ApiError(422, "iban_invalid", en("membership.ibanInvalid"))
+      if (row.bic && !bicValid(row.bic)) throw new ApiError(422, "bic_invalid", en("membership.bicInvalid"))
       if (row.creditor_id && !CREDITOR_ID.test(row.creditor_id)) throw new ApiError(422, "creditor_id_invalid", en("membership.creditorIdInvalid"))
       const { error } = await db.from("member_settings").upsert({ ...row, org_id: orgId }, { onConflict: "org_id" })
       if (error) throw dbError(error)

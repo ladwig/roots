@@ -14,7 +14,11 @@
     "open": "Öffnen",
     "upload": "Hochladen",
     "removeImage": "Bild entfernen",
-    "clear": "Leeren"
+    "clear": "Leeren",
+    "moreActions": "Weitere Aktionen",
+    "unsaved": "Ungespeicherte Änderungen",
+    "discard": "Verwerfen",
+    "settings": "Einstellungen"
   },
   "auth": {
     "title": "Bei roots anmelden",
@@ -4168,5 +4172,27 @@
     "statusInUse": "Die Spalte enthält noch Aufgaben.",
     "searchPeople": "Person suchen…",
     "saving": "Speichert…"
+  },
+  "inputs": {
+    "placeholder": {
+      "iban": "DE00 0000 0000 0000 0000 00",
+      "bic": "ABCDDEFFXXX",
+      "postcode": "10115",
+      "phone": "+49 30 1234567",
+      "email": "name@beispiel.de",
+      "url": "https://",
+      "money": "0,00"
+    },
+    "invalid": {
+      "iban": "Diese IBAN stimmt nicht – bitte Ziffern prüfen.",
+      "bic": "Eine BIC hat 8 oder 11 Zeichen, z. B. COBADEFFXXX.",
+      "postcode": "Bitte eine gültige Postleitzahl eingeben.",
+      "phone": "Bitte nur Ziffern, Leerzeichen und + / ( ) - verwenden.",
+      "email": "Bitte eine gültige E-Mail-Adresse eingeben.",
+      "url": "Bitte eine vollständige Adresse mit https:// eingeben.",
+      "money": "Bitte einen Betrag wie 12,50 eingeben.",
+      "number": "Bitte eine Zahl eingeben.",
+      "date": "Bitte ein Datum eingeben."
+    }
   }
 }

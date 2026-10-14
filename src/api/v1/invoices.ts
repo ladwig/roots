@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { TAX_RATES, UNITS } from "@/documents/calc"
-import { BIC, copyDocument, createDraft, IBAN, issueDraft, validRangeFormat, VAT_ID, writeDraft, type DraftHeader, type DraftItem } from "@/documents/drafts"
+import { copyDocument, createDraft, issueDraft, validRangeFormat, VAT_ID, writeDraft, type DraftHeader, type DraftItem } from "@/documents/drafts"
 import { loadDocView, pdfLogo } from "@/documents/load"
 import { renderPdf } from "@/documents/pdf"
 import { TEMPLATES } from "@/documents/templates"
@@ -13,6 +13,7 @@ import { sendOrgEmail } from "@/lib/org-email"
 import { refreshPublicFromApi } from "@/lib/public-cache"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
 import { day, ts, type Db } from "./shared"
+import { bicValid, ibanValid } from "@/lib/inputs"
 
 // Documents are rendered in the org's document language (German for now), like the App's print view for German users.
 const docT = () => createT(defaultLocale, messages[defaultLocale])
@@ -420,8 +421,8 @@ export const endpoints: Endpoint[] = [
       const blank = (v: unknown) => (typeof v === "string" && !v ? null : v)
       for (const k of Object.keys(patch) as (keyof typeof patch)[]) if (patch[k] === undefined) delete patch[k]
       if (patch.vat_id && !VAT_ID.test(patch.vat_id)) throw new ApiError(422, "invalid_vat_id", "The VAT ID is invalid.")
-      if (patch.iban && !IBAN.test(patch.iban)) throw new ApiError(422, "invalid_iban", "The IBAN is invalid.")
-      if (patch.bic && !BIC.test(patch.bic)) throw new ApiError(422, "invalid_bic", "The BIC is invalid.")
+      if (patch.iban && !ibanValid(patch.iban)) throw new ApiError(422, "invalid_iban", "The IBAN is invalid.")
+      if (patch.bic && !bicValid(patch.bic)) throw new ApiError(422, "invalid_bic", "The BIC is invalid.")
       const row = Object.fromEntries(Object.entries(patch).map(([k, v]) => [k, blank(v)])) as typeof patch
       const { data: existing } = await db.from("org_billing").select("org_id").eq("org_id", orgId).maybeSingle()
       const { data, error } = existing

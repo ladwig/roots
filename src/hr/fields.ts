@@ -2,6 +2,7 @@
 // `get(key)` returns the raw string ("" = empty). Returns { row } or { error: message key, field }.
 import type { TablesUpdate } from "../lib/supabase/types.ts"
 import { parsePrice } from "../tickets/price.ts"
+import { ibanValid } from "../lib/inputs.ts"
 
 export const EMPLOYMENT_TYPES = ["full_time", "part_time", "minijob", "working_student", "trainee", "freelance", "volunteer", "other"] as const
 export const PAY_TYPES = ["hourly", "monthly", "none"] as const
@@ -68,7 +69,7 @@ export function readPrivate(get: Get): Result<TablesUpdate<"employee_private">> 
   const birthday = get("birthday") || null
   if (birthday && !DAY.test(birthday)) return { error: "errors.invalid_input", field: "birthday" }
   const iban = get("iban").toUpperCase().replace(/\s/g, "") || null
-  if (iban && !/^[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}$/.test(iban)) return { error: "errors.invalid_iban", field: "iban" }
+  if (iban && !ibanValid(iban)) return { error: "errors.invalid_iban", field: "iban" }
   const taxId = get("tax_id").replace(/\s/g, "") || null
   if (taxId && !/^[0-9]{11}$/.test(taxId)) return { error: "hr.taxIdInvalid", field: "tax_id" }
   const taxClass = get("tax_class") || null

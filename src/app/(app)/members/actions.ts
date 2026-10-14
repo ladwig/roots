@@ -10,7 +10,8 @@ import { loadFields, readCustom } from "@/lib/custom-fields"
 import { validRangeFormat } from "@/lib/number-ranges"
 import { INTERVALS } from "@/members/dues"
 import * as members from "@/members/server"
-import { BIC, compact, CREDITOR_ID, IBAN, PAYMENT_METHODS, today, type Fail } from "@/members/server"
+import { compact, CREDITOR_ID, PAYMENT_METHODS, today, type Fail } from "@/members/server"
+import { bicValid, ibanValid, moneyCents } from "@/lib/inputs"
 
 const PATH = "/members"
 const DUES = "/members/dues"
@@ -26,7 +27,7 @@ async function manager(path = PATH) {
 }
 const str = (fd: FormData, key: string, max: number) => String(fd.get(key) ?? "").trim().slice(0, max) || null
 const date = (fd: FormData, key: string) => (DATE.test(String(fd.get(key) ?? "")) ? String(fd.get(key)) : null)
-const cents = (fd: FormData, key: string) => Math.round(Math.max(0, Number(String(fd.get(key) ?? "0").replace(",", ".")) || 0) * 100)
+const cents = (fd: FormData, key: string) => moneyCents(String(fd.get(key) ?? "0")) ?? 0
 const message = (t: T, f: Fail) => (f.db ? dbError(t, f.db) : t.dynamic(f.error, f.vars))
 
 // ---------- memberships ----------
@@ -171,8 +172,8 @@ export async function saveSettings(fd: FormData) {
   const iban = compact(str(fd, "iban", 40))
   const bic = compact(str(fd, "bic", 11))
   const creditorId = compact(str(fd, "creditor_id", 35))
-  if (iban && !IBAN.test(iban)) back(SETUP, { error: t("membership.ibanInvalid") })
-  if (bic && !BIC.test(bic)) back(SETUP, { error: t("membership.bicInvalid") })
+  if (iban && !ibanValid(iban)) back(SETUP, { error: t("membership.ibanInvalid") })
+  if (bic && !bicValid(bic)) back(SETUP, { error: t("membership.bicInvalid") })
   if (creditorId && !CREDITOR_ID.test(creditorId)) back(SETUP, { error: t("membership.creditorIdInvalid") })
   const { error } = await ctx.supabase.from("member_settings").upsert({
     org_id: ctx.org.id,

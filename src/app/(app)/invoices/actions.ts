@@ -9,9 +9,10 @@ import { requirePerm } from "@/lib/context"
 import { refreshPublic } from "@/lib/public-cache"
 import { back } from "@/lib/url"
 import { TAX_RATES, UNITS } from "@/documents/calc"
-import { BIC, copyDocument as copyDraft, createDraft, IBAN, issueDraft, validRangeFormat, VAT_ID, writeDraft } from "@/documents/drafts"
+import { copyDocument as copyDraft, createDraft, issueDraft, validRangeFormat, VAT_ID, writeDraft } from "@/documents/drafts"
 import { TEMPLATES } from "@/documents/templates"
 import { parsePrice } from "@/tickets/price"
+import { bicValid, ibanValid } from "@/lib/inputs"
 
 const PATH = "/invoices"
 const text = (fd: FormData, k: string, max: number) => String(fd.get(k) ?? "").trim().slice(0, max) || null
@@ -161,8 +162,8 @@ export async function saveBilling(fd: FormData) {
   const iban = upper("iban", 34)
   const bic = upper("bic", 11)
   if (vat && !VAT_ID.test(vat)) back(here, { error: t("invoices.vatInvalid") })
-  if (iban && !IBAN.test(iban)) back(here, { error: t("invoices.ibanInvalid") })
-  if (bic && !BIC.test(bic)) back(here, { error: t("invoices.bicInvalid") })
+  if (iban && !ibanValid(iban)) back(here, { error: t("invoices.ibanInvalid") })
+  if (bic && !bicValid(bic)) back(here, { error: t("invoices.bicInvalid") })
   const template = TEMPLATES.find((x) => x === fd.get("template")) ?? "classic"
   const days = (k: string, d: number) => Math.min(365, Math.max(0, Math.floor(Number(fd.get(k)) || d)))
   const { error } = await ctx.supabase.from("org_billing").upsert({

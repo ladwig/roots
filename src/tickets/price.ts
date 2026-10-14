@@ -1,7 +1,8 @@
-// "12,50" / "12.50" / "12" → 1250 cents; null if invalid. And back for inputs: 1250 → "12,50".
+import { formatMoney, moneyCents } from "../lib/inputs.ts"
+
+// "12,50" / "1.234,50" / "12.50" / "12" → cents (max 999 999,99); null if invalid. And back for inputs: 1250 → "12,50".
 export function parsePrice(raw: string): number | null {
-  const v = raw.trim().replace(",", ".")
-  if (!/^\d{1,6}(\.\d{1,2})?$/.test(v)) return null
-  return Math.round(Number(v) * 100)
+  const c = moneyCents(raw)
+  return c !== null && c <= 99_999_999 ? c : null
 }
-export const priceInput = (cents: number) => (cents / 100).toFixed(2).replace(".", ",")
+export const priceInput = formatMoney

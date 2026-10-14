@@ -17,9 +17,9 @@ export function DataTable<R>({
   rows: R[]
   rowKey: (row: R) => string
   rowHref?: (row: R) => string | undefined
-  empty: string
+  empty: React.ReactNode // text, or an <EmptyState> (lists that have never had a row)
 }) {
-  if (!rows.length) return <p className="rounded-lg border px-4 py-8 text-center text-sm text-muted-foreground">{empty}</p>
+  if (!rows.length) return typeof empty !== "string" ? empty : <p className="rounded-lg border px-4 py-8 text-center text-sm text-muted-foreground">{empty}</p>
   return (
     <>
       {/* Phones: one card per row (first column = title, the rest as label/value). Tablet + desktop: the table. */}

@@ -6,6 +6,7 @@ import type { T } from "@/i18n/translate"
 import { getContext, requirePerm } from "@/lib/context"
 import { back } from "@/lib/url"
 import { createOrder, refundOrder, startCheckout } from "@/payments/server"
+import { moneyCents } from "@/lib/inputs"
 
 const PATH = "/payments"
 const errorText = (t: T, e: unknown) => {
@@ -13,7 +14,7 @@ const errorText = (t: T, e: unknown) => {
   if (!t.has(key)) console.error(e)
   return t.has(key) ? t.dynamic(key) : t("errors.generic")
 }
-const euros = (v: FormDataEntryValue | null) => Math.round(Number(String(v ?? "").replace(",", ".")) * 100)
+const euros = (v: FormDataEntryValue | null) => moneyCents(String(v ?? "")) ?? NaN
 
 export async function refund(orderId: string, formData: FormData) {
   const ctx = await requirePerm("payments.refund")

@@ -9,6 +9,7 @@ import { earliestEnd, type Interval } from "@/members/dues"
 import { sendLoginLink } from "@/portal/login"
 import { getPortalContact, signIn, signOut } from "@/portal/session"
 import { getSite } from "../data"
+import { bicValid, ibanValid } from "@/lib/inputs"
 
 const str = (fd: FormData, key: string, max: number) => String(fd.get(key) ?? "").trim().slice(0, max) || null
 const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
@@ -84,7 +85,7 @@ export async function updateMyBank(fd: FormData) {
   if (!m) back(here, { error: t("errors.not_allowed") })
   const iban = str(fd, "iban", 42)?.toUpperCase().replace(/\s/g, "") ?? ""
   const bic = str(fd, "bic", 11)?.toUpperCase().replace(/\s/g, "") || null
-  if (!/^[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}$/.test(iban)) back(here, { error: t("errors.invalid_iban") })
+  if (!ibanValid(iban)) back(here, { error: t("errors.invalid_iban") })
   if (bic && !/^[A-Z0-9]{8}([A-Z0-9]{3})?$/.test(bic)) back(here, { error: t("errors.invalid_bic") })
   if (fd.get("mandate_ok") !== "on") back(here, { error: t("errors.mandate_required") })
   const { data: cur } = await db.from("memberships").select("mandate_ref, number").eq("id", m.id).single()

@@ -8,7 +8,7 @@ import { useT } from "@/i18n/client"
 export type MultiOption = { value: string; label: string }
 
 /**
- * Several values as chips + a search field with a dropdown (type to filter, Enter takes the first hit).
+ * Several values as chips (`single`: one value, picking another replaces it) + a search field with a dropdown (type to filter, Enter takes the first hit).
  * `creatable`: the dropdown also offers „<typed>“ as a new value. Posts `name` once per value, or comma-joined with `joined`.
  * ponytail: filters the given options in the browser; pickers over big tables use a server search (ContactPicker).
  */
@@ -18,6 +18,7 @@ export function MultiSelect({
   defaultValue = [],
   creatable,
   joined,
+  single,
   disabled,
   id: givenId,
   placeholder,
@@ -28,6 +29,7 @@ export function MultiSelect({
   defaultValue?: string[]
   creatable?: boolean
   joined?: boolean
+  single?: boolean
   disabled?: boolean
   id?: string
   placeholder?: string
@@ -45,7 +47,8 @@ export function MultiSelect({
   const hits = options.filter((o) => !has(o.value) && o.label.toLowerCase().includes(term.toLowerCase())).slice(0, 30)
   const canCreate = creatable && term && !has(term) && !options.some((o) => o.label.toLowerCase() === term.toLowerCase())
   const add = (v: string) => {
-    if (v && !has(v) && selected.length < max) setSelected([...selected, v])
+    if (v && single) setSelected([v])
+    else if (v && !has(v) && selected.length < max) setSelected([...selected, v])
     setQ("")
   }
   // Chips change no real input: send an "input" event so forms that react to it (autosave) notice.
@@ -60,7 +63,7 @@ export function MultiSelect({
   return (
     <div ref={box} className="relative">
       {joined ? <input type="hidden" name={name} value={selected.join(", ")} /> : selected.map((v) => <input key={v} type="hidden" name={name} value={v} />)}
-      <div className="flex min-h-9 flex-wrap items-center gap-1.5 rounded-lg border border-input px-2 py-1 dark:bg-input/30">
+      <div className="flex min-h-8 flex-wrap items-center gap-1.5 rounded-lg border border-input px-2 py-1 dark:bg-input/30">
         {selected.map((v) => (
           <span key={v} className="inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-0.5 text-xs text-primary-foreground">
             {labelOf(v)}
@@ -94,7 +97,7 @@ export function MultiSelect({
               } else if (e.key === "Backspace" && !q && selected.length) setSelected(selected.slice(0, -1))
               else if (e.key === "Escape") setOpen(false)
             }}
-            className="h-7 min-w-28 flex-1 border-0 px-1 shadow-none focus-visible:ring-0 dark:bg-transparent"
+            className="h-6 min-w-28 flex-1 border-0 px-1 shadow-none focus-visible:ring-0 dark:bg-transparent"
           />
         )}
       </div>

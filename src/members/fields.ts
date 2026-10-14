@@ -3,6 +3,7 @@
 import { CONTACT_FIELDS, readContact, type ContactRow } from "../app/(app)/contacts/fields.ts"
 import type { ImportField } from "../lib/csv.ts"
 import { parseValue, type FieldDef } from "../lib/custom-fields.ts"
+import { ibanValid } from "../lib/inputs.ts"
 
 export const MEMBER_FIELDS: (ImportField & { label: string })[] = [
   { key: "membership.type", label: "membership.type", aliases: ["mitgliedsart", "beitragsart", "art", "typ", "membership type", "type", "beitragsgruppe", "status"] },
@@ -54,7 +55,7 @@ export function readMember(get: (key: string) => string, types: { id: string; na
   const num = /^\D*(\d{1,9})$/.exec(rawNo)?.[1] // "M-0042" → 42, keeps "M-0042" as the shown number
   const iban = get("membership.iban").toUpperCase().replace(/\s/g, "") || null
   const bic = get("membership.bic").toUpperCase().replace(/\s/g, "") || null
-  if (iban && !/^[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}$/.test(iban)) return { error: "errors.invalid_iban" }
+  if (iban && !ibanValid(iban)) return { error: "errors.invalid_iban" }
   if (bic && !/^[A-Z0-9]{8}([A-Z0-9]{3})?$/.test(bic)) return { error: "errors.invalid_bic" }
   const ref = get("membership.mandate_ref").trim().slice(0, 35) || null
   return {

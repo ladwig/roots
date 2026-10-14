@@ -14,8 +14,6 @@ export const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "E
 export const addDays = (d: string, n: number) => new Date(new Date(`${d}T12:00:00Z`).getTime() + n * 86_400_000).toISOString().slice(0, 10)
 
 export const VAT_ID = /^[A-Z]{2}[A-Z0-9]{2,13}$/
-export const IBAN = /^[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}$/
-export const BIC = /^[A-Z0-9]{8}([A-Z0-9]{3})?$/
 /** Number range format: needs {N…}, otherwise only {YYYY} {YY} {MM} and A-Z 0-9 - _ / . # */
 export { validRangeFormat } from "@/lib/number-ranges"
 

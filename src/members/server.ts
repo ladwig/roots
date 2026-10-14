@@ -14,13 +14,12 @@ import type { CustomValues } from "@/lib/custom-fields"
 import { billable, earliestEnd, periodFee, periods, type Interval } from "./dues"
 import { IMPORT_FIELDS, readMember, type MemberRow } from "./fields"
 import { pain008 } from "./sepa"
+import { bicValid, ibanValid } from "@/lib/inputs"
 
 type Db = SupabaseClient<Database>
 /** `missing`: the record doesn't exist in this org. */
 export type Fail = { error: string; vars?: Vars; db?: { code?: string; message: string }; missing?: boolean }
 
-export const IBAN = /^[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}$/
-export const BIC = /^[A-Z0-9]{8}([A-Z0-9]{3})?$/
 export const CREDITOR_ID = /^[A-Z]{2}[0-9]{2}[A-Z0-9]{3}[A-Z0-9]{1,28}$/
 export const compact = (v: string | null | undefined) => v?.toUpperCase().replace(/\s/g, "") || null
 export const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
@@ -60,8 +59,8 @@ export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
 function membershipRow(m: MembershipInput) {
   const iban = compact(m.iban)
   const bic = compact(m.bic)
-  if (iban && !IBAN.test(iban)) return fail("membership.ibanInvalid")
-  if (bic && !BIC.test(bic)) return fail("membership.bicInvalid")
+  if (iban && !ibanValid(iban)) return fail("membership.ibanInvalid")
+  if (bic && !bicValid(bic)) return fail("membership.bicInvalid")
   return {
     row: {
       type_id: m.type_id,

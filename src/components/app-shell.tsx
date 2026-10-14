@@ -1,5 +1,6 @@
 import { cookies } from "next/headers"
 import { AppSidebar, type Me, type SidebarLink } from "@/components/app-sidebar"
+import { Shortcuts } from "@/components/shortcuts"
 import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 
@@ -30,7 +31,10 @@ export async function AppShell({
           <Separator orientation="vertical" className="mr-1 data-vertical:h-4" />
           <span className="truncate text-sm font-medium">{title}</span>
         </header>
-        <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
+        <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">
+          {children}
+          <Shortcuts />
+        </main>
       </SidebarInset>
     </SidebarProvider>
   )

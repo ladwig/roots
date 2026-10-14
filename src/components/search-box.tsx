@@ -36,6 +36,7 @@ export function SearchBox({ q, label, keep }: { q?: string; label: string; keep?
       <Input
         type="search"
         name="q"
+        data-shortcut="search"
         value={value}
         placeholder={label}
         aria-label={label}

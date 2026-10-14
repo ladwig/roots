@@ -2,6 +2,7 @@
 // submissions. Pure (relative .ts imports) so the builder, the public page, the action and node --test share it.
 import { readContact, type ContactRow } from "../app/(app)/contacts/fields.ts"
 import type { FieldDef } from "../lib/custom-fields.ts"
+import { ibanValid } from "../lib/inputs.ts"
 
 export type Purpose = "contact" | "membership"
 export const PURPOSES: Purpose[] = ["contact", "membership"]
@@ -92,7 +93,7 @@ export function readSubmission(
     if (els.some((e) => e.kind === "mandate")) {
       const iban = get("iban").toUpperCase().replace(/\s/g, "")
       const bic = get("bic").toUpperCase().replace(/\s/g, "")
-      if (!/^[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}$/.test(iban)) return { error: "errors.invalid_iban" }
+      if (!ibanValid(iban)) return { error: "errors.invalid_iban" }
       if (bic && !/^[A-Z0-9]{8}([A-Z0-9]{3})?$/.test(bic)) return { error: "errors.invalid_bic" }
       if (get("mandate_ok") !== "on") return { error: "errors.mandate_required" }
       Object.assign(membership, { iban, bic: bic || null, account_holder: get("account_holder").trim().slice(0, 70) || null })

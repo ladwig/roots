@@ -14,7 +14,11 @@
     "open": "Open",
     "upload": "Upload",
     "removeImage": "Remove image",
-    "clear": "Clear"
+    "clear": "Clear",
+    "moreActions": "More actions",
+    "unsaved": "Unsaved changes",
+    "discard": "Discard",
+    "settings": "Settings"
   },
   "auth": {
     "title": "Sign in to roots",
@@ -4168,5 +4172,27 @@
     "statusInUse": "The column still contains tasks.",
     "searchPeople": "Search people…",
     "saving": "Saving…"
+  },
+  "inputs": {
+    "placeholder": {
+      "iban": "DE00 0000 0000 0000 0000 00",
+      "bic": "ABCDDEFFXXX",
+      "postcode": "10115",
+      "phone": "+49 30 1234567",
+      "email": "name@example.com",
+      "url": "https://",
+      "money": "0,00"
+    },
+    "invalid": {
+      "iban": "This IBAN isn't right – please check the digits.",
+      "bic": "A BIC has 8 or 11 characters, e.g. COBADEFFXXX.",
+      "postcode": "Please enter a valid postcode.",
+      "phone": "Please use digits, spaces and + / ( ) - only.",
+      "email": "Please enter a valid email address.",
+      "url": "Please enter a full address starting with https://.",
+      "money": "Please enter an amount like 12.50.",
+      "number": "Please enter a number.",
+      "date": "Please enter a date."
+    }
   }
 }
