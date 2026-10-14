@@ -9,17 +9,17 @@ import { resend } from "@/integrations/resend"
 export type OrgEmail = Omit<Mail, "from">
 
 // A function, not a constant: integrations → payments → tickets → here is an import cycle.
-// TODO: sendOrgEmail calls this twice; call it once at the top and reuse the list.
 const emailProviders = () => integrations.filter((i) => i.email)
 
 export async function sendOrgEmail(orgId: string, mail: OrgEmail): Promise<boolean> {
   const db = createAdminClient()
+  const providers = emailProviders()
   const [{ data: org }, { data: rows }] = await Promise.all([
     db.from("orgs").select("name").eq("id", orgId).single(),
-    db.from("org_integrations").select("provider, config, status").eq("org_id", orgId).in("provider", emailProviders().map((i) => i.key)).eq("status", "connected"),
+    db.from("org_integrations").select("provider, config, status").eq("org_id", orgId).in("provider", providers.map((i) => i.key)).eq("status", "connected"),
   ])
   for (const row of rows ?? []) {
-    const provider = emailProviders().find((i) => i.key === row.provider)!
+    const provider = providers.find((i) => i.key === row.provider)!
     const config = (row.config ?? {}) as Record<string, unknown>
     const secret = await getSecret(orgId, row.provider)
     if (secret && config.from) {
