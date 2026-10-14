@@ -1,11 +1,11 @@
 import Link from "next/link"
+import { ActionsMenu, MenuLink, MenuSeparator, MenuSubmit } from "@/components/actions-menu"
 import { notFound, redirect } from "next/navigation"
-import { FilePlusIcon, HistoryIcon } from "lucide-react"
+import { FilePlusIcon, HistoryIcon, Trash2Icon } from "lucide-react"
 import { Markdown } from "@/components/markdown"
 import { Notice } from "@/components/notice"
 import { PageCrumbs } from "@/components/page-crumbs"
 import { SubmitButton } from "@/components/submit-button"
-import { Button } from "@/components/ui/button"
 import { UrlSheet } from "@/components/url-sheet"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
@@ -82,9 +82,6 @@ export default async function WikiPageView({ params, searchParams }: { params: P
                       </SubmitButton>
                     </form>
                   )}
-                  <Button render={<Link href={`/wiki/${page.id}${withParams(sp, { history: "1" })}`} />} nativeButton={false} size="sm" variant="outline">
-                    <HistoryIcon /> {t("wiki.history")}
-                  </Button>
                   <ShareButton
                     pageId={page.id}
                     canManage={canManage}
@@ -97,6 +94,19 @@ export default async function WikiPageView({ params, searchParams }: { params: P
                     })()}
                     roles={(roles ?? []).filter((r) => !r.is_owner).map((r) => ({ id: r.id, label: t.pick(r.name as Record<string, string>) }))}
                   />
+                  <ActionsMenu>
+                    <MenuLink href={`/wiki/${page.id}${withParams(sp, { history: "1" })}`} icon={HistoryIcon}>
+                      {t("wiki.history")}
+                    </MenuLink>
+                    {canManage && (
+                      <>
+                        <MenuSeparator />
+                        <MenuSubmit form="trash-page" icon={Trash2Icon} destructive>
+                          {t("wiki.toTrash")}
+                        </MenuSubmit>
+                      </>
+                    )}
+                  </ActionsMenu>
                 </div>
               </header>
               {editing ? (
@@ -124,11 +134,8 @@ export default async function WikiPageView({ params, searchParams }: { params: P
                 </section>
               )}
               {canManage && (
-                <form action={trashPageAction}>
+                <form id="trash-page" action={trashPageAction} hidden>
                   <input type="hidden" name="id" value={page.id} />
-                  <SubmitButton size="sm" variant="ghost" className="text-muted-foreground">
-                    {t("wiki.toTrash")}
-                  </SubmitButton>
                 </form>
               )}
             </>

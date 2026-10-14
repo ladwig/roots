@@ -2,7 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { CopyIcon, PencilIcon } from "lucide-react"
 import { Notice } from "@/components/notice"
-import { PageCrumbs } from "@/components/page-crumbs"
+import { PageHeader } from "@/components/page"
 import { RichTextEditor } from "@/components/rich-text-editor"
 import { SubmitButton } from "@/components/submit-button"
 import { UrlSheet } from "@/components/url-sheet"
@@ -43,29 +43,29 @@ export default async function TemplatePage({ params, searchParams }: PageProps<"
 
   return (
     <>
-      <PageCrumbs items={[{ href: "/files", label: t("files.title") }, { href: "/files/templates", label: t("letters.tabs.templates") }, { label: template.name }]} />
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="font-heading text-2xl font-semibold">{template.name}</h1>
-          <Badge variant={own ? "default" : "outline"}>{own ? t("letters.own") : t("letters.default")}</Badge>
-        </div>
-        {canManage && (
-          <div className="flex flex-wrap gap-2">
-            {own && (
-              <Button render={<Link href={withParams(sp, { edit: "1" })} scroll={false} />} nativeButton={false} size="sm" variant="outline">
-                <PencilIcon /> {t("letters.edit")}
-              </Button>
-            )}
-            <form action={copyTemplate}>
-              <input type="hidden" name="id" value={template.id} />
-              <SubmitButton size="sm" variant={own ? "outline" : "default"}>
-                <CopyIcon /> {t("letters.copy")}
-              </SubmitButton>
-            </form>
-          </div>
-        )}
-      </div>
-      {!own && <p className="text-sm text-muted-foreground">{t("letters.defaultHint")}</p>}
+      <PageHeader
+        crumbs={[{ href: "/files", label: t("files.title") }, { href: "/files/templates", label: t("letters.tabs.templates") }, { label: template.name }]}
+        title={template.name}
+        badge={<Badge variant={own ? "default" : "outline"}>{own ? t("letters.own") : t("letters.default")}</Badge>}
+        description={!own ? t("letters.defaultHint") : undefined}
+        actions={
+          canManage && (
+            <>
+              {own && (
+                <Button render={<Link href={withParams(sp, { edit: "1" })} scroll={false} />} nativeButton={false} size="sm" variant="outline">
+                  <PencilIcon /> {t("letters.edit")}
+                </Button>
+              )}
+              <form action={copyTemplate}>
+                <input type="hidden" name="id" value={template.id} />
+                <SubmitButton size="sm" variant={own ? "outline" : "default"}>
+                  <CopyIcon /> {t("letters.copy")}
+                </SubmitButton>
+              </form>
+            </>
+          )
+        }
+      />
       <Notice error={!editing ? param(sp, "error") : undefined} ok={!editing ? param(sp, "ok") : undefined} />
 
       <Composer

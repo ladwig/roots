@@ -25,6 +25,7 @@ export function Page({ size = "list", className, children }: { size?: keyof type
 export function PageHeader({
   title,
   area,
+  icon,
   crumbs,
   badge,
   meta,
@@ -36,6 +37,7 @@ export function PageHeader({
 }: {
   title: React.ReactNode
   area?: string
+  icon?: LucideIcon // pages outside the nav areas (Dateien, Briefe)
   crumbs?: { href?: string; label: string }[]
   badge?: React.ReactNode
   meta?: React.ReactNode
@@ -45,7 +47,7 @@ export function PageHeader({
   primary?: { href: string; label: string; icon?: LucideIcon } | React.ReactNode
   settings?: { href: string; label: string } | false
 }) {
-  const Icon = area ? NAV.find((a) => a.key === area)?.icon : undefined
+  const Icon = icon ?? (area ? NAV.find((a) => a.key === area)?.icon : undefined)
   const isLink = (p: unknown): p is { href: string; label: string; icon?: LucideIcon } => !!p && typeof p === "object" && "href" in p && "label" in p
   const PrimaryIcon = isLink(primary) ? (primary.icon ?? PlusIcon) : null
   return (

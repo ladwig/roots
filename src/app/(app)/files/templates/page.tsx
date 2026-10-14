@@ -1,10 +1,11 @@
-import Link from "next/link"
+import { FileTextIcon, Trash2Icon } from "lucide-react"
+import { ActionsMenu, MenuLink } from "@/components/actions-menu"
+import { PageHeader } from "@/components/page"
 import { DataTable } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { UrlSheet } from "@/components/url-sheet"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
@@ -32,35 +33,22 @@ export default async function TemplatesPage({ searchParams }: PageProps<"/files/
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="grid gap-1">
-          <h1 className="font-heading text-2xl font-semibold">{t("letters.title")}</h1>
-          <p className="max-w-prose text-sm text-muted-foreground">{t("letters.intro")}</p>
-        </div>
-        {canManage && (
-          <Button render={<Link href={withParams(sp, { new: "template" })} scroll={false} />} nativeButton={false} size="sm">
-            {t("letters.new")}
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        icon={FileTextIcon}
+        title={trash ? `${t("letters.title")} · ${t("letters.trash")}` : t("letters.title")}
+        description={t("letters.intro")}
+        menu={
+          canManage && (
+            <ActionsMenu>
+              <MenuLink href={trash ? "/files/templates" : "/files/templates?trash=1"} icon={trash ? FileTextIcon : Trash2Icon}>
+                {trash ? t("letters.all") : t("letters.trash")}
+              </MenuLink>
+            </ActionsMenu>
+          )
+        }
+        primary={canManage && !trash ? { href: withParams(sp, { new: "template" }), label: t("letters.new") } : undefined}
+      />
       <Notice error={!creating ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
-      {canManage && (
-        <nav aria-label={t("letters.kind")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
-          {[
-            { href: "/files/templates", current: !trash, label: t("letters.all") },
-            { href: "/files/templates?trash=1", current: trash, label: t("letters.trash") },
-          ].map((c) => (
-            <Link
-              key={c.href}
-              href={c.href}
-              aria-current={c.current ? "true" : undefined}
-              className="inline-flex min-h-7 items-center gap-1.5 rounded-md px-3 text-sm text-muted-foreground transition-colors hover:text-foreground aria-[current=true]:bg-background aria-[current=true]:font-medium aria-[current=true]:text-foreground aria-[current=true]:shadow-sm"
-            >
-              {c.label}
-            </Link>
-          ))}
-        </nav>
-      )}
       {trash && <p className="text-sm text-muted-foreground">{t("letters.trashHint", { days: 30 })}</p>}
       <DataTable
         rows={rows}

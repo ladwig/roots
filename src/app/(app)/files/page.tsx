@@ -1,4 +1,8 @@
 import Link from "next/link"
+import { FolderIcon, Trash2Icon } from "lucide-react"
+import { ActionsMenu, MenuLink } from "@/components/actions-menu"
+import { FilterMenu } from "@/components/filter-menu"
+import { Page, PageHeader } from "@/components/page"
 import { DownloadIcon, ExternalLinkIcon, FileIcon } from "lucide-react"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { FileUpload } from "@/components/file-upload"
@@ -46,33 +50,29 @@ export default async function FilesPage({ searchParams }: PageProps<"/files">) {
   ])
   const rows = data?.slice(0, PAGE_SIZE) ?? []
   const folders = [...new Set(folderRows?.map((r) => r.folder!))].sort((a, b) => a.localeCompare(b, t.locale))
-  const chip = (href: string, current: boolean, label: string) => (
-    <Link
-      key={label}
-      href={href}
-      aria-current={current ? "true" : undefined}
-      className="inline-flex min-h-7 items-center gap-1.5 rounded-md px-3 text-sm text-muted-foreground transition-colors hover:text-foreground aria-[current=true]:bg-background aria-[current=true]:font-medium aria-[current=true]:text-foreground aria-[current=true]:shadow-sm"
-    >
-      {label}
-    </Link>
-  )
   const attached = (entity: string | null) => (entity ? (t.has(`files.entities.${entity}`) ? t.dynamic(`files.entities.${entity}`) : entity) : "")
 
   return (
-    <div className="grid max-w-5xl gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{t("files.title")}</h1>
-        {canManage && !trash && <FileUpload orgId={ctx.org.id} folder={folder} />}
-      </div>
+    <Page>
+      <PageHeader
+        icon={FolderIcon}
+        title={trash ? `${t("files.title")} · ${t("files.trash")}` : t("files.title")}
+        menu={
+          canManage && (
+            <ActionsMenu>
+              <MenuLink href={trash ? "/files" : "/files?trash=1"} icon={trash ? FolderIcon : Trash2Icon}>
+                {trash ? t("files.all") : t("files.trash")}
+              </MenuLink>
+            </ActionsMenu>
+          )
+        }
+        primary={canManage && !trash && <FileUpload orgId={ctx.org.id} folder={folder} />}
+      />
       <Notice error={!editId ? param(sp, "error") : undefined} ok={!editId ? param(sp, "ok") : undefined} />
 
       <div className="flex flex-wrap items-center gap-3">
         <SearchBox q={q} label={t("common.search")} />
-        <nav aria-label={t("files.folder")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
-          {chip(withParams(sp, { folder: undefined, trash: undefined, page: undefined, edit: undefined }), !trash && !folder, t("files.all"))}
-          {!trash && folders.map((f) => chip(withParams(sp, { folder: f, page: undefined, edit: undefined }), f === folder, f))}
-          {canManage && chip(withParams(sp, { trash: "1", folder: undefined, page: undefined, edit: undefined }), trash, t("files.trash"))}
-        </nav>
+        {!trash && folders.length > 0 && <FilterMenu param="folder" label={t("files.folder")} allLabel={t("files.all")} options={folders.map((f) => ({ value: f, label: f }))} />}
       </div>
       {trash && <p className="text-sm text-muted-foreground">{t("files.trashHint", { days: 30 })}</p>}
 
@@ -153,7 +153,7 @@ export default async function FilesPage({ searchParams }: PageProps<"/files">) {
           )}
         </UrlSheet>
       )}
-    </div>
+    </Page>
   )
 }
 

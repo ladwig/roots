@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { PageHeader } from "@/components/page"
 import { notFound } from "next/navigation"
 import { PlusIcon } from "lucide-react"
 import { SearchBox } from "@/components/data-table"
@@ -41,16 +42,19 @@ export default async function WikiPage({ searchParams }: { searchParams: Promise
 
   return (
     <div className="grid max-w-6xl gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{t("wiki.title")}</h1>
-        {canManage && (
-          <form action={newPageAction}>
-            <SubmitButton size="sm">
-              <PlusIcon /> {t("wiki.newPage")}
-            </SubmitButton>
-          </form>
-        )}
-      </div>
+      <PageHeader
+        area="wiki"
+        title={t("wiki.title")}
+        primary={
+          canManage && (
+            <form action={newPageAction}>
+              <SubmitButton size="sm" data-shortcut="new">
+                <PlusIcon /> {t("wiki.newPage")}
+              </SubmitButton>
+            </form>
+          )
+        }
+      />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
       <div className="grid gap-6 lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-start">
         <aside className="grid gap-2 rounded-lg border p-2 lg:sticky lg:top-4">
