@@ -18,7 +18,9 @@ async function site(fd: FormData) {
   const slug = String(fd.get("site") ?? "")
   const s = await getSite(slug)
   if (!s) redirect("/")
-  return { slug, org: s.org, here: siteActionPath(slug, "/portal") }
+  // Back to the tab the form was on (?tab=data …).
+  const tab = String(fd.get("tab") ?? "")
+  return { slug, org: s.org, here: siteActionPath(slug, "/portal") + (/^[a-z]{1,20}$/.test(tab) ? `?tab=${tab}` : "") }
 }
 
 /** Email a login link. Same answer whether or not the address is known (no member lookup from outside). */

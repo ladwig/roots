@@ -2377,7 +2377,15 @@
     "whatBank": "bank details",
     "portalLink": "Member area for your members: {url}",
     "cardHint": "Your member card: show it on your phone at the door or print it.",
-    "mailFailed": "The email with the sign-in link couldn't be sent right now. Please try again later or contact the club."
+    "mailFailed": "The email with the sign-in link couldn't be sent right now. Please try again later or contact the club.",
+    "tabs": {
+      "card": "Card",
+      "membership": "Membership",
+      "dues": "Dues",
+      "data": "My details",
+      "wiki": "Info"
+    },
+    "noCard": "There is no member card for you yet."
   },
   "tags": {
     "remove": "Remove {tag}",

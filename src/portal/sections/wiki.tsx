@@ -5,13 +5,14 @@ import { outsideIndex, portalMember } from "@/wiki/outside"
 import type { SectionProps } from "../sections"
 
 // Member area: wiki pages the org released for members (house rules, FAQ, statutes …). Members only.
-export async function WikiSection({ orgId, site }: SectionProps) {
+export async function WikiSection({ orgId, site, tab }: SectionProps) {
+  if (tab !== "wiki") return null
   if (!(await portalMember(orgId))) return null
   const pages = await outsideIndex(orgId, "members")
   if (!pages.length) return null
   const t = await getT()
   return (
-    <section className="grid gap-3 rounded-xl border p-5" aria-labelledby="portal-wiki">
+    <section className="grid gap-3 rounded-xl border bg-card p-5" aria-labelledby="portal-wiki">
       <h2 id="portal-wiki" className="font-heading text-lg font-semibold">
         {t("wiki.outside.title")}
       </h2>

@@ -2377,7 +2377,15 @@
     "whatBank": "Bankverbindung",
     "portalLink": "Mitgliederbereich für deine Mitglieder: {url}",
     "cardHint": "Deine Mitgliedskarte: am Einlass auf dem Handy zeigen oder ausdrucken.",
-    "mailFailed": "Die E-Mail mit dem Anmeldelink konnte gerade nicht verschickt werden. Bitte versuche es später noch einmal oder melde dich beim Verein."
+    "mailFailed": "Die E-Mail mit dem Anmeldelink konnte gerade nicht verschickt werden. Bitte versuche es später noch einmal oder melde dich beim Verein.",
+    "tabs": {
+      "card": "Karte",
+      "membership": "Mitgliedschaft",
+      "dues": "Beiträge",
+      "data": "Meine Daten",
+      "wiki": "Infos"
+    },
+    "noCard": "Für dich gibt es noch keine Mitgliedskarte."
   },
   "tags": {
     "remove": "{tag} entfernen",
