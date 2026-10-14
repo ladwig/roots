@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { SaveBar } from "@/components/save-bar"
 import { notFound } from "next/navigation"
 import { ListChecksIcon, Trash2Icon } from "lucide-react"
 import { DataTable } from "@/components/data-table"
@@ -135,7 +136,7 @@ export default async function LineupPage({ params, searchParams }: PageProps<"/e
               <Label htmlFor="a-notes">{t("lineup.notes")}</Label>
               <textarea id="a-notes" name="notes" rows={3} defaultValue={editingArtist.notes ?? ""} maxLength={5000} className={textarea} placeholder={t("lineup.notesPlaceholder")} />
             </div>
-            <SubmitButton className="justify-self-start">{t("common.save")}</SubmitButton>
+            <SaveBar />
           </form>
         </UrlSheet>
       )}
@@ -193,7 +194,7 @@ function SlotForm({ t, eventId, defaultStart, slot, artists }: { t: T; eventId: 
         <Label htmlFor="s-notes">{t("lineup.notes")}</Label>
         <Input id="s-notes" name="notes" defaultValue={slot?.notes ?? ""} maxLength={2000} />
       </div>
-      <SubmitButton className="justify-self-start">{slot ? t("common.save") : t("lineup.newSlot")}</SubmitButton>
+      <SaveBar label={slot ? undefined : t("lineup.newSlot")} always={!slot} />
     </form>
   )
 }

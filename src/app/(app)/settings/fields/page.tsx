@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { SaveBar } from "@/components/save-bar"
 import { DataTable } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { UrlSheet } from "@/components/url-sheet"
@@ -133,9 +134,7 @@ function FieldForm({ t, action, entity, field }: { t: T; action: (fd: FormData) 
         <input type="checkbox" name="required" value="1" defaultChecked={field?.required} className="size-4" />
         {t("fields.requiredLabel")}
       </label>
-      <SubmitButton className="justify-self-start">
-        {field ? t("common.save") : t("fields.new")}
-      </SubmitButton>
+      <SaveBar label={field ? undefined : t("fields.new")} always={!field} />
     </form>
   )
 }

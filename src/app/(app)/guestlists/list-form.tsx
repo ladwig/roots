@@ -1,4 +1,4 @@
-import { SubmitButton } from "@/components/submit-button"
+import { SaveBar } from "@/components/save-bar"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
@@ -91,7 +91,7 @@ export async function ListForm({ eventId, list }: { eventId: string | null; list
         <Label htmlFor="gl-notes">{t("guestlists.notes")}</Label>
         <Input id="gl-notes" name="notes" defaultValue={list?.notes ?? ""} maxLength={2000} />
       </div>
-      <SubmitButton className="justify-self-start">{list ? t("common.save") : t("guestlists.new")}</SubmitButton>
+      <SaveBar label={list ? undefined : t("guestlists.new")} always={!list} />
     </form>
   )
 }

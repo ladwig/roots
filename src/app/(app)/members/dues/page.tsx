@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { BellIcon, DownloadIcon, LandmarkIcon, PlusIcon, RefreshCwIcon } from "lucide-react"
 import { ActionsMenu, MenuExport } from "@/components/actions-menu"
-import { PageHeader } from "@/components/page"
+import { FormCard, PageHeader } from "@/components/page"
 import { TypedInput } from "@/components/typed-input"
 import { UrlSheet } from "@/components/url-sheet"
 import { contactName } from "@/app/(app)/contacts/fields"
@@ -150,10 +150,7 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
       )}
 
       {!!runs?.length && (
-        <section className="grid gap-2" aria-labelledby="runs">
-          <h2 id="runs" className="font-medium">
-            {t("membership.runs")}
-          </h2>
+        <FormCard id="runs" title={t("membership.runs")}>
           <ul className="grid gap-2">
             {runs.map((r) => (
               <li key={r.id} className={`flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2 text-sm ${r.id === highlight ? "border-primary" : ""}`}>
@@ -187,7 +184,7 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
               </li>
             ))}
           </ul>
-        </section>
+        </FormCard>
       )}
 
       <nav aria-label={t("membership.status")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">

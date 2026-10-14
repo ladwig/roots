@@ -132,7 +132,8 @@
     "saved": "Saved.",
     "nameRequired": "The name can't be empty.",
     "logo": "Logo",
-    "logoHint": "PNG, JPG, WebP or GIF, max. 2 MB. Shown in the app and on public pages."
+    "logoHint": "PNG, JPG, WebP or GIF, max. 2 MB. Shown in the app and on public pages.",
+    "org": "Organisation"
   },
   "members": {
     "heading": "Team",

@@ -1,4 +1,5 @@
 import { FilterMenu } from "@/components/filter-menu"
+import { SaveBar } from "@/components/save-bar"
 import { Page, PageHeader } from "@/components/page"
 import { notFound, redirect } from "next/navigation"
 import { Notice } from "@/components/notice"
@@ -252,7 +253,7 @@ function ShiftForm({
         <Label htmlFor="sh-notes">{t("shifts.notes")}</Label>
         <Input id="sh-notes" name="notes" defaultValue={shift?.notes ?? ""} maxLength={2000} />
       </div>
-      <SubmitButton className="justify-self-start">{shift ? t("common.save") : t("shifts.newShift")}</SubmitButton>
+      <SaveBar label={shift ? undefined : t("shifts.newShift")} always={!shift} />
     </form>
   )
 }

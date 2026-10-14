@@ -6,7 +6,8 @@ import { getContext } from "@/lib/context"
 import { param, ROOT_DOMAIN } from "@/lib/url"
 import { ImageForm } from "@/components/image-form"
 import { updateLogo, updateOrg } from "./actions"
-import { SubmitButton } from "@/components/submit-button"
+import { FormCard } from "@/components/page"
+import { SaveBar } from "@/components/save-bar"
 
 export default async function GeneralSettings({ searchParams }: PageProps<"/settings/general">) {
   const ctx = await getContext()
@@ -17,36 +18,36 @@ export default async function GeneralSettings({ searchParams }: PageProps<"/sett
   const { data: org } = await ctx.supabase.from("orgs").select("logo_path").eq("id", ctx.org.id).single()
 
   return (
-    <div className="grid max-w-md gap-6">
+    <div className="grid gap-6">
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
+      <form action={updateOrg} className="grid gap-6">
+        <FormCard id="org" title={t("general.org")}>
+          <div className="grid gap-2">
+            <Label htmlFor="name">{t("general.name")}</Label>
+            <Input id="name" name="name" defaultValue={ctx.org.name} required maxLength={100} disabled={!canEdit} />
+          </div>
+          <div className="grid gap-1">
+            <span className="text-sm font-medium">{t("general.publicAddress")}</span>
+            <span className="font-mono text-sm text-muted-foreground">
+              {ctx.org.slug}.{ROOT_DOMAIN}
+            </span>
+          </div>
+        </FormCard>
+        {canEdit && <SaveBar />}
+      </form>
       {canEdit ? (
-        <ImageForm
+        <FormCard id="logo-card" title={t("general.logo")}>
+          <ImageForm
           action={updateLogo}
           id="logo"
           label={t("general.logo")}
           hint={t("general.logoHint")}
           name={ctx.org.name}
-          path={org?.logo_path}
-          square
-        />
+            path={org?.logo_path}
+            square
+          />
+        </FormCard>
       ) : null}
-      <form action={updateOrg} className="grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="name">{t("general.name")}</Label>
-          <Input id="name" name="name" defaultValue={ctx.org.name} required maxLength={100} disabled={!canEdit} />
-        </div>
-        <div className="grid gap-1">
-          <span className="text-sm font-medium">{t("general.publicAddress")}</span>
-          <span className="text-sm text-muted-foreground">
-            {ctx.org.slug}.{ROOT_DOMAIN}
-          </span>
-        </div>
-        {canEdit && (
-          <SubmitButton className="justify-self-start">
-            {t("common.save")}
-          </SubmitButton>
-        )}
-      </form>
     </div>
   )
 }

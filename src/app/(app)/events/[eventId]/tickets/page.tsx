@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { SaveBar } from "@/components/save-bar"
+import { FormCard } from "@/components/page"
 import { notFound } from "next/navigation"
 import { ExternalLinkIcon, ScanLineIcon } from "lucide-react"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
@@ -231,10 +233,7 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
         </form>
       )}
 
-      <section className="grid gap-3" aria-labelledby="sold">
-        <h2 id="sold" className="font-medium">
-          {t("tickets.soldTickets")}
-        </h2>
+      <FormCard id="sold" title={t("tickets.soldTickets")}>
         <div className="flex flex-wrap items-center gap-3">
           <SearchBox q={q} label={t("tickets.search")} />
           <nav aria-label={t("tickets.status")} className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
@@ -270,7 +269,7 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
           ]}
         />
         <Pager sp={sp} page={page} hasNext={(tickets?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
-      </section>
+      </FormCard>
 
       <Waitlist t={t} ctx={ctx} eventId={eventId} canManage={canManage} />
 
@@ -497,9 +496,7 @@ function CodeForm({ t, eventId, c, types }: { t: T; eventId: string; c?: Code; t
         <input type="checkbox" name="active" value="1" defaultChecked={c?.active ?? true} className="size-4" />
         {t("tickets.codeActive")}
       </label>
-      <SubmitButton className="justify-self-start">
-        {c ? t("common.save") : t("tickets.newCode")}
-      </SubmitButton>
+      <SaveBar label={c ? undefined : t("tickets.newCode")} always={!c} />
     </form>
   )
 }
@@ -556,9 +553,7 @@ function TypeForm({ t, eventId, ty }: { t: T; eventId: string; ty?: TicketType }
           <span className="block text-xs text-muted-foreground">{t("tickets.hiddenHint")}</span>
         </span>
       </label>
-      <SubmitButton className="justify-self-start">
-        {ty ? t("common.save") : t("tickets.newType")}
-      </SubmitButton>
+      <SaveBar label={ty ? undefined : t("tickets.newType")} always={!ty} />
     </form>
   )
 }

@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { SaveBar } from "@/components/save-bar"
+import { FormCard } from "@/components/page"
 import { DataTable } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { Picture } from "@/components/picture"
@@ -83,8 +85,7 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
       </section>
 
       {canManage && (
-        <section className="grid gap-3">
-          <h2 className="font-medium">{t("members.openInvites")}</h2>
+        <FormCard title={t("members.openInvites")}>
           <DataTable
             rows={invites ?? []}
             rowKey={(i) => i.id}
@@ -106,7 +107,7 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
               },
             ]}
           />
-        </section>
+        </FormCard>
       )}
 
       {editing && (
@@ -129,9 +130,7 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
                   ))}
                 </NativeSelect>
               </div>
-              <SubmitButton className="justify-self-start">
-                {t("common.save")}
-              </SubmitButton>
+              <SaveBar />
             </form>
           )}
           <form action={removeMember.bind(null, editing.id)}>

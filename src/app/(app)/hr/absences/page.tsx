@@ -1,4 +1,5 @@
 import { CalendarView, type CalendarItem } from "@/components/calendar-view"
+import { SaveBar } from "@/components/save-bar"
 import { Page, PageHeader } from "@/components/page"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
@@ -104,7 +105,7 @@ export default async function AbsencesPage({ searchParams }: PageProps<"/hr/abse
               <Input id="ab-note" name="note" maxLength={500} defaultValue={editing?.note ?? ""} />
             </div>
             {editing && <p className="text-sm text-muted-foreground">{t("hr.days", { count: absenceDays(editing) })}</p>}
-            <SubmitButton className="justify-self-start">{t("common.save")}</SubmitButton>
+            <SaveBar />
           </form>
           {editing && (
             <form action={deleteAbsence}>

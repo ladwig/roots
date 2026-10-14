@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { SaveBar } from "@/components/save-bar"
 import { FormCard, Page, PageHeader } from "@/components/page"
 import { notFound } from "next/navigation"
 import { PlusIcon, Trash2Icon } from "lucide-react"
@@ -202,7 +203,7 @@ export default async function ShiftSetup({ searchParams }: PageProps<"/shifts/se
               </fieldset>
             )}
             <p className="text-xs text-muted-foreground">{t("shifts.generateHint")}</p>
-            <SubmitButton className="justify-self-start">{editing ? t("common.save") : t("shifts.newSeries")}</SubmitButton>
+            <SaveBar label={editing ? undefined : t("shifts.newSeries")} always={!editing} />
           </form>
           {editing && (
             <form action={deleteSeries}>

@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { SaveBar } from "@/components/save-bar"
+import { FormCard } from "@/components/page"
 import { DataTable } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { UrlSheet } from "@/components/url-sheet"
@@ -48,9 +50,7 @@ export async function NotificationsSection({ sp }: { sp: SearchParams }) {
   const botConnected = botRow?.status === "connected"
 
   return (
-    <section id="notifications" className="grid gap-4">
-      <h2 className="font-medium">{t("settings.tabs.notifications")}</h2>
-      <p className="text-sm text-muted-foreground">{t("notifications.intro")}</p>
+    <FormCard id="notifications" title={t("settings.tabs.notifications")} description={t("notifications.intro")}>
       <div className="flex flex-wrap gap-2">
         <Button render={<Link href={withParams(sp, { new: "webhook", edit: undefined })} scroll={false} />} nativeButton={false} size="sm">
           {t("notifications.newWebhook")}
@@ -107,7 +107,7 @@ export async function NotificationsSection({ sp }: { sp: SearchParams }) {
         </UrlSheet>
       )}
       {editing && <EditSheet t={t} sub={editing} available={available} chats={chats} error={param(sp, "error")} ok={param(sp, "ok")} />}
-    </section>
+    </FormCard>
   )
 }
 
@@ -199,9 +199,7 @@ async function EditSheet({
             </label>
           ))}
         </fieldset>
-        <SubmitButton className="justify-self-start">
-          {t("common.save")}
-        </SubmitButton>
+        <SaveBar />
       </form>
 
       {sub.channel === "webhook" && (

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import { ExternalLinkIcon, PencilIcon, Trash2Icon } from "lucide-react"
 import { DataTable } from "@/components/data-table"
 import { Notice } from "@/components/notice"
-import { Page, PageHeader } from "@/components/page"
+import { FormCard, Page, PageHeader } from "@/components/page"
 import { SubmitButton } from "@/components/submit-button"
 import { UrlSheet } from "@/components/url-sheet"
 import { Badge } from "@/components/ui/badge"
@@ -101,11 +101,7 @@ export default async function GuestListPage({ params, searchParams }: PageProps<
         </form>
       )}
 
-      <section className="grid gap-3" aria-labelledby="entries">
-        <h2 id="entries" className="font-medium">
-          {t("guestlists.entriesTitle", { count: entries?.length ?? 0 })}
-          {list.quota ? ` / ${list.quota}` : ""}
-        </h2>
+      <FormCard id="entries" title={`${t("guestlists.entriesTitle", { count: entries?.length ?? 0 })}${list.quota ? ` / ${list.quota}` : ""}`}>
         <DataTable
           rows={entries ?? []}
           rowKey={(e) => e.id}
@@ -154,7 +150,7 @@ export default async function GuestListPage({ params, searchParams }: PageProps<
             },
           ]}
         />
-      </section>
+      </FormCard>
 
       {editing && (
         <UrlSheet params={["edit"]} title={list.name}>

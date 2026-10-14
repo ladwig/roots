@@ -1,8 +1,8 @@
 import { Page, PageHeader } from "@/components/page"
+import { SaveBar } from "@/components/save-bar"
 import { notFound } from "next/navigation"
 import { DataTable } from "@/components/data-table"
 import { Notice } from "@/components/notice"
-import { SubmitButton } from "@/components/submit-button"
 import { UrlSheet } from "@/components/url-sheet"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -111,7 +111,7 @@ export default async function TeamPage({ searchParams }: PageProps<"/shifts/team
               <input type="checkbox" name="active" value="1" defaultChecked={editing?.active ?? true} className="size-4" />
               {t("shifts.activeLabel")}
             </label>
-            <SubmitButton className="justify-self-start">{editing ? t("common.save") : t("shifts.newStaff")}</SubmitButton>
+            <SaveBar label={editing ? undefined : t("shifts.newStaff")} always={!editing} />
           </form>
         </UrlSheet>
       )}

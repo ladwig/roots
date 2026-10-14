@@ -132,7 +132,8 @@
     "saved": "Gespeichert.",
     "nameRequired": "Der Name darf nicht leer sein.",
     "logo": "Logo",
-    "logoHint": "PNG, JPG, WebP oder GIF, max. 2 MB. Erscheint in der App und auf öffentlichen Seiten."
+    "logoHint": "PNG, JPG, WebP oder GIF, max. 2 MB. Erscheint in der App und auf öffentlichen Seiten.",
+    "org": "Organisation"
   },
   "members": {
     "heading": "Team",
