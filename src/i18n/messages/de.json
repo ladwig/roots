@@ -17,10 +17,10 @@
     "clear": "Leeren",
     "moreActions": "Weitere Aktionen",
     "unsaved": "Ungespeicherte Änderungen",
-    "discard": "Verwerfen",
     "settings": "Einstellungen",
     "all": "Alle",
-    "copy": "Kopieren"
+    "copy": "Kopieren",
+    "leaveUnsaved": "Du hast ungespeicherte Änderungen. Seite trotzdem verlassen?"
   },
   "auth": {
     "title": "Bei roots anmelden",

@@ -2,9 +2,12 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { contactName } from "@/app/(app)/contacts/fields"
 import { ContactPicker } from "@/components/contact-picker"
-import { ExportMenu } from "@/components/export-menu"
 import { Notice } from "@/components/notice"
-import { PageCrumbs } from "@/components/page-crumbs"
+import { PlusIcon, RepeatIcon, Trash2Icon } from "lucide-react"
+import { ActionsMenu, MenuExport, MenuSeparator, MenuSubmit } from "@/components/actions-menu"
+import { Button } from "@/components/ui/button"
+import { FormCard, Page, PageHeader, RecordLayout } from "@/components/page"
+import { UrlSheet } from "@/components/url-sheet"
 import { SubmitButton } from "@/components/submit-button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -72,24 +75,32 @@ export default async function CoursePage({ params, searchParams }: { params: Pro
   )
 
   return (
-    <div className="grid gap-6">
-      <PageCrumbs items={[{ href: "/courses", label: t("courses.title") }, { label: c.title }]} />
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="grid gap-1">
-          <h1 className="font-heading text-2xl font-semibold break-words">{c.title}</h1>
-          <p className="text-sm text-muted-foreground">
-            {[c.instructor, c.capacity ? t("courses.placesOf", { taken: enrolled.length, total: c.capacity }) : t("courses.participantsCount", { count: enrolled.length })].filter(Boolean).join(" · ")}
-          </p>
-        </div>
-        {canManage && !c.deleted_at && (
-          <form action={trashCourse}>
-            <input type="hidden" name="id" value={c.id} />
-            <SubmitButton size="sm" variant="outline">
-              {t("courses.toTrash")}
-            </SubmitButton>
-          </form>
-        )}
-      </div>
+    <Page size="record">
+      <PageHeader
+        crumbs={[{ href: "/courses", label: t("courses.title") }, { label: c.title }]}
+        title={c.title}
+        meta={[c.instructor, c.capacity ? t("courses.placesOf", { taken: enrolled.length, total: c.capacity }) : t("courses.participantsCount", { count: enrolled.length })].filter(Boolean).join(" · ")}
+        menu={
+          !c.deleted_at && (
+            <ActionsMenu>
+              <MenuExport entity="course-participants" query={{ course: id }} label={t("courses.participants")} />
+              {canManage && (
+                <>
+                  <MenuSeparator />
+                  <MenuSubmit form="trash-course" icon={Trash2Icon} destructive>
+                    {t("courses.toTrash")}
+                  </MenuSubmit>
+                </>
+              )}
+            </ActionsMenu>
+          )
+        }
+      />
+      {canManage && !c.deleted_at && (
+        <form id="trash-course" action={trashCourse} hidden>
+          <input type="hidden" name="id" value={c.id} />
+        </form>
+      )}
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
 
       {c.deleted_at ? (
@@ -103,12 +114,8 @@ export default async function CoursePage({ params, searchParams }: { params: Pro
           )}
         </div>
       ) : (
-        <>
-          <section id="participants" className="grid scroll-mt-20 gap-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-medium">{t("courses.participants")}</h2>
-              <ExportMenu entity="course-participants" query={{ course: id }} />
-            </div>
+        <RecordLayout aside={<CourseForm t={t} c={c} locations={locations ?? []} disabled={!canManage} />}>
+          <FormCard id="participants" title={t("courses.participants")}>
             {canManage && (
               <form action={addParticipant} className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,14rem)_auto] sm:items-end">
                 <input type="hidden" name="course_id" value={id} />
@@ -161,10 +168,24 @@ export default async function CoursePage({ params, searchParams }: { params: Pro
                 </ul>
               </details>
             )}
-          </section>
+          </FormCard>
 
-          <section id="dates" className="grid scroll-mt-20 gap-3">
-            <h2 className="font-medium">{t("courses.dates")}</h2>
+          <FormCard
+            id="dates"
+            title={t("courses.dates")}
+            action={
+              canManage && (
+                <span className="flex flex-wrap gap-2">
+                  <Button render={<Link href={`/courses/${id}?new=series`} scroll={false} />} nativeButton={false} size="sm" variant="outline">
+                    <RepeatIcon /> {t("courses.addSeries")}
+                  </Button>
+                  <Button render={<Link href={`/courses/${id}?new=date`} scroll={false} />} nativeButton={false} size="sm" variant="outline">
+                    <PlusIcon /> {t("courses.addOne")}
+                  </Button>
+                </span>
+              )
+            }
+          >
             <ul className="grid gap-2">
               {(sessions ?? []).map((s) => {
                 const present = (marks ?? []).filter((m) => m.session_id === s.id && m.present).length
@@ -187,12 +208,12 @@ export default async function CoursePage({ params, searchParams }: { params: Pro
               })}
               {!sessions?.length && <li className="text-sm text-muted-foreground">{t("courses.noDates")}</li>}
             </ul>
-            {canManage && (
-              <div className="grid gap-4 md:grid-cols-2">
-                <form action={addSessions} className="grid content-start gap-3 rounded-lg border p-3">
+          </FormCard>
+          {canManage && param(sp, "new") === "series" && (
+            <UrlSheet params={["new"]} title={t("courses.addSeries")}>
+                <form action={addSessions} className="grid gap-4">
                   <input type="hidden" name="course_id" value={id} />
                   <input type="hidden" name="mode" value="series" />
-                  <p className="text-sm font-medium">{t("courses.addSeries")}</p>
                   <fieldset className="flex flex-wrap gap-2">
                     <legend className="sr-only">{t("courses.weekdays")}</legend>
                     {WEEKDAYS.map((d) => (
@@ -225,11 +246,14 @@ export default async function CoursePage({ params, searchParams }: { params: Pro
                     <Input name="every_weeks" type="number" min={1} max={8} defaultValue={1} className="w-16" aria-label={t("courses.everyWeeks")} />
                     {t("courses.weeks")}
                   </label>
-                  <SubmitButton className="justify-self-start">{t("courses.createDates")}</SubmitButton>
+                  <SubmitButton className="justify-self-end">{t("courses.createDates")}</SubmitButton>
                 </form>
-                <form action={addSessions} className="grid content-start gap-3 rounded-lg border p-3">
+            </UrlSheet>
+          )}
+          {canManage && param(sp, "new") === "date" && (
+            <UrlSheet params={["new"]} title={t("courses.addOne")}>
+                <form action={addSessions} className="grid gap-4">
                   <input type="hidden" name="course_id" value={id} />
-                  <p className="text-sm font-medium">{t("courses.addOne")}</p>
                   <div className="grid gap-1">
                     <Label htmlFor="o-start">{t("courses.start")}</Label>
                     <Input id="o-start" name="starts_at" type="datetime-local" required />
@@ -238,19 +262,13 @@ export default async function CoursePage({ params, searchParams }: { params: Pro
                     <Label htmlFor="o-end">{t("courses.end")}</Label>
                     <Input id="o-end" name="ends_at" type="datetime-local" required />
                   </div>
-                  <SubmitButton className="justify-self-start">{t("courses.add")}</SubmitButton>
+                  <SubmitButton className="justify-self-end">{t("courses.add")}</SubmitButton>
                 </form>
-              </div>
-            )}
-          </section>
-
-          <section id="details" className="grid scroll-mt-20 gap-3">
-            <h2 className="font-medium">{t("courses.details")}</h2>
-            <CourseForm t={t} c={c} locations={locations ?? []} disabled={!canManage} />
-          </section>
-        </>
+            </UrlSheet>
+          )}
+        </RecordLayout>
       )}
-    </div>
+    </Page>
   )
 }
 

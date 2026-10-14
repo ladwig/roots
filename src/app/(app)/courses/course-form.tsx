@@ -1,7 +1,9 @@
-import { SubmitButton } from "@/components/submit-button"
+import { Choice } from "@/components/choice"
+import { FormCard } from "@/components/page"
+import { SaveBar } from "@/components/save-bar"
+import { TypedInput } from "@/components/typed-input"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
 import type { T } from "@/i18n/translate"
 import type { Tables } from "@/lib/supabase/types"
@@ -9,8 +11,9 @@ import { saveCourse } from "./actions"
 
 export function CourseForm({ t, c, locations, disabled }: { t: T; c?: Tables<"courses"> | null; locations: { id: string; name: string }[]; disabled?: boolean }) {
   return (
-    <form action={saveCourse} className="grid gap-4">
+    <form action={saveCourse} className="grid gap-6">
       {c && <input type="hidden" name="id" value={c.id} />}
+      <FormCard id="details" title={t("courses.details")}>
       <div className="grid gap-2">
         <Label htmlFor="c-title">{t("courses.titleLabel")}</Label>
         <Input id="c-title" name="title" required maxLength={200} defaultValue={c?.title ?? ""} disabled={disabled} placeholder={t("courses.titlePlaceholder")} />
@@ -22,19 +25,12 @@ export function CourseForm({ t, c, locations, disabled }: { t: T; c?: Tables<"co
         </div>
         <div className="grid gap-2">
           <Label htmlFor="c-capacity">{t("courses.capacity")}</Label>
-          <Input id="c-capacity" name="capacity" type="number" min={1} max={10000} inputMode="numeric" defaultValue={c?.capacity ?? ""} placeholder={t("courses.unlimited")} disabled={disabled} />
+          <TypedInput kind="number" id="c-capacity" name="capacity" min={1} max={10000} inputMode="numeric" defaultValue={c?.capacity ?? ""} placeholder={t("courses.unlimited")} disabled={disabled} />
         </div>
         {locations.length > 0 && (
-          <div className="grid gap-2">
+          <div className="grid gap-2 sm:col-span-2">
             <Label htmlFor="c-location">{t("courses.location")}</Label>
-            <NativeSelect id="c-location" name="location_id" defaultValue={c?.location_id ?? ""} disabled={disabled} className="w-full">
-              <NativeSelectOption value="">–</NativeSelectOption>
-              {locations.map((l) => (
-                <NativeSelectOption key={l.id} value={l.id}>
-                  {l.name}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
+            <Choice id="c-location" name="location_id" label={t("courses.location")} defaultValue={c?.location_id} disabled={disabled} options={locations.map((l) => ({ value: l.id, label: l.name }))} />
           </div>
         )}
       </div>
@@ -46,7 +42,8 @@ export function CourseForm({ t, c, locations, disabled }: { t: T; c?: Tables<"co
         <input type="checkbox" name="track_attendance" value="1" defaultChecked={c?.track_attendance ?? true} disabled={disabled} className="size-4" />
         {t("courses.trackAttendance")}
       </label>
-      {!disabled && <SubmitButton className="justify-self-start">{c ? t("common.save") : t("courses.create")}</SubmitButton>}
+      </FormCard>
+      {!disabled && <SaveBar label={c ? undefined : t("courses.create")} always={!c} />}
     </form>
   )
 }

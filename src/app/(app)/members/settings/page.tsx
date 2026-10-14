@@ -171,7 +171,7 @@ function TypeForm({ t, type }: { t: T; type?: Tables<"membership_types"> }) {
             </label>
           )}
         </div>
-        <SubmitButton className="justify-self-end">{type ? t("common.save") : t("membership.addType")}</SubmitButton>
+        <SaveBar label={type ? undefined : t("membership.addType")} always={!type} />
       </form>
       {type && (
         <form action={deleteType} className="border-t pt-4">
