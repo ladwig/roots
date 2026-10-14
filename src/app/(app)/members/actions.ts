@@ -275,3 +275,19 @@ export async function importMembers(input: { rows: Record<string, string>[]; mod
   if (!("error" in r)) deliverSoon()
   return r
 }
+
+/** Bulk bar on the dues list: mark the ticked dues paid, or remind their (overdue) members. */
+export async function bulkDues(fd: FormData) {
+  const { ctx, t } = await manager(DUES)
+  const ids = [...new Set(fd.getAll("ids").map(String))].filter((x) => /^[0-9a-f-]{36}$/.test(x)).slice(0, 500)
+  const back_ = String(fd.get("back") ?? "")
+  const to = back_.startsWith("/members") ? back_ : DUES
+  if (!ids.length) back(to, {})
+  if (fd.get("intent") === "remind") {
+    const r = await members.sendReminders(ctx.supabase, ctx.org, ids, t)
+    if ("error" in r) back(to, { error: message(t, r) })
+    back(to, { ok: t("membership.remindersSent", { count: r.people }) + (r.withoutEmail ? ` ${t("membership.remindersNoEmail", { count: r.withoutEmail })}` : "") })
+  }
+  const { error, count } = await ctx.supabase.from("member_dues").update({ status: "paid", paid_on: today() }, { count: "exact" }).eq("org_id", ctx.org.id).eq("status", "open").in("id", ids)
+  back(to, error ? { error: dbError(t, error) } : { ok: t("common.bulkDone", { count: count ?? 0 }) })
+}

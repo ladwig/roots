@@ -1,5 +1,6 @@
 "use server"
 
+import { pickedIds, trashMany } from "@/lib/bulk"
 import { revalidatePath } from "next/cache"
 import { deliverSoon } from "@/events/worker"
 import { getT } from "@/i18n/server"
@@ -111,4 +112,22 @@ export async function moveStatusAction(fd: FormData) {
   const results = await Promise.all(order.map((s, k) => ctx.supabase.from("task_statuses").update({ position: k }).eq("id", s.id).eq("org_id", ctx.org.id)))
   const failed = results.find((r) => r.error)?.error
   back(SETUP, failed ? { error: dbError(t, failed) } : {})
+}
+
+/** Bulk bar on the task list: move the ticked tasks to another column, or to the trash. */
+export async function bulkTasks(fd: FormData) {
+  const { ctx, t } = await manager()
+  const ids = pickedIds(fd)
+  const to = backTo(fd, "/projects?view=list")
+  if (!ids.length) back(to, {})
+  if (fd.get("intent") === "trash") {
+    const error = await trashMany(ctx, "public.tasks", ids)
+    back(to, error ? { error: dbError(t, error) } : { ok: t("common.bulkTrashed", { count: ids.length }) })
+  }
+  const statusId = id(fd, "status_id")
+  if (!statusId) back(to, { error: t("errors.invalid_input") })
+  const results = await Promise.all(ids.map((x) => updateTask(ctx.supabase, ctx.org.id, x, { statusId })))
+  const failed = results.find((r) => "error" in r)
+  deliverSoon()
+  back(to, failed && "error" in failed ? { error: message(t, failed) } : { ok: t("common.bulkDone", { count: ids.length }) })
 }

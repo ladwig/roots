@@ -1,5 +1,6 @@
 "use server"
 
+import { pickedIds, trashMany } from "@/lib/bulk"
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { getContext } from "@/lib/context"
@@ -67,4 +68,13 @@ export async function restoreFile(fd: FormData) {
   const id = text(fd, "id")
   const { error } = await ctx.supabase.rpc("restore_deleted", { p_table: "public.files", p_id: id })
   back(`${PATH}?edit=${id}`, error ? { error: dbError(t, error) } : { ok: t("files.restored") })
+}
+
+/** Bulk bar on the file list: move the ticked files to the trash. */
+export async function bulkTrashFiles(fd: FormData) {
+  const ctx = await getContext()
+  const t = await getT()
+  const ids = pickedIds(fd)
+  const error = ids.length ? await trashMany(ctx, "public.files", ids) : null
+  back(backTo(fd), error ? { error: dbError(t, error) } : { ok: t("common.bulkTrashed", { count: ids.length }) })
 }

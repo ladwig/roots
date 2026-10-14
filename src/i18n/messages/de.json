@@ -20,7 +20,25 @@
     "settings": "Einstellungen",
     "all": "Alle",
     "copy": "Kopieren",
-    "leaveUnsaved": "Du hast ungespeicherte Änderungen. Seite trotzdem verlassen?"
+    "leaveUnsaved": "Du hast ungespeicherte Änderungen. Seite trotzdem verlassen?",
+    "selected": {
+      "one": "{count} ausgewählt",
+      "other": "{count} ausgewählt"
+    },
+    "clearSelection": "Auswahl aufheben",
+    "select": "Auswählen",
+    "addTag": "Tag hinzufügen",
+    "removeTag": "Tag entfernen",
+    "exportSelected": "Exportieren",
+    "toTrash": "In den Papierkorb",
+    "bulkDone": {
+      "one": "{count} Eintrag geändert.",
+      "other": "{count} Einträge geändert."
+    },
+    "bulkTrashed": {
+      "one": "{count} Eintrag in den Papierkorb verschoben.",
+      "other": "{count} Einträge in den Papierkorb verschoben."
+    }
   },
   "auth": {
     "title": "Bei roots anmelden",
@@ -4249,7 +4267,8 @@
     "statusInUse": "Die Spalte enthält noch Aufgaben.",
     "searchPeople": "Person suchen…",
     "saving": "Speichert…",
-    "columns": "Spalten des Boards"
+    "columns": "Spalten des Boards",
+    "moveTo": "Verschieben"
   },
   "inputs": {
     "placeholder": {

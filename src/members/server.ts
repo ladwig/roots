@@ -226,7 +226,7 @@ export async function addLevy(db: Db, orgId: string, l: { description: string | 
 }
 
 /** Email every member with overdue open dues (one mail per person, all items listed). Optional: only one due. */
-export async function sendReminders(db: Db, org: { id: string; name: string; slug: string }, only: string | null, t: T): Promise<Fail | { people: number; withoutEmail: number }> {
+export async function sendReminders(db: Db, org: { id: string; name: string; slug: string }, only: string | string[] | null, t: T): Promise<Fail | { people: number; withoutEmail: number }> {
   let q = db
     .from("member_dues")
     .select("id, description, amount_cents, due_on, reminders, memberships!inner(member_no, contacts(first_name, last_name, company, email))")
@@ -235,7 +235,8 @@ export async function sendReminders(db: Db, org: { id: string; name: string; slu
     .is("run_id", null)
     .lt("due_on", today())
     .limit(5000)
-  if (only) q = q.eq("id", only)
+  if (Array.isArray(only)) q = q.in("id", only)
+  else if (only) q = q.eq("id", only)
   const [{ data: dues }, { data: settings }] = await Promise.all([q, db.from("member_settings").select("creditor_name, iban").eq("org_id", org.id).maybeSingle()])
   const byEmail = new Map<string, NonNullable<typeof dues>>()
   for (const d of dues ?? []) {

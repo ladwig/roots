@@ -5,20 +5,25 @@ import { withParams, type SearchParams } from "@/lib/url"
 
 export type Column<R> = { header: string; cell: (row: R) => React.ReactNode; className?: string }
 
-// Plain table; with `rowHref` the whole row is a link (usually "?edit=<id>" to open a drawer).
+// Plain table; with `rowHref` the whole row is a link (usually "?edit=<id>" to open a drawer). `select` adds a
+// checkbox per row (+ select all) that belongs to a <BulkBar form> on the page.
 export function DataTable<R>({
   columns,
   rows,
   rowKey,
   rowHref,
   empty,
+  select,
 }: {
   columns: Column<R>[]
   rows: R[]
   rowKey: (row: R) => string
   rowHref?: (row: R) => string | undefined
   empty: React.ReactNode // text, or an <EmptyState> (lists that have never had a row)
+  select?: { form: string; label: string }
 }) {
+  const box = (row: R) =>
+    select && <input type="checkbox" name="ids" value={rowKey(row)} form={select.form} aria-label={select.label} className="relative z-10 size-4 accent-primary" />
   if (!rows.length) return typeof empty !== "string" ? empty : <p className="rounded-lg border px-4 py-8 text-center text-sm text-muted-foreground">{empty}</p>
   return (
     <>
@@ -28,8 +33,9 @@ export function DataTable<R>({
           const href = rowHref?.(row)
           const [first, ...rest] = columns
           return (
-            <li key={rowKey(row)} className="relative grid gap-2 rounded-lg border bg-card p-3 text-sm has-[a:hover]:bg-muted/50">
-              <div className="font-medium">
+            <li key={rowKey(row)} className="relative grid gap-2 rounded-lg border bg-card p-3 text-sm has-[a:hover]:bg-muted/50 has-checked:border-primary">
+              <div className="flex items-start gap-3 font-medium">
+                {box(row)}
                 {href ? (
                   <Link
                     href={href}
@@ -60,6 +66,11 @@ export function DataTable<R>({
         <Table>
           <TableHeader>
             <TableRow>
+              {select && (
+                <TableHead className="w-10">
+                  <input type="checkbox" data-bulk-all={select.form} aria-label={select.label} className="size-4 accent-primary" />
+                </TableHead>
+              )}
               {columns.map((c, i) => (
                 <TableHead key={i} className={c.className}>
                   {c.header}
@@ -71,7 +82,8 @@ export function DataTable<R>({
             {rows.map((row) => {
               const href = rowHref?.(row)
               return (
-                <TableRow key={rowKey(row)} className={href ? "relative cursor-pointer" : undefined}>
+                <TableRow key={rowKey(row)} className={href ? "relative cursor-pointer has-checked:bg-muted/60" : "has-checked:bg-muted/60"}>
+                  {select && <TableCell className="w-10">{box(row)}</TableCell>}
                   {columns.map((c, i) => (
                     <TableCell key={i} className={c.className}>
                       {i === 0 && href ? (

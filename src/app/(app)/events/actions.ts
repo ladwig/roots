@@ -1,5 +1,6 @@
 "use server"
 
+import { pickedIds, trashMany } from "@/lib/bulk"
 import { revalidatePath } from "next/cache"
 import { deliverSoon } from "@/events/worker"
 import { getT } from "@/i18n/server"
@@ -137,4 +138,13 @@ export async function updateEventImage(fd: FormData) {
   revalidatePath(PATH)
   refreshPublic(ctx.org.id) // public pages show this
   back(here, { ok: t("eventsPage.saved") })
+}
+
+/** Bulk bar on the list: move the ticked events to the trash. */
+export async function bulkTrashEvents(fd: FormData) {
+  const { ctx, t } = await manager()
+  const ids = pickedIds(fd)
+  const error = ids.length ? await trashMany(ctx, "public.events", ids) : null
+  refreshPublic(ctx.org.id)
+  back(PATH, error ? { error: dbError(t, error) } : { ok: t("common.bulkTrashed", { count: ids.length }) })
 }

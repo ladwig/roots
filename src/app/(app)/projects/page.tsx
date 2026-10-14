@@ -1,8 +1,12 @@
 import { Segments } from "@/components/segments"
+import { BulkBar } from "@/components/bulk-bar"
+import { SubmitButton } from "@/components/submit-button"
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
+import { bulkTasks } from "./actions"
 import { FilterMenu } from "@/components/filter-menu"
 import { Page, PageHeader } from "@/components/page"
 import { notFound } from "next/navigation"
-import { KanbanSquareIcon, ListIcon } from "lucide-react"
+import { ArrowRightIcon, KanbanSquareIcon, ListIcon, Trash2Icon } from "lucide-react"
 import { DataTable, SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { Badge } from "@/components/ui/badge"
@@ -94,6 +98,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           rows={tasks}
           rowKey={(r) => r.id}
           rowHref={(r) => r.href}
+          select={canManage ? { form: "bulk-tasks", label: t("common.select") } : undefined}
           empty={t("projects.empty")}
           columns={[
             {
@@ -124,6 +129,24 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         />
       )}
 
+      {canManage && view === "list" && (
+        <BulkBar form="bulk-tasks">
+          <input type="hidden" name="back" value={here} />
+          <NativeSelect name="status_id" aria-label={t("projects.status")} defaultValue={statuses[0]?.id} className="h-8 w-40">
+            {statuses.map((x) => (
+              <NativeSelectOption key={x.id} value={x.id}>
+                {x.name}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+          <SubmitButton size="sm" variant="outline" formAction={bulkTasks} name="intent" value="move">
+            <ArrowRightIcon /> {t("projects.moveTo")}
+          </SubmitButton>
+          <SubmitButton size="sm" variant="ghost" formAction={bulkTasks} name="intent" value="trash" className="text-destructive hover:text-destructive">
+            <Trash2Icon /> {t("common.toTrash")}
+          </SubmitButton>
+        </BulkBar>
+      )}
       <TaskDrawer ctx={ctx} t={t} id={openId} back={here} error={param(sp, "error")} ok={param(sp, "ok")} />
     </Page>
   )

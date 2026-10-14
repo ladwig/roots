@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { BellIcon, DownloadIcon, LandmarkIcon, PlusIcon, RefreshCwIcon } from "lucide-react"
+import { BellIcon, CheckIcon, DownloadIcon, LandmarkIcon, PlusIcon, RefreshCwIcon } from "lucide-react"
+import { BulkBar } from "@/components/bulk-bar"
 import { ActionsMenu, MenuExport } from "@/components/actions-menu"
 import { FormCard, PageHeader } from "@/components/page"
 import { TypedInput } from "@/components/typed-input"
@@ -16,7 +17,7 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { pageParam, param, withParams } from "@/lib/url"
-import { addLevy, createSepaRun, generateDues, sendReminders, setRunStatus } from "../actions"
+import { addLevy, bulkDues, createSepaRun, generateDues, sendReminders, setRunStatus } from "../actions"
 
 type Status = "open" | "paid" | "cancelled"
 const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
@@ -196,6 +197,7 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
         rows={rows}
         rowKey={(r) => r.id}
         rowHref={(r) => `/members/${r.membership_id}`}
+        select={canManage ? { form: "bulk-dues", label: t("common.select") } : undefined}
         empty={t("membership.noDues")}
         columns={[
           {
@@ -222,6 +224,20 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
         ]}
       />
       <Pager sp={sp} page={page} hasNext={(data?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
+      {canManage && (
+        <BulkBar form="bulk-dues">
+          <input type="hidden" name="back" value={`/members/dues${withParams(sp, {})}`} />
+          <SubmitButton size="sm" variant="outline" formAction={bulkDues} name="intent" value="paid">
+            <CheckIcon /> {t("membership.markPaid")}
+          </SubmitButton>
+          <SubmitButton size="sm" variant="outline" formAction={bulkDues} name="intent" value="remind">
+            <BellIcon /> {t("membership.remind")}
+          </SubmitButton>
+          <Button type="submit" size="sm" variant="ghost" formAction="/export/dues" formMethod="get" name="format" value="xlsx">
+            <DownloadIcon /> {t("common.exportSelected")}
+          </Button>
+        </BulkBar>
+      )}
     </>
   )
 }

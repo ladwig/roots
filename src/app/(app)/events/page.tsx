@@ -1,4 +1,7 @@
 import Link from "next/link"
+import { BulkBar } from "@/components/bulk-bar"
+import { SubmitButton } from "@/components/submit-button"
+import { bulkTrashEvents } from "./actions"
 import { notFound, redirect } from "next/navigation"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
 import { CalendarDaysIcon, PlusIcon, Trash2Icon } from "lucide-react"
@@ -98,6 +101,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
         rows={rows}
         rowKey={(r) => r.id}
         rowHref={(r) => `/events/${r.id}`}
+        select={canManage && !trash ? { form: "bulk-events", label: t("common.select") } : undefined}
         empty={
           trash ? (
             t("eventsPage.emptyTrash")
@@ -130,6 +134,13 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
         ]}
       />
       <Pager sp={sp} page={page} hasNext={(data?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
+      {canManage && !trash && (
+        <BulkBar form="bulk-events">
+          <SubmitButton size="sm" variant="ghost" formAction={bulkTrashEvents} className="text-destructive hover:text-destructive">
+            <Trash2Icon /> {t("common.toTrash")}
+          </SubmitButton>
+        </BulkBar>
+      )}
     </Page>
   )
 }

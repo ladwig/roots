@@ -20,7 +20,25 @@
     "settings": "Settings",
     "all": "All",
     "copy": "Copy",
-    "leaveUnsaved": "You have unsaved changes. Leave the page anyway?"
+    "leaveUnsaved": "You have unsaved changes. Leave the page anyway?",
+    "selected": {
+      "one": "{count} selected",
+      "other": "{count} selected"
+    },
+    "clearSelection": "Clear selection",
+    "select": "Select",
+    "addTag": "Add tag",
+    "removeTag": "Remove tag",
+    "exportSelected": "Export",
+    "toTrash": "Move to trash",
+    "bulkDone": {
+      "one": "{count} entry changed.",
+      "other": "{count} entries changed."
+    },
+    "bulkTrashed": {
+      "one": "{count} entry moved to the trash.",
+      "other": "{count} entries moved to the trash."
+    }
   },
   "auth": {
     "title": "Sign in to roots",
@@ -4249,7 +4267,8 @@
     "statusInUse": "The column still contains tasks.",
     "searchPeople": "Search people…",
     "saving": "Saving…",
-    "columns": "Board columns"
+    "columns": "Board columns",
+    "moveTo": "Move"
   },
   "inputs": {
     "placeholder": {

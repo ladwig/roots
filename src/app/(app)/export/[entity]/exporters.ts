@@ -25,6 +25,8 @@ async function all<R>(page: (from: number, to: number) => PromiseLike<{ data: R[
   }
   return out
 }
+// Rows ticked in the list (bulk bar "Exportieren": ?ids=…&ids=…) – then only those, the list's filters don't matter.
+const picked = (sp: URLSearchParams) => sp.getAll("ids").filter((x) => /^[0-9a-f-]{36}$/.test(x)).slice(0, 1000)
 const label = (t: T, key: string) => (t.has(key) ? t.dynamic(key) : key)
 const contactCols = CONTACT_FIELDS.map((f) => f.key)
 const contactCells = (c: Record<string, unknown> | null) => contactCols.map((k) => (k === "tags" ? ((c?.tags as string[]) ?? []).join(", ") : ((c?.[k] as string) ?? "")))
@@ -81,6 +83,7 @@ export const EXPORTERS: Record<string, Exporter> = {
       const tag = sp.get("tag")
       const rows = await all((from, to) => {
         let query = ctx.supabase.from("contacts").select("*").eq("org_id", ctx.org.id).is("deleted_at", null).order("last_name").order("first_name").range(from, to)
+        if (picked(sp).length) return query.in("id", picked(sp))
         if (q) query = query.or(["first_name", "last_name", "company", "email", "phone", "city"].map((c) => `${c}.ilike.%${q}%`).join(","))
         if (tag) query = query.contains("tags", [tag])
         return query
@@ -108,6 +111,7 @@ export const EXPORTERS: Record<string, Exporter> = {
           .is("deleted_at", null)
           .order("number")
           .range(from, to)
+        if (picked(sp).length) return query.in("id", picked(sp))
         if (status === "active") query = query.or(`ends_on.is.null,ends_on.gte.${now}`)
         if (status === "ended") query = query.lt("ends_on", now)
         if (type) query = query.eq("type_id", type)
@@ -149,6 +153,7 @@ export const EXPORTERS: Record<string, Exporter> = {
           .eq("org_id", ctx.org.id)
           .order("due_on", { ascending: false })
           .range(from, to)
+        if (picked(sp).length) return query.in("id", picked(sp))
         if (status !== "all") query = query.eq("status", status)
         return query
       })

@@ -2,7 +2,11 @@ import Link from "next/link"
 import { ContactImportBody } from "./import/body"
 import { UrlSheet } from "@/components/url-sheet"
 import { notFound, redirect } from "next/navigation"
-import { PlusIcon, Trash2Icon, UploadIcon, UsersIcon } from "lucide-react"
+import { DownloadIcon, PlusIcon, TagIcon, Trash2Icon, UploadIcon, UsersIcon } from "lucide-react"
+import { BulkBar } from "@/components/bulk-bar"
+import { SubmitButton } from "@/components/submit-button"
+import { Input } from "@/components/ui/input"
+import { bulkContacts } from "./actions"
 import { ActionsMenu, MenuExport, MenuLink, MenuSeparator } from "@/components/actions-menu"
 import { FilterMenu } from "@/components/filter-menu"
 import { EmptyState, Page, PageHeader } from "@/components/page"
@@ -87,6 +91,7 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
         rows={rows}
         rowKey={(r) => r.id}
         rowHref={(r) => `/contacts/${r.id}`}
+        select={canManage && !trash ? { form: "bulk-contacts", label: t("common.select") } : undefined}
         empty={
           trash ? (
             t("contacts.emptyTrash")
@@ -136,6 +141,29 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
       />
       <Pager sp={sp} page={page} hasNext={(data?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
 
+      {canManage && !trash && (
+        <BulkBar form="bulk-contacts">
+          <input type="hidden" name="back" value={`/contacts${withParams(sp, {})}`} />
+          <Input name="bulk_tag" list="bulk-tags" placeholder={t("contacts.tags")} aria-label={t("contacts.tags")} className="h-8 w-36" />
+          <datalist id="bulk-tags">
+            {tags.map((tg) => (
+              <option key={tg} value={tg} />
+            ))}
+          </datalist>
+          <SubmitButton size="sm" variant="outline" formAction={bulkContacts} name="intent" value="tag-add">
+            <TagIcon /> {t("common.addTag")}
+          </SubmitButton>
+          <SubmitButton size="sm" variant="ghost" formAction={bulkContacts} name="intent" value="tag-remove">
+            {t("common.removeTag")}
+          </SubmitButton>
+          <Button type="submit" size="sm" variant="outline" formAction="/export/contacts" formMethod="get" name="format" value="xlsx">
+            <DownloadIcon /> {t("common.exportSelected")}
+          </Button>
+          <SubmitButton size="sm" variant="ghost" formAction={bulkContacts} name="intent" value="trash" className="text-destructive hover:text-destructive">
+            <Trash2Icon /> {t("common.toTrash")}
+          </SubmitButton>
+        </BulkBar>
+      )}
       {canManage && param(sp, "import") === "1" && (
         <UrlSheet params={["import"]} title={t("contacts.importTitle")} wide>
           <ContactImportBody ctx={ctx} />

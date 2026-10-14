@@ -2,7 +2,9 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { MemberImportBody } from "./import/body"
 import { UrlSheet } from "@/components/url-sheet"
-import { IdCardIcon, Trash2Icon, UploadIcon } from "lucide-react"
+import { DownloadIcon, IdCardIcon, Trash2Icon, UploadIcon } from "lucide-react"
+import { BulkBar } from "@/components/bulk-bar"
+import { Button } from "@/components/ui/button"
 import { ActionsMenu, MenuExport, MenuLink, MenuSeparator } from "@/components/actions-menu"
 import { FilterMenu } from "@/components/filter-menu"
 import { PageHeader } from "@/components/page"
@@ -126,6 +128,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
         rows={rows}
         rowKey={(r) => r.id}
         rowHref={(r) => `/members/${r.id}`}
+        select={status !== "trash" ? { form: "bulk-members", label: t("common.select") } : undefined}
         empty={q || typeFilter ? t("membership.noMatch") : t("membership.empty")}
         columns={[
           {
@@ -151,6 +154,13 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
       />
       <Pager sp={sp} page={page} hasNext={(data?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
 
+      {status !== "trash" && (
+        <BulkBar form="bulk-members">
+          <Button type="submit" size="sm" variant="outline" formAction="/export/members" formMethod="get" name="format" value="xlsx">
+            <DownloadIcon /> {t("common.exportSelected")}
+          </Button>
+        </BulkBar>
+      )}
       {canManage && ctx.can("crm.manage") && param(sp, "import") === "1" && (
         <UrlSheet params={["import"]} title={t("membership.importTitle")} wide>
           <MemberImportBody ctx={ctx} />

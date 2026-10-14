@@ -110,3 +110,27 @@ export async function linkContactUser(fd: FormData) {
   const { error } = await ctx.supabase.from("contacts").update({ user_id: value }).eq("id", id).eq("org_id", ctx.org.id)
   back(`${PATH}/${id}#team`, error ? { error: error.code === "23505" ? t("contacts.team.taken") : dbError(t, error) } : { ok: t(value ? "contacts.team.linked" : "contacts.team.unlinked") })
 }
+
+/** Bulk bar on the list: add/remove a tag on the ticked contacts, or move them to the trash. */
+export async function bulkContacts(fd: FormData) {
+  const { ctx, t } = await manager()
+  const ids = [...new Set(fd.getAll("ids").map(String))].filter((x) => /^[0-9a-f-]{36}$/.test(x)).slice(0, 500)
+  const intent = String(fd.get("intent") ?? "")
+  const back$ = String(fd.get("back") ?? PATH)
+  const to = back$.startsWith(PATH) ? back$ : PATH
+  if (!ids.length) back(to, {})
+  if (intent === "trash") {
+    const results = await Promise.all(ids.map((id) => ctx.supabase.rpc("soft_delete", { p_table: "public.contacts", p_id: id })))
+    const failed = results.find((r) => r.error)?.error
+    back(to, failed ? { error: dbError(t, failed) } : { ok: t("common.bulkTrashed", { count: ids.length }) })
+  }
+  const tag = String(fd.get("bulk_tag") ?? "").trim().slice(0, 100)
+  if (!tag || (intent !== "tag-add" && intent !== "tag-remove")) back(to, { error: t("errors.invalid_input") })
+  const { data } = await ctx.supabase.from("contacts").select("id, tags").eq("org_id", ctx.org.id).in("id", ids)
+  const changes = (data ?? [])
+    .map((c) => ({ id: c.id, tags: intent === "tag-add" ? [...new Set([...c.tags, tag])] : c.tags.filter((x) => x !== tag), before: c.tags.length }))
+    .filter((c) => c.tags.length !== c.before)
+  const results = await Promise.all(changes.map((c) => ctx.supabase.from("contacts").update({ tags: c.tags }).eq("id", c.id).eq("org_id", ctx.org.id)))
+  const failed = results.find((r) => r.error)?.error
+  back(to, failed ? { error: dbError(t, failed) } : { ok: t("common.bulkDone", { count: changes.length }) })
+}

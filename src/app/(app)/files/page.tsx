@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { BulkBar } from "@/components/bulk-bar"
 import { FolderIcon, Trash2Icon } from "lucide-react"
 import { ActionsMenu, MenuLink } from "@/components/actions-menu"
 import { FilterMenu } from "@/components/filter-menu"
@@ -16,7 +17,7 @@ import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { fileSize } from "@/lib/files"
 import { pageParam, param, withParams } from "@/lib/url"
-import { restoreFile, trashFile, updateFile } from "./actions"
+import { bulkTrashFiles, restoreFile, trashFile, updateFile } from "./actions"
 
 // Records a file can be attached to → where that record opens.
 const RECORD_LINKS: Record<string, (id: string) => string> = {
@@ -80,6 +81,7 @@ export default async function FilesPage({ searchParams }: PageProps<"/files">) {
         rows={rows}
         rowKey={(r) => r.id}
         rowHref={(r) => withParams(sp, { edit: r.id })}
+        select={canManage && !trash ? { form: "bulk-files", label: t("common.select") } : undefined}
         empty={trash ? t("files.emptyTrash") : q || folder ? t("files.noMatch") : t("files.empty")}
         columns={[
           {
@@ -152,6 +154,14 @@ export default async function FilesPage({ searchParams }: PageProps<"/files">) {
             </form>
           )}
         </UrlSheet>
+      )}
+      {canManage && !trash && (
+        <BulkBar form="bulk-files">
+          <input type="hidden" name="back" value={`/files${withParams(sp, { edit: undefined })}`} />
+          <SubmitButton size="sm" variant="ghost" formAction={bulkTrashFiles} className="text-destructive hover:text-destructive">
+            <Trash2Icon /> {t("common.toTrash")}
+          </SubmitButton>
+        </BulkBar>
       )}
     </Page>
   )
