@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { PageHeader } from "@/components/page"
 import { ExternalLinkIcon } from "lucide-react"
 import { NavLink } from "@/components/nav-link"
 import { Badge } from "@/components/ui/badge"
@@ -16,17 +17,18 @@ export default async function FormLayout({ children, params }: LayoutProps<"/for
   if (!form) notFound()
   return (
     <div className="grid max-w-6xl gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="font-heading text-2xl font-semibold">{form.title}</h1>
-          <Badge variant={form.status === "published" ? "default" : "outline"}>{t.dynamic(`forms.statuses.${form.status}`)}</Badge>
-        </div>
-        {form.status === "published" && (
-          <Button render={<a href={siteUrl(ctx.org.slug, `/f/${form.slug}`)} target="_blank" rel="noreferrer" />} nativeButton={false} size="sm" variant="outline">
-            <ExternalLinkIcon /> {t("forms.openPublic")}
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        crumbs={[{ href: "/forms", label: t("forms.title") }, { label: form.title }]}
+        title={form.title}
+        badge={<Badge variant={form.status === "published" ? "default" : "outline"}>{t.dynamic(`forms.statuses.${form.status}`)}</Badge>}
+        actions={
+          form.status === "published" && (
+            <Button render={<a href={siteUrl(ctx.org.slug, `/f/${form.slug}`)} target="_blank" rel="noreferrer" />} nativeButton={false} size="sm" variant="outline">
+              <ExternalLinkIcon /> {t("forms.openPublic")}
+            </Button>
+          )
+        }
+      />
       <nav aria-label={form.title} className="-mx-1 flex gap-1 overflow-x-auto border-b px-1 pb-2">
         <NavLink href={`/forms/${id}`} exact>
           {t("forms.tabs.builder")}

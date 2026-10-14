@@ -1,4 +1,5 @@
 import { DataTable, Pager, pageRange, PAGE_SIZE } from "@/components/data-table"
+import { PageHeader } from "@/components/page"
 import { Badge } from "@/components/ui/badge"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
@@ -19,7 +20,7 @@ export default async function EmailLogPage({ searchParams }: PageProps<"/email/l
   const rows = data?.slice(0, PAGE_SIZE) ?? []
   return (
     <>
-      <h1 className="font-heading text-2xl font-semibold">{t("email.tabs.log")}</h1>
+      <PageHeader area="communication" title={t("email.tabs.log")} />
       <DataTable
         rows={rows}
         rowKey={(r) => r.id}

@@ -1,11 +1,12 @@
-import Link from "next/link"
+import { ClipboardListIcon, Trash2Icon } from "lucide-react"
+import { ActionsMenu, MenuLink } from "@/components/actions-menu"
+import { Page, PageHeader } from "@/components/page"
 import { notFound } from "next/navigation"
 import { DataTable } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { UrlSheet } from "@/components/url-sheet"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
@@ -32,33 +33,22 @@ export default async function FormsPage({ searchParams }: PageProps<"/forms">) {
   const newCount = (id: string) => open?.filter((s) => s.form_id === id).length ?? 0
 
   return (
-    <div className="grid max-w-5xl gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{t("forms.title")}</h1>
-        {canManage && (
-          <Button render={<Link href={withParams(sp, { new: "1" })} scroll={false} />} nativeButton={false} size="sm">
-            {t("forms.new")}
-          </Button>
-        )}
-      </div>
+    <Page>
+      <PageHeader
+        area="communication"
+        title={trash ? `${t("forms.title")} · ${t("forms.trash")}` : t("forms.title")}
+        menu={
+          canManage && (
+            <ActionsMenu>
+              <MenuLink href={trash ? "/forms" : "/forms?trash=1"} icon={trash ? ClipboardListIcon : Trash2Icon}>
+                {trash ? t("forms.all") : t("forms.trash")}
+              </MenuLink>
+            </ActionsMenu>
+          )
+        }
+        primary={canManage && !trash ? { href: withParams(sp, { new: "1" }), label: t("forms.new") } : undefined}
+      />
       <Notice error={!creating ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
-      {canManage && (
-        <nav aria-label={t("forms.status")} className="flex flex-wrap gap-1.5">
-          {[
-            { href: "/forms", current: !trash, label: t("forms.all") },
-            { href: "/forms?trash=1", current: trash, label: t("forms.trash") },
-          ].map((c) => (
-            <Link
-              key={c.href}
-              href={c.href}
-              aria-current={c.current ? "true" : undefined}
-              className="rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground aria-[current=true]:bg-primary aria-[current=true]:text-primary-foreground"
-            >
-              {c.label}
-            </Link>
-          ))}
-        </nav>
-      )}
       {trash && <p className="text-sm text-muted-foreground">{t("forms.trashHint", { days: 30 })}</p>}
       <DataTable
         rows={forms ?? []}
@@ -110,7 +100,7 @@ export default async function FormsPage({ searchParams }: PageProps<"/forms">) {
           </form>
         </UrlSheet>
       )}
-    </div>
+    </Page>
   )
 }
 

@@ -1,4 +1,7 @@
 import { ArrowDownIcon, ArrowUpIcon, Trash2Icon } from "lucide-react"
+import { Choice } from "@/components/choice"
+import { FormCard, RecordLayout } from "@/components/page"
+import { SaveBar } from "@/components/save-bar"
 import { Notice } from "@/components/notice"
 import { TagSelect } from "@/components/tag-select"
 import { SubmitButton } from "@/components/submit-button"
@@ -41,28 +44,17 @@ export default async function FormBuilderPage({ params, searchParams }: PageProp
   ].filter((f) => !used.has(f))
   const settings = form.settings as { tags?: string[] }
 
-  return (
-    <>
-      <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
-      <section className="grid gap-3" aria-labelledby="form-settings">
-        <h2 id="form-settings" className="font-medium">
-          {t("forms.settings")}
-        </h2>
-        <form action={saveFormSettings} className="grid gap-4 rounded-lg border p-4">
+  const settingsCard = (
+      <form action={saveFormSettings} className="grid gap-4">
+        <FormCard id="form-settings" title={t("forms.settings")}>
           <input type="hidden" name="id" value={form.id} />
           <fieldset disabled={!canManage} className="grid gap-4">
-            <div className="grid gap-4 sm:grid-cols-[2fr_1fr_1fr]">
+            <div className="grid gap-4">
               <Field id="s-title" name="title" label={t("forms.formTitle")} required maxLength={200} defaultValue={form.title} />
               <Field id="s-slug" name="slug" label={t("forms.slug")} required maxLength={80} defaultValue={form.slug} />
               <div className="grid gap-2">
                 <Label htmlFor="s-status">{t("forms.status")}</Label>
-                <NativeSelect id="s-status" name="status" defaultValue={form.status} className="w-full">
-                  {(["draft", "published", "closed"] as const).map((s) => (
-                    <NativeSelectOption key={s} value={s}>
-                      {t(`forms.statuses.${s}`)}
-                    </NativeSelectOption>
-                  ))}
-                </NativeSelect>
+                <Choice id="s-status" name="status" label={t("forms.status")} required disabled={!canManage} defaultValue={form.status} options={(["draft", "published", "closed"] as const).map((x) => ({ value: x, label: t(`forms.statuses.${x}`) }))} />
               </div>
             </div>
             <Area id="s-intro" name="intro" label={t("forms.intro")} defaultValue={form.intro ?? ""} maxLength={5000} />
@@ -75,17 +67,17 @@ export default async function FormBuilderPage({ params, searchParams }: PageProp
               </p>
             </div>
           </fieldset>
-          {canManage && <SubmitButton className="justify-self-start">{t("common.save")}</SubmitButton>}
-        </form>
-      </section>
+        </FormCard>
+        {canManage && <SaveBar />}
+      </form>
 
-      <section className="grid gap-3" aria-labelledby="form-elements">
-        <div>
-          <h2 id="form-elements" className="font-medium">
-            {t("forms.elements")}
-          </h2>
-          <p className="text-sm text-muted-foreground">{t(purpose === "membership" ? "forms.elementsHintMembership" : "forms.elementsHint")}</p>
-        </div>
+  )
+
+  return (
+    <>
+      <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
+      <RecordLayout aside={settingsCard}>
+      <FormCard id="form-elements" title={t("forms.elements")} description={t(purpose === "membership" ? "forms.elementsHintMembership" : "forms.elementsHint")}>
         <ol className="grid gap-2">
           {elements.map((e, i) => (
             <li key={e.id} className="grid gap-3 rounded-lg border p-3">
@@ -158,7 +150,8 @@ export default async function FormBuilderPage({ params, searchParams }: PageProp
             <SubmitButton size="sm">{t("forms.add")}</SubmitButton>
           </form>
         )}
-      </section>
+      </FormCard>
+      </RecordLayout>
 
       {canManage && (
         <form action={trashForm}>

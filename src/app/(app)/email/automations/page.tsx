@@ -1,10 +1,14 @@
 import { Trash2Icon } from "lucide-react"
+import { DataTable } from "@/components/data-table"
+import { EmptyState, PageHeader } from "@/components/page"
+import { SaveBar } from "@/components/save-bar"
+import { UrlSheet } from "@/components/url-sheet"
+import { Badge } from "@/components/ui/badge"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { EmailBodyField } from "@/components/email-body-field"
 import { AUTOMATION_EVENTS } from "@/email/events"
 import { BASE_PLACEHOLDERS, type Format } from "@/email/render"
@@ -25,26 +29,40 @@ export default async function AutomationsPage({ searchParams }: PageProps<"/emai
   const events = AUTOMATION_EVENTS.filter((e) => ctx.modules.has(e.module))
   const { data } = await ctx.supabase.from("email_automations").select("*").eq("org_id", ctx.org.id).order("event_type").order("delay_minutes")
 
+  const editId = param(sp, "edit")
+  const editing = (data ?? []).find((a) => a.id === editId)
+  const creating = canManage && param(sp, "new") === "1"
+  const delayText = (m: number) => (m === 0 ? t("email.immediately") : m % 1440 === 0 ? `${m / 1440} ${t("email.units.days")}` : m % 60 === 0 ? `${m / 60} ${t("email.units.hours")}` : `${m} ${t("email.units.minutes")}`)
   return (
     <>
-      <div>
-        <h1 className="font-heading text-2xl font-semibold">{t("email.tabs.automations")}</h1>
-        <p className="text-sm text-muted-foreground">{t("email.automationsHint")}</p>
-      </div>
-      <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
-      <ul className="grid gap-3">
-        {(data ?? []).map((a) => (
-          <li key={a.id} className="rounded-lg border p-4">
-            <AutomationForm t={t} a={a} events={events} disabled={!canManage} />
-          </li>
-        ))}
-        {canManage && (
-          <li className="rounded-lg border border-dashed p-4">
-            <h2 className="mb-3 font-medium">{t("email.newAutomation")}</h2>
-            <AutomationForm t={t} events={events} />
-          </li>
-        )}
-      </ul>
+      <PageHeader area="communication" title={t("email.tabs.automations")} description={t("email.automationsHint")} primary={canManage ? { href: "/email/automations?new=1", label: t("email.newAutomation") } : undefined} />
+      <Notice error={!editing && !creating ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
+      <DataTable
+        rows={data ?? []}
+        rowKey={(a) => a.id}
+        rowHref={(a) => `/email/automations?edit=${a.id}`}
+        empty={<EmptyState area="communication" title={t("email.noAutomations")} />}
+        columns={[
+          {
+            header: t("email.name"),
+            cell: (a) => (
+              <span className="grid">
+                <span className="font-medium">{a.name}</span>
+                <span className="text-xs text-muted-foreground">{a.subject}</span>
+              </span>
+            ),
+          },
+          { header: t("email.trigger"), cell: (a) => t.dynamic(`events.types.${a.event_type}`) },
+          { header: t("email.delay"), cell: (a) => delayText(a.delay_minutes), className: "whitespace-nowrap" },
+          { header: t("email.status"), cell: (a) => <Badge variant={a.active ? "default" : "outline"}>{a.active ? t("email.active") : t("email.paused")}</Badge> },
+        ]}
+      />
+      {(editing || creating) && (
+        <UrlSheet params={["edit", "new"]} title={editing?.name ?? t("email.newAutomation")} wide>
+          <Notice error={param(sp, "error")} />
+          <AutomationForm t={t} a={editing} events={events} disabled={!canManage} />
+        </UrlSheet>
+      )}
     </>
   )
 }
@@ -55,11 +73,11 @@ function AutomationForm({ t, a, events, disabled }: { t: T; a?: Tables<"email_au
   const [delay, unit] = d % 1440 === 0 ? [d / 1440, "days"] : d % 60 === 0 ? [d / 60, "hours"] : [d, "minutes"]
   const ev = events.find((e) => e.type === a?.event_type)
   return (
-    <div className="flex flex-wrap items-start gap-3">
-      <form action={saveAutomation} className="grid flex-1 gap-3">
+    <div className="grid gap-6">
+      <form action={saveAutomation} className="grid gap-4">
         {a && <input type="hidden" name="id" value={a.id} />}
         <fieldset disabled={disabled} className="grid gap-3">
-          <div className="grid gap-3 sm:grid-cols-[2fr_2fr_1fr_1fr]">
+          <div className="grid gap-3 sm:grid-cols-2">
             <Field id={`a-name-${key}`} name="name" label={t("email.name")} required maxLength={200} defaultValue={a?.name ?? ""} placeholder={t("email.automationPlaceholder")} />
             <div className="grid gap-2">
               <Label htmlFor={`a-ev-${key}`}>{t("email.trigger")}</Label>
@@ -93,25 +111,20 @@ function AutomationForm({ t, a, events, disabled }: { t: T; a?: Tables<"email_au
           />
         </fieldset>
         {!disabled && (
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="flex items-center gap-1.5 text-sm">
-              <input type="checkbox" name="active" defaultChecked={a?.active ?? true} className="size-4" /> {t("email.active")}
+          <>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="active" defaultChecked={a?.active ?? true} className="size-4 accent-primary" /> {t("email.active")}
             </label>
-            <SubmitButton size="sm" variant={a ? "outline" : "default"}>
-              {a ? t("email.save") : t("email.create")}
-            </SubmitButton>
-          </div>
+            <SaveBar label={a ? undefined : t("email.create")} always={!a} />
+          </>
         )}
       </form>
       {a && !disabled && (
-        <form action={deleteAutomation}>
+        <form action={deleteAutomation} className="border-t pt-4">
           <input type="hidden" name="id" value={a.id} />
-          <Tooltip>
-            <TooltipTrigger render={<SubmitButton size="icon-sm" variant="ghost" aria-label={t("email.delete")} />}>
-              <Trash2Icon />
-            </TooltipTrigger>
-            <TooltipContent>{t("email.delete")}</TooltipContent>
-          </Tooltip>
+          <SubmitButton size="sm" variant="ghost" className="text-destructive">
+            <Trash2Icon /> {t("email.delete")}
+          </SubmitButton>
         </form>
       )}
     </div>

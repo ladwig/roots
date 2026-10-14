@@ -2298,7 +2298,13 @@
       "bounced": "Unzustellbar",
       "complained": "Als Spam gemeldet"
     },
-    "deliveryStats": "{delivered} zugestellt · {bounced} unzustellbar · {complained} als Spam gemeldet"
+    "deliveryStats": "{delivered} zugestellt · {bounced} unzustellbar · {complained} als Spam gemeldet",
+    "sending": "Versand",
+    "content": "Inhalt",
+    "immediately": "sofort",
+    "paused": "pausiert",
+    "noAutomations": "Noch keine Automationen.",
+    "emptyCampaignsText": "Eine Kampagne ist eine E-Mail an viele: an Tags oder alle aktiven Mitglieder, sofort oder geplant."
   },
   "editor": {
     "toolbar": "Formatierung",

@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { PlusIcon } from "lucide-react"
+import { EmptyState, PageHeader } from "@/components/page"
 import { DataTable } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
@@ -28,20 +30,26 @@ export default async function CampaignsPage({ searchParams }: PageProps<"/email"
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{t("email.tabs.campaigns")}</h1>
-        {canManage && (
-          <Button render={<Link href={withParams(sp, { new: "1" })} scroll={false} />} nativeButton={false} size="sm">
-            {t("email.newCampaign")}
-          </Button>
-        )}
-      </div>
+      <PageHeader area="communication" title={t("email.tabs.campaigns")} primary={canManage ? { href: withParams(sp, { new: "1" }), label: t("email.newCampaign") } : undefined} />
       <Notice error={!creating ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
       <DataTable
         rows={data ?? []}
         rowKey={(r) => r.id}
         rowHref={(r) => `/email/${r.id}`}
-        empty={t("email.emptyCampaigns")}
+        empty={
+          <EmptyState
+            area="communication"
+            title={t("email.emptyCampaigns")}
+            text={t("email.emptyCampaignsText")}
+            action={
+              canManage && (
+                <Button render={<Link href={withParams(sp, { new: "1" })} scroll={false} />} nativeButton={false} size="sm">
+                  <PlusIcon /> {t("email.newCampaign")}
+                </Button>
+              )
+            }
+          />
+        }
         columns={[
           {
             header: t("email.name"),
@@ -72,7 +80,7 @@ export default async function CampaignsPage({ searchParams }: PageProps<"/email"
               <Label htmlFor="c-name">{t("email.name")}</Label>
               <Input id="c-name" name="name" required maxLength={200} placeholder={t("email.namePlaceholder")} />
             </div>
-            <SubmitButton className="justify-self-start">{t("email.create")}</SubmitButton>
+            <SubmitButton className="justify-self-end">{t("email.create")}</SubmitButton>
           </form>
         </UrlSheet>
       )}

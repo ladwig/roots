@@ -2298,7 +2298,13 @@
       "bounced": "Bounced",
       "complained": "Marked as spam"
     },
-    "deliveryStats": "{delivered} delivered · {bounced} bounced · {complained} marked as spam"
+    "deliveryStats": "{delivered} delivered · {bounced} bounced · {complained} marked as spam",
+    "sending": "Sending",
+    "content": "Content",
+    "immediately": "immediately",
+    "paused": "paused",
+    "noAutomations": "No automations yet.",
+    "emptyCampaignsText": "A campaign is one email to many: to tags or all active members, now or scheduled."
   },
   "editor": {
     "toolbar": "Formatting",
