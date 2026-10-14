@@ -90,7 +90,22 @@
   "home": {
     "role": "Du bist angemeldet als {role}.",
     "modules": "Module",
-    "noModules": "Noch keine Module aktiv. Module werden von der Plattform freigeschaltet."
+    "noModules": "Noch keine Module aktiv. Module werden von der Plattform freigeschaltet.",
+    "today": "Heute",
+    "myTasks": "Meine Aufgaben",
+    "myShifts": "Meine nächsten Schichten",
+    "nextEvents": "Nächste Veranstaltungen",
+    "overdueDues": "Überfällige Beiträge",
+    "all": "Alle",
+    "noTasks": "Keine offenen Aufgaben für dich.",
+    "noShifts": "Keine Schichten geplant.",
+    "noEvents": "Keine Veranstaltungen geplant.",
+    "noOverdue": "Nichts überfällig.",
+    "overdueCount": {
+      "one": "{count} Beitrag",
+      "other": "{count} Beiträge"
+    },
+    "inboxEmpty": "Alles gelesen."
   },
   "settings": {
     "title": "Einstellungen",

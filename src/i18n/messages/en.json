@@ -90,7 +90,22 @@
   "home": {
     "role": "You're signed in as {role}.",
     "modules": "Modules",
-    "noModules": "No modules on yet. Modules are switched on by the platform."
+    "noModules": "No modules on yet. Modules are switched on by the platform.",
+    "today": "Today",
+    "myTasks": "My tasks",
+    "myShifts": "My next shifts",
+    "nextEvents": "Next events",
+    "overdueDues": "Overdue dues",
+    "all": "All",
+    "noTasks": "No open tasks for you.",
+    "noShifts": "No shifts planned.",
+    "noEvents": "No events planned.",
+    "noOverdue": "Nothing overdue.",
+    "overdueCount": {
+      "one": "{count} due",
+      "other": "{count} dues"
+    },
+    "inboxEmpty": "All read."
   },
   "settings": {
     "title": "Settings",
