@@ -1,4 +1,11 @@
-import { PlusIcon, SettingsIcon } from "lucide-react"
+import { MailIcon, PlusIcon, SettingsIcon, Trash2Icon, UploadIcon } from "lucide-react"
+import { ActionsMenu, MenuExport, MenuLink, MenuSeparator } from "@/components/actions-menu"
+import { Choice } from "@/components/choice"
+import { FilterMenu } from "@/components/filter-menu"
+import { EmptyState, FormCard, PageHeader } from "@/components/page"
+import { SaveBar } from "@/components/save-bar"
+import { Segments } from "@/components/segments"
+import { TypedInput } from "@/components/typed-input"
 import { DataTable } from "@/components/data-table"
 import { RichTextEditor } from "@/components/rich-text-editor"
 import { SubmitButton } from "@/components/submit-button"
@@ -40,6 +47,79 @@ export default function AppStyle() {
         <h1 className="font-heading text-3xl font-semibold tracking-tight">App style</h1>
         <p className="text-muted-foreground">Tokens in src/app/theme.css, components in src/components/ui (shadcn on Base UI). Toggle dark mode in the profile.</p>
       </header>
+
+      <Block title="Page anatomy (Page, PageHeader, ActionsMenu)">
+        <p className="text-sm text-muted-foreground">
+          Right side of every header, in this order: gear (area settings) · outline actions · ⋯ menu (import, export, trash, delete in red) · the one filled main action (key N).
+        </p>
+        <div className="rounded-xl border p-4">
+          <PageHeader
+            area="contacts"
+            title="Kontakte"
+            meta="128 Kontakte"
+            settings={{ href: "#", label: "Einstellungen" }}
+            actions={
+              <Button size="sm" variant="outline">
+                <MailIcon /> E-Mail
+              </Button>
+            }
+            menu={
+              <ActionsMenu>
+                <MenuLink href="#" icon={UploadIcon}>
+                  Importieren
+                </MenuLink>
+                <MenuExport entity="contacts" />
+                <MenuSeparator />
+                <MenuLink href="#" icon={Trash2Icon} destructive>
+                  In den Papierkorb
+                </MenuLink>
+              </ActionsMenu>
+            }
+            primary={{ href: "#", label: "Neuer Kontakt" }}
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Segments label="Ansicht" items={[{ href: "#a", label: "Kommend", current: true }, { href: "#b", label: "Vergangen", current: false }, { href: "#c", label: "Alle", current: false }]} />
+          <FilterMenu param="tag" label="Tags" options={[{ value: "vorstand", label: "Vorstand" }, { value: "jugend", label: "Jugend" }]} />
+        </div>
+        <EmptyState area="contacts" title="Noch keine Kontakte." text="Empty lists explain what belongs here and offer the first step." action={<Button size="sm"><PlusIcon /> Neuer Kontakt</Button>} />
+      </Block>
+
+      <Block title="Forms (FormCard, TypedInput, Choice, SaveBar)">
+        <form className="grid gap-6">
+          <FormCard id="demo-bank" title="Bank & SEPA" description="Fields that belong together sit in one card with a title and one line of help.">
+            <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+              <div className="grid content-start gap-2">
+                <Label htmlFor="d-iban">IBAN</Label>
+                <TypedInput kind="iban" id="d-iban" name="iban" />
+              </div>
+              <div className="grid content-start gap-2">
+                <Label htmlFor="d-bic">BIC</Label>
+                <TypedInput kind="bic" id="d-bic" name="bic" />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="grid content-start gap-2">
+                <Label htmlFor="d-money">Betrag</Label>
+                <TypedInput kind="money" id="d-money" name="amount" />
+              </div>
+              <div className="grid content-start gap-2">
+                <Label htmlFor="d-zip">PLZ</Label>
+                <TypedInput kind="postcode" id="d-zip" name="zip" />
+              </div>
+              <div className="grid content-start gap-2">
+                <Label htmlFor="d-date">Datum</Label>
+                <TypedInput kind="date" id="d-date" name="date" />
+              </div>
+            </div>
+          </FormCard>
+          <FormCard id="demo-choice" title="Choice" description="≤ 5 options: segments · 6–15: dropdown · more: search.">
+            <Choice name="interval" required defaultValue="year" options={[{ value: "month", label: "Monatlich" }, { value: "quarter", label: "Quartal" }, { value: "year", label: "Jährlich" }]} />
+            <Choice name="country" label="Land" options={["DE", "AT", "CH", "NL", "BE", "FR", "IT", "ES", "PL", "CZ", "DK", "SE", "NO", "GB", "IE", "US"].map((c) => ({ value: c, label: c }))} />
+          </FormCard>
+          <SaveBar />
+        </form>
+      </Block>
 
       <Block title="Colour tokens">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-7">

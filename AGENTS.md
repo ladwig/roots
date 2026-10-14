@@ -82,6 +82,16 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Icons: `lucide-react` only.
 - Accessible basics: labels on inputs, focus rings intact, real `<button>`/`<a>`.
 
+### Page anatomy (same on every screen, see /style/app)
+- **Page**: `<Page size="list|record|form">` (6xl lists/boards/records, 3xl forms/settings/new). Area layouts use the list width.
+- **Header**: `<PageHeader>` on every page: `area` (icon from the nav) or `crumbs` (record pages), `title`, `badge`, `meta` (one muted line), `description`. Right side, always in this order: `settings` (gear → the area's Einstellungen), `actions` (few outline buttons), `menu` (`<ActionsMenu>` ⋯: import, export, trash view, duplicate, delete), `primary` (the one filled button, "+ New …", key N). Delete/trash is always a red (`destructive`) ⋯ item with the trash icon, posting a hidden `<form id=…>` via `<MenuSubmit form>`; no danger-zone boxes.
+- **Records**: `<RecordLayout aside>`: content left, details/related cards right. Group fields in `<FormCard title description>` by topic (Person, Adresse, Bank & SEPA…), never a flat list of 15 inputs.
+- **Saving**: no save buttons on edit forms. Put `<SaveBar />` inside the form: a full-width bar appears at the bottom once something changed (Abbrechen · Speichern) and leaving asks first. Create forms: `<SaveBar label="… anlegen" always />`. Small inline things (status, checklist, tasks) autosave. Exception: lists of inline-editable rows (positions, columns, locations) keep a small button per row.
+- **Inputs**: `<TypedInput kind="iban|bic|postcode|phone|email|url|money|number|date">` (keyboard, autofill, placeholder, width, format + check on leaving; money posts "1.234,50" → `moneyCents()`), the server checks again with `src/lib/inputs.ts` (`ibanValid` with check digits, `bicValid`, `moneyCents`). One value from a list: `<Choice>` (≤ 5 segments, ≤ 15 dropdown, more = search). Booleans in forms: checkbox (`accent-primary`).
+- **Lists**: toolbar = `<SearchBox>` + `<FilterMenu>` dropdowns (tags, status, type, event…) + `<Segments>` for ≤ 5 views (Kommend · Vergangen · Alle, Board · Liste). Trash is a ⋯ item, not a filter chip. Lists that have never had a row show `<EmptyState area title text action>`.
+- **Drawers**: `<UrlSheet title meta actions menu>`: meta = one small muted line under the title (created…, live save status), then one action row (main action + ⋯ with red delete), the form with `<SaveBar>` below. Quick creates that only need a name stay drawers and then open the record.
+- **Area settings**: always the area's last sidebar item "Einstellungen" (`common.settings`) at `/<area>/settings`; Settings › Bereiche lists them all. Org-wide settings only under `/settings`.
+
 ### One style guide, every device
 Every screen works on phone (from 360px), tablet (iPad, `md` = 768px+) and desktop, in light + dark. Same components, same tokens; only the arrangement changes.
 - Mobile-first classes: base = phone, add `sm:` / `md:` / `lg:` for wider. No fixed widths that can overflow; text truncates or wraps.
@@ -96,7 +106,7 @@ Every screen works on phone (from 360px), tablet (iPad, `md` = 768px+) and deskt
 - Pages are left-aligned (same left margin everywhere): `grid max-w-5xl gap-6`, never `mx-auto` in the App/admin. Popovers from the sidebar open below/above their trigger, as wide as the sidebar.
 - **Global search (⌘K, `src/search/actions.ts`)**: every new module/record type adds its source there, and every hit is a **deep link to the record itself** (its page, or its drawer via `?edit=<id>`, a wiki page, a file), never just the list. Pages come from the nav tree (`src/modules/nav.ts`).
 - **Navigation**: the sidebar is the tree in `src/modules/nav.ts` (areas with sub-pages, only the current area expanded, the first sub-page is "Übersicht" when it is the area itself). New sub-page = an entry there, not a tab bar in the layout. Records with real content are pages (`/<area>/<id>`), and so is creating them (`/<area>/new`, `<NewPage>`); drawers only for quick edits with a few fields and for imports (wide `<UrlSheet wide>` on the overview).
-- Feedback on every action: form buttons are `<SubmitButton>` (`src/components/submit-button.tsx`: spinner + disabled while the server action runs), navigation shows the area's `loading.tsx` skeleton, client-side work (`useTransition`) disables its trigger and shows a pending label. Never a plain `<Button type="submit">`.
+- Feedback on every action: form buttons are `<SubmitButton>` (or the `<SaveBar>`) (`src/components/submit-button.tsx`: spinner + disabled while the server action runs), navigation shows the area's `loading.tsx` skeleton, client-side work (`useTransition`) disables its trigger and shows a pending label. Never a plain `<Button type="submit">`.
 - Icon-only buttons get a `<Tooltip>` and an `aria-label`. Touch targets at least `size-8`.
 - Check new screens at 375px, 768px and 1280px before committing.
 
