@@ -1,9 +1,12 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { PlusIcon } from "lucide-react"
+import { PlusIcon, Trash2Icon } from "lucide-react"
 import { FileList } from "@/components/file-list"
 import { Notice } from "@/components/notice"
-import { PageCrumbs } from "@/components/page-crumbs"
+import { ActionsMenu, MenuLink, MenuSeparator, MenuSubmit } from "@/components/actions-menu"
+import { FormCard, Page, PageHeader, RecordLayout } from "@/components/page"
+import { SaveBar } from "@/components/save-bar"
+import { TypedInput } from "@/components/typed-input"
 import { SubmitButton } from "@/components/submit-button"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -49,94 +52,19 @@ export default async function EmployeePage({ params, searchParams }: { params: P
     </div>
   )
 
-  return (
-    <div className="grid max-w-6xl gap-6">
-      <PageCrumbs items={[{ href: "/hr", label: t("hr.title") }, { label: e.name }]} />
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="grid gap-1">
-          <h1 className="font-heading text-2xl font-semibold break-words">{e.name}</h1>
-          <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            {e.job_title && <span>{e.job_title}</span>}
-            <Badge variant="secondary">{t.dynamic(`hr.types.${e.employment_type}`)}</Badge>
-          </p>
-        </div>
-        {canManage && !e.deleted_at && (
-          <form action={trashEmployee}>
-            <input type="hidden" name="id" value={e.id} />
-            <SubmitButton size="sm" variant="outline">
-              {t("hr.toTrash")}
-            </SubmitButton>
-          </form>
-        )}
-      </div>
-      <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
-
-      {e.deleted_at ? (
-        <div className="grid max-w-xl gap-3">
-          <p className="rounded-lg border bg-muted px-3 py-2 text-sm">{t("hr.inTrash")}</p>
-          {canManage && (
-            <form action={restoreEmployee}>
-              <input type="hidden" name="id" value={e.id} />
-              <SubmitButton>{t("hr.restore")}</SubmitButton>
-            </form>
-          )}
-        </div>
-      ) : (
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start">
-          <div className="grid min-w-0 gap-8">
-            <section id="details" className="grid scroll-mt-20 gap-3">
-              <h2 className="font-medium">{t("hr.details")}</h2>
-              <EmployeeForm t={t} e={e} managers={people ?? []} disabled={!canManage} />
-            </section>
-            {canManage && (
-              <section id="private" className="grid scroll-mt-20 gap-3">
-                <h2 className="font-medium">{t("hr.private")}</h2>
-                <p className="text-sm text-muted-foreground">{t("hr.privateHint")}</p>
-                <form action={savePrivate} className="grid gap-4">
-                  <input type="hidden" name="employee_id" value={e.id} />
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {field("birthday", t("hr.birthday"), { type: "date" })}
-                    {field("nationality", t("hr.nationality"), { maxLength: 60 })}
-                    {field("street", t("hr.street"), { maxLength: 200 })}
-                    <div className="grid grid-cols-[7rem_1fr] gap-2">
-                      {field("postal_code", t("hr.postalCode"), { maxLength: 20 })}
-                      {field("city", t("hr.city"), { maxLength: 100 })}
-                    </div>
-                    {field("country", t("hr.country"), { maxLength: 2, placeholder: "DE" })}
-                    {field("emergency_contact", t("hr.emergencyContact"), { maxLength: 300 })}
-                    {field("iban", "IBAN", { maxLength: 40, autoComplete: "off" })}
-                    {field("bic", "BIC", { maxLength: 11, autoComplete: "off" })}
-                    {field("tax_id", t("hr.taxId"), { inputMode: "numeric", maxLength: 14, autoComplete: "off" })}
-                    <div className="grid gap-2">
-                      <Label htmlFor="p-tax_class">{t("hr.taxClass")}</Label>
-                      <NativeSelect id="p-tax_class" name="tax_class" defaultValue={priv?.tax_class ?? ""} className="w-full">
-                        <NativeSelectOption value="">–</NativeSelectOption>
-                        {TAX_CLASSES.map((c) => (
-                          <NativeSelectOption key={c} value={c}>
-                            {c}
-                          </NativeSelectOption>
-                        ))}
-                      </NativeSelect>
-                    </div>
-                    {field("social_security_no", t("hr.socialSecurityNo"), { maxLength: 20, autoComplete: "off" })}
-                    {field("health_insurance", t("hr.healthInsurance"), { maxLength: 100 })}
-                  </div>
-                  <SubmitButton className="justify-self-start">{t("common.save")}</SubmitButton>
-                </form>
-              </section>
-            )}
-          </div>
-
-          <aside className="grid min-w-0 gap-6">
-            <section id="absences" className="grid scroll-mt-20 gap-3">
-              <div className="flex items-center justify-between gap-2">
-                <h2 className="font-medium">{t("hr.tabs.absences")}</h2>
-                {canManage && (
+  const aside = (
+          <>
+            <FormCard
+              id="absences"
+              title={t("hr.tabs.absences")}
+              action={
+                canManage && (
                   <Button render={<Link href={`/hr/absences?new=absence&employee=${e.id}`} />} nativeButton={false} size="sm" variant="outline">
                     <PlusIcon /> {t("hr.addAbsence")}
                   </Button>
-                )}
-              </div>
+                )
+              }
+            >
               {e.vacation_days != null && (
                 <p className="text-sm">{t("hr.vacationLeft", { left: t.number(Number(e.vacation_days) - taken), total: t.number(Number(e.vacation_days)), year })}</p>
               )}
@@ -154,9 +82,8 @@ export default async function EmployeePage({ params, searchParams }: { params: P
                 ))}
                 {!absences?.length && <li className="text-sm text-muted-foreground">{t("hr.noAbsences")}</li>}
               </ul>
-            </section>
-            <section id="pay" className="grid scroll-mt-20 gap-2">
-              <h2 className="font-medium">{t("hr.thisMonth")}</h2>
+            </FormCard>
+            <FormCard id="pay" title={t("hr.thisMonth")}>
               {e.staff_id && pay ? (
                 <>
                   <p className="text-sm">
@@ -178,16 +105,111 @@ export default async function EmployeePage({ params, searchParams }: { params: P
               ) : (
                 <p className="text-sm text-muted-foreground">{pay?.gross_cents != null ? t("hr.gross", { amount: t.money(pay.gross_cents) }) : t("hr.noHours")}</p>
               )}
-            </section>
-            <section id="files" className="grid scroll-mt-20 gap-3">
-              <h2 className="font-medium">{t("hr.documents")}</h2>
-              <FileList ctx={ctx} entity="employees" entityId={e.id} back={`/hr/${e.id}#files`} />
-            </section>
-          </aside>
-        </div>
-      )}
-    </div>
+            </FormCard>
+            <FileList ctx={ctx} entity="employees" entityId={e.id} back={`/hr/${e.id}#files`} />
+          </>
   )
+
+  return (
+    <Page size="record">
+      <PageHeader
+        crumbs={[{ href: "/hr", label: t("hr.title") }, { label: e.name }]}
+        title={e.name}
+        badge={<Badge variant="secondary">{t.dynamic(`hr.types.${e.employment_type}`)}</Badge>}
+        meta={e.job_title}
+        menu={
+          canManage &&
+          !e.deleted_at && (
+            <ActionsMenu>
+              <MenuLink href={`/hr/absences?new=absence&employee=${e.id}`} icon={PlusIcon}>
+                {t("hr.addAbsence")}
+              </MenuLink>
+              <MenuSeparator />
+              <MenuSubmit form="trash-employee" icon={Trash2Icon} destructive>
+                {t("hr.toTrash")}
+              </MenuSubmit>
+            </ActionsMenu>
+          )
+        }
+      />
+      {canManage && !e.deleted_at && (
+        <form id="trash-employee" action={trashEmployee} hidden>
+          <input type="hidden" name="id" value={e.id} />
+        </form>
+      )}
+      <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
+
+      {e.deleted_at ? (
+        <div className="grid max-w-xl gap-3">
+          <p className="rounded-lg border bg-muted px-3 py-2 text-sm">{t("hr.inTrash")}</p>
+          {canManage && (
+            <form action={restoreEmployee}>
+              <input type="hidden" name="id" value={e.id} />
+              <SubmitButton>{t("hr.restore")}</SubmitButton>
+            </form>
+          )}
+        </div>
+      ) : (
+        <RecordLayout aside={aside}>
+          <EmployeeForm t={t} e={e} managers={people ?? []} disabled={!canManage} />
+          {canManage && (
+            <form action={savePrivate} className="grid gap-6">
+              <input type="hidden" name="employee_id" value={e.id} />
+              <FormCard id="private" title={t("hr.private")} description={t("hr.privateHint")}>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid content-start gap-2">
+                    <Label htmlFor="p-birthday">{t("hr.birthday")}</Label>
+                    <TypedInput kind="date" id="p-birthday" name="birthday" defaultValue={priv?.birthday ?? ""} />
+                  </div>
+                  {field("nationality", t("hr.nationality"), { maxLength: 60 })}
+                  {field("street", t("hr.street"), { maxLength: 200, autoComplete: "off" })}
+                  <div className="grid grid-cols-[7rem_minmax(0,1fr)] gap-2">
+                    <div className="grid content-start gap-2">
+                      <Label htmlFor="p-postal_code">{t("hr.postalCode")}</Label>
+                      <TypedInput kind="postcode" id="p-postal_code" name="postal_code" country={priv?.country} defaultValue={priv?.postal_code ?? ""} autoComplete="off" />
+                    </div>
+                    {field("city", t("hr.city"), { maxLength: 100, autoComplete: "off" })}
+                  </div>
+                  {field("country", t("hr.country"), { maxLength: 2, placeholder: "DE", className: "max-w-20 uppercase" })}
+                  {field("emergency_contact", t("hr.emergencyContact"), { maxLength: 300 })}
+                </div>
+              </FormCard>
+              <FormCard id="bank" title={t("hr.bankTax")}>
+                <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+                  <div className="grid content-start gap-2">
+                    <Label htmlFor="p-iban">IBAN</Label>
+                    <TypedInput kind="iban" id="p-iban" name="iban" defaultValue={priv?.iban ?? ""} />
+                  </div>
+                  <div className="grid content-start gap-2">
+                    <Label htmlFor="p-bic">BIC</Label>
+                    <TypedInput kind="bic" id="p-bic" name="bic" defaultValue={priv?.bic ?? ""} />
+                  </div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                    {field("tax_id", t("hr.taxId"), { inputMode: "numeric", maxLength: 14, autoComplete: "off", className: "font-mono" })}
+                    <div className="grid gap-2">
+                      <Label htmlFor="p-tax_class">{t("hr.taxClass")}</Label>
+                      <NativeSelect id="p-tax_class" name="tax_class" defaultValue={priv?.tax_class ?? ""} className="w-full">
+                        <NativeSelectOption value="">–</NativeSelectOption>
+                        {TAX_CLASSES.map((c) => (
+                          <NativeSelectOption key={c} value={c}>
+                            {c}
+                          </NativeSelectOption>
+                        ))}
+                      </NativeSelect>
+                    </div>
+                    {field("social_security_no", t("hr.socialSecurityNo"), { maxLength: 20, autoComplete: "off" })}
+                    {field("health_insurance", t("hr.healthInsurance"), { maxLength: 100 })}
+                </div>
+              </FormCard>
+              <SaveBar />
+            </form>
+          )}
+        </RecordLayout>
+      )}
+    </Page>
+  )
+
 }
 
 export const instant = false

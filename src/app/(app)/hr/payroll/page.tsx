@@ -1,6 +1,7 @@
 import Link from "next/link"
+import { ActionsMenu, MenuExport } from "@/components/actions-menu"
+import { Page, PageHeader } from "@/components/page"
 import { DataTable } from "@/components/data-table"
-import { ExportMenu } from "@/components/export-menu"
 import { MonthNav } from "@/components/time-entries"
 import { Badge } from "@/components/ui/badge"
 import { getT } from "@/i18n/server"
@@ -21,17 +22,22 @@ export default async function PayrollPage({ searchParams }: PageProps<"/hr/payro
   const open = rows.reduce((n, r) => n + r.unapproved_entries, 0)
 
   return (
-    <div className="grid gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{t("hr.tabs.payroll")}</h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <MonthNav month={month} href={(m) => `/hr/payroll?month=${m}`} />
-          <ExportMenu entity="payroll" query={{ month: month.month }} />
-        </div>
-      </div>
-      <p className="text-sm text-muted-foreground">
-        {t("hr.payrollHint")} {open > 0 && t("hr.unapproved", { count: open })}
-      </p>
+    <Page>
+      <PageHeader
+        area="hr"
+        title={t("hr.tabs.payroll")}
+        description={
+          <>
+            {t("hr.payrollHint")} {open > 0 && t("hr.unapproved", { count: open })}
+          </>
+        }
+        actions={<MonthNav month={month} href={(m) => `/hr/payroll?month=${m}`} />}
+        menu={
+          <ActionsMenu>
+            <MenuExport entity="payroll" query={{ month: month.month }} />
+          </ActionsMenu>
+        }
+      />
       <DataTable
         rows={rows}
         rowKey={(r) => r.employee_id}
@@ -75,7 +81,7 @@ export default async function PayrollPage({ searchParams }: PageProps<"/hr/payro
           },
         ]}
       />
-    </div>
+    </Page>
   )
 }
 

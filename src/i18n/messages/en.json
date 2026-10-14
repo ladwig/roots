@@ -3058,7 +3058,9 @@
     "member": "Member of the organisation",
     "pickMember": "Pick a member…",
     "memberHint": "Employees are members of your organisation (Settings → Team). Name and email come from their account.",
-    "memberTaken": "This member is already an employee."
+    "memberTaken": "This member is already an employee.",
+    "bankTax": "Bank, tax & social security",
+    "roleCard": "Person & role"
   },
   "courses": {
     "nav": "Courses",

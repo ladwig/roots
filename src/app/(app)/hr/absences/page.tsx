@@ -1,4 +1,5 @@
 import { CalendarView, type CalendarItem } from "@/components/calendar-view"
+import { Page, PageHeader } from "@/components/page"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { Input } from "@/components/ui/input"
@@ -51,8 +52,8 @@ export default async function AbsencesPage({ searchParams }: PageProps<"/hr/abse
   const end = endRaw ? addDays(endRaw.slice(0, 10), endRaw.slice(11, 16) === "00:00" ? -1 : 0) : ""
 
   return (
-    <div className="grid gap-6">
-      <h1 className="font-heading text-2xl font-semibold">{t("hr.tabs.absences")}</h1>
+    <Page>
+      <PageHeader area="hr" title={t("hr.tabs.absences")} primary={canManage ? { href: withParams(sp, { new: "absence", edit: undefined }), label: t("hr.addAbsence") } : undefined} />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
       <CalendarView events={items} views={["month", "agenda"]} defaultView="month" newHref={canManage ? withParams(sp, { new: "absence", edit: undefined }) : undefined} newMinutes={24 * 60} />
       {(creating || editing) && (
@@ -116,7 +117,7 @@ export default async function AbsencesPage({ searchParams }: PageProps<"/hr/abse
           )}
         </UrlSheet>
       )}
-    </div>
+    </Page>
   )
 }
 

@@ -1,4 +1,7 @@
-import { SubmitButton } from "@/components/submit-button"
+import { Choice } from "@/components/choice"
+import { FormCard } from "@/components/page"
+import { SaveBar } from "@/components/save-bar"
+import { TypedInput } from "@/components/typed-input"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
@@ -35,46 +38,66 @@ export function EmployeeForm({ t, e, managers, members = [], disabled }: { t: T;
       </NativeSelect>
     </div>
   )
+  const money = (name: string, label: string, cents: number | null | undefined) => (
+    <div className="grid content-start gap-2">
+      <Label htmlFor={`emp-${name}`}>{label}</Label>
+      <TypedInput kind="money" id={`emp-${name}`} name={name} disabled={disabled} defaultValue={cents != null ? priceInput(cents) : ""} />
+    </div>
+  )
+  const date = (name: string, label: string, value: string | null | undefined) => (
+    <div className="grid content-start gap-2">
+      <Label htmlFor={`emp-${name}`}>{label}</Label>
+      <TypedInput kind="date" id={`emp-${name}`} name={name} disabled={disabled} defaultValue={value ?? ""} />
+    </div>
+  )
   return (
     <form action={saveEmployee} className="grid gap-6">
       {e && <input type="hidden" name="id" value={e.id} />}
-      <fieldset className="grid gap-4 sm:grid-cols-2">
-        {e ? (
-          <div className="grid gap-1 sm:col-span-2">
-            <input type="hidden" name="name" value={e.name} />
-            <span className="text-sm font-medium">{t("hr.account")}</span>
-            <span className="text-sm text-muted-foreground">
-              {e.name}
-              {e.email && ` · ${e.email}`}
-            </span>
+      <FormCard id="role" title={t("hr.roleCard")}>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {e ? (
+            <div className="grid gap-1 sm:col-span-2">
+              <input type="hidden" name="name" value={e.name} />
+              <span className="text-sm font-medium">{t("hr.account")}</span>
+              <span className="text-sm text-muted-foreground">
+                {e.name}
+                {e.email && ` · ${e.email}`}
+              </span>
+            </div>
+          ) : (
+            <div className="sm:col-span-2">
+              {select("user_id", t("hr.member"), "", members.map((m) => ({ value: m.id, label: m.name })), t("hr.pickMember"))}
+              <p className="mt-1 text-xs text-muted-foreground">{t("hr.memberHint")}</p>
+            </div>
+          )}
+          {field("job_title", t("hr.jobTitle"), { maxLength: 100, defaultValue: e?.job_title ?? "" })}
+          {field("department", t("hr.department"), { maxLength: 100, defaultValue: e?.department ?? "" })}
+          <div className="grid content-start gap-2">
+            <Label htmlFor="emp-phone">{t("hr.phone")}</Label>
+            <TypedInput kind="phone" id="emp-phone" name="phone" disabled={disabled} defaultValue={e?.phone ?? ""} />
           </div>
-        ) : (
-          <div className="sm:col-span-2">
-            {select("user_id", t("hr.member"), "", members.map((m) => ({ value: m.id, label: m.name })), t("hr.pickMember"))}
-            <p className="mt-1 text-xs text-muted-foreground">{t("hr.memberHint")}</p>
+          {select("manager_id", t("hr.manager"), e?.manager_id ?? "", managers.filter((m) => m.id !== e?.id).map((m) => ({ value: m.id, label: m.name })), "–")}
+        </div>
+      </FormCard>
+      <FormCard id="contract" title={t("hr.contract")}>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {select("employment_type", t("hr.employmentType"), e?.employment_type ?? "part_time", EMPLOYMENT_TYPES.map((x) => ({ value: x, label: t.dynamic(`hr.types.${x}`) })))}
+          <div className="grid content-start gap-2">
+            <Label htmlFor="emp-pay_type">{t("hr.payType")}</Label>
+            <Choice id="emp-pay_type" name="pay_type" label={t("hr.payType")} required disabled={disabled} defaultValue={e?.pay_type ?? "hourly"} options={PAY_TYPES.map((x) => ({ value: x, label: t.dynamic(`hr.payTypes.${x}`) }))} />
           </div>
-        )}
-        {field("job_title", t("hr.jobTitle"), { maxLength: 100, defaultValue: e?.job_title ?? "" })}
-        {field("phone", t("hr.phone"), { type: "tel", maxLength: 50, defaultValue: e?.phone ?? "" })}
-        {field("department", t("hr.department"), { maxLength: 100, defaultValue: e?.department ?? "" })}
-        {select("manager_id", t("hr.manager"), e?.manager_id ?? "", managers.filter((m) => m.id !== e?.id).map((m) => ({ value: m.id, label: m.name })), "–")}
-      </fieldset>
-      <fieldset className="grid gap-4 sm:grid-cols-2">
-        <legend className="mb-2 text-sm font-medium">{t("hr.contract")}</legend>
-        {select("employment_type", t("hr.employmentType"), e?.employment_type ?? "part_time", EMPLOYMENT_TYPES.map((x) => ({ value: x, label: t.dynamic(`hr.types.${x}`) })))}
-        {select("pay_type", t("hr.payType"), e?.pay_type ?? "hourly", PAY_TYPES.map((x) => ({ value: x, label: t.dynamic(`hr.payTypes.${x}`) })))}
-        {field("starts_on", t("hr.startsOn"), { type: "date", defaultValue: e?.starts_on ?? "" })}
-        {field("ends_on", t("hr.endsOn"), { type: "date", defaultValue: e?.ends_on ?? "" })}
-        {field("hourly_rate", t("hr.hourlyRate"), { inputMode: "decimal", placeholder: "0,00", defaultValue: e?.hourly_rate_cents != null ? priceInput(e.hourly_rate_cents) : "" })}
-        {field("monthly_salary", t("hr.monthlySalary"), { inputMode: "decimal", placeholder: "0,00", defaultValue: e?.monthly_salary_cents != null ? priceInput(e.monthly_salary_cents) : "" })}
-        {field("weekly_hours", t("hr.weeklyHours"), { inputMode: "decimal", defaultValue: e?.weekly_hours ?? "" })}
-        {field("vacation_days", t("hr.vacationDays"), { inputMode: "decimal", defaultValue: e?.vacation_days ?? "" })}
-      </fieldset>
-      <div className="grid gap-2">
-        <Label htmlFor="emp-notes">{t("hr.notes")}</Label>
-        <Textarea id="emp-notes" name="notes" rows={3} maxLength={5000} disabled={disabled} defaultValue={e?.notes ?? ""} />
-      </div>
-      {!disabled && <SubmitButton className="justify-self-start">{e ? t("common.save") : t("hr.create")}</SubmitButton>}
+          {date("starts_on", t("hr.startsOn"), e?.starts_on)}
+          {date("ends_on", t("hr.endsOn"), e?.ends_on)}
+          {money("hourly_rate", t("hr.hourlyRate"), e?.hourly_rate_cents)}
+          {money("monthly_salary", t("hr.monthlySalary"), e?.monthly_salary_cents)}
+          {field("weekly_hours", t("hr.weeklyHours"), { inputMode: "decimal", defaultValue: e?.weekly_hours ?? "", className: "max-w-32" })}
+          {field("vacation_days", t("hr.vacationDays"), { inputMode: "decimal", defaultValue: e?.vacation_days ?? "", className: "max-w-32" })}
+        </div>
+      </FormCard>
+      <FormCard id="notes" title={t("hr.notes")}>
+        <Textarea id="emp-notes" name="notes" rows={3} maxLength={5000} disabled={disabled} defaultValue={e?.notes ?? ""} aria-label={t("hr.notes")} />
+      </FormCard>
+      {!disabled && <SaveBar label={e ? undefined : t("hr.create")} always={!e} />}
     </form>
   )
 }

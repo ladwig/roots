@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation"
+import { BriefcaseBusinessIcon, Trash2Icon } from "lucide-react"
+import { ActionsMenu, MenuExport, MenuLink, MenuSeparator } from "@/components/actions-menu"
+import { Page, PageHeader } from "@/components/page"
 import Link from "next/link"
-import { PlusIcon } from "lucide-react"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
-import { ExportMenu } from "@/components/export-menu"
 import { Notice } from "@/components/notice"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { pageParam, param } from "@/lib/url"
@@ -32,26 +32,28 @@ export default async function HrPage({ searchParams }: PageProps<"/hr">) {
   const today = new Date().toISOString().slice(0, 10)
 
   return (
-    <div className="grid gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold">{t("hr.title")}</h1>
-        <div className="flex flex-wrap gap-2">
-          <ExportMenu entity="employees" />
-          {canManage && (
-            <Button render={<Link href="/hr/new" />} nativeButton={false} size="sm">
-              <PlusIcon /> {t("hr.new")}
-            </Button>
-          )}
-        </div>
-      </div>
+    <Page>
+      <PageHeader
+        area="hr"
+        title={trash ? `${t("hr.title")} · ${t("hr.trash")}` : t("hr.title")}
+        menu={
+          <ActionsMenu>
+            <MenuExport entity="employees" />
+            {canManage && (
+              <>
+                <MenuSeparator />
+                <MenuLink href={trash ? "/hr" : "/hr?status=trash"} icon={trash ? BriefcaseBusinessIcon : Trash2Icon}>
+                  {trash ? t("hr.backToList") : t("hr.trash")}
+                </MenuLink>
+              </>
+            )}
+          </ActionsMenu>
+        }
+        primary={canManage && !trash ? { href: "/hr/new", label: t("hr.new") } : undefined}
+      />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <SearchBox q={q} label={t("hr.search")} keep={trash ? { status: "trash" } : undefined} />
-        {canManage && (
-          <Link href={trash ? "/hr" : "/hr?status=trash"} className="text-sm text-muted-foreground underline-offset-4 hover:underline">
-            {trash ? t("hr.backToList") : t("hr.trash")}
-          </Link>
-        )}
       </div>
       <DataTable
         rows={(data ?? []).slice(0, PAGE_SIZE)}
@@ -82,7 +84,7 @@ export default async function HrPage({ searchParams }: PageProps<"/hr">) {
         ]}
       />
       <Pager sp={sp} page={page} hasNext={(data?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
-    </div>
+    </Page>
   )
 }
 

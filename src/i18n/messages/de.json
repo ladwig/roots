@@ -3058,7 +3058,9 @@
     "member": "Mitglied der Organisation",
     "pickMember": "Mitglied wählen…",
     "memberHint": "Mitarbeitende sind Mitglieder eurer Organisation (Einstellungen → Team). Name und E-Mail kommen aus ihrem Konto.",
-    "memberTaken": "Dieses Mitglied ist schon als Mitarbeiter:in angelegt."
+    "memberTaken": "Dieses Mitglied ist schon als Mitarbeiter:in angelegt.",
+    "bankTax": "Bank, Steuer & Sozialversicherung",
+    "roleCard": "Person & Rolle"
   },
   "courses": {
     "nav": "Kurse",

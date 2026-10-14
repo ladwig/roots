@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { EmptyState, Page, PageHeader } from "@/components/page"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 
@@ -44,11 +45,10 @@ export default async function ChartPage() {
 
   const top = reports(null)
   return (
-    <div className="grid gap-6">
-      <h1 className="font-heading text-2xl font-semibold">{t("hr.tabs.chart")}</h1>
-      <p className="text-sm text-muted-foreground">{t("hr.chartHint")}</p>
+    <Page>
+      <PageHeader area="hr" title={t("hr.tabs.chart")} description={t("hr.chartHint")} />
       {people.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("hr.empty")}</p>
+        <EmptyState area="hr" title={t("hr.empty")} />
       ) : (
         <ul className="grid gap-3">
           {(top.length ? top : people.slice(0, 1)).map((p) => (
@@ -56,7 +56,7 @@ export default async function ChartPage() {
           ))}
         </ul>
       )}
-    </div>
+    </Page>
   )
 }
 
