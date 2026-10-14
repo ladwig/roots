@@ -4199,7 +4199,8 @@
     "statusDeleted": "Spalte gelöscht.",
     "statusInUse": "Die Spalte enthält noch Aufgaben.",
     "searchPeople": "Person suchen…",
-    "saving": "Speichert…"
+    "saving": "Speichert…",
+    "columns": "Spalten des Boards"
   },
   "inputs": {
     "placeholder": {

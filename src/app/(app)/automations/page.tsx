@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { EmptyState, Page, PageHeader } from "@/components/page"
 import { PlusIcon } from "lucide-react"
 import { DataTable } from "@/components/data-table"
 import { Notice } from "@/components/notice"
@@ -34,23 +35,25 @@ export default async function AutomationsPage({ searchParams }: PageProps<"/auto
   const templates = TEMPLATES.filter((x) => !x.module || ctx.modules.has(x.module))
 
   return (
-    <div className="grid gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="grid gap-1">
-          <h1 className="font-heading text-2xl font-semibold">{t("automations.title")}</h1>
-          <p className="max-w-2xl text-sm text-muted-foreground">{t("automations.intro")}</p>
-        </div>
-        {canManage && (
-          <Button render={<Link href={`/automations${withParams(sp, { new: "1" })}`} />} nativeButton={false} size="sm">
-            <PlusIcon /> {t("automations.new")}
-          </Button>
-        )}
-      </div>
+    <Page>
+      <PageHeader area="automations" title={t("automations.title")} description={t("automations.intro")} primary={canManage ? { href: `/automations${withParams(sp, { new: "1" })}`, label: t("automations.new") } : undefined} />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
       <DataTable
         rows={rows}
         rowKey={(w) => w.id}
-        empty={t("automations.empty")}
+        empty={
+          <EmptyState
+            area="automations"
+            title={t("automations.empty")}
+            action={
+              canManage && (
+                <Button render={<Link href={`/automations${withParams(sp, { new: "1" })}`} />} nativeButton={false} size="sm">
+                  <PlusIcon /> {t("automations.new")}
+                </Button>
+              )
+            }
+          />
+        }
         columns={[
           {
             header: t("automations.name"),
@@ -124,7 +127,7 @@ export default async function AutomationsPage({ searchParams }: PageProps<"/auto
           </div>
         </UrlSheet>
       )}
-    </div>
+    </Page>
   )
 }
 

@@ -3,7 +3,8 @@ import { notFound } from "next/navigation"
 import { contactName } from "@/app/(app)/contacts/fields"
 import { DataTable, Pager, pageRange, PAGE_SIZE } from "@/components/data-table"
 import { Notice } from "@/components/notice"
-import { PageCrumbs } from "@/components/page-crumbs"
+import { PageHeader } from "@/components/page"
+import { Segments } from "@/components/segments"
 import { SubmitButton } from "@/components/submit-button"
 import { Badge } from "@/components/ui/badge"
 import { getT } from "@/i18n/server"
@@ -37,16 +38,9 @@ export default async function RunsPage({ params, searchParams }: { params: Promi
 
   return (
     <div className="grid gap-6">
-      <PageCrumbs items={[{ href: "/automations", label: t("automations.title") }, { href: `/automations/${id}`, label: wf.name }, { label: t("automations.runs") }]} />
-      <h1 className="font-heading text-2xl font-semibold">{t("automations.runs")}</h1>
+      <PageHeader crumbs={[{ href: "/automations", label: t("automations.title") }, { href: `/automations/${id}`, label: wf.name }, { label: t("automations.runs") }]} title={t("automations.runs")} />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
-      <nav className="flex flex-wrap gap-2 text-sm" aria-label={t("automations.status")}>
-        {["", "waiting", "done", "failed", "cancelled"].map((s) => (
-          <Link key={s} href={`/automations/${id}/runs${s ? `?status=${s}` : ""}`} className={(status ?? "") === s ? "font-medium underline underline-offset-4" : "text-muted-foreground hover:underline"}>
-            {s ? t.dynamic(`automations.runStatus.${s}`) : t("automations.all")}
-          </Link>
-        ))}
-      </nav>
+      <Segments label={t("automations.status")} items={["", "waiting", "done", "failed", "cancelled"].map((x) => ({ href: `/automations/${id}/runs${x ? `?status=${x}` : ""}`, current: (status ?? "") === x, label: x ? t.dynamic(`automations.runStatus.${x}`) : t("automations.all") }))} />
       <DataTable
         rows={(runs ?? []).slice(0, PAGE_SIZE)}
         rowKey={(r) => r.id}

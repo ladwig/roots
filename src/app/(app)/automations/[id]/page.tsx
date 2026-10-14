@@ -1,8 +1,9 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ListIcon } from "lucide-react"
+import { ListIcon, PauseIcon, PlayIcon, Trash2Icon } from "lucide-react"
 import { Notice } from "@/components/notice"
-import { PageCrumbs } from "@/components/page-crumbs"
+import { ActionsMenu, MenuSubmit } from "@/components/actions-menu"
+import { PageHeader } from "@/components/page"
 import { SubmitButton } from "@/components/submit-button"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -111,35 +112,41 @@ export default async function WorkflowPage({ params, searchParams }: { params: P
 
   return (
     <div className="grid gap-4">
-      <PageCrumbs items={[{ href: "/automations", label: t("automations.title") }, { label: wf.name }]} />
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="font-heading text-2xl font-semibold break-words">{wf.name}</h1>
-          <Badge variant={wf.active ? "default" : "secondary"}>{t(wf.active ? "automations.on" : "automations.off")}</Badge>
-        </div>
-        <div className="flex flex-wrap gap-2">
+      <PageHeader
+        crumbs={[{ href: "/automations", label: t("automations.title") }, { label: wf.name }]}
+        title={wf.name}
+        badge={<Badge variant={wf.active ? "default" : "secondary"}>{t(wf.active ? "automations.on" : "automations.off")}</Badge>}
+        actions={
           <Button render={<Link href={`/automations/${id}/runs`} />} nativeButton={false} size="sm" variant="outline">
             <ListIcon /> {t("automations.runs")}
           </Button>
-          {canEdit && (
-            <>
-              <form action={setActive}>
-                <input type="hidden" name="id" value={id} />
-                <input type="hidden" name="active" value={wf.active ? "0" : "1"} />
-                <SubmitButton size="sm" variant={wf.active ? "outline" : "default"}>
-                  {t(wf.active ? "automations.deactivate" : "automations.activate")}
-                </SubmitButton>
-              </form>
-              <form action={trashWorkflow}>
-                <input type="hidden" name="id" value={id} />
-                <SubmitButton size="sm" variant="ghost">
-                  {t("automations.toTrash")}
-                </SubmitButton>
-              </form>
-            </>
-          )}
-        </div>
-      </div>
+        }
+        menu={
+          canEdit && (
+            <ActionsMenu>
+              <MenuSubmit form="trash-workflow" icon={Trash2Icon} destructive>
+                {t("automations.toTrash")}
+              </MenuSubmit>
+            </ActionsMenu>
+          )
+        }
+        primary={
+          canEdit && (
+            <form action={setActive}>
+              <input type="hidden" name="id" value={id} />
+              <input type="hidden" name="active" value={wf.active ? "0" : "1"} />
+              <SubmitButton size="sm" variant={wf.active ? "outline" : "default"}>
+                {wf.active ? <PauseIcon /> : <PlayIcon />} {t(wf.active ? "automations.deactivate" : "automations.activate")}
+              </SubmitButton>
+            </form>
+          )
+        }
+      />
+      {canEdit && (
+        <form id="trash-workflow" action={trashWorkflow} hidden>
+          <input type="hidden" name="id" value={id} />
+        </form>
+      )}
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
       {wf.active && canEdit && <p className="text-sm text-muted-foreground">{t("automations.activeHint")}</p>}
       <WorkflowEditor id={id} name={wf.name} description={wf.description ?? ""} graph={graph} options={options} canEdit={canEdit} />

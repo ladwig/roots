@@ -1,5 +1,6 @@
 import { ArrowDownIcon, ArrowUpIcon, Trash2Icon } from "lucide-react"
 import { Notice } from "@/components/notice"
+import { FormCard, Page, PageHeader } from "@/components/page"
 import { SubmitButton } from "@/components/submit-button"
 import { Input } from "@/components/ui/input"
 import { getT } from "@/i18n/server"
@@ -49,7 +50,7 @@ export default async function ProjectsSetupPage({ searchParams }: { searchParams
           ))}
           <form action={deleteStatusAction}>
             <input type="hidden" name="id" value={s.id} />
-            <SubmitButton size="icon-sm" variant="ghost" aria-label={t("projects.deleteStatus")} disabled={statuses.length <= 1}>
+            <SubmitButton size="icon-sm" variant="ghost" aria-label={t("projects.deleteStatus")} disabled={statuses.length <= 1} className="text-destructive hover:text-destructive">
               <Trash2Icon />
             </SubmitButton>
           </form>
@@ -59,13 +60,14 @@ export default async function ProjectsSetupPage({ searchParams }: { searchParams
   )
 
   return (
-    <div className="grid max-w-3xl gap-4">
-      <h1 className="font-heading text-2xl font-semibold">{t("projects.setup")}</h1>
-      <p className="text-sm text-muted-foreground">{t("projects.setupHint")}</p>
+    <Page size="form">
+      <PageHeader crumbs={[{ href: "/projects", label: t("projects.title") }, { label: t("common.settings") }]} title={t("common.settings")} />
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
-      {statuses.map(row)}
-      {row(null, -1)}
-    </div>
+      <FormCard id="columns" title={t("projects.columns")} description={t("projects.setupHint")}>
+        {statuses.map(row)}
+        {row(null, -1)}
+      </FormCard>
+    </Page>
   )
 }
 

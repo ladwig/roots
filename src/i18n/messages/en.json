@@ -4199,7 +4199,8 @@
     "statusDeleted": "Column deleted.",
     "statusInUse": "The column still contains tasks.",
     "searchPeople": "Search people…",
-    "saving": "Saving…"
+    "saving": "Saving…",
+    "columns": "Board columns"
   },
   "inputs": {
     "placeholder": {
