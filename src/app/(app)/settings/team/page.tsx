@@ -14,6 +14,7 @@ import { getContext } from "@/lib/context"
 import { param, withParams } from "@/lib/url"
 import { changeRole, removeMember, revokeInvite } from "./actions"
 import { InviteForm } from "./invite-form"
+import { InviteLink } from "./invite-link"
 import { SubmitButton } from "@/components/submit-button"
 
 export default async function MembersSettings({ searchParams }: PageProps<"/settings/team">) {
@@ -98,11 +99,14 @@ export default async function MembersSettings({ searchParams }: PageProps<"/sett
                 header: "",
                 className: "w-0 text-right",
                 cell: (i) => (
-                  <form action={revokeInvite.bind(null, i.id)}>
-                    <SubmitButton variant="ghost" size="sm">
-                      {t("members.revoke")}
-                    </SubmitButton>
-                  </form>
+                  <span className="flex items-center justify-end gap-1">
+                    <InviteLink id={i.id} />
+                    <form action={revokeInvite.bind(null, i.id)}>
+                      <SubmitButton variant="outline" size="sm">
+                        {t("members.revoke")}
+                      </SubmitButton>
+                    </form>
+                  </span>
                 ),
               },
             ]}
