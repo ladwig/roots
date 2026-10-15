@@ -3883,7 +3883,11 @@
     "testOwn": "Pick own test data …",
     "testNone": "– none –",
     "noSamplesOwn": "Nothing has happened for this trigger yet – just pick records to test with.",
-    "defaultGuestList": "Leave empty = the standard guest list of this run's event (created when needed)."
+    "defaultGuestList": "Leave empty = the standard guest list of this run's event (created when needed).",
+    "dateReached": "Date reached",
+    "dateReachedHint": "Once a day for each record whose date is due today – e.g. 28 days before a contract ends, on a birthday or 3 days after an appointment.",
+    "dateRecord": "For each",
+    "dateWhich": "Which date"
   },
   "numbers": {
     "next": "Next number",

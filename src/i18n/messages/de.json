@@ -3883,7 +3883,11 @@
     "testOwn": "Eigene Testdaten wählen …",
     "testNone": "– keine –",
     "noSamplesOwn": "Für diesen Auslöser ist noch nichts passiert – wähl einfach Datensätze, mit denen du testen willst.",
-    "defaultGuestList": "Leer lassen = Standard-Gästeliste der Veranstaltung dieses Ablaufs (wird bei Bedarf angelegt)."
+    "defaultGuestList": "Leer lassen = Standard-Gästeliste der Veranstaltung dieses Ablaufs (wird bei Bedarf angelegt).",
+    "dateReached": "Datum erreicht",
+    "dateReachedHint": "Jeden Tag einmal pro Datensatz, dessen Datum heute dran ist – z. B. 28 Tage vor Vertragsende, am Geburtstag oder 3 Tage nach einem Termin.",
+    "dateRecord": "Für jede(n)",
+    "dateWhich": "Welches Datum"
   },
   "numbers": {
     "next": "Nächste Nummer",

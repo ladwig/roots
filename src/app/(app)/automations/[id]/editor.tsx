@@ -656,6 +656,7 @@ function Inspector({
 
 /** "Ticket sold" or, for record triggers, "Ticket · created". */
 export function triggerLabel(key: string, t: ReturnType<typeof useT>) {
+  if (key === "date_reached") return t("automations.dateReached")
   if (key === "schedule") return t("automations.schedule")
   const rec = parseRecordTrigger(key)
   return rec ? `${t.dynamic(`automations.objects.${rec.object}`)} · ${t.dynamic(`automations.recordActions.${rec.action}`)}` : t.dynamic(`events.types.${key}`)
@@ -663,6 +664,7 @@ export function triggerLabel(key: string, t: ReturnType<typeof useT>) {
 
 /** One sentence on what exactly starts the run (shown in the picker and below it). */
 function triggerHint(key: string, t: ReturnType<typeof useT>) {
+  if (key === "date_reached") return t("automations.dateReachedHint")
   if (key === "schedule") return t("automations.scheduleHint")
   const rec = parseRecordTrigger(key)
   if (rec) return t("automations.recordHint", { object: t.dynamic(`automations.objects.${rec.object}`), action: t.dynamic(`automations.recordActions.${rec.action}`) })
@@ -673,7 +675,8 @@ function triggerHint(key: string, t: ReturnType<typeof useT>) {
 function TriggerForm({ d, options, canEdit, onChange }: { d: Record<string, unknown>; options: EditorOptions; canEdit: boolean; onChange: (p: Data) => void }) {
   const t = useT()
   const [open, setOpen] = useState(false)
-  const value = String(d.event ?? "")
+  // "Datum erreicht" is stored as a daily schedule over an object's records with a date filter (data.date = true).
+  const value = d.event === "schedule" && d.date ? "date_reached" : String(d.event ?? "")
   const rec = parseRecordTrigger(value)
   const watch = (d.fields as string[] | undefined) ?? []
   return (
@@ -697,7 +700,16 @@ function TriggerForm({ d, options, canEdit, onChange }: { d: Record<string, unkn
                         key={it.key}
                         value={`${g.group} ${it.label} ${triggerHint(it.key, t)}`}
                         data-checked={it.key === value}
-                        onSelect={() => (onChange(it.key === "schedule" ? { event: "schedule", every: "day", time: "09:00", fields: [] } : { event: it.key, fields: [] }), setOpen(false))}
+                        onSelect={() =>
+                          (onChange(
+                            it.key === "date_reached"
+                              ? { event: "schedule", date: true, every: "day", time: "08:00", object: "", date_field: "", offset: -7, yearly: false, rules: [], fields: [] }
+                              : it.key === "schedule"
+                                ? { event: "schedule", date: false, every: "day", time: "09:00", fields: [] }
+                                : { event: it.key, date: false, fields: [] },
+                          ),
+                          setOpen(false))
+                        }
                       >
                         <span className="grid gap-0.5">
                           <span>{it.label}</span>
@@ -714,6 +726,7 @@ function TriggerForm({ d, options, canEdit, onChange }: { d: Record<string, unkn
         {value && triggerHint(value, t) && <p className="text-xs text-muted-foreground">{triggerHint(value, t)}</p>}
       </div>
       {value === "schedule" && <ScheduleForm d={d} options={options} canEdit={canEdit} onChange={onChange} />}
+      {value === "date_reached" && <DateReachedForm d={d} options={options} canEdit={canEdit} onChange={onChange} />}
       {value && (
         <div className="grid gap-1">
           <Label htmlFor="tr-once">{t("automations.onceLabel")}</Label>
@@ -750,6 +763,69 @@ function TriggerForm({ d, options, canEdit, onChange }: { d: Record<string, unkn
               </label>
             ))}
         </fieldset>
+      )}
+    </div>
+  )
+}
+
+// "Datum erreicht": every day at a time, once per record whose date field is N days before / on / after today
+// (e.g. 28 days before a contract's notice deadline, on a birthday every year). Optional conditions narrow it down.
+function DateReachedForm({ d, options, canEdit, onChange }: { d: Record<string, unknown>; options: EditorOptions; canEdit: boolean; onChange: (p: Data) => void }) {
+  const t = useT()
+  const mods = new Set(options.modules)
+  const object = String(d.object ?? "") as ObjectKey | ""
+  const offset = Number(d.offset ?? 0)
+  const objects = SCHEDULE_OBJECTS.filter((o) => (def(o).module === "org" || mods.has(def(o).module)) && def(o).fields.some((f) => f.kind === "date"))
+  const dateFields = object ? def(object).fields.filter((f) => f.kind === "date") : []
+  return (
+    <div className="grid gap-3 rounded-md border p-2">
+      <div className="grid gap-1">
+        <Label htmlFor="dr-object">{t("automations.dateRecord")}</Label>
+        <NativeSelect id="dr-object" value={object} required disabled={!canEdit} className="w-full" onChange={(e) => onChange({ object: e.target.value, rules: [], date_field: "" })}>
+          <NativeSelectOption value="">–</NativeSelectOption>
+          {objects.map((o) => (
+            <NativeSelectOption key={o} value={o}>
+              {t.dynamic(`automations.objects.${o}`)}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+      </div>
+      {object && (
+        <div className="grid gap-1">
+          <Label htmlFor="dr-field">{t("automations.dateWhich")}</Label>
+          <NativeSelect id="dr-field" value={String(d.date_field ?? "")} required disabled={!canEdit} className="w-full" onChange={(e) => onChange({ date_field: e.target.value })}>
+            <NativeSelectOption value="">–</NativeSelectOption>
+            {dateFields.map((f) => (
+              <NativeSelectOption key={f.key} value={f.key}>
+                {t.dynamic(`automations.fields.${object}.${f.key}`)}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </div>
+      )}
+      <div className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-1">
+        <Input type="number" min={0} value={Math.abs(offset)} disabled={!canEdit || offset === 0} aria-label={t("automations.days")} onChange={(e) => onChange({ offset: (offset < 0 ? -1 : 1) * Math.max(1, Math.abs(Math.floor(Number(e.target.value) || 1))) })} />
+        <NativeSelect value={offset < 0 ? "before" : offset > 0 ? "after" : "on"} disabled={!canEdit} aria-label={t("automations.when")} className="w-full" onChange={(e) => onChange({ offset: e.target.value === "on" ? 0 : (e.target.value === "before" ? -1 : 1) * Math.max(1, Math.abs(offset)) })}>
+          <NativeSelectOption value="before">{t("automations.daysBefore")}</NativeSelectOption>
+          <NativeSelectOption value="on">{t("automations.onTheDay")}</NativeSelectOption>
+          <NativeSelectOption value="after">{t("automations.daysAfter")}</NativeSelectOption>
+        </NativeSelect>
+      </div>
+      <div className="grid grid-cols-2 items-end gap-2">
+        <div className="grid gap-1">
+          <Label htmlFor="dr-time">{t("automations.at")}</Label>
+          <Input id="dr-time" type="time" value={String(d.time ?? "08:00")} disabled={!canEdit} onChange={(e) => onChange({ time: e.target.value, every: "day" })} />
+        </div>
+        <label className="flex h-8 items-center gap-2 text-sm">
+          <input type="checkbox" className="size-4 accent-primary" checked={!!d.yearly} disabled={!canEdit} onChange={(e) => onChange({ yearly: e.target.checked })} />
+          {t("automations.yearly")}
+        </label>
+      </div>
+      {object && (
+        <>
+          <p className="text-xs font-medium">{t("automations.onlyThese")}</p>
+          <RulesEditor rules={(d.rules as { field: string; op: string; value: string }[]) ?? []} objects={[object]} options={options} canEdit={canEdit} onChange={(rules) => onChange({ rules })} />
+        </>
       )}
     </div>
   )

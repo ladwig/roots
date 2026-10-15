@@ -27,6 +27,7 @@ export const NODE_DATA = {
     date_field: text(100).optional(),
     offset: z.number().int().min(-3650).max(3650).optional(), // days: negative = before the date
     yearly: z.boolean().optional(),
+    date: z.boolean().optional(), // shown as "Datum erreicht": a daily schedule that needs an object + date field
     // Only once: per person or per record (the trigger's), optionally again after N days.
     once: z.enum(["", "contact", "record"]).optional(),
     again_after_days: z.number().int().min(0).max(3650).optional(),
@@ -111,7 +112,7 @@ export function validate(g: Graph): { key: string; node?: string }[] {
 function filled(type: NodeType, d: Record<string, unknown>) {
   switch (type) {
     case "trigger":
-      return d.event === "schedule" ? !!d.every && /^\d{2}:\d{2}$/.test(String(d.time ?? "")) : !!d.event
+      return d.event === "schedule" ? !!d.every && /^\d{2}:\d{2}$/.test(String(d.time ?? "")) && (!d.date || (!!d.object && !!d.date_field)) : !!d.event
     case "condition":
       return (d.rules as { field: string }[]).length > 0 && (d.rules as { field: string }[]).every((r) => /^[a-z_]+\.[a-z_]/.test(r.field))
     case "send_email":
