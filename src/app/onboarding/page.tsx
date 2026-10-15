@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
 import { getSession } from "@/lib/context"
-import { param, ROOT_DOMAIN } from "@/lib/url"
+import { APP_HOME, param, ROOT_DOMAIN } from "@/lib/url"
 import { acceptMyInvite, createOrg } from "./actions"
 import { SubmitButton } from "@/components/submit-button"
 
@@ -13,7 +13,13 @@ export default async function OnboardingPage({ searchParams }: PageProps<"/onboa
   if (!session) redirect("/login?next=/onboarding")
   const sp = await searchParams
   const t = await getT()
-  const { data: invites } = await session.supabase.rpc("my_invites")
+  const adding = param(sp, "new") === "1" // "Neue Organisation" in the org switcher
+  const [{ data: invites }, { data: mine }] = await Promise.all([
+    session.supabase.rpc("my_invites"),
+    session.supabase.from("org_members").select("org_id, orgs!inner(deleted_at)").eq("user_id", session.userId).is("orgs.deleted_at", null).limit(1),
+  ])
+  // Already in an org: a stale or repeated onboarding (back button, second tab, resubmit) must not create another one.
+  if (mine?.length && !adding) redirect(APP_HOME)
 
   return (
     <main className="mx-auto flex min-h-full w-full max-w-md flex-col justify-center gap-6 px-4 py-12">
@@ -41,6 +47,7 @@ export default async function OnboardingPage({ searchParams }: PageProps<"/onboa
         </section>
       )}
       <form action={createOrg} className="grid gap-4">
+        {adding && <input type="hidden" name="new" value="1" />}
         <div className="grid gap-2">
           <Label htmlFor="name">{t("onboarding.name")}</Label>
           <Input id="name" name="name" required maxLength={100} placeholder={t("onboarding.namePlaceholder")} />

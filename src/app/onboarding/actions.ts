@@ -11,13 +11,14 @@ export async function createOrg(formData: FormData) {
   const session = await getSession()
   if (!session) redirect("/login")
   const t = await getT()
+  const retry = formData.get("new") ? "/onboarding?new=1" : "/onboarding"
   const name = String(formData.get("name") ?? "").trim()
   const slug = String(formData.get("slug") ?? "").trim().toLowerCase()
-  if (!name) back("/onboarding", { error: t("onboarding.nameRequired") })
-  if (!/^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/.test(slug)) back("/onboarding", { error: t("onboarding.addressInvalid") })
+  if (!name) back(retry, { error: t("onboarding.nameRequired") })
+  if (!/^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/.test(slug)) back(retry, { error: t("onboarding.addressInvalid") })
 
   const { data, error } = await session.supabase.rpc("create_org", { p_name: name, p_slug: slug })
-  if (error) back("/onboarding", { error: error.code === "23505" ? t("onboarding.addressTaken") : dbError(t, error) })
+  if (error) back(retry, { error: error.code === "23505" ? t("onboarding.addressTaken") : dbError(t, error) })
   await setActiveOrg(data!)
   redirect(APP_HOME)
 }

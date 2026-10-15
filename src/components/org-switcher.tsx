@@ -38,7 +38,7 @@ export function OrgSwitcher({ orgs, current }: { orgs: Org[]; current: Org }) {
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem render={<Link href="/onboarding" />}>
+            <DropdownMenuItem render={<Link href="/onboarding?new=1" />}>
               <PlusIcon /> {t("shell.newOrg")}
             </DropdownMenuItem>
           </DropdownMenuContent>
