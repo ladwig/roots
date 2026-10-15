@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "stop": "lsof -ti:3000 -sTCP:LISTEN | xargs kill",
     "lint": "eslint",
     "db:push": "set -a && . ./.env.local && supabase db push --db-url \"$DATABASE_URL\"",
     "db:test": "set -a && . ./.env.local && supabase db query --db-url \"$DATABASE_URL\" -f supabase/tests/isolation.sql 2>&1 | grep -q \"all checks passed\" && echo \"isolation: all checks passed\" || (supabase db query --db-url \"$DATABASE_URL\" -f supabase/tests/isolation.sql; exit 1)",
