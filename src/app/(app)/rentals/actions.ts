@@ -41,9 +41,7 @@ export async function saveObjectAction(fd: FormData) {
   const { ctx, t } = await manager()
   const id = idOf(fd) || null
   const here = id ? `${PATH}/${id}` : `${PATH}/new`
-  // A custom kind ("Spielkiste") comes from the free-text field when "other" is picked.
-  const kind = s(fd, "kind") === "_custom" ? s(fd, "custom_kind").trim().slice(0, 40) : s(fd, "kind")
-  const r = readObject((k) => (k === "kind" ? kind : s(fd, k)))
+  const r = readObject((k) => s(fd, k))
   if ("error" in r) back(here, { error: fieldError(t, r) })
   const c = readCustom(await loadFields(ctx.supabase, ctx.org.id, "rental_objects"), (k) => s(fd, `custom.${k}`))
   if ("error" in c) back(here, { error: `${c.field}: ${t.dynamic(c.error)}` })

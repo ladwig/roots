@@ -4395,7 +4395,6 @@
     "deposit": "Kaution",
     "location": "Ort",
     "description": "Beschreibung",
-    "customKind": "Eigene Art",
     "rentable": "Vermietbar (mit Tarifen)",
     "lendable": "Wird ausgegeben (z. B. Schlüssel, Gerät)",
     "included": "Gehört fest zum übergeordneten Objekt (wird nur mit ihm vergeben)",
@@ -4439,7 +4438,8 @@
       "media": "Buch / Medium",
       "key": "Schlüssel",
       "transponder": "Transponder",
-      "card": "Karte / Chip"
+      "card": "Karte / Chip",
+      "other": "Anderes"
     },
     "statuses": {
       "active": "Aktiv",

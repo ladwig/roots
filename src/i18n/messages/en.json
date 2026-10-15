@@ -4395,7 +4395,6 @@
     "deposit": "Deposit",
     "location": "Location",
     "description": "Description",
-    "customKind": "Custom kind",
     "rentable": "Rentable (with rates)",
     "lendable": "Handed out (e.g. key, device)",
     "included": "Fixed part of its parent (only rented along with it)",
@@ -4439,7 +4438,8 @@
       "media": "Book / media",
       "key": "Key",
       "transponder": "Transponder",
-      "card": "Card / chip"
+      "card": "Card / chip",
+      "other": "Other"
     },
     "statuses": {
       "active": "Active",

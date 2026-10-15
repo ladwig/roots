@@ -72,7 +72,7 @@ export function ObjectForm({
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid content-start gap-2">
             <Label htmlFor="o-kind">{t("rentals.kind")}</Label>
-            <NativeSelect id="o-kind" name="kind" defaultValue={custom ? "_custom" : current} className="w-full">
+            <NativeSelect id="o-kind" name="kind" defaultValue={current} className="w-full">
               {(FAMILIES.filter((f) => f !== "other") as Family[]).map((f) => (
                 <optgroup key={f} label={t.dynamic(`rentals.families.${f}`)}>
                   {KINDS[f].map((k) => (
@@ -82,9 +82,10 @@ export function ObjectForm({
                   ))}
                 </optgroup>
               ))}
-              <NativeSelectOption value="_custom">{t("rentals.customKind")}…</NativeSelectOption>
+              {/* Older objects with a free-text kind keep it as an option. */}
+              {custom && current !== "other" && <NativeSelectOption value={current}>{current}</NativeSelectOption>}
+              <NativeSelectOption value="other">{kindLabel(t, "other")}</NativeSelectOption>
             </NativeSelect>
-            <Input name="custom_kind" defaultValue={custom ? current : ""} maxLength={40} placeholder={t("rentals.customKind")} aria-label={t("rentals.customKind")} />
           </div>
           <div className="grid content-start gap-2">
             <Label htmlFor="o-parent">{t("rentals.parent")}</Label>
