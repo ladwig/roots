@@ -6,6 +6,7 @@ import { removeImage, replaceImage } from "@/lib/images"
 import { getT } from "@/i18n/server"
 import { authError, dbError } from "@/i18n/translate"
 import { getSession } from "@/lib/context"
+import { MIN_PASSWORD } from "@/lib/inputs"
 import { back } from "@/lib/url"
 import { eventTypes, personChannels } from "@/events/registry"
 
@@ -26,7 +27,7 @@ export async function updatePassword(formData: FormData) {
   if (!session) redirect("/login?next=/account")
   const t = await getT()
   const password = String(formData.get("password") ?? "")
-  if (password.length < 8) back(backTo(formData), { error: t("auth.passwordTooShort") })
+  if (password.length < MIN_PASSWORD) back(backTo(formData), { error: t("auth.passwordTooShort", { min: MIN_PASSWORD }) })
   if (password !== String(formData.get("repeat") ?? "")) back(backTo(formData), { error: t("account.passwordsDontMatch") })
   const { error } = await session.supabase.auth.updateUser({ password })
   if (error) back(backTo(formData), { error: authError(t, error) })

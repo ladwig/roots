@@ -46,15 +46,10 @@ export async function removeMember(memberId: string) {
 
 export type InviteState = { error?: string; link?: string; email?: string; mailFailed?: boolean }
 
-// One open invite per email: a new invite replaces the old link. Only the hash is stored, so a link can't be shown
-// again, only replaced by a fresh one.
-async function issueInvite(ctx: Awaited<ReturnType<typeof getContext>>, t: Awaited<ReturnType<typeof getT>>, email: string, roleId: string) {
+// Only the hash is stored, so a link can't be shown again, only replaced by a fresh one.
+function newToken() {
   const token = randomBytes(32).toString("base64url")
-  const token_hash = createHash("sha256").update(token).digest("hex")
-  await ctx.supabase.from("invites").delete().eq("org_id", ctx.org.id).eq("email", email).is("accepted_at", null)
-  const { data, error } = await ctx.supabase.from("invites").insert({ org_id: ctx.org.id, email, role_id: roleId, token_hash }).select("id").single()
-  if (error) return { error: error.code === "42501" ? t("members.cantInviteRole") : dbError(t, error) }
-  return { link: `${APP_URL}/invite/${token}`, id: data.id }
+  return { link: `${APP_URL}/invite/${token}`, token_hash: createHash("sha256").update(token).digest("hex") }
 }
 
 export async function createInvite(_: InviteState, formData: FormData): Promise<InviteState> {
@@ -64,9 +59,11 @@ export async function createInvite(_: InviteState, formData: FormData): Promise<
   const roleId = String(formData.get("role_id") ?? "")
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: t("members.invalidEmail") }
 
-  const issued = await issueInvite(ctx, t, email, roleId)
-  if ("error" in issued) return issued
-  const { link } = issued
+  const { link, token_hash } = newToken()
+  // One open invite per email: a new invite replaces the old link.
+  await ctx.supabase.from("invites").delete().eq("org_id", ctx.org.id).eq("email", email).is("accepted_at", null)
+  const { error } = await ctx.supabase.from("invites").insert({ org_id: ctx.org.id, email, role_id: roleId, token_hash })
+  if (error) return { error: error.code === "42501" ? t("members.cantInviteRole") : dbError(t, error) }
 
   revalidatePath(PATH)
   deliverSoon()
@@ -80,17 +77,25 @@ export async function createInvite(_: InviteState, formData: FormData): Promise<
 export async function revokeInvite(inviteId: string) {
   const ctx = await getContext()
   const t = await getT()
-  const { error } = await ctx.supabase.from("invites").delete().eq("id", inviteId).eq("org_id", ctx.org.id)
-  if (error) back(PATH, { error: dbError(t, error) })
+  const { error, count } = await ctx.supabase.from("invites").delete({ count: "exact" }).eq("id", inviteId).eq("org_id", ctx.org.id)
+  if (error || !count) back(PATH, { error: error ? dbError(t, error) : t("errors.not_allowed") })
   back(PATH, { ok: t("members.inviteRevoked") })
 }
 
-/** New link for an open invite (the old one stops working); no mail is sent. */
-export async function renewInviteLink(inviteId: string): Promise<{ link?: string; id?: string; error?: string }> {
+/** New link for an open invite (same row, the old link stops working, 7 more days); no mail is sent. */
+export async function renewInviteLink(inviteId: string): Promise<{ link?: string; error?: string }> {
   const ctx = await getContext()
   const t = await getT()
-  const { data } = await ctx.supabase.from("invites").select("email, role_id").eq("id", inviteId).eq("org_id", ctx.org.id).is("accepted_at", null).maybeSingle()
-  if (!data) return { error: t("errors.not_allowed") }
-  // No revalidate: the new row has a new id and the list would remount (and hide) the link the user is copying.
-  return issueInvite(ctx, t, data.email, data.role_id)
+  const { link, token_hash } = newToken()
+  const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  // RLS: managers only, owner invites only by owners (0 rows otherwise, nothing changes).
+  const { error, count } = await ctx.supabase
+    .from("invites")
+    .update({ token_hash, expires_at }, { count: "exact" })
+    .eq("id", inviteId)
+    .eq("org_id", ctx.org.id)
+    .is("accepted_at", null)
+  if (error || !count) return { error: error ? dbError(t, error) : t("errors.not_allowed") }
+  revalidatePath(PATH) // new expiry date; the row keeps its id, so the open dialog stays
+  return { link }
 }

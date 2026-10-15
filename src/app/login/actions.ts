@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { adoptProfileLocale } from "@/i18n/actions"
 import { getT } from "@/i18n/server"
 import { authError } from "@/i18n/translate"
+import { MIN_PASSWORD } from "@/lib/inputs"
 import { createClient } from "@/lib/supabase/server"
 import { callbackUrl, safeNext, APP_HOME } from "@/lib/url"
 
@@ -30,7 +31,7 @@ export async function signIn(formData: FormData) {
 export async function signUp(formData: FormData) {
   const { email, password, next } = read(formData)
   const t = await getT()
-  if (password.length < 8) redirect(loginUrl(next, { error: t("auth.passwordTooShort") }))
+  if (password.length < MIN_PASSWORD) redirect(loginUrl(next, { error: t("auth.passwordTooShort", { min: MIN_PASSWORD }) }))
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: callbackUrl(next) } })
   if (error) redirect(loginUrl(next, { error: authError(t, error) }))

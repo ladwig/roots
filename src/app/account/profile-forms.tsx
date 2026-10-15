@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator"
 import { LocaleSwitcher } from "@/i18n/client"
 import { getT } from "@/i18n/server"
 import { getSession } from "@/lib/context"
+import { MIN_PASSWORD } from "@/lib/inputs"
 import { param, type SearchParams } from "@/lib/url"
 import { emailConfigured } from "@/events/channels/email"
 import { eventTypes, personChannels } from "@/events/registry"
@@ -119,11 +120,11 @@ export async function ProfileForms({ sp, path }: { sp: SearchParams; path: "/set
           <input type="hidden" name="back" value={path} />
           <div className="grid gap-2">
             <Label htmlFor="password">{t("account.newPassword")}</Label>
-            <Input id="password" name="password" type="password" autoComplete="new-password" required minLength={8} autoFocus={resetting} />
+            <Input id="password" name="password" type="password" autoComplete="new-password" required minLength={MIN_PASSWORD} autoFocus={resetting} />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="repeat">{t("account.repeatPassword")}</Label>
-            <Input id="repeat" name="repeat" type="password" autoComplete="new-password" required minLength={8} />
+            <Input id="repeat" name="repeat" type="password" autoComplete="new-password" required minLength={MIN_PASSWORD} />
           </div>
           <SubmitButton className="justify-self-start">
             {t("account.changePassword")}

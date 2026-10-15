@@ -934,5 +934,28 @@ begin
   perform public.admin_delete_user(b);                                       -- now allowed
   reset role;
 
+  -- invites: renewing a link = updating token_hash/expires_at; managers only, owner invites only by owners
+  insert into public.invites (org_id, email, role_id, token_hash) values
+    (org_a, 'own@isolation.test', (select id from public.roles where org_id is null and is_owner), 'iso-hash-1'),
+    (org_a, 'mem@isolation.test', (select id from public.roles where org_id is null and name ->> 'en' = 'Member'), 'iso-hash-2');
+  perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  update public.invites set token_hash = 'iso-hash-3' where email = 'mem@isolation.test';
+  get diagnostics n = row_count;                                             assert n = 0, 'a plain member renewed an invite';
+  reset role;
+  update public.org_members set role_id = (select id from public.roles where org_id is null and name ->> 'en' = 'Admin')
+    where org_id = org_a and user_id = c;
+  set local role authenticated;
+  update public.invites set token_hash = 'iso-hash-3' where email = 'own@isolation.test';
+  get diagnostics n = row_count;                                             assert n = 0, 'a non-owner renewed an owner invite';
+  update public.invites set token_hash = 'iso-hash-4', expires_at = now() + interval '7 days' where email = 'mem@isolation.test';
+  get diagnostics n = row_count;                                             assert n = 1, 'an admin should renew an invite link';
+  begin
+    update public.invites set accepted_at = now() where email = 'mem@isolation.test';
+    assert false, 'an admin marked an invite accepted';
+  exception when insufficient_privilege then null;
+  end;
+  reset role;
+
   raise exception 'isolation: all checks passed';
 end $$;

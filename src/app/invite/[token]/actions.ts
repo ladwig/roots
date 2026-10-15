@@ -8,6 +8,7 @@ import { setActiveOrg, getSession } from "@/lib/context"
 import { back, APP_HOME, callbackUrl } from "@/lib/url"
 import { createClient } from "@/lib/supabase/server"
 import { inviteSignupProblem, signupOutcome } from "@/invites/signup"
+import { MIN_PASSWORD } from "@/lib/inputs"
 
 export async function acceptInvite(token: string) {
   const session = await getSession()
@@ -40,7 +41,7 @@ export async function signUpForInvite(formData: FormData) {
 
   const problem = inviteSignupProblem({ email, password }, invite.email)
   if (problem === "email_mismatch") back(invitePath(token), { error: t("invite.emailMismatch", { email: invite.email }) })
-  if (problem === "password_short") back(invitePath(token), { error: t("auth.passwordTooShort") })
+  if (problem === "password_short") back(invitePath(token), { error: t("auth.passwordTooShort", { min: MIN_PASSWORD }) })
 
   const { data, error } = await supabase.auth.signUp({
     email,

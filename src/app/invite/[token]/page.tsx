@@ -6,7 +6,7 @@ import { getT } from "@/i18n/server"
 import { getSession } from "@/lib/context"
 import { createClient } from "@/lib/supabase/server"
 import { param } from "@/lib/url"
-import { MIN_PASSWORD } from "@/invites/signup"
+import { MIN_PASSWORD } from "@/lib/inputs"
 import { acceptInvite, resendInviteConfirmation, signUpForInvite } from "./actions"
 import { SubmitButton } from "@/components/submit-button"
 
@@ -67,7 +67,7 @@ export default async function InvitePage({ params, searchParams }: PageProps<"/i
                   <Label htmlFor="invite-password">{t("auth.password")}</Label>
                   <Input id="invite-password" name="password" type="password" required minLength={MIN_PASSWORD} autoComplete="new-password" aria-describedby="invite-password-hint" />
                   <p id="invite-password-hint" className="text-xs text-muted-foreground">
-                    {t("invite.passwordHint")}
+                    {t("invite.passwordHint", { min: MIN_PASSWORD })}
                   </p>
                 </div>
                 <SubmitButton>{t("invite.createAccount")}</SubmitButton>

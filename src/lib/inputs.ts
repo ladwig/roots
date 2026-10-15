@@ -1,6 +1,9 @@
 // Checks + display formats for typed inputs (IBAN, BIC, postcode, phone, money). Pure (no imports), so the
 // <TypedInput> in the browser, server actions, validators and node --test share them.
 
+/** Every password form (sign-up, invite, reset) checks this; the texts show it as {min}. */
+export const MIN_PASSWORD = 8
+
 /** "de89 3704 0044 0532 0130 00" → "DE89370400440532013000" (null when empty). */
 export const compactIban = (v: string | null | undefined) => v?.toUpperCase().replace(/[\s-]/g, "") || null
 

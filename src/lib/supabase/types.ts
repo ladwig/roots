@@ -1283,14 +1283,14 @@ isOneToOne: false
                   ]
                 },"pay_orders": {
                   Row: {
-                    "amount_total": number,"application_fee": number,"created_at": string,"created_by": string | null,"currency": string,"customer_email": string | null,"customer_name": string | null,"expires_at": string | null,"fulfilled_at": string | null,"id": string,"metadata": NonNullable<Json>,"org_id": string,"paid_at": string | null,"provider": string | null,"source_id": string | null,"source_module": string,"status": string,"updated_at": string,"updated_by": string | null
+                    "amount_total": number,"application_fee": number,"created_at": string,"created_by": string | null,"currency": string,"customer_email": string | null,"customer_name": string | null,"expires_at": string | null,"fulfil_claimed_at": string | null,"fulfilled_at": string | null,"id": string,"metadata": NonNullable<Json>,"org_id": string,"paid_at": string | null,"provider": string | null,"source_id": string | null,"source_module": string,"status": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_total": number,"application_fee"?: number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"customer_email"?: string | null,"customer_name"?: string | null,"expires_at"?: string | null,"fulfilled_at"?: string | null,"id"?: string,"metadata"?: NonNullable<Json>,"org_id": string,"paid_at"?: string | null,"provider"?: string | null,"source_id"?: string | null,"source_module": string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "amount_total": number,"application_fee"?: number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"customer_email"?: string | null,"customer_name"?: string | null,"expires_at"?: string | null,"fulfil_claimed_at"?: string | null,"fulfilled_at"?: string | null,"id"?: string,"metadata"?: NonNullable<Json>,"org_id": string,"paid_at"?: string | null,"provider"?: string | null,"source_id"?: string | null,"source_module": string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "amount_total"?: number,"application_fee"?: number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"customer_email"?: string | null,"customer_name"?: string | null,"expires_at"?: string | null,"fulfilled_at"?: string | null,"id"?: string,"metadata"?: NonNullable<Json>,"org_id"?: string,"paid_at"?: string | null,"provider"?: string | null,"source_id"?: string | null,"source_module"?: string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "amount_total"?: number,"application_fee"?: number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"customer_email"?: string | null,"customer_name"?: string | null,"expires_at"?: string | null,"fulfil_claimed_at"?: string | null,"fulfilled_at"?: string | null,"id"?: string,"metadata"?: NonNullable<Json>,"org_id"?: string,"paid_at"?: string | null,"provider"?: string | null,"source_id"?: string | null,"source_module"?: string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -2172,6 +2172,9 @@ isOneToOne: false
 { Args: { "p_token": string }; Returns: {
               "event_title": string,"list_id": string,"list_name": string,"open": boolean,"org_name": string,"per_submission": number,"remaining": number,"starts_at": string
             }[]
+                           },
+"guest_sync_tickets":
+{ Args: { "p_list": string }; Returns: number
                            },
 "has_perm":
 { Args: { "p_org": string,"p_perm": string }; Returns: boolean
