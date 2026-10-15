@@ -28,7 +28,7 @@ export const core: ModuleDef = {
 
 // Core permissions an API key may carry (data an org may want to sync), next to the enabled modules' ones.
 // Settings, integrations, team and roles stay in the App (a key never changes the org's setup or people's access).
-export const apiCorePermissions = ["org.files.view", "org.files.manage"]
+export const apiCorePermissions = ["org.files.view", "org.files.manage", "org.members.manage", "org.settings.manage"]
 
 export const modules: ModuleDef[] = [
   { key: "crm", permissions: ["crm.view", "crm.manage"], nav: [{ href: "/contacts", label: "contacts.nav", icon: ContactIcon, permission: "crm.view" }] },

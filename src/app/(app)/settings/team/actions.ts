@@ -1,6 +1,5 @@
 "use server"
 
-import { createHash, randomBytes } from "node:crypto"
 import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
@@ -8,8 +7,8 @@ import { deliverSoon } from "@/events/worker"
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { ACTIVE_ORG_COOKIE, getContext } from "@/lib/context"
-import { sendPlatformEmail } from "@/lib/org-email"
-import { APP_URL, back, APP_HOME } from "@/lib/url"
+import { inviteMember, newInviteToken } from "@/settings/server"
+import { back, APP_HOME } from "@/lib/url"
 
 const PATH = "/settings/team"
 
@@ -46,32 +45,14 @@ export async function removeMember(memberId: string) {
 
 export type InviteState = { error?: string; link?: string; email?: string; mailFailed?: boolean }
 
-// Only the hash is stored, so a link can't be shown again, only replaced by a fresh one.
-function newToken() {
-  const token = randomBytes(32).toString("base64url")
-  return { link: `${APP_URL}/invite/${token}`, token_hash: createHash("sha256").update(token).digest("hex") }
-}
-
 export async function createInvite(_: InviteState, formData: FormData): Promise<InviteState> {
   const ctx = await getContext()
   const t = await getT()
-  const email = String(formData.get("email") ?? "").trim().toLowerCase()
-  const roleId = String(formData.get("role_id") ?? "")
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: t("members.invalidEmail") }
-
-  const { link, token_hash } = newToken()
-  // One open invite per email: a new invite replaces the old link.
-  await ctx.supabase.from("invites").delete().eq("org_id", ctx.org.id).eq("email", email).is("accepted_at", null)
-  const { error } = await ctx.supabase.from("invites").insert({ org_id: ctx.org.id, email, role_id: roleId, token_hash })
-  if (error) return { error: error.code === "42501" ? t("members.cantInviteRole") : dbError(t, error) }
-
+  const r = await inviteMember(ctx.supabase, ctx.org, { email: String(formData.get("email") ?? ""), roleId: String(formData.get("role_id") ?? "") }, t)
+  if ("error" in r) return { error: r.db ? dbError(t, r.db) : t.dynamic(r.error) }
   revalidatePath(PATH)
   deliverSoon()
-  // Emailed when the platform mail is set up (best effort); the link is shown to copy either way. Without the
-  // link, signing in with the invited email also works (onboarding lists open invites).
-  const text = [t("invite.mailIntro", { org: ctx.org.name }), "", link, "", t("invite.mailNote")].join("\n")
-  const sent = await sendPlatformEmail({ to: email, subject: t("invite.mailSubject", { org: ctx.org.name }), text, html: text.split("\n").map((l) => (l === link ? `<p><a href="${link}">${link}</a></p>` : `<p>${l.replace(/[<>&]/g, "")}</p>`)).join("") }).catch(() => false)
-  return { link, email, mailFailed: !sent }
+  return r
 }
 
 export async function revokeInvite(inviteId: string) {
@@ -86,7 +67,7 @@ export async function revokeInvite(inviteId: string) {
 export async function renewInviteLink(inviteId: string): Promise<{ link?: string; error?: string }> {
   const ctx = await getContext()
   const t = await getT()
-  const { link, token_hash } = newToken()
+  const { link, token_hash } = newInviteToken()
   const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
   // RLS: managers only, owner invites only by owners (0 rows otherwise, nothing changes).
   const { error, count } = await ctx.supabase

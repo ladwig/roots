@@ -4,39 +4,22 @@ import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { refreshPublic } from "@/lib/public-cache"
-import { CUSTOM_ENTITIES, FIELD_TYPES, fieldKey, type CustomEntity } from "@/lib/custom-fields"
+import * as setup from "@/settings/server"
 import { back } from "@/lib/url"
 
 const PATH = "/settings/fields"
 
 function readField(fd: FormData) {
-  const label = String(fd.get("label") ?? "").trim().slice(0, 100)
-  // Options: one per line or comma-separated, unique.
-  const options = [...new Set(String(fd.get("options") ?? "").split(/[\n,]/).map((o) => o.trim().slice(0, 100)).filter(Boolean))].slice(0, 100)
-  return { label, options, required: fd.get("required") === "1" }
+  // Options: one per line or comma-separated.
+  return { label: String(fd.get("label") ?? ""), options: String(fd.get("options") ?? "").split(/[\n,]/), required: fd.get("required") === "1" }
 }
 
 export async function createField(fd: FormData) {
   const ctx = await requirePerm("org.settings.manage")
   const t = await getT()
-  const entity = String(fd.get("entity")) as CustomEntity
-  const type = String(fd.get("type"))
-  const f = readField(fd)
-  const here = `${PATH}?new=${entity}`
-  if (!(entity in CUSTOM_ENTITIES) || !FIELD_TYPES.includes(type as never) || !f.label) back(here, { error: t("errors.invalid_input") })
-  if (type === "select" && !f.options.length) back(here, { error: t("errors.options_required") })
-  const { count } = await ctx.supabase.from("custom_fields").select("id", { count: "exact", head: true }).eq("org_id", ctx.org.id).eq("entity", entity)
-  const { error } = await ctx.supabase.from("custom_fields").insert({
-    org_id: ctx.org.id,
-    entity,
-    type,
-    key: fieldKey(f.label),
-    label: f.label,
-    options: type === "select" ? f.options : [],
-    required: f.required,
-    position: count ?? 0,
-  })
-  if (error) back(here, { error: error.code === "23505" ? t("errors.field_exists") : dbError(t, error) })
+  const entity = String(fd.get("entity"))
+  const r = await setup.createField(ctx.supabase, ctx.org.id, { ...readField(fd), entity, type: String(fd.get("type")) })
+  if ("error" in r) back(`${PATH}?new=${entity}`, { error: r.db ? dbError(t, r.db) : t.dynamic(r.error) })
   refreshPublic(ctx.org.id) // public forms show the custom fields
   back(PATH, { ok: t("fields.created") })
 }
@@ -46,17 +29,8 @@ export async function updateField(fd: FormData) {
   const ctx = await requirePerm("org.settings.manage")
   const t = await getT()
   const id = String(fd.get("id") ?? "")
-  const f = readField(fd)
-  const here = `${PATH}?edit=${id}`
-  if (!f.label) back(here, { error: t("errors.invalid_input") })
-  const { data: old } = await ctx.supabase.from("custom_fields").select("type").eq("id", id).eq("org_id", ctx.org.id).maybeSingle()
-  if (!old) back(PATH, { error: t("errors.not_allowed") })
-  if (old.type === "select" && !f.options.length) back(here, { error: t("errors.options_required") })
-  const { error } = await ctx.supabase
-    .from("custom_fields")
-    .update({ label: f.label, required: f.required, ...(old.type === "select" ? { options: f.options } : {}) })
-    .eq("id", id)
-  if (error) back(here, { error: dbError(t, error) })
+  const r = await setup.updateField(ctx.supabase, ctx.org.id, id, readField(fd))
+  if ("error" in r) back(r.error === "errors.not_allowed" ? PATH : `${PATH}?edit=${id}`, { error: r.db ? dbError(t, r.db) : t.dynamic(r.error) })
   refreshPublic(ctx.org.id)
   back(PATH, { ok: t("fields.saved") })
 }
