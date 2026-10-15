@@ -10,7 +10,8 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 import { ApiError, invoke, mayCall, parseInput, type Auth, type Endpoint } from "@/api/core"
 import { endpoints } from "@/api/v1"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { confirmMessage, confirmWindow, opName, riskOf, uniqueNames, type Risk } from "./names"
+import { APP_URL } from "@/lib/url"
+import { appPath, callArgs, confirmMessage, confirmWindow, opName, riskOf, uniqueNames, type Risk } from "./names"
 
 type Op = { name: string; e: Endpoint; risk: Risk; params: string[] }
 
@@ -67,7 +68,7 @@ const text = (v: unknown, isError = false) => {
 }
 
 const INSTRUCTIONS = `roots is the back office of a club / collective / small org (contacts, memberships and dues, events and tickets, shifts, invoices, email, forms, automations, rentals …).
-How to work: 1) roots_find_operations to see what this connection may do (filter by a word like "contact" or "rental"), 2) roots_describe_operation for the input schema, 3) call it with roots_read (GET), roots_write (create/change) or roots_danger (delete, send emails, money, irreversible – first call returns a preview + confirm_token; show the preview to the user and only repeat the call with the token after they agree).
+How to work (fewer round trips = faster): 1) roots_find_operations to see what this connection may do (filter by a word like "contact" or "rental"), 2) roots_describe_operation for the input schema (pass names: [...] to get several at once), 3) call it with roots_read (GET), roots_write (create/change) or roots_danger (delete, send emails, money, irreversible – first call returns a preview + confirm_token; show the preview to the user and only repeat the call with the token after they agree). For several creates/changes use calls: [{ operation, arguments }, …] in one roots_write. Results of single records carry app_url: link it so the user can open the record in roots.
 Automations: GET workflows_catalog_list (with trigger=…) for triggers, node types and fields → draft a graph (positions optional) → workflows_validate until problems is empty → workflows_create (created inactive) → summarise it for the user → workflows_update { active: true } once they agree. workflow_templates_list has ready-made graphs.
 Conventions: money in cents (integer), timestamps ISO 8601 (UTC), days YYYY-MM-DD, the org's time zone is Europe/Berlin. Lists take limit/offset and return has_more. Deleting usually moves to a trash (restorable for 30 days). German area names: Kontakte = contacts, Mitgliedschaften = memberships, Beiträge = dues, Veranstaltungen = events, Schichten = shifts, Vermietung = rentals, Rechnungen = invoices.`
 
@@ -76,7 +77,43 @@ export function mcpServer(auth: Auth, request: Request) {
   const server = new Server({ name: "roots", version: "1.0.0" }, { capabilities: { tools: {} }, instructions: INSTRUCTIONS })
   const ops = OPS.filter((o) => mayCall(auth, o.e))
   const find = (name: unknown) => ops.find((o) => o.name === name)
-  const call = { type: "object", properties: { operation: { type: "string", description: "Operation name from roots_find_operations" }, arguments: { type: "object", description: "Input as described by roots_describe_operation" } }, required: ["operation"] }
+  const one = { operation: { type: "string", description: "Operation name from roots_find_operations" }, arguments: { type: "object", description: "Input as described by roots_describe_operation (path ids, query and body fields in one object)" } }
+  const call = {
+    type: "object",
+    properties: { ...one, calls: { type: "array", maxItems: 25, description: "Several calls at once instead of operation/arguments: [{ operation, arguments }, …] – run in order, each with its own result.", items: { type: "object", properties: one, required: ["operation"] } } },
+  }
+
+  const fail = (e: unknown) => {
+    if (e instanceof ApiError) return { error: { code: e.code, message: e.message, details: e.details } }
+    console.error("mcp", e)
+    return { error: { code: "internal", message: "Something went wrong." } }
+  }
+  // One operation call: checks risk, validates (wrong input → the expected schema comes along), runs it, adds the
+  // App link of the record. Danger without a valid token → preview + confirm token.
+  async function runOne(risk: Risk, a: Record<string, unknown>): Promise<unknown> {
+    const op = find(a.operation)
+    if (!op) return { error: "Unknown operation or not allowed for this connection. Use roots_find_operations." }
+    if (op.risk !== risk) return { error: `${op.name} has risk "${op.risk}": call it with roots_${op.risk}.` }
+    const args = callArgs(a)
+    const input = split(op, args)
+    for (const [k, v] of Object.entries(input.params)) if (k.endsWith("id") && !/^[0-9a-f-]{36}$/.test(v)) return { error: { code: "not_found", message: `${k}: not a valid id.` }, expected: inputSchema(op) }
+    let parsed
+    try {
+      parsed = parseInput(op.e, { query: input.query, body: input.body })
+    } catch (e) {
+      return { ...fail(e), expected: inputSchema(op) }
+    }
+    if (risk === "danger" && !(typeof a.confirm_token === "string" && tokenOk(a.confirm_token, auth.key_id, op.name, args))) {
+      // Preview of the record it hits: DELETE /x/{id} → GET /x/{id}; POST /x/{id}/send → GET /x/{id}.
+      const base = op.e.method === "DELETE" ? op.e.path : op.e.path.replace(/\/[a-z-]+$/, "")
+      const preview = op.params.length ? OPS.find((x) => x.e.method === "GET" && x.e.path === base) : undefined
+      const target = preview && mayCall(auth, preview.e) ? await invoke(preview.e, auth, { params: input.params, query: {}, body: undefined }, request).catch(() => null) : null
+      return { confirm: true, operation: op.name, summary: op.e.summary, method: op.e.method, path: op.e.path, arguments: args, target, confirm_token: sign(confirmMessage(auth.key_id, op.name, args, confirmWindow(Date.now()))), note: "Nothing happened yet. Show this to the user; repeat the same call with confirm_token to execute." }
+    }
+    const result = await invoke(op.e, auth, { params: input.params, query: parsed.query, body: parsed.body }, request)
+    const link = op.e.method !== "GET" || op.params.length ? appPath(op.e.path, result, input.params) : null
+    return link && result && typeof result === "object" ? { ...(result as object), app_url: `${APP_URL}${link}` } : result
+  }
 
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: [
@@ -88,7 +125,13 @@ export function mcpServer(auth: Auth, request: Request) {
         inputSchema: { type: "object", properties: { query: { type: "string", description: "Word to search in names and summaries" }, risk: { type: "string", enum: ["read", "write", "danger"] } } },
         annotations: { readOnlyHint: true },
       },
-      { name: "roots_describe_operation", title: "Describe an operation", description: "Full description, permission, risk and the JSON input schema of one operation.", inputSchema: { type: "object", properties: { name: { type: "string" } }, required: ["name"] }, annotations: { readOnlyHint: true } },
+      {
+        name: "roots_describe_operation",
+        title: "Describe operations",
+        description: "Full description, permission, risk and the JSON input schema of one operation (name) or several at once (names, up to 10).",
+        inputSchema: { type: "object", properties: { name: { type: "string" }, names: { type: "array", items: { type: "string" } } } },
+        annotations: { readOnlyHint: true },
+      },
       { name: "roots_read", title: "Read from roots", description: "Run an operation with risk 'read' (reading, or checking a draft). Changes nothing.", inputSchema: call, annotations: { readOnlyHint: true } },
       { name: "roots_write", title: "Change roots", description: "Run a creating/changing operation (risk 'write').", inputSchema: call, annotations: { readOnlyHint: false, destructiveHint: false } },
       {
@@ -115,27 +158,25 @@ export function mcpServer(auth: Auth, request: Request) {
         return text(hits.map((o) => ({ name: o.name, method: o.e.method, path: o.e.path, summary: o.e.summary, risk: o.risk })))
       }
       if (name === "roots_describe_operation") {
-        const op = find(a.name)
-        if (!op) return text({ error: "Unknown operation or not allowed for this connection." }, true)
-        return text({ name: op.name, method: op.e.method, path: op.e.path, summary: op.e.summary, description: op.e.description, permission: op.e.permission, risk: op.risk, tool: `roots_${op.risk}`, input: inputSchema(op) })
+        const names = (Array.isArray(a.names) ? a.names : [a.name]).slice(0, 10)
+        const out = names.map((n) => {
+          const op = find(n)
+          return op
+            ? { name: op.name, method: op.e.method, path: op.e.path, summary: op.e.summary, description: op.e.description, permission: op.e.permission, risk: op.risk, tool: `roots_${op.risk}`, input: inputSchema(op) }
+            : { name: n, error: "Unknown operation or not allowed for this connection." }
+        })
+        return text(out.length === 1 ? out[0] : out)
       }
       const risk = name === "roots_read" ? "read" : name === "roots_write" ? "write" : name === "roots_danger" ? "danger" : null
       if (!risk) return text({ error: `Unknown tool ${name}.` }, true)
-      const op = find(a.operation)
-      if (!op) return text({ error: "Unknown operation or not allowed for this connection. Use roots_find_operations." }, true)
-      if (op.risk !== risk) return text({ error: `${op.name} has risk "${op.risk}": call it with roots_${op.risk}.` }, true)
-      const args = (a.arguments ?? {}) as Record<string, unknown>
-      const input = split(op, args)
-      for (const [k, v] of Object.entries(input.params)) if (k.endsWith("id") && !/^[0-9a-f-]{36}$/.test(v)) throw new ApiError(404, "not_found", `${k}: not a valid id.`)
-      const { query, body } = parseInput(op.e, { query: input.query, body: input.body })
-      if (risk === "danger" && !(typeof a.confirm_token === "string" && tokenOk(a.confirm_token, auth.key_id, op.name, args))) {
-        // Preview of the record it hits: DELETE /x/{id} → GET /x/{id}; POST /x/{id}/send → GET /x/{id}.
-        const base = op.e.method === "DELETE" ? op.e.path : op.e.path.replace(/\/[a-z-]+$/, "")
-        const preview = op.params.length ? OPS.find((x) => x.e.method === "GET" && x.e.path === base) : undefined
-        const target = preview && mayCall(auth, preview.e) ? await invoke(preview.e, auth, { params: input.params, query: {}, body: undefined }, request).catch(() => null) : null
-        return text({ confirm: true, operation: op.name, summary: op.e.summary, method: op.e.method, path: op.e.path, arguments: args, target, confirm_token: sign(confirmMessage(auth.key_id, op.name, args, confirmWindow(Date.now()))), note: "Nothing happened yet. Show this to the user; repeat the same call with confirm_token to execute." })
+      // Several calls at once (reads/writes only, in order; each reports its own result or error).
+      if (Array.isArray(a.calls) && risk !== "danger") {
+        const results = []
+        for (const c of a.calls.slice(0, 25) as Record<string, unknown>[]) results.push(await runOne(risk, c).catch(fail))
+        return text({ results })
       }
-      return text(await invoke(op.e, auth, { params: input.params, query, body }, request))
+      const r = await runOne(risk, a)
+      return text(r, !!r && typeof r === "object" && "error" in r)
     } catch (e) {
       if (e instanceof ApiError) return text({ error: { code: e.code, message: e.message, details: e.details } }, true)
       console.error("mcp", e)

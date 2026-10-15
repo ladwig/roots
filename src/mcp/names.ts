@@ -47,3 +47,41 @@ export function canonical(v: unknown): string {
 /** 5-minute windows: a token is valid in its window and the next one. */
 export const confirmWindow = (now: number) => Math.floor(now / 300_000)
 export const confirmMessage = (keyId: string, op: string, args: unknown, window: number) => `${keyId}|${op}|${canonical(args)}|${window}`
+
+// Where a record of an API resource lives in the App (so Claude can link "here's your event").
+const APP_PAGES: Record<string, (id: string, r: Record<string, unknown>) => string> = {
+  events: (id) => `/events/${id}`,
+  contacts: (id) => `/contacts/${id}`,
+  members: (id) => `/members/${id}`,
+  courses: (id) => `/courses/${id}`,
+  employees: (id) => `/hr/${id}`,
+  forms: (id) => `/forms/${id}`,
+  "guest-lists": (id) => `/guestlists/${id}`,
+  invoices: (id) => `/invoices/${id}`,
+  "letter-templates": (id) => `/files/templates/${id}`,
+  "rental-objects": (id) => `/rentals/${id}`,
+  rentals: (id) => `/rentals/r/${id}`,
+  tasks: (id) => `/projects?task=${id}`,
+  "wiki-pages": (id) => `/wiki/${id}`,
+  workflows: (id) => `/automations/${id}`,
+  "ticket-types": (_id, r) => (typeof r.event_id === "string" ? `/events/${r.event_id}/tickets` : ""),
+}
+
+/** App link for a single record an operation returned ("/events/<id>"), or null. Only top-level resources; for
+ *  "/x/{id}/action" only when the result is that same record (not a child created under it). */
+export function appPath(path: string, result: unknown, params: Record<string, string> = {}) {
+  if (!result || typeof result !== "object" || Array.isArray(result)) return null
+  const r = result as Record<string, unknown>
+  const res = path.split("/").filter(Boolean)[0]
+  const page = APP_PAGES[res]
+  const id = typeof r.id === "string" ? r.id : null
+  const parts = path.split("/").filter(Boolean)
+  if (!page || !id || parts.length > 3 || (parts.length === 3 && params.id !== id)) return null
+  return page(id, r) || null
+}
+
+/** The call's input: "arguments" (also accepted: params / args / input), else the fields next to "operation". */
+export function callArgs(a: Record<string, unknown>) {
+  for (const k of ["arguments", "params", "args", "input"]) if (a[k] && typeof a[k] === "object" && !Array.isArray(a[k])) return a[k] as Record<string, unknown>
+  return Object.fromEntries(Object.entries(a).filter(([k]) => !["operation", "confirm_token", "calls"].includes(k)))
+}

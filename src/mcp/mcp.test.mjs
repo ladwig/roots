@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { canonical, confirmMessage, opName, riskOf, uniqueNames } from "./names.ts"
+import { appPath, callArgs, canonical, confirmMessage, opName, riskOf, uniqueNames } from "./names.ts"
 
 test("mcp: operation names, risk, confirm payload", () => {
   assert.equal(opName("GET", "/events"), "events_list")
@@ -23,4 +23,12 @@ test("mcp: operation names, risk, confirm payload", () => {
 
   assert.equal(canonical({ b: 1, a: [2, { d: 3, c: 4 }] }), '{"a":[2,{"c":4,"d":3}],"b":1}')
   assert.equal(confirmMessage("k", "x_delete", { id: 1 }, 7), 'k|x_delete|{"id":1}|7')
+
+  assert.equal(appPath("/events", { id: "e1", title: "x" }), "/events/e1")
+  assert.equal(appPath("/rentals/{id}/notice", { id: "r1" }, { id: "r1" }), "/rentals/r/r1")
+  assert.equal(appPath("/events/{id}/ticket-types", { id: "t1", event_id: "e1" }, { id: "e1" }), null) // nested: the event's page would need its id
+  assert.equal(appPath("/ticket-types/{id}", { id: "t1", event_id: "e1" }), "/events/e1/tickets")
+  assert.equal(appPath("/contacts", { data: [] }), null)
+  assert.deepEqual(callArgs({ operation: "x", params: { a: 1 } }), { a: 1 })
+  assert.deepEqual(callArgs({ operation: "x", a: 1, confirm_token: "t" }), { a: 1 })
 })
