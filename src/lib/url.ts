@@ -17,6 +17,8 @@ export const appRoute = (path: string) => (path === "/app" || path.startsWith("/
 
 export const safeNext = (next: unknown) =>
   typeof next === "string" && next.startsWith("/") && !next.startsWith("//") && next !== "/" ? next : APP_HOME
+// Where email links (sign-up confirmation, magic link, password reset) land; `next` is where they continue.
+export const callbackUrl = (next: string) => `${APP_URL}/auth/callback?next=${encodeURIComponent(next)}`
 
 // Server actions report results through the URL (?error= / ?ok=), like every other piece of UI state.
 export function back(path: string, result: { error?: string; ok?: string }): never {

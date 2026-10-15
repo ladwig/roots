@@ -168,6 +168,7 @@ Every view a user can reach must be shareable/bookmarkable and survive reload + 
 - Env vars live in Vercel (Production + Preview); `NEXT_PUBLIC_*` are baked in at build time, so redeploy after changing them.
 - The worker runs every minute via Supabase pg_cron (`npm run worker:schedule -- <prod-url>`; `CRON_SECRET` must match Vercel's). Vercel's own cron (daily, Hobby limit) is only a fallback.
 - Org subdomains (`<org>.<root>`) need a real domain with a wildcard; on `*.vercel.app` only the App works.
+- Supabase Auth (Dashboard of the hosted project, not `config.toml`): URL Configuration → Redirect URLs must contain `http://localhost:3000/**` and the production URL `/**`, otherwise email links ignore `next` and land on the Site URL.
 
 ## Conventions
 - Prefer the simplest working thing: no abstractions, wrappers, or libraries until there's a second real use.

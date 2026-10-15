@@ -5,7 +5,7 @@ import { adoptProfileLocale } from "@/i18n/actions"
 import { getT } from "@/i18n/server"
 import { authError } from "@/i18n/translate"
 import { createClient } from "@/lib/supabase/server"
-import { APP_URL, safeNext, APP_HOME } from "@/lib/url"
+import { callbackUrl, safeNext, APP_HOME } from "@/lib/url"
 
 const loginUrl = (next: string, result: Record<string, string>) =>
   `/login?${new URLSearchParams({ ...result, ...(next !== APP_HOME && { next }) })}`
@@ -17,8 +17,6 @@ function read(formData: FormData) {
     next: safeNext(formData.get("next")),
   }
 }
-
-const callback = (next: string) => `${APP_URL}/auth/callback?next=${encodeURIComponent(next)}`
 
 export async function signIn(formData: FormData) {
   const { email, password, next } = read(formData)
@@ -34,7 +32,7 @@ export async function signUp(formData: FormData) {
   const t = await getT()
   if (password.length < 8) redirect(loginUrl(next, { error: t("auth.passwordTooShort") }))
   const supabase = await createClient()
-  const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: callback(next) } })
+  const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: callbackUrl(next) } })
   if (error) redirect(loginUrl(next, { error: authError(t, error) }))
   if (data.session) redirect(next)
   redirect(loginUrl(next, { ok: t("auth.confirmEmail", { email }) }))
@@ -45,7 +43,7 @@ export async function sendMagicLink(formData: FormData) {
   const t = await getT()
   if (!email.includes("@")) redirect(loginUrl(next, { error: t("auth.enterEmail") }))
   const supabase = await createClient()
-  const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: callback(next) } })
+  const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: callbackUrl(next) } })
   if (error) redirect(loginUrl(next, { error: authError(t, error) }))
   redirect(loginUrl(next, { ok: t("auth.magicLinkSent", { email }) }))
 }
@@ -60,7 +58,7 @@ export async function sendPasswordReset(formData: FormData) {
   const { email } = read(formData)
   const t = await getT()
   const supabase = await createClient()
-  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: callback("/account?reset=1") })
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: callbackUrl("/account?reset=1") })
   if (error && error.code !== "user_not_found") redirect(`/forgot?${new URLSearchParams({ error: authError(t, error) })}`)
   // Same answer whether or not the account exists, so the form can't be used to probe for emails.
   redirect(`/forgot?${new URLSearchParams({ ok: t("auth.resetSent", { email }) })}`)
