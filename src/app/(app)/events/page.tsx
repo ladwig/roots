@@ -136,7 +136,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
       <Pager sp={sp} page={page} hasNext={(data?.length ?? 0) > PAGE_SIZE} newer={t("common.newer")} older={t("common.older")} />
       {canManage && !trash && (
         <BulkBar form="bulk-events">
-          <SubmitButton size="sm" variant="ghost" formAction={bulkTrashEvents} className="text-destructive hover:text-destructive">
+          <SubmitButton size="sm" variant="ghost" formAction={bulkTrashEvents} data-confirm="common.confirmTrashMany" className="text-destructive hover:text-destructive">
             <Trash2Icon /> {t("common.toTrash")}
           </SubmitButton>
         </BulkBar>

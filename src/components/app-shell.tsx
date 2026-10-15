@@ -2,6 +2,7 @@ import { cookies } from "next/headers"
 import { AppSidebar, type Me, type SidebarLink } from "@/components/app-sidebar"
 import { Shortcuts } from "@/components/shortcuts"
 import { Separator } from "@/components/ui/separator"
+import { ConfirmHost } from "@/components/confirm-submit"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 
 // The one layout for signed-in areas (App + /admin): sidebar (drawer on phones, icons when collapsed) + top bar + content.
@@ -34,6 +35,7 @@ export async function AppShell({
         <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">
           {children}
           <Shortcuts />
+          <ConfirmHost />
         </main>
       </SidebarInset>
     </SidebarProvider>

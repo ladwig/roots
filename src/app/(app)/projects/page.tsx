@@ -164,7 +164,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           <SubmitButton size="sm" variant="outline" formAction={bulkTasks} name="intent" value="move">
             <ArrowRightIcon /> {t("projects.moveTo")}
           </SubmitButton>
-          <SubmitButton size="sm" variant="ghost" formAction={bulkTasks} name="intent" value="trash" className="text-destructive hover:text-destructive">
+          <SubmitButton size="sm" variant="ghost" formAction={bulkTasks} name="intent" value="trash" data-confirm="common.confirmTrashMany" className="text-destructive hover:text-destructive">
             <Trash2Icon /> {t("common.toTrash")}
           </SubmitButton>
         </BulkBar>

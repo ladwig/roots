@@ -90,7 +90,7 @@ export default async function DocumentPage({ params, searchParams }: PageProps<"
             {draft && canManage && (
               <>
                 <MenuSeparator />
-                <MenuSubmit form="delete-draft" icon={<Trash2Icon />} destructive>
+                <MenuSubmit form="delete-draft" icon={<Trash2Icon />} destructive confirm="common.confirmDelete">
                   {t("invoices.deleteDraft")}
                 </MenuSubmit>
               </>

@@ -158,7 +158,7 @@ export default async function FilesPage({ searchParams }: PageProps<"/files">) {
       {canManage && !trash && (
         <BulkBar form="bulk-files">
           <input type="hidden" name="back" value={`/files${withParams(sp, { edit: undefined })}`} />
-          <SubmitButton size="sm" variant="ghost" formAction={bulkTrashFiles} className="text-destructive hover:text-destructive">
+          <SubmitButton size="sm" variant="ghost" formAction={bulkTrashFiles} data-confirm="common.confirmTrashMany" className="text-destructive hover:text-destructive">
             <Trash2Icon /> {t("common.toTrash")}
           </SubmitButton>
         </BulkBar>

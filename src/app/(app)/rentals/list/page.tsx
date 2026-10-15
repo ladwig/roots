@@ -112,7 +112,7 @@ export default async function RentalListPage({ searchParams }: PageProps<"/renta
           <Button type="submit" size="sm" variant="outline" formAction="/export/rentals" formMethod="get" name="format" value="xlsx">
             <DownloadIcon /> {t("common.exportSelected")}
           </Button>
-          <SubmitButton size="sm" variant="ghost" formAction={bulkTrashRentals} className="text-destructive hover:text-destructive">
+          <SubmitButton size="sm" variant="ghost" formAction={bulkTrashRentals} data-confirm="common.confirmTrashMany" className="text-destructive hover:text-destructive">
             <Trash2Icon /> {t("common.toTrash")}
           </SubmitButton>
         </BulkBar>

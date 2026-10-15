@@ -47,9 +47,10 @@ export function MenuDownload({ href, icon, children }: { href: string; icon?: Re
   )
 }
 
-export function MenuSubmit({ form, icon, children, destructive }: { form: string; icon?: React.ReactNode; children: React.ReactNode; destructive?: boolean }) {
+// Destructive items ask first (<ConfirmHost>); `confirm` = the question's message key.
+export function MenuSubmit({ form, icon, children, destructive, confirm = "common.confirmTrash" }: { form: string; icon?: React.ReactNode; children: React.ReactNode; destructive?: boolean; confirm?: string }) {
   return (
-    <DropdownMenuItem render={<button type="submit" form={form} className="w-full" />} nativeButton variant={destructive ? "destructive" : "default"}>
+    <DropdownMenuItem render={<button type="submit" form={form} className="w-full" data-confirm={destructive ? confirm : undefined} />} nativeButton variant={destructive ? "destructive" : "default"}>
       {icon} {children}
     </DropdownMenuItem>
   )

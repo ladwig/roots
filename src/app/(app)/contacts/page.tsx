@@ -159,7 +159,7 @@ export default async function ContactsPage({ searchParams }: PageProps<"/contact
           <Button type="submit" size="sm" variant="outline" formAction="/export/contacts" formMethod="get" name="format" value="xlsx">
             <DownloadIcon /> {t("common.exportSelected")}
           </Button>
-          <SubmitButton size="sm" variant="ghost" formAction={bulkContacts} name="intent" value="trash" className="text-destructive hover:text-destructive">
+          <SubmitButton size="sm" variant="ghost" formAction={bulkContacts} name="intent" value="trash" data-confirm="common.confirmTrashMany" className="text-destructive hover:text-destructive">
             <Trash2Icon /> {t("common.toTrash")}
           </SubmitButton>
         </BulkBar>

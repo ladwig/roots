@@ -38,7 +38,17 @@
     "bulkTrashed": {
       "one": "{count} Eintrag in den Papierkorb verschoben.",
       "other": "{count} Einträge in den Papierkorb verschoben."
-    }
+    },
+    "confirm": "Bestätigen",
+    "confirmTrash": "Wirklich in den Papierkorb legen?",
+    "confirmTrashHint": "Aus dem Papierkorb lässt es sich 30 Tage lang wiederherstellen.",
+    "confirmTrashMany": {
+      "one": "{count} Eintrag in den Papierkorb legen?",
+      "other": "{count} Einträge in den Papierkorb legen?"
+    },
+    "confirmTrashManyHint": "Aus dem Papierkorb lassen sie sich 30 Tage lang wiederherstellen.",
+    "confirmDelete": "Wirklich löschen?",
+    "confirmDeleteHint": "Das lässt sich nicht rückgängig machen."
   },
   "auth": {
     "title": "Bei roots anmelden",

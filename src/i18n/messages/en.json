@@ -38,7 +38,17 @@
     "bulkTrashed": {
       "one": "{count} entry moved to the trash.",
       "other": "{count} entries moved to the trash."
-    }
+    },
+    "confirm": "Confirm",
+    "confirmTrash": "Really move to the trash?",
+    "confirmTrashHint": "It can be restored from the trash for 30 days.",
+    "confirmTrashMany": {
+      "one": "Move {count} entry to the trash?",
+      "other": "Move {count} entries to the trash?"
+    },
+    "confirmTrashManyHint": "They can be restored from the trash for 30 days.",
+    "confirmDelete": "Really delete?",
+    "confirmDeleteHint": "This can't be undone."
   },
   "auth": {
     "title": "Sign in to roots",
