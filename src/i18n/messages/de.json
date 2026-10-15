@@ -2452,7 +2452,8 @@
       "membership": "Mitgliedschaft",
       "dues": "Beiträge",
       "data": "Meine Daten",
-      "wiki": "Infos"
+      "wiki": "Infos",
+      "rental": "Meine Miete"
     },
     "noCard": "Für dich gibt es noch keine Mitgliedskarte."
   },
@@ -4580,6 +4581,18 @@
       "ended": "Beendet",
       "all": "Alle"
     },
-    "pickObject": "Welches Objekt?"
+    "pickObject": "Welches Objekt?",
+    "noticeMonthsText": {
+      "one": "{count} Monat",
+      "other": "{count} Monate"
+    },
+    "writeContract": "Vertrag erstellen",
+    "trash": "Papierkorb",
+    "trashHint": "Gelöschtes wird nach {days} Tagen endgültig entfernt.",
+    "emptyTrash": "Der Papierkorb ist leer.",
+    "restore": "Wiederherstellen",
+    "restored": "Wiederhergestellt.",
+    "portalNone": "Gerade läuft bei dir nichts.",
+    "portalRole": "Du bist"
   }
 }

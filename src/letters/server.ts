@@ -12,6 +12,7 @@ export type LetterCtx = { supabase: Db; org: { id: string; name: string; logo_pa
 type Ctx = LetterCtx
 export type LetterTemplate = { id: string; org_id: string | null; name: string; title: string; body: string; fields: unknown; letterhead: boolean }
 
+const berlin = (ts: string) => new Date(ts).toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
 export const longDate = (t: T, iso: string) => t.date(`${iso}T12:00:00Z`, { dateStyle: "long" })
 
 /** Seller (invoice settings) + logo for the letterhead; falls back to the org's name. */
@@ -27,12 +28,20 @@ export async function contactVars(ctx: Ctx, t: T, contactId: string): Promise<{ 
   if (!/^[0-9a-f-]{36}$/.test(contactId)) return null
   const { data: c } = await ctx.supabase
     .from("contacts")
-    .select("first_name, last_name, company, email, street, postal_code, city, memberships(member_no, starts_on, ends_on, deleted_at, membership_types(name))")
+    .select(
+      "first_name, last_name, company, email, street, postal_code, city, memberships(member_no, starts_on, ends_on, deleted_at, membership_types(name)), rental_contacts(rentals(starts_at, ends_at, status, price_cents, unit, deposit_cents, notice_months, deleted_at, rental_objects(name), rental_contacts(role, contacts(first_name, last_name, company))))",
+    )
     .eq("id", contactId)
     .eq("org_id", ctx.org.id)
     .maybeSingle()
   if (!c) return null
   const m = c.memberships.filter((x) => !x.deleted_at).sort((a, b) => b.starts_on.localeCompare(a.starts_on))[0]
+  // The contact's newest live rental (contract letters). ponytail: newest one wins; pick per rental if people have several.
+  const r = (c.rental_contacts ?? [])
+    .map((x) => x.rentals)
+    .filter((x): x is NonNullable<typeof x> => !!x && !x.deleted_at && x.status !== "cancelled")
+    .sort((a, b) => b.starts_at.localeCompare(a.starts_at))[0]
+  const person = (p: { first_name: string | null; last_name: string | null; company: string | null } | null) => (p ? [p.first_name, p.last_name].filter(Boolean).join(" ") || p.company || "" : "")
   const name = [c.first_name, c.last_name].filter(Boolean).join(" ") || c.company || ""
   const place = [c.postal_code, c.city].filter(Boolean).join(" ")
   return {
@@ -49,6 +58,13 @@ export async function contactVars(ctx: Ctx, t: T, contactId: string): Promise<{ 
       member_since: m ? longDate(t, m.starts_on) : "",
       member_until: m?.ends_on ? longDate(t, m.ends_on) : "",
       member_type: m?.membership_types?.name ?? "",
+      rental_object: r?.rental_objects?.name ?? "",
+      rental_start: r ? longDate(t, berlin(r.starts_at)) : "",
+      rental_end: r?.ends_at ? longDate(t, berlin(r.ends_at)) : "",
+      rental_rent: r?.price_cents != null ? `${t.money(r.price_cents)}${r.unit ? ` ${t.dynamic(`rentals.units.${r.unit}`)}` : ""}` : "",
+      rental_deposit: r?.deposit_cents != null ? t.money(r.deposit_cents) : "",
+      rental_notice: r?.notice_months != null ? t("rentals.noticeMonthsText", { count: r.notice_months }) : "",
+      rental_people: (r?.rental_contacts ?? []).filter((p) => p.role === "main").map((p) => person(p.contacts)).filter(Boolean).join(", "),
     },
     recipient: [c.company && name !== c.company ? c.company : "", name, c.street ?? "", place],
   }

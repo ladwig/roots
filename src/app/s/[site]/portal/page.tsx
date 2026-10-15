@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { BookOpenIcon, IdCardIcon, LogOutIcon, QrCodeIcon, ReceiptIcon, UserIcon } from "lucide-react"
+import { BookOpenIcon, HouseIcon, IdCardIcon, LogOutIcon, QrCodeIcon, ReceiptIcon, UserIcon } from "lucide-react"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { getT } from "@/i18n/server"
@@ -60,7 +60,9 @@ async function PortalBody({
     )
   const { data: mods } = await createAdminClient().from("org_modules").select("module_key").eq("org_id", org.id)
   const enabled = new Set(mods?.map((m) => m.module_key))
-  const sections = PORTAL_SECTIONS.filter((x) => enabled.has(x.module))
+  const on = PORTAL_SECTIONS.filter((x) => enabled.has(x.module))
+  const shown = await Promise.all(on.map((x) => (x.show ? x.show(org.id, me.contact.id) : true)))
+  const sections = on.filter((_, i) => shown[i])
   const tabs = sections.flatMap((x) => x.tabs)
   const tab = tabs.find((x) => x.key === param(sp, "tab"))?.key ?? tabs[0]?.key ?? ""
   return (
@@ -108,6 +110,6 @@ async function PortalBody({
   )
 }
 
-const ICONS = { card: QrCodeIcon, member: IdCardIcon, dues: ReceiptIcon, user: UserIcon, book: BookOpenIcon }
+const ICONS = { card: QrCodeIcon, member: IdCardIcon, dues: ReceiptIcon, user: UserIcon, book: BookOpenIcon, home: HouseIcon }
 
 export const instant = false

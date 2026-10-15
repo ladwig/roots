@@ -193,3 +193,15 @@ export async function bulkTrashRentals(fd: FormData) {
   const error = ids.length ? await trashMany(ctx, "public.rentals", ids) : null
   back(backTo(fd, `${PATH}/list`), error ? { error: dbError(t, error) } : { ok: t("common.bulkTrashed", { count: ids.length }) })
 }
+
+export async function restoreObjectAction(fd: FormData) {
+  const { ctx, t } = await manager()
+  const { error } = await ctx.supabase.rpc("restore_deleted", { p_table: "public.rental_objects", p_id: idOf(fd) })
+  back(error ? `${PATH}?trash=1` : `${PATH}/${idOf(fd)}`, error ? { error: dbError(t, error) } : { ok: t("rentals.restored") })
+}
+
+export async function restoreRentalAction(fd: FormData) {
+  const { ctx, t } = await manager()
+  const { error } = await ctx.supabase.rpc("restore_deleted", { p_table: "public.rentals", p_id: idOf(fd) })
+  back(error ? `${PATH}/list?view=trash` : `${PATH}/r/${idOf(fd)}`, error ? { error: dbError(t, error) } : { ok: t("rentals.restored") })
+}

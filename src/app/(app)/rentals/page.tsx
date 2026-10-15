@@ -1,5 +1,8 @@
 import Link from "next/link"
-import { PlusIcon } from "lucide-react"
+import { KeyRoundIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { ActionsMenu, MenuExport, MenuLink, MenuSeparator } from "@/components/actions-menu"
+import { SubmitButton } from "@/components/submit-button"
+import { restoreObjectAction } from "./actions"
 import { DataTable, SearchBox } from "@/components/data-table"
 import { FilterMenu } from "@/components/filter-menu"
 import { Notice } from "@/components/notice"
@@ -25,11 +28,15 @@ export default async function RentalsPage({ searchParams }: PageProps<"/rentals"
   const q = param(sp, "q")?.replace(/[%,()*]/g, "").trim()
   const family = FAMILIES.find((f) => f === param(sp, "family"))
   const view = VIEWS.find((v) => v === param(sp, "view")) ?? "all"
+  const trash = canManage && param(sp, "trash") === "1"
   const now = new Date().toISOString()
 
   // ponytail: all objects of the org at once (≤ 1000); paginate when orgs get bigger.
   const [{ data: objects }, { data: running }, { data: rates }] = await Promise.all([
-    ctx.supabase.from("rental_objects").select("id, parent_id, family, kind, name, status, rentable, lendable, included").eq("org_id", ctx.org.id).is("deleted_at", null).order("position").order("name").limit(1000),
+    (trash
+      ? ctx.supabase.from("rental_objects").select("id, parent_id, family, kind, name, status, rentable, lendable, included, deleted_at").eq("org_id", ctx.org.id).not("deleted_at", "is", null).order("deleted_at", { ascending: false })
+      : ctx.supabase.from("rental_objects").select("id, parent_id, family, kind, name, status, rentable, lendable, included, deleted_at").eq("org_id", ctx.org.id).is("deleted_at", null).order("position").order("name")
+    ).limit(1000),
     ctx.supabase
       .from("rentals")
       .select("id, object_id, starts_at, ends_at, rental_contacts(role, contacts(first_name, last_name, company, email))")
@@ -45,7 +52,7 @@ export default async function RentalsPage({ searchParams }: PageProps<"/rentals"
   const busy = (id: string) => (running ?? []).filter((r) => r.object_id === id)
   const childrenOf = (id: string) => all.filter((o) => o.parent_id === id)
   const nameOf = (id: string | null) => all.find((o) => o.id === id)?.name
-  let rows = q || family ? all : all.filter((o) => !o.parent_id || !all.some((p) => p.id === o.parent_id))
+  let rows = q || family || trash ? all : all.filter((o) => !o.parent_id || !all.some((p) => p.id === o.parent_id))
   if (q) rows = rows.filter((o) => o.name.toLowerCase().includes(q.toLowerCase()))
   if (family) rows = rows.filter((o) => o.family === family)
   if (view === "free") rows = rows.filter((o) => !busy(o.id).length && !o.included && o.status === "active")
@@ -53,9 +60,27 @@ export default async function RentalsPage({ searchParams }: PageProps<"/rentals"
 
   return (
     <Page>
-      <PageHeader area="rentals" title={t("rentals.title")} primary={canManage ? { href: "/rentals/new", label: t("rentals.newObject") } : undefined} />
+      <PageHeader
+        area="rentals"
+        title={trash ? `${t("rentals.title")} · ${t("rentals.trash")}` : t("rentals.title")}
+        menu={
+          <ActionsMenu>
+            <MenuExport entity="rental_objects" query={{ family }} />
+            {canManage && (
+              <>
+                <MenuSeparator />
+                <MenuLink href={trash ? "/rentals" : "/rentals?trash=1"} icon={trash ? <KeyRoundIcon /> : <Trash2Icon />}>
+                  {trash ? t("rentals.all") : t("rentals.trash")}
+                </MenuLink>
+              </>
+            )}
+          </ActionsMenu>
+        }
+        primary={canManage && !trash ? { href: "/rentals/new", label: t("rentals.newObject") } : undefined}
+      />
+      {trash && <p className="text-sm text-muted-foreground">{t("rentals.trashHint", { days: 30 })}</p>}
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
-      {all.length > 0 && (
+      {all.length > 0 && !trash && (
         <div className="flex flex-wrap items-center gap-2">
           <SearchBox q={q} label={t("rentals.search")} />
           <FilterMenu param="family" label={t("rentals.filterFamily")} options={FAMILIES.map((f) => ({ value: f, label: t.dynamic(`rentals.families.${f}`) }))} />
@@ -68,9 +93,11 @@ export default async function RentalsPage({ searchParams }: PageProps<"/rentals"
       <DataTable
         rows={rows}
         rowKey={(o) => o.id}
-        rowHref={(o) => `/rentals/${o.id}`}
+        rowHref={trash ? undefined : (o) => `/rentals/${o.id}`}
         empty={
-          all.length ? (
+          trash ? (
+            t("rentals.emptyTrash")
+          ) : all.length ? (
             t("rentals.noMatch")
           ) : (
             <EmptyState
@@ -103,6 +130,15 @@ export default async function RentalsPage({ searchParams }: PageProps<"/rentals"
           {
             header: t("rentals.status"),
             cell: (o) => {
+              if (o.deleted_at)
+                return (
+                  <form action={restoreObjectAction}>
+                    <input type="hidden" name="id" value={o.id} />
+                    <SubmitButton size="xs" variant="outline">
+                      {t("rentals.restore")}
+                    </SubmitButton>
+                  </form>
+                )
               const b = busy(o.id)
               if (o.status !== "active") return <Badge variant="outline">{t.dynamic(`rentals.statuses.${o.status}`)}</Badge>
               if (o.included) return <span className="text-muted-foreground">{t("rentals.includedShort")}</span>

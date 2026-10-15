@@ -20,6 +20,13 @@ export const PLACEHOLDERS = [
   "member_since",
   "member_until",
   "member_type",
+  "rental_object",
+  "rental_start",
+  "rental_end",
+  "rental_rent",
+  "rental_deposit",
+  "rental_notice",
+  "rental_people",
   "org",
   "today",
 ] as const

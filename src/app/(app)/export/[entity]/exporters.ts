@@ -320,6 +320,68 @@ export const EXPORTERS: Record<string, Exporter> = {
       }
     },
   },
+  rental_objects: {
+    perm: "rentals.view",
+    module: "rentals",
+    name: "objekte",
+    async load(ctx, t, sp) {
+      const rows = await all((from, to) => {
+        let q = ctx.supabase.from("rental_objects").select("id, name, kind, family, status, capacity, deposit_cents, description, parent_id").eq("org_id", ctx.org.id).is("deleted_at", null).order("name").range(from, to)
+        if (picked(sp).length) return q.in("id", picked(sp))
+        if (sp.get("family")) q = q.eq("family", sp.get("family")!)
+        return q
+      })
+      const name = (id: string | null) => rows.find((o) => o.id === id)?.name ?? ""
+      const kind = (k: string) => (t.has(`rentals.kinds.${k}`) ? t.dynamic(`rentals.kinds.${k}`) : k)
+      return {
+        headers: [t("rentals.name"), t("rentals.kind"), t("rentals.family"), t("rentals.parent"), t("rentals.status"), t("rentals.capacity"), t("rentals.deposit"), t("rentals.description")],
+        rows: rows.map((o) => [o.name, kind(o.kind), t.dynamic(`rentals.families.${o.family}`), name(o.parent_id), t.dynamic(`rentals.statuses.${o.status}`), o.capacity, o.deposit_cents != null ? o.deposit_cents / 100 : "", o.description]),
+      }
+    },
+  },
+  rentals: {
+    perm: "rentals.view",
+    module: "rentals",
+    name: "vergaben",
+    async load(ctx, t, sp) {
+      const now = new Date().toISOString()
+      const view = sp.get("view") ?? "current"
+      const rows = await all((from, to) => {
+        let q = ctx.supabase
+          .from("rentals")
+          .select("id, status, starts_at, ends_at, price_cents, unit, deposit_cents, notice_at, note, rental_objects!inner(name, kind, family), rental_contacts(role, contacts(first_name, last_name, company, email))")
+          .eq("org_id", ctx.org.id)
+          .is("deleted_at", null)
+          .order("starts_at", { ascending: false })
+          .range(from, to)
+        if (picked(sp).length) return q.in("id", picked(sp))
+        if (sp.get("family")) q = q.eq("rental_objects.family", sp.get("family")!)
+        if (view === "current") q = q.eq("status", "confirmed").lte("starts_at", now).or(`ends_at.is.null,ends_at.gt.${now}`)
+        if (view === "upcoming") q = q.eq("status", "confirmed").gt("starts_at", now)
+        if (view === "requests") q = q.eq("status", "request")
+        if (view === "ended") q = q.lte("ends_at", now)
+        return q
+      })
+      const at = (iso: string | null) => (iso ? new Date(iso).toLocaleString("sv-SE", { timeZone: "Europe/Berlin" }).slice(0, 16) : "")
+      const people = (r: (typeof rows)[number], role: string) => r.rental_contacts.filter((p) => p.role === role).map((p) => (p.contacts ? contactName(p.contacts) : "")).join(", ")
+      return {
+        headers: [t("rentals.object"), t("rentals.kind"), t("rentals.roles.main"), t("rentals.roles.member"), t("rentals.starts"), t("rentals.ends"), t("rentals.price"), t("rentals.unit"), t("rentals.deposit"), t("rentals.requestStatus"), t("rentals.note")],
+        rows: rows.map((r) => [
+          r.rental_objects.name,
+          t.has(`rentals.kinds.${r.rental_objects.kind}`) ? t.dynamic(`rentals.kinds.${r.rental_objects.kind}`) : r.rental_objects.kind,
+          people(r, "main"),
+          people(r, "member"),
+          at(r.starts_at),
+          at(r.ends_at),
+          r.price_cents != null ? r.price_cents / 100 : "",
+          r.unit ? t.dynamic(`rentals.units.${r.unit}`) : "",
+          r.deposit_cents != null ? r.deposit_cents / 100 : "",
+          t.dynamic(`rentals.statusOptionsAll.${r.status}`),
+          r.note,
+        ]),
+      }
+    },
+  },
 }
 
 async function approvedTime(ctx: Ctx, sp: URLSearchParams) {

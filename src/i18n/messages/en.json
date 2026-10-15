@@ -2452,7 +2452,8 @@
       "membership": "Membership",
       "dues": "Dues",
       "data": "My details",
-      "wiki": "Info"
+      "wiki": "Info",
+      "rental": "My rental"
     },
     "noCard": "There is no member card for you yet."
   },
@@ -4580,6 +4581,18 @@
       "ended": "Ended",
       "all": "All"
     },
-    "pickObject": "Which object?"
+    "pickObject": "Which object?",
+    "noticeMonthsText": {
+      "one": "{count} month",
+      "other": "{count} months"
+    },
+    "writeContract": "Create contract",
+    "trash": "Trash",
+    "trashHint": "Deleted items are removed for good after {days} days.",
+    "emptyTrash": "The trash is empty.",
+    "restore": "Restore",
+    "restored": "Restored.",
+    "portalNone": "Nothing running for you right now.",
+    "portalRole": "You are"
   }
 }

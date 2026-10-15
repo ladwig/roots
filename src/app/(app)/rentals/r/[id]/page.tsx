@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { Trash2Icon, XIcon } from "lucide-react"
+import { FileTextIcon, Trash2Icon, XIcon } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { ActionsMenu, MenuSubmit } from "@/components/actions-menu"
 import { Choice } from "@/components/choice"
 import { ContactPicker } from "@/components/contact-picker"
@@ -62,17 +63,22 @@ export default async function RentalPage({ params, searchParams }: PageProps<"/r
         badge={<StateBadge t={t} r={r} />}
         meta={[period(t, r), r.price_cents != null && r.unit ? `${t.money(r.price_cents)} ${t.dynamic(`rentals.units.${r.unit}`)}` : null, r.notice_at ? t("rentals.noticeReceived", { date: t.date(r.notice_at, { dateStyle: "medium" }) }) : null].filter(Boolean).join(" · ")}
         actions={
-          editable &&
-          state === "running" &&
-          !long && (
-            <form action={returnAction}>
-              <input type="hidden" name="id" value={id} />
-              <input type="hidden" name="back" value={here} />
-              <SubmitButton size="sm" variant="outline">
-                {t("rentals.giveBack")}
-              </SubmitButton>
-            </form>
-          )
+          <>
+            {ctx.can("org.files.view") && people.some((p) => p.role === "main") && (
+              <Button render={<Link href={`/files/templates?contact=${people.find((p) => p.role === "main")!.contact_id}`} />} nativeButton={false} size="sm" variant="outline">
+                <FileTextIcon /> {t("rentals.writeContract")}
+              </Button>
+            )}
+            {editable && state === "running" && !long && (
+              <form action={returnAction}>
+                <input type="hidden" name="id" value={id} />
+                <input type="hidden" name="back" value={here} />
+                <SubmitButton size="sm" variant="outline">
+                  {t("rentals.giveBack")}
+                </SubmitButton>
+              </form>
+            )}
+          </>
         }
         menu={
           editable && (
