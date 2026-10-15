@@ -38,7 +38,7 @@ export function UrlSheet({
 
   return (
     <Sheet open onOpenChange={(open) => !open && close()}>
-      <SheetContent className={wide ? "w-full overflow-y-auto sm:max-w-3xl" : "w-full overflow-y-auto sm:max-w-md"}>
+      <SheetContent onBackdropClick={close} className={wide ? "w-full overflow-y-auto sm:max-w-3xl" : "w-full overflow-y-auto sm:max-w-md"}>
         <SheetHeader className="gap-1.5">
           {/* Title row: actions + ⋯ sit left of the close button (absolute, top right). */}
           <div className="flex items-start gap-2 pr-10">

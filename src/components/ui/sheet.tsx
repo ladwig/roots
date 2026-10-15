@@ -42,15 +42,17 @@ function SheetContent({
   children,
   side = "right",
   showCloseButton = true,
+  onBackdropClick,
   ...props
 }: SheetPrimitive.Popup.Props & {
+  onBackdropClick?: () => void
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
 }) {
   const t = useT()
   return (
     <SheetPortal>
-      <SheetOverlay />
+      <SheetOverlay onClick={onBackdropClick} />
       <SheetPrimitive.Popup
         data-slot="sheet-content"
         data-side={side}
