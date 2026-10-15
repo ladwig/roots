@@ -153,7 +153,16 @@
       "areas": "Areas"
     },
     "areasIntro": "Settings that only concern one area live there as the last sidebar item “Settings” – or collected here.",
-    "areasNone": "None of your areas has settings you're allowed to change."
+    "areasNone": "None of your areas has settings you're allowed to change.",
+    "connections": "Connected apps",
+    "connectionsHint": "AI apps like Claude connected with an account of this organisation.",
+    "myConnections": "My connections",
+    "myConnectionsHint": "Apps like Claude you connected to roots.",
+    "noConnections": "No connections.",
+    "disconnect": "Disconnect",
+    "disconnected": "Disconnected.",
+    "lastUsed": "last used {date}",
+    "neverUsed": "not used yet"
   },
   "general": {
     "name": "Name",
@@ -4594,5 +4603,22 @@
     "restored": "Restored.",
     "portalNone": "Nothing running for you right now.",
     "portalRole": "You are"
+  },
+  "oauth": {
+    "title": "Connect {app} to roots",
+    "titleUnknown": "Connect an app to roots",
+    "returnsTo": "Afterwards you'll return to {host}.",
+    "invalid": "This request has expired or is invalid. Start connecting in the app again.",
+    "noOrg": "You're not in any organisation yet – create one first.",
+    "failed": "That didn't work. Please try again.",
+    "intro": "{app} can then read and work in roots – with your rights in the chosen organisation.",
+    "org": "Organisation",
+    "access": "Access",
+    "accessMe": "Like me",
+    "accessRead": "Read only",
+    "accessHint": "“Like me”: everything you may do yourself. “Read only”: view, but change or send nothing.",
+    "approve": "Connect",
+    "deny": "Deny",
+    "revokeHint": "You can disconnect any time under Settings → Profile."
   }
 }

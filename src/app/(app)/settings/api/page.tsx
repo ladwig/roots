@@ -9,6 +9,7 @@ import { param } from "@/lib/url"
 import { apiCorePermissions, modules } from "@/modules/registry"
 import { revokeApiKey } from "./actions"
 import { NewKey } from "./new-key"
+import { Connections } from "../connections"
 
 export default async function ApiSettings({ searchParams }: PageProps<"/settings/api">) {
   const ctx = await requirePerm("org.integrations.manage")
@@ -78,6 +79,7 @@ export default async function ApiSettings({ searchParams }: PageProps<"/settings
           },
         ]}
       />
+      <Connections ctx={ctx} scope="org" back="/settings/api" />
     </div>
   )
 }

@@ -991,6 +991,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"mcp_connections": {
+                  Row: {
+                    "access": string,"client_id": string,"client_name": string,"created_at": string,"created_by": string | null,"id": string,"last_used_at": string | null,"org_id": string,"updated_at": string,"updated_by": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "access"?: string,"client_id": string,"client_name"?: string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"last_used_at"?: string | null,"org_id": string,"updated_at"?: string,"updated_by"?: string | null,"user_id": string
+                  }
+                  Update: {
+                    "access"?: string,"client_id"?: string,"client_name"?: string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"last_used_at"?: string | null,"org_id"?: string,"updated_at"?: string,"updated_by"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "mcp_connections_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"member_dues": {
                   Row: {
                     "amount_cents": number,"created_at": string,"created_by": string | null,"description": string,"due_on": string,"id": string,"kind": string,"membership_id": string,"org_id": string,"paid_on": string | null,"period_start": string | null,"reminded_at": string | null,"reminders": number,"run_id": string | null,"status": string,"updated_at": string,"updated_by": string | null

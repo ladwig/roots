@@ -153,7 +153,16 @@
       "areas": "Bereiche"
     },
     "areasIntro": "Einstellungen, die nur einen Bereich betreffen, findest du dort als letzten Punkt „Einstellungen“ in der Seitenleiste – oder hier gesammelt.",
-    "areasNone": "Für deine Bereiche gibt es keine eigenen Einstellungen, die du ändern darfst."
+    "areasNone": "Für deine Bereiche gibt es keine eigenen Einstellungen, die du ändern darfst.",
+    "connections": "Verbundene Apps",
+    "connectionsHint": "KI-Apps wie Claude, die mit einem Konto dieser Organisation verbunden sind.",
+    "myConnections": "Meine Verbindungen",
+    "myConnectionsHint": "Apps wie Claude, die du mit roots verbunden hast.",
+    "noConnections": "Keine Verbindungen.",
+    "disconnect": "Trennen",
+    "disconnected": "Verbindung getrennt.",
+    "lastUsed": "zuletzt genutzt {date}",
+    "neverUsed": "noch nicht genutzt"
   },
   "general": {
     "name": "Name",
@@ -4594,5 +4603,22 @@
     "restored": "Wiederhergestellt.",
     "portalNone": "Gerade läuft bei dir nichts.",
     "portalRole": "Du bist"
+  },
+  "oauth": {
+    "title": "{app} mit roots verbinden",
+    "titleUnknown": "App mit roots verbinden",
+    "returnsTo": "Danach geht es zurück zu {host}.",
+    "invalid": "Diese Anfrage ist abgelaufen oder ungültig. Starte die Verbindung in der App noch einmal.",
+    "noOrg": "Du bist in keiner Organisation – lege zuerst eine an.",
+    "failed": "Das hat nicht geklappt. Bitte versuche es noch einmal.",
+    "intro": "{app} kann dann in roots lesen und arbeiten – mit deinen Rechten in der gewählten Organisation.",
+    "org": "Organisation",
+    "access": "Zugriff",
+    "accessMe": "Wie ich",
+    "accessRead": "Nur lesen",
+    "accessHint": "„Wie ich“: alles, was du selbst darfst. „Nur lesen“: ansehen, aber nichts ändern oder versenden.",
+    "approve": "Verbinden",
+    "deny": "Ablehnen",
+    "revokeHint": "Du kannst die Verbindung jederzeit unter Einstellungen → Profil trennen."
   }
 }

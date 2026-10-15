@@ -10,7 +10,9 @@
 // Tables are read with RLS bypassed: handlers MUST still filter every query by `orgId`.
 import { createHash } from "node:crypto"
 import { z } from "zod"
+import { createClient as createPlainClient } from "@supabase/supabase-js"
 import { createAdminClient } from "@/lib/supabase/admin"
+import type { Database } from "@/lib/supabase/types"
 
 export type ApiCtx<Q, B> = {
   orgId: string
@@ -127,7 +129,9 @@ export async function readInput(e: { query?: z.ZodType; body?: z.ZodType }, requ
   return parseInput(e, { query: Object.fromEntries(new URL(request.url).searchParams), body: e.body ? await request.json().catch(() => undefined) : undefined })
 }
 
-export type Auth = { key_id: string; org_id: string; permissions: string[]; modules: string[]; hash: string }
+// hash = API key; token = a person's own access token (OAuth connection, see src/mcp/oauth.ts): then the handler's
+// db runs with that session + x-org-id, so RLS applies exactly as in the App.
+export type Auth = { key_id: string; org_id: string; permissions: string[]; modules: string[]; hash?: string; token?: string }
 
 /** Bearer API key → the live key's org, permissions (∩ its creator's) and modules; 401 otherwise. */
 export async function authenticate(request: Request): Promise<Auth> {
@@ -157,7 +161,12 @@ export const mayCall = (auth: Pick<Auth, "permissions" | "modules">, e: Pick<End
 /** Runs the handler with the key-scoped DB client (path ids checked; input already validated). */
 export async function invoke(e: Endpoint, auth: Auth, input: { params: Record<string, string>; query: unknown; body: unknown }, request: Request) {
   for (const [k, v] of Object.entries(input.params)) if (k.endsWith("id") && !uuid.safeParse(v).success) throw notFound()
-  const db = createAdminClient({ "x-org-id": auth.org_id, "x-api-key-hash": auth.hash })
+  const db = auth.token
+    ? createPlainClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
+        global: { headers: { authorization: `Bearer ${auth.token}`, "x-org-id": auth.org_id } },
+        auth: { persistSession: false, autoRefreshToken: false },
+      })
+    : createAdminClient({ "x-org-id": auth.org_id, "x-api-key-hash": auth.hash ?? "" })
   return e.handler({ orgId: auth.org_id, keyId: auth.key_id, request, db, params: input.params, query: input.query, body: input.body })
 }
 

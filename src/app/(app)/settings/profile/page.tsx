@@ -3,6 +3,7 @@ import { FormCard } from "@/components/page"
 import { Badge } from "@/components/ui/badge"
 import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
+import { Connections } from "../connections"
 
 export default async function ProfileSettings({ searchParams }: PageProps<"/settings/profile">) {
   const ctx = await getContext()
@@ -27,6 +28,7 @@ export default async function ProfileSettings({ searchParams }: PageProps<"/sett
         </ul>
         <p className="text-xs text-muted-foreground">{t("account.orgsHint")}</p>
       </FormCard>
+      <Connections ctx={ctx} scope="mine" back="/settings/profile" />
     </div>
   )
 }

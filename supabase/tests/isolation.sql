@@ -905,6 +905,27 @@ begin
     reset role;
   end;
 
+  -- MCP connections: a person adds their own (only for orgs they belong to); B doesn't see A's
+  declare v_conn uuid;
+  begin
+    perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    insert into public.mcp_connections (org_id, user_id, client_id, client_name) values (org_a, a, 'iso-client', 'Claude') returning id into v_conn;
+    begin
+      insert into public.mcp_connections (org_id, user_id, client_id) values (org_a, b, 'iso-client-2');
+      assert false, 'a connection was added for someone else';
+    exception when insufficient_privilege then null; end;
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.mcp_connections where org_id = org_a;  assert n = 0, 'B sees MCP connections of A';
+    begin
+      insert into public.mcp_connections (org_id, user_id, client_id) values (org_a, b, 'iso-client-3');
+      assert false, 'B connected to an org B is not in';
+    exception when insufficient_privilege then null; end;
+    reset role;
+  end;
+
   -- Automations: an event of the trigger type starts one run per active workflow; B sees nothing
   insert into public.org_modules (org_id, module_key) values (org_a, 'automations') on conflict do nothing;
   declare v_wf uuid;
