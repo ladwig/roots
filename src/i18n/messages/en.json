@@ -1893,8 +1893,15 @@
   "membership": {
     "nav": "Memberships",
     "title": "Memberships",
+    "newType": "New membership type",
+    "typesMeta": "{active} active · {total} total",
+    "typeMembers": "Members",
+    "noticeShort": "Notice",
+    "feeNone": "no fee",
+    "noticeValue": "{n} months",
+    "noticeNone": "none",
     "tabs": {
-      "members": "Memberships",
+      "members": "Members",
       "dues": "Dues",
       "setup": "Setup"
     },

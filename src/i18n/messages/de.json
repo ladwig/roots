@@ -1893,8 +1893,15 @@
   "membership": {
     "nav": "Mitgliedschaften",
     "title": "Mitgliedschaften",
+    "newType": "Neue Mitgliedsart",
+    "typesMeta": "{active} aktiv · {total} gesamt",
+    "typeMembers": "Mitglieder",
+    "noticeShort": "Frist",
+    "feeNone": "beitragsfrei",
+    "noticeValue": "{n} Monate",
+    "noticeNone": "keine",
     "tabs": {
-      "members": "Mitgliedschaften",
+      "members": "Mitglieder",
       "dues": "Beiträge",
       "setup": "Einrichtung"
     },

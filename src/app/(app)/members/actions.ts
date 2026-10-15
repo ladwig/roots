@@ -16,6 +16,7 @@ import { bicValid, ibanValid, moneyCents } from "@/lib/inputs"
 const PATH = "/members"
 const DUES = "/members/dues"
 const SETUP = "/members/settings"
+const TYPES = "/members/types"
 const DATE = /^\d{4}-\d{2}-\d{2}$/
 const UUID = /^[0-9a-f-]{36}$/
 
@@ -137,10 +138,10 @@ export async function restoreMembership(fd: FormData) {
 // ---------- types + settings ----------
 
 export async function saveType(fd: FormData) {
-  const { ctx, t } = await manager(SETUP)
+  const { ctx, t } = await manager(TYPES)
   const id = str(fd, "id", 36)
   const name = str(fd, "name", 100)
-  if (!name) back(SETUP, { error: t("membership.nameRequired") })
+  if (!name) back(TYPES, { error: t("membership.nameRequired") })
   const interval = INTERVALS.find((i) => i === fd.get("interval")) ?? "year"
   const row = {
     name,
@@ -155,16 +156,16 @@ export async function saveType(fd: FormData) {
   const { error } = id
     ? await ctx.supabase.from("membership_types").update(row).eq("id", id).eq("org_id", ctx.org.id)
     : await ctx.supabase.from("membership_types").insert({ ...row, org_id: ctx.org.id })
-  if (error) back(SETUP, { error: dbError(t, error) })
-  back(SETUP, { ok: t("membership.typeSaved") })
+  if (error) back(TYPES, { error: dbError(t, error) })
+  back(TYPES, { ok: t("membership.typeSaved") })
 }
 
 export async function deleteType(fd: FormData) {
-  const { ctx, t } = await manager(SETUP)
+  const { ctx, t } = await manager(TYPES)
   const { error } = await ctx.supabase.from("membership_types").delete().eq("id", str(fd, "id", 36) ?? "").eq("org_id", ctx.org.id)
   // Still used by memberships → foreign key violation: deactivate instead.
-  if (error) back(SETUP, { error: error.code === "23503" ? t("membership.typeInUse") : dbError(t, error) })
-  back(SETUP, { ok: t("membership.typeDeleted") })
+  if (error) back(TYPES, { error: error.code === "23503" ? t("membership.typeInUse") : dbError(t, error) })
+  back(TYPES, { ok: t("membership.typeDeleted") })
 }
 
 export async function saveSettings(fd: FormData) {

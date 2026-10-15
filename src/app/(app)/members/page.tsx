@@ -78,7 +78,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
     <>
       <PageHeader
         area="members"
-        title={status === "trash" ? `${t("membership.title")} · ${t("membership.filters.trash")}` : t("membership.title")}
+        title={status === "trash" ? `${t("membership.tabs.members")} · ${t("membership.filters.trash")}` : t("membership.tabs.members")}
         meta={t("membership.activeCount", { count: activeCount ?? 0 })}
         settings={canManage && { href: "/members/settings", label: t("common.settings") }}
         menu={
@@ -106,8 +106,8 @@ export default async function MembersPage({ searchParams }: PageProps<"/members"
         <p className="rounded-lg border bg-muted px-3 py-2 text-sm">
           {t("membership.noTypes")}{" "}
           {canManage && (
-            <Link href="/members/settings" className="underline">
-              {t("membership.tabs.setup")}
+            <Link href="/members/types" className="underline">
+              {t("membership.types")}
             </Link>
           )}
         </p>
