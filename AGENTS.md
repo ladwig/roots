@@ -80,7 +80,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Use semantic classes only: `bg-background`, `text-muted-foreground`, `border-border`, `bg-primary`… **No raw colors** (`bg-blue-500`, hex) in components.
 - Radius via `rounded-md/lg/xl` (derived from `--radius`). Spacing on Tailwind scale.
 - Compose from `src/components/ui/*`; app-level components go in `src/components/`. Use `cn()` from `@/lib/utils` for class merging.
-- Icons: `lucide-react` only.
+- Icons: `lucide-react` only. Exception: logos of third-party apps (Claude, Cursor, VS Code …) as SVGs in `public/brands/`.
 - Accessible basics: labels on inputs, focus rings intact, real `<button>`/`<a>`.
 
 ### Page anatomy (same on every screen, see /style/app)
