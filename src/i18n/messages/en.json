@@ -162,7 +162,13 @@
     "disconnect": "Disconnect",
     "disconnected": "Disconnected.",
     "lastUsed": "last used {date}",
-    "neverUsed": "not used yet"
+    "neverUsed": "not used yet",
+    "connectAi": "Connect AI",
+    "connectAiHint": "Connect Claude or other AI apps to roots – they can then read and work with your rights.",
+    "openClaude": "Connect in Claude",
+    "installIn": "Install in {app}",
+    "claudeSteps": "Claude (claude.ai and Desktop): Settings → Connectors → “Add custom connector” → paste the address above → sign in, pick organisation and access.",
+    "claudeCodeHint": "Claude Code in the terminal: copy and run the command, you sign in on first use."
   },
   "general": {
     "name": "Name",

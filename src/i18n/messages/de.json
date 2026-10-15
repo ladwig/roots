@@ -162,7 +162,13 @@
     "disconnect": "Trennen",
     "disconnected": "Verbindung getrennt.",
     "lastUsed": "zuletzt genutzt {date}",
-    "neverUsed": "noch nicht genutzt"
+    "neverUsed": "noch nicht genutzt",
+    "connectAi": "Mit KI verbinden",
+    "connectAiHint": "Verbinde Claude oder andere KI-Apps mit roots – dann können sie mit deinen Rechten lesen und arbeiten.",
+    "openClaude": "In Claude verbinden",
+    "installIn": "In {app} installieren",
+    "claudeSteps": "Claude (claude.ai und Desktop): Einstellungen → Connectors → „Add custom connector“ → Adresse oben einfügen → anmelden, Organisation und Zugriff wählen.",
+    "claudeCodeHint": "Claude Code im Terminal: Befehl kopieren und ausführen, beim ersten Aufruf meldest du dich an."
   },
   "general": {
     "name": "Name",
