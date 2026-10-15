@@ -9,6 +9,7 @@ import { SiteShell } from "@/app/site/_components/site-shell"
 import { SiteSubmit } from "@/app/site/_components/site-submit"
 import { PAINTINGS } from "@/app/site/paintings"
 import { sendMagicLink, signIn, signUp } from "./actions"
+import { PasskeySignIn } from "./passkey-sign-in"
 import { titled } from "@/lib/title"
 
 export const generateMetadata = titled("auth.signIn")
@@ -38,7 +39,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
               <label htmlFor="email" className="label soft">
                 {t("auth.email")}
               </label>
-              <input id="email" name="email" type="email" autoComplete="email" required className="field" />
+              <input id="email" name="email" type="email" autoComplete="username webauthn" required className="field" />
             </div>
             <div className="grid gap-2">
               <div className="flex items-baseline justify-between gap-2">
@@ -61,6 +62,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
               </SiteSubmit>
             </div>
           </form>
+          <PasskeySignIn next={next} />
         </div>
         <LocaleSwitcher className="justify-self-start" />
       </main>

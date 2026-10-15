@@ -59,7 +59,9 @@
     "forgotSubtitle": "Wir schicken dir einen Link, mit dem du ein neues Passwort setzt.",
     "sendReset": "Link senden",
     "resetSent": "Falls es ein Konto für {email} gibt, haben wir einen Link geschickt.",
-    "backToLogin": "Zurück zur Anmeldung"
+    "backToLogin": "Zurück zur Anmeldung",
+    "passkeySignIn": "Mit Passkey anmelden",
+    "passkeyFailed": "Anmelden mit Passkey hat nicht geklappt. Ist für dieses Konto ein Passkey eingerichtet?"
   },
   "onboarding": {
     "title": "Organisation anlegen",
@@ -4626,5 +4628,20 @@
     "approve": "Verbinden",
     "deny": "Ablehnen",
     "revokeHint": "Du kannst die Verbindung jederzeit unter Einstellungen → Profil trennen."
+  },
+  "passkeys": {
+    "title": "Passkeys",
+    "hint": "Anmelden mit Face ID, Touch ID, Windows Hello oder einem Sicherheitsschlüssel – ohne Passwort.",
+    "none": "Noch kein Passkey.",
+    "add": "Passkey hinzufügen",
+    "waiting": "Warte auf den Browser…",
+    "addedOk": "Passkey hinzugefügt.",
+    "failed": "Der Passkey konnte nicht angelegt werden.",
+    "remove": "Passkey entfernen",
+    "removed": "Passkey entfernt.",
+    "unnamed": "Passkey",
+    "added": "hinzugefügt am {date}",
+    "used": "zuletzt genutzt {date}",
+    "unsupported": "Dieser Browser unterstützt keine Passkeys."
   }
 }

@@ -1,5 +1,6 @@
 import { ProfileForms } from "@/app/account/profile-forms"
 import { FormCard } from "@/components/page"
+import { Passkeys } from "@/components/passkeys"
 import { Badge } from "@/components/ui/badge"
 import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
@@ -28,6 +29,9 @@ export default async function ProfileSettings({ searchParams }: PageProps<"/sett
           ))}
         </ul>
         <p className="text-xs text-muted-foreground">{t("account.orgsHint")}</p>
+      </FormCard>
+      <FormCard id="passkeys" title={t("passkeys.title")} description={t("passkeys.hint")}>
+        <Passkeys />
       </FormCard>
       <ConnectAi />
       <Connections ctx={ctx} scope="mine" back="/settings/profile" />

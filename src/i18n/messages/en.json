@@ -59,7 +59,9 @@
     "forgotSubtitle": "We'll send you a link to set a new password.",
     "sendReset": "Send link",
     "resetSent": "If there is an account for {email}, we sent a link.",
-    "backToLogin": "Back to sign in"
+    "backToLogin": "Back to sign in",
+    "passkeySignIn": "Sign in with a passkey",
+    "passkeyFailed": "Signing in with a passkey didn’t work. Is a passkey set up for this account?"
   },
   "onboarding": {
     "title": "Create an organisation",
@@ -4626,5 +4628,20 @@
     "approve": "Connect",
     "deny": "Deny",
     "revokeHint": "You can disconnect any time under Settings → Profile."
+  },
+  "passkeys": {
+    "title": "Passkeys",
+    "hint": "Sign in with Face ID, Touch ID, Windows Hello or a security key – no password.",
+    "none": "No passkey yet.",
+    "add": "Add passkey",
+    "waiting": "Waiting for the browser…",
+    "addedOk": "Passkey added.",
+    "failed": "The passkey couldn’t be created.",
+    "remove": "Remove passkey",
+    "removed": "Passkey removed.",
+    "unnamed": "Passkey",
+    "added": "added on {date}",
+    "used": "last used {date}",
+    "unsupported": "This browser doesn’t support passkeys."
   }
 }
