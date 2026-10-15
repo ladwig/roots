@@ -109,18 +109,56 @@ export async function uploadedImage(request: Request, maxBytes: number) {
   return new File([bytes], "upload", { type })
 }
 
-/** Query + JSON body, validated against the endpoint's schemas (400 with field errors otherwise). */
-export async function readInput(e: { query?: z.ZodType; body?: z.ZodType }, request: Request) {
-  const query = e.query ? e.query.safeParse(Object.fromEntries(new URL(request.url).searchParams)) : { success: true as const, data: {} }
+/** Validates already-read input (query values, JSON body) against the endpoint's schemas (400 with field errors). */
+export function parseInput(e: { query?: z.ZodType; body?: z.ZodType }, raw: { query: Record<string, unknown>; body: unknown }) {
+  const query = e.query ? e.query.safeParse(raw.query) : { success: true as const, data: {} }
   if (!query.success) throw new ApiError(400, "invalid_query", "Invalid query parameters.", z.flattenError(query.error).fieldErrors)
   let body: unknown = {}
   if (e.body) {
-    const raw = await request.json().catch(() => undefined)
-    const parsed = e.body.safeParse(raw)
+    const parsed = e.body.safeParse(raw.body)
     if (!parsed.success) throw new ApiError(400, "invalid_body", "Invalid request body.", z.flattenError(parsed.error).fieldErrors)
     body = parsed.data
   }
   return { query: query.data as never, body: body as never }
+}
+
+/** Query + JSON body of an HTTP request, validated (see parseInput). */
+export async function readInput(e: { query?: z.ZodType; body?: z.ZodType }, request: Request) {
+  return parseInput(e, { query: Object.fromEntries(new URL(request.url).searchParams), body: e.body ? await request.json().catch(() => undefined) : undefined })
+}
+
+export type Auth = { key_id: string; org_id: string; permissions: string[]; modules: string[]; hash: string }
+
+/** Bearer API key → the live key's org, permissions (∩ its creator's) and modules; 401 otherwise. */
+export async function authenticate(request: Request): Promise<Auth> {
+  const key = request.headers.get("authorization")?.match(/^Bearer\s+(roots_[A-Za-z0-9]+)$/)?.[1]
+  if (!key) throw new ApiError(401, "unauthorized", "Send an API key: Authorization: Bearer roots_…")
+  const hash = hashKey(key)
+  const { data: auth } = await createAdminClient().rpc("api_key_auth", { p_hash: hash }).maybeSingle()
+  if (!auth) throw new ApiError(401, "unauthorized", "Unknown, revoked or expired API key.")
+  return { ...auth, hash }
+}
+
+/** May this key call the endpoint (permission + module on)? Throws 403 with the reason. */
+export function allowed(auth: Pick<Auth, "permissions" | "modules">, e: Pick<Endpoint, "permission">) {
+  if (!hasPerm(auth.permissions, e.permission)) throw new ApiError(403, "forbidden", `This key lacks the permission "${e.permission}".`)
+  const mod = moduleOf(e.permission)
+  if (mod !== "org" && !auth.modules.includes(mod)) throw new ApiError(403, "module_disabled", `The "${mod}" module is not enabled for this organisation.`)
+}
+export const mayCall = (auth: Pick<Auth, "permissions" | "modules">, e: Pick<Endpoint, "permission">) => {
+  try {
+    allowed(auth, e)
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** Runs the handler with the key-scoped DB client (path ids checked; input already validated). */
+export async function invoke(e: Endpoint, auth: Auth, input: { params: Record<string, string>; query: unknown; body: unknown }, request: Request) {
+  for (const [k, v] of Object.entries(input.params)) if (k.endsWith("id") && !uuid.safeParse(v).success) throw notFound()
+  const db = createAdminClient({ "x-org-id": auth.org_id, "x-api-key-hash": auth.hash })
+  return e.handler({ orgId: auth.org_id, keyId: auth.key_id, request, db, params: input.params, query: input.query, body: input.body })
 }
 
 export async function dispatch(endpoints: Endpoint[], request: Request, path: string) {
@@ -129,23 +167,11 @@ export async function dispatch(endpoints: Endpoint[], request: Request, path: st
     if (!candidates.length) throw notFound()
     const hit = candidates.find((c) => c.e.method === request.method)
     if (!hit) throw new ApiError(405, "method_not_allowed", `Use ${candidates.map((c) => c.e.method).join(", ")}.`)
-    const { e } = hit
-    const params = hit.params!
-
-    const key = request.headers.get("authorization")?.match(/^Bearer\s+(roots_[A-Za-z0-9]+)$/)?.[1]
-    if (!key) throw new ApiError(401, "unauthorized", "Send an API key: Authorization: Bearer roots_…")
-    const hash = hashKey(key)
-    const { data: auth } = await createAdminClient().rpc("api_key_auth", { p_hash: hash }).maybeSingle()
-    if (!auth) throw new ApiError(401, "unauthorized", "Unknown, revoked or expired API key.")
-    if (!hasPerm(auth.permissions, e.permission)) throw new ApiError(403, "forbidden", `This key lacks the permission "${e.permission}".`)
-    const mod = moduleOf(e.permission)
-    if (mod !== "org" && !auth.modules.includes(mod)) throw new ApiError(403, "module_disabled", `The "${mod}" module is not enabled for this organisation.`)
-
-    for (const [k, v] of Object.entries(params)) if (k.endsWith("id") && !uuid.safeParse(v).success) throw notFound()
-    const { query, body } = await readInput(e, request)
-    const db = createAdminClient({ "x-org-id": auth.org_id, "x-api-key-hash": hash })
-    const result = await e.handler({ orgId: auth.org_id, keyId: auth.key_id, request, db, params, query, body })
-    return json(e.status ?? 200, result)
+    const auth = await authenticate(request)
+    allowed(auth, hit.e)
+    const { query, body } = await readInput(hit.e, request)
+    const result = await invoke(hit.e, auth, { params: hit.params!, query, body }, request)
+    return json(hit.e.status ?? 200, result)
   } catch (err) {
     if (err instanceof ApiError) return error(err)
     console.error("api", err)
