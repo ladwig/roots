@@ -264,7 +264,7 @@ export const def = (k: ObjectKey): ObjectDef => OBJECTS[k]
 // in OBJECTS – objects.test.mjs checks it, so a new feature's tables show up in workflows.
 export const NOT_OBJECTS = [
   "api_keys", "cash_closings", "custom_fields", "document_items", "email_automations", "email_campaigns", "employee_private", "event_subscriptions",
-  "invites", "letter_templates", "locations", "member_settings", "number_ranges", "org_billing", "org_integrations", "org_members",
+  "invites", "letter_templates", "locations", "mcp_connections", "member_settings", "number_ranges", "org_billing", "org_integrations", "org_members",
   "org_modules", "orgs", "platform_admins", "positions", "rental_contacts", "rental_rates", "roles", "sepa_runs", "shift_series", "site_pages", "sites", "task_assignees", "ticket_codes",
   "ticket_tiers", "workflow_runs", "workflows",
 ]
