@@ -981,6 +981,14 @@ begin
   assert not public.has_perm(org_a, 'crm.manage'), 'key passes only its own permissions';
   assert not public.is_owner(org_a), 'keys never get owner rights';
   assert not public.has_perm(org_b, 'events.manage'), 'key passes nothing in another org';
+  -- changes made with the key are attributed to its creator, and the log says it came via the key
+  declare v_loc uuid; v_by uuid; v_via text;
+  begin
+    insert into public.locations (org_id, name) values (org_a, 'Via API') returning id, created_by into v_loc, v_by;
+    assert v_by = a, 'API write not attributed to the key creator';
+    select via into v_via from public.audit_log where table_name = 'locations' and row_id = v_loc::text order by at desc limit 1;
+    assert v_via like 'api_key:%', 'audit log does not say the change came via an API key';
+  end;
   perform set_config('request.headers', json_build_object('x-org-id', org_b, 'x-api-key-hash', repeat('b', 64))::text, true);
   assert not public.has_perm(org_b, 'events.manage'), 'key with another org header passes nothing';
   perform set_config('request.headers', json_build_object('x-org-id', org_a, 'x-api-key-hash', repeat('d', 64))::text, true);

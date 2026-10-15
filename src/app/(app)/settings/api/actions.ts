@@ -46,3 +46,13 @@ export async function revokeApiKey(fd: FormData) {
   if (error || !count) back(PATH, { error: error ? dbError(t, error) : t("errors.not_allowed") })
   back(PATH, { ok: t("api.revoked") })
 }
+
+/** Org switch: may members connect AI apps (Claude via MCP) to this org? Off cuts existing connections at once. */
+export async function setAllowAi(fd: FormData) {
+  const ctx = await requirePerm("org.integrations.manage")
+  const t = await getT()
+  const on = fd.get("allow_ai") === "on"
+  const { error } = await ctx.supabase.from("orgs").update({ allow_ai: on }).eq("id", ctx.org.id)
+  revalidatePath(PATH)
+  back(PATH, error ? { error: dbError(t, error) } : { ok: on ? t("settings.aiOn") : t("settings.aiOff") })
+}

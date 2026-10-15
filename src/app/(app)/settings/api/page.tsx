@@ -7,7 +7,8 @@ import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param } from "@/lib/url"
 import { apiCorePermissions, modules } from "@/modules/registry"
-import { revokeApiKey } from "./actions"
+import { revokeApiKey, setAllowAi } from "./actions"
+import { FormCard } from "@/components/page"
 import { NewKey } from "./new-key"
 import { Connections } from "../connections"
 
@@ -15,6 +16,7 @@ export default async function ApiSettings({ searchParams }: PageProps<"/settings
   const ctx = await requirePerm("org.integrations.manage")
   const t = await getT()
   const sp = await searchParams
+  const { data: org } = await ctx.supabase.from("orgs").select("allow_ai").eq("id", ctx.org.id).maybeSingle()
   const { data: keys } = await ctx.supabase
     .from("api_keys")
     .select("id, name, prefix, permissions, last_used_at, revoked_at, expires_at, created_at")
@@ -79,6 +81,17 @@ export default async function ApiSettings({ searchParams }: PageProps<"/settings
           },
         ]}
       />
+      <FormCard id="ai" title={t("settings.allowAi")} description={t("settings.allowAiHint")}>
+        <form action={setAllowAi} className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="allow_ai" defaultChecked={org?.allow_ai ?? true} className="size-4 accent-primary" />
+            {t("settings.allowAiLabel")}
+          </label>
+          <SubmitButton size="sm" variant="outline">
+            {t("common.save")}
+          </SubmitButton>
+        </form>
+      </FormCard>
       <Connections ctx={ctx} scope="org" back="/settings/api" />
     </div>
   )

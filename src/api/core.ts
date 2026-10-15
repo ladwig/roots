@@ -158,6 +158,19 @@ export const mayCall = (auth: Pick<Auth, "permissions" | "modules">, e: Pick<End
   }
 }
 
+// ponytail: generous fixed limits per key / AI connection and minute; per-plan limits if someone needs more.
+const LIMIT_ALL = 600
+const LIMIT_WRITES = 120
+/** Counts the call (per key or connection and minute); 429 above the limit. Writes have their own, lower one. */
+export async function rateLimit(auth: Pick<Auth, "key_id">, write: boolean) {
+  const db = createAdminClient()
+  const [{ data: ok }, w] = await Promise.all([
+    db.rpc("rate_hit", { p_key: `all:${auth.key_id}`, p_limit: LIMIT_ALL }),
+    write ? db.rpc("rate_hit", { p_key: `write:${auth.key_id}`, p_limit: LIMIT_WRITES }) : Promise.resolve({ data: true }),
+  ])
+  if (ok === false || w.data === false) throw new ApiError(429, "rate_limited", `Too many requests: max. ${LIMIT_ALL} calls and ${LIMIT_WRITES} changes per minute. Wait a moment.`)
+}
+
 /** Runs the handler with the key-scoped DB client (path ids checked; input already validated). */
 export async function invoke(e: Endpoint, auth: Auth, input: { params: Record<string, string>; query: unknown; body: unknown }, request: Request) {
   for (const [k, v] of Object.entries(input.params)) if (k.endsWith("id") && !uuid.safeParse(v).success) throw notFound()
@@ -178,6 +191,7 @@ export async function dispatch(endpoints: Endpoint[], request: Request, path: st
     if (!hit) throw new ApiError(405, "method_not_allowed", `Use ${candidates.map((c) => c.e.method).join(", ")}.`)
     const auth = await authenticate(request)
     allowed(auth, hit.e)
+    await rateLimit(auth, hit.e.method !== "GET")
     const { query, body } = await readInput(hit.e, request)
     const result = await invoke(hit.e, auth, { params: hit.params!, query, body }, request)
     return json(hit.e.status ?? 200, result)

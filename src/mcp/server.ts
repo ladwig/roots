@@ -7,7 +7,7 @@ import { createHmac, timingSafeEqual } from "node:crypto"
 import { z } from "zod"
 import { Server } from "@modelcontextprotocol/sdk/server/index.js"
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js"
-import { ApiError, invoke, mayCall, parseInput, type Auth, type Endpoint } from "@/api/core"
+import { ApiError, invoke, mayCall, parseInput, rateLimit, type Auth, type Endpoint } from "@/api/core"
 import { endpoints } from "@/api/v1"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { APP_URL } from "@/lib/url"
@@ -110,6 +110,7 @@ export function mcpServer(auth: Auth, request: Request) {
       const target = preview && mayCall(auth, preview.e) ? await invoke(preview.e, auth, { params: input.params, query: {}, body: undefined }, request).catch(() => null) : null
       return { confirm: true, operation: op.name, summary: op.e.summary, method: op.e.method, path: op.e.path, arguments: args, target, confirm_token: sign(confirmMessage(auth.key_id, op.name, args, confirmWindow(Date.now()))), note: "Nothing happened yet. Show this to the user; repeat the same call with confirm_token to execute." }
     }
+    await rateLimit(auth, op.e.method !== "GET" && risk !== "read")
     const result = await invoke(op.e, auth, { params: input.params, query: parsed.query, body: parsed.body }, request)
     const link = op.e.method !== "GET" || op.params.length ? appPath(op.e.path, result, input.params) : null
     return link && result && typeof result === "object" ? { ...(result as object), app_url: `${APP_URL}${link}` } : result

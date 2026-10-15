@@ -20,6 +20,8 @@ export async function decide(fd: FormData) {
   if ("authorization_id" in details) {
     const org = String(fd.get("org_id") ?? "")
     const access = fd.get("access") === "read" ? "read" : "me"
+    const { data: target } = await supabase.from("orgs").select("allow_ai").eq("id", org).maybeSingle()
+    if (!target?.allow_ai) redirect(`${back}&error=1`)
     // RLS: only for oneself and only in orgs one belongs to.
     const { error: saveError } = await supabase
       .from("mcp_connections")

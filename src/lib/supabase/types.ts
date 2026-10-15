@@ -51,6 +51,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"api_rate": {
+                  Row: {
+                    "key": string,"minute": string,"n": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "key": string,"minute": string,"n"?: number
+                  }
+                  Update: {
+                    "key"?: string,"minute"?: string,"n"?: number
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"artists": {
                   Row: {
                     "contact_id": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"id": string,"links": (string)[],"name": string,"notes": string | null,"org_id": string,"updated_at": string,"updated_by": string | null
@@ -79,14 +93,14 @@ isOneToOne: false
                   ]
                 },"audit_log": {
                   Row: {
-                    "action": string,"actor_id": string | null,"at": string,"id": number,"new": Json | null,"old": Json | null,"org_id": string | null,"row_id": string,"table_name": string
+                    "action": string,"actor_id": string | null,"at": string,"id": number,"new": Json | null,"old": Json | null,"org_id": string | null,"row_id": string,"table_name": string,"via": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "action": string,"actor_id"?: string | null,"at"?: string,"id"?: never,"new"?: Json | null,"old"?: Json | null,"org_id"?: string | null,"row_id": string,"table_name": string
+                    "action": string,"actor_id"?: string | null,"at"?: string,"id"?: never,"new"?: Json | null,"old"?: Json | null,"org_id"?: string | null,"row_id": string,"table_name": string,"via"?: string | null
                   }
                   Update: {
-                    "action"?: string,"actor_id"?: string | null,"at"?: string,"id"?: never,"new"?: Json | null,"old"?: Json | null,"org_id"?: string | null,"row_id"?: string,"table_name"?: string
+                    "action"?: string,"actor_id"?: string | null,"at"?: string,"id"?: never,"new"?: Json | null,"old"?: Json | null,"org_id"?: string | null,"row_id"?: string,"table_name"?: string,"via"?: string | null
                   }
                   Relationships: [
                     
@@ -1263,14 +1277,14 @@ isOneToOne: false
                   ]
                 },"orgs": {
                   Row: {
-                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"id": string,"logo_path": string | null,"name": string,"settings": NonNullable<Json>,"slug": string,"updated_at": string,"updated_by": string | null
+                    "allow_ai": boolean,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"id": string,"logo_path": string | null,"name": string,"settings": NonNullable<Json>,"slug": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"logo_path"?: string | null,"name": string,"settings"?: NonNullable<Json>,"slug": string,"updated_at"?: string,"updated_by"?: string | null
+                    "allow_ai"?: boolean,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"logo_path"?: string | null,"name": string,"settings"?: NonNullable<Json>,"slug": string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"logo_path"?: string | null,"name"?: string,"settings"?: NonNullable<Json>,"slug"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "allow_ai"?: boolean,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"logo_path"?: string | null,"name"?: string,"settings"?: NonNullable<Json>,"slug"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     
@@ -2135,6 +2149,12 @@ isOneToOne: false
 "accept_my_invite":
 { Args: { "p_invite": string }; Returns: string
                            },
+"actor":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
+"actor_via":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
 "admin_create_org":
 { Args: { "p_name": string,"p_owner": string,"p_slug": string }; Returns: string
                            },
@@ -2237,7 +2257,7 @@ isOneToOne: false
       } },
 "contact_changes":
 { Args: { "p_contact": string }; Returns: {
-              "actor_id": string,"at": string,"new": Json,"old": Json
+              "actor_id": string,"at": string,"new": Json,"old": Json,"via": string
             }[]
                            },
 "contact_tags":
@@ -2403,6 +2423,9 @@ isOneToOne: false
                            },
 "purge_portal_tokens":
 { Args: Record<PropertyKey, never>; Returns: number
+                           },
+"rate_hit":
+{ Args: { "p_key": string,"p_limit": number }; Returns: boolean
                            },
 "renew_rentals":
 { Args: Record<PropertyKey, never>; Returns: number

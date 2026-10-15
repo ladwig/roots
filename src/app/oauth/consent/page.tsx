@@ -20,8 +20,8 @@ export default async function ConsentPage({ searchParams }: { searchParams: Prom
   const { data: details, error } = id ? await supabase.auth.oauth.getAuthorizationDetails(id) : { data: null, error: true }
   if (details && !("authorization_id" in details)) redirect(details.redirect_url)
   const { data: claims } = await supabase.auth.getClaims()
-  const { data: orgs } = await supabase.from("org_members").select("org_id, orgs(name, deleted_at)").eq("user_id", claims?.claims?.sub ?? "")
-  const live = (orgs ?? []).filter((o) => o.orgs && !o.orgs.deleted_at)
+  const { data: orgs } = await supabase.from("org_members").select("org_id, orgs(name, deleted_at, allow_ai)").eq("user_id", claims?.claims?.sub ?? "")
+  const live = (orgs ?? []).filter((o) => o.orgs && !o.orgs.deleted_at && o.orgs.allow_ai)
   const host = details && "redirect_uri" in details ? new URL(details.redirect_uri).host : ""
 
   return (

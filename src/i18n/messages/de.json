@@ -170,7 +170,12 @@
     "openClaude": "In Claude verbinden",
     "installIn": "In {app} installieren",
     "claudeSteps": "Claude (claude.ai und Desktop): Einstellungen → Connectors → „Add custom connector“ → Adresse oben einfügen → anmelden, Organisation und Zugriff wählen.",
-    "claudeCodeHint": "Claude Code im Terminal: Befehl kopieren und ausführen, beim ersten Aufruf meldest du dich an."
+    "claudeCodeHint": "Claude Code im Terminal: Befehl kopieren und ausführen, beim ersten Aufruf meldest du dich an.",
+    "allowAi": "KI-Apps",
+    "allowAiHint": "Dürfen Mitglieder des Teams KI-Apps wie Claude mit dieser Organisation verbinden? Ausgeschaltet funktionieren auch bestehende Verbindungen sofort nicht mehr. API-Schlüssel sind davon nicht betroffen.",
+    "allowAiLabel": "KI-Apps erlauben",
+    "aiOn": "KI-Apps sind erlaubt.",
+    "aiOff": "KI-Apps sind ausgeschaltet – bestehende Verbindungen funktionieren nicht mehr."
   },
   "general": {
     "name": "Name",
@@ -1109,7 +1114,9 @@
     "reach": "Erreichbarkeit",
     "more": "Tags & eigene Felder",
     "personHint": "Name oder Firma reicht.",
-    "create": "Kontakt anlegen"
+    "create": "Kontakt anlegen",
+    "viaApi": "über API",
+    "viaAi": "über KI-App"
   },
   "fields": {
     "intro": "Eigene Felder für deine Daten, z. B. Mitgliedsnummer oder Kleidergröße bei Kontakten. Sie erscheinen in Formularen und im CSV-Import.",

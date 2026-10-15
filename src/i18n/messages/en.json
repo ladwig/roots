@@ -170,7 +170,12 @@
     "openClaude": "Connect in Claude",
     "installIn": "Install in {app}",
     "claudeSteps": "Claude (claude.ai and Desktop): Settings → Connectors → “Add custom connector” → paste the address above → sign in, pick organisation and access.",
-    "claudeCodeHint": "Claude Code in the terminal: copy and run the command, you sign in on first use."
+    "claudeCodeHint": "Claude Code in the terminal: copy and run the command, you sign in on first use.",
+    "allowAi": "AI apps",
+    "allowAiHint": "May team members connect AI apps like Claude to this organisation? When off, existing connections stop working at once. API keys aren’t affected.",
+    "allowAiLabel": "Allow AI apps",
+    "aiOn": "AI apps are allowed.",
+    "aiOff": "AI apps are off – existing connections no longer work."
   },
   "general": {
     "name": "Name",
@@ -1109,7 +1114,9 @@
     "reach": "Contact details",
     "more": "Tags & custom fields",
     "personHint": "A name or a company is enough.",
-    "create": "Create contact"
+    "create": "Create contact",
+    "viaApi": "via API",
+    "viaAi": "via AI app"
   },
   "fields": {
     "intro": "Your own fields for your data, e.g. member number or shirt size on contacts. They show up in forms and in the CSV import.",

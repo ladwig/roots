@@ -381,7 +381,7 @@ async function Timeline({
   ctx: Ctx
   c: { id: string; created_at: string; updated_at: string; created_by: string | null }
   notes: { id: string; body: string; created_at: string; created_by: string | null }[]
-  changes: { at: string; actor_id: string | null; old: unknown; new: unknown }[]
+  changes: { at: string; actor_id: string | null; old: unknown; new: unknown; via: string | null }[]
   defs: { key: string; label: string; type: string }[]
   canManage: boolean
 }) {
@@ -396,7 +396,7 @@ async function Timeline({
     ...notes.map((n) => ({ key: n.id, at: n.created_at, note: n })),
     ...changes.flatMap((x, i) => {
       const diff = fieldChanges(x.old, x.new, defs, t)
-      return diff.length ? [{ key: `change-${i}`, at: x.at, note: null, diff, actor: x.actor_id }] : []
+      return diff.length ? [{ key: `change-${i}`, at: x.at, note: null, diff, actor: x.actor_id, via: x.via }] : []
     }),
     { key: "created", at: c.created_at, note: null },
   ].sort((a, b) => b.at.localeCompare(a.at))
@@ -420,6 +420,7 @@ async function Timeline({
               {dt(e.at)}
               {e.note && ` · ${who(e.note.created_by)}`}
               {"actor" in e && e.actor && ` · ${who(e.actor)}`}
+              {"via" in e && e.via && ` · ${e.via.startsWith("oauth:") ? t("contacts.viaAi") : t("contacts.viaApi")}`}
             </span>
             {e.note ? (
               <div className="flex items-start gap-2">
