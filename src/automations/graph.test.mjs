@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { test as it } from "node:test"
-import { calc, fill, next, passes, test, validate, waitMs } from "./graph.ts"
+import { calc, fill, layout, next, passes, test, validate, waitMs } from "./graph.ts"
 
 const n = (id, type, data = {}) => ({ id, type, position: { x: 0, y: 0 }, data })
 const e = (source, target, sourceHandle) => ({ id: `${source}-${target}`, source, target, sourceHandle })
@@ -75,4 +75,12 @@ it("number fields count up: {x}+1, empty = 0", () => {
   assert.equal(calc("{contact.custom.visits}+1"), "1") // nothing stored yet
   assert.equal(calc("10 - 2,5"), "7.5")
   assert.equal(calc("hello"), "hello")
+})
+
+it("layout: missing positions by distance from the trigger, given ones kept", () => {
+  const g = layout({
+    nodes: [{ id: "t", type: "trigger", data: {} }, { id: "c", type: "condition", data: {} }, { id: "a", type: "add_tag", data: {} }, { id: "b", type: "remove_tag", data: {}, position: { x: 9, y: 9 } }],
+    edges: [{ id: "1", source: "t", target: "c" }, { id: "2", source: "c", target: "a", sourceHandle: "yes" }, { id: "3", source: "c", target: "b", sourceHandle: "no" }],
+  })
+  assert.deepEqual(g.nodes.map((x) => x.position), [{ x: 0, y: 0 }, { x: 0, y: 140 }, { x: 0, y: 280 }, { x: 9, y: 9 }])
 })

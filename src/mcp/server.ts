@@ -68,6 +68,7 @@ const text = (v: unknown, isError = false) => {
 
 const INSTRUCTIONS = `roots is the back office of a club / collective / small org (contacts, memberships and dues, events and tickets, shifts, invoices, email, forms, automations, rentals …).
 How to work: 1) roots_find_operations to see what this connection may do (filter by a word like "contact" or "rental"), 2) roots_describe_operation for the input schema, 3) call it with roots_read (GET), roots_write (create/change) or roots_danger (delete, send emails, money, irreversible – first call returns a preview + confirm_token; show the preview to the user and only repeat the call with the token after they agree).
+Automations: GET workflows_catalog_list (with trigger=…) for triggers, node types and fields → draft a graph (positions optional) → workflows_validate until problems is empty → workflows_create (created inactive) → summarise it for the user → workflows_update { active: true } once they agree. workflow_templates_list has ready-made graphs.
 Conventions: money in cents (integer), timestamps ISO 8601 (UTC), days YYYY-MM-DD, the org's time zone is Europe/Berlin. Lists take limit/offset and return has_more. Deleting usually moves to a trash (restorable for 30 days). German area names: Kontakte = contacts, Mitgliedschaften = memberships, Beiträge = dues, Veranstaltungen = events, Schichten = shifts, Vermietung = rentals, Rechnungen = invoices.`
 
 /** A fresh server per request (stateless); tools see only what `auth` may call. */
@@ -88,7 +89,7 @@ export function mcpServer(auth: Auth, request: Request) {
         annotations: { readOnlyHint: true },
       },
       { name: "roots_describe_operation", title: "Describe an operation", description: "Full description, permission, risk and the JSON input schema of one operation.", inputSchema: { type: "object", properties: { name: { type: "string" } }, required: ["name"] }, annotations: { readOnlyHint: true } },
-      { name: "roots_read", title: "Read from roots", description: "Run a read operation (risk 'read'). Changes nothing.", inputSchema: call, annotations: { readOnlyHint: true } },
+      { name: "roots_read", title: "Read from roots", description: "Run an operation with risk 'read' (reading, or checking a draft). Changes nothing.", inputSchema: call, annotations: { readOnlyHint: true } },
       { name: "roots_write", title: "Change roots", description: "Run a creating/changing operation (risk 'write').", inputSchema: call, annotations: { readOnlyHint: false, destructiveHint: false } },
       {
         name: "roots_danger",

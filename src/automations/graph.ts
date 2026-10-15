@@ -80,6 +80,44 @@ export const Graph = z.object({
   edges: z.array(z.object({ id: text(64), source: text(64), target: text(64), sourceHandle: z.enum(["yes", "no"]).nullish() })).max(400),
 })
 export type Graph = z.infer<typeof Graph>
+
+/**
+ * Nodes without a position get one (API / LLM drafts): rows by distance from the trigger, side by side within a row,
+ * 140 px apart like the editor. Nodes with a position keep it.
+ */
+export function layout(g: { nodes: (Omit<Graph["nodes"][number], "position"> & { position?: { x: number; y: number } | null })[]; edges: Graph["edges"] }): Graph {
+  const depth = new Map<string, number>()
+  const start = g.nodes.find((n) => n.type === "trigger")?.id ?? g.nodes[0]?.id
+  const queue = start ? [start] : []
+  if (start) depth.set(start, 0)
+  while (queue.length) {
+    const id = queue.shift()!
+    for (const e of g.edges.filter((x) => x.source === id && !depth.has(x.target))) {
+      depth.set(e.target, depth.get(id)! + 1)
+      queue.push(e.target)
+    }
+  }
+  const maxDepth = Math.max(0, ...depth.values())
+  const rowCount = new Map<number, number>()
+  return {
+    edges: g.edges,
+    nodes: g.nodes.map((n) => {
+      if (n.position) return { ...n, position: n.position }
+      const d = depth.get(n.id) ?? maxDepth + 1
+      const i = rowCount.get(d) ?? 0
+      rowCount.set(d, i + 1)
+      return { ...n, position: { x: i * 280, y: d * 140 } }
+    }),
+  }
+}
+
+/** Graph as the API takes it: like Graph, positions optional (filled by layout()). */
+export const GraphInput = z
+  .object({
+    nodes: z.array(z.object({ id: text(64), type: z.enum(NODE_TYPES), position: z.object({ x: z.number(), y: z.number() }).nullish(), data: z.record(z.string(), z.unknown()) })).max(200),
+    edges: Graph.shape.edges,
+  })
+  .transform((g) => layout(g))
 export type GraphNode = Graph["nodes"][number]
 
 /** Problems as message keys (`automations.problems.<key>`) + node id; empty = can be activated. */

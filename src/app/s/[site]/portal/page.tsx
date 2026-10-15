@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { connection } from "next/server"
 import { BookOpenIcon, HouseIcon, IdCardIcon, LogOutIcon, QrCodeIcon, ReceiptIcon, UserIcon } from "lucide-react"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
@@ -14,6 +15,7 @@ import { logout } from "./actions"
 
 // Customer portal of one org: email → magic link → the sections of the org's enabled modules (members, later tickets…).
 export default async function Portal({ params, searchParams }: PageProps<"/s/[site]/portal">) {
+  await connection() // per-person and time-dependent (today's dues, running rentals): never prerendered
   const { site } = await params
   const sp = await searchParams
   const s = await getSite(site)

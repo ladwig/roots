@@ -1,5 +1,10 @@
 import { z } from "zod"
-import { Graph, triggerOf, validate } from "@/automations/graph"
+import { Graph, GraphInput, NODE_DATA, NODE_TYPES, OPS, triggerOf, validate } from "@/automations/graph"
+import { creatableFor, def, deletableFor, OPS_FOR, objectsFor, RECORD_ACTIONS, RECORD_OBJECTS, recordTrigger, writableFor, type ObjectKey } from "@/automations/objects"
+import { TEMPLATES } from "@/automations/templates"
+import { eventTypes } from "@/events/registry"
+import { messages } from "@/i18n/config"
+import { createT } from "@/i18n/translate"
 import { scheduleNext } from "@/automations/server"
 import type { Json } from "@/lib/supabase/types"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
@@ -14,7 +19,7 @@ const Workflow = z.object({
   active: z.boolean(),
   trigger_type: z.string().nullable().describe("Hub event type that starts a run"),
   graph: Graph.describe("{ nodes: [{ id, type, position, data }], edges: [{ id, source, target, sourceHandle? }] }; node types: trigger, condition, wait, send_email, add_tag, remove_tag, set_field, webhook, notify_team"),
-  problems: z.array(z.object({ key: z.string(), node: z.string().optional() })).describe("Empty = can be activated"),
+  problems: z.array(z.object({ key: z.string(), node: z.string().optional(), message: z.string() })).describe("Empty = can be activated"),
   created_at: ts,
   updated_at: ts,
 })
@@ -32,16 +37,86 @@ const Run = z.object({
 })
 const out = (w: { graph: unknown } & Record<string, unknown>) => {
   const g = Graph.safeParse(w.graph)
-  return { ...w, graph: g.success ? g.data : { nodes: [], edges: [] }, problems: g.success ? validate(g.data) : [{ key: "graphInvalid" }] }
+  return { ...w, graph: g.success ? g.data : { nodes: [], edges: [] }, problems: explain(g.success ? validate(g.data) : [{ key: "graphInvalid" }]) }
 }
 async function workflowOf(db: Db, orgId: string, id: string) {
   const { data } = await db.from("workflows").select(COLS).eq("id", id).eq("org_id", orgId).is("deleted_at", null).maybeSingle()
   if (!data) throw notFound()
   return data
 }
-const Input = z.object({ name: z.string().trim().min(1).max(200), description: z.string().max(2000).nullable(), graph: Graph }).partial().strict()
+const Input = z.object({ name: z.string().trim().min(1).max(200), description: z.string().max(2000).nullable(), graph: GraphInput.describe("Node positions are optional (laid out automatically)") }).partial().strict()
+const en = createT("en", messages.en)
+// Problems with a readable message (keys stay for programs).
+const explain = (problems: { key: string; node?: string }[]) => problems.map((p) => ({ ...p, message: en.has(`automations.problems.${p.key}`) ? en.dynamic(`automations.problems.${p.key}`) : p.key }))
+async function modulesOf(db: Db, orgId: string) {
+  const { data } = await db.from("org_modules").select("module_key").eq("org_id", orgId)
+  return new Set((data ?? []).map((m) => m.module_key))
+}
+const fieldsOf = (o: ObjectKey) => def(o).fields.map((f) => ({ key: f.key, kind: f.kind, ...(f.options ? { options: f.options } : {}), ...(f.write ? { writable: true } : {}), ...(f.time ? { timestamp: true } : {}) }))
 
 export const endpoints: Endpoint[] = [
+  endpoint({
+    method: "GET",
+    path: "/workflows/catalog",
+    permission: "automations.view",
+    tag: TAG,
+    summary: "What automations can use: triggers, node types, objects and fields",
+    description:
+      "Start here to build a workflow. Without `trigger`: all triggers of the enabled modules + node types (with their data schema) + condition operators. With `trigger`: also the objects a run of that trigger has (fields for conditions and {object.field} placeholders) and what it may write, create or delete. Triggers: hub events (e.g. contact.created), record triggers record:<table>:<insert|update|delete>, and schedule (data: every day/week/month at time; optional object + date_field + offset for 'date reached').",
+    query: z.object({ trigger: z.string().max(100).optional() }),
+    response: z.object({ triggers: z.array(z.unknown()), node_types: z.record(z.string(), z.unknown()), operators: z.unknown(), objects: z.unknown().optional(), placeholders: z.string() }),
+    async handler({ db, orgId, query }) {
+      const mods = await modulesOf(db, orgId)
+      const on = (m: string) => m === "org" || mods.has(m)
+      const triggers = [
+        { key: "schedule", kind: "schedule", label: "Schedule / date reached", module: "org" },
+        ...eventTypes.filter((e) => on(e.module) && !e.key.startsWith("workflow.")).map((e) => ({ key: e.key, kind: "event", label: en.has(`events.types.${e.key}`) ? en.dynamic(`events.types.${e.key}`) : e.key, module: e.module })),
+        ...RECORD_OBJECTS.filter((o) => on(def(o).module)).flatMap((o) => RECORD_ACTIONS.map((a) => ({ key: recordTrigger(o, a), kind: "record", label: `${en.dynamic(`automations.objects.${o}`)} ${a}`, module: def(o).module }))),
+      ]
+      const node_types = Object.fromEntries(NODE_TYPES.map((n) => [n, z.toJSONSchema(NODE_DATA[n], { io: "input", unrepresentable: "any" })]))
+      const objects = query.trigger
+        ? {
+            available: objectsFor(query.trigger, mods).map((o) => ({ object: o, fields: fieldsOf(o) })),
+            writable: writableFor(query.trigger, mods),
+            creatable: creatableFor(query.trigger, mods),
+            deletable: deletableFor(query.trigger, mods),
+          }
+        : undefined
+      return {
+        triggers,
+        node_types,
+        operators: { all: OPS, by_field_kind: OPS_FOR },
+        ...(objects ? { objects } : {}),
+        placeholders: "Texts can use {object.field} (e.g. {contact.first_name}, {event.title}) and {now.date}. Dates in values: today, today+10, today-1m, {membership.ends_on}+30d. Edges: { source, target, sourceHandle: 'yes'|'no' for conditions }.",
+      }
+    },
+  }),
+  endpoint({
+    method: "POST",
+    path: "/workflows/validate",
+    permission: "automations.view",
+    tag: TAG,
+    summary: "Check a workflow graph before saving",
+    description: "Returns the problems (empty = can be activated) with readable messages, and the graph with positions filled in. Nothing is saved.",
+    body: z.object({ graph: GraphInput }).strict(),
+    response: z.object({ problems: z.array(z.object({ key: z.string(), node: z.string().optional(), message: z.string() })), graph: Graph }),
+    async handler({ body }) {
+      return { problems: explain(validate(body.graph)), graph: body.graph }
+    },
+  }),
+  endpoint({
+    method: "GET",
+    path: "/workflow-templates",
+    permission: "automations.view",
+    tag: TAG,
+    summary: "Ready-made workflows to start from",
+    description: "Each graph can be POSTed to /workflows as is (texts in English; change them before activating).",
+    response: z.object({ data: z.array(z.object({ key: z.string(), module: z.string().optional(), graph: Graph })) }),
+    async handler({ db, orgId }) {
+      const mods = await modulesOf(db, orgId)
+      return { data: TEMPLATES.filter((x) => !x.module || mods.has(x.module)).map((x) => ({ key: x.key, module: x.module, graph: x.graph(en) })) }
+    },
+  }),
   endpoint({
     method: "GET",
     path: "/workflows",
@@ -101,7 +176,7 @@ export const endpoints: Endpoint[] = [
       const graph = body.graph ?? Graph.parse(old.graph)
       const active = body.active ?? old.active
       const problems = validate(graph)
-      if (active && problems.length) throw new ApiError(422, "invalid_workflow", "Fix the problems before activating.", { problems })
+      if (active && problems.length) throw new ApiError(422, "invalid_workflow", "Fix the problems before activating.", { problems: explain(problems) })
       const { data, error } = await db
         .from("workflows")
         .update({

@@ -19,6 +19,7 @@ test("mcp: operation names, risk, confirm payload", () => {
   assert.equal(riskOf("DELETE", "/contacts/{id}"), "danger")
   assert.equal(riskOf("POST", "/email/campaigns/{id}/send"), "danger")
   assert.equal(riskOf("POST", "/payments/orders/{id}/refund"), "danger")
+  assert.equal(riskOf("POST", "/workflows/validate"), "read")
 
   assert.equal(canonical({ b: 1, a: [2, { d: 3, c: 4 }] }), '{"a":[2,{"c":4,"d":3}],"b":1}')
   assert.equal(confirmMessage("k", "x_delete", { id: 1 }, 7), 'k|x_delete|{"id":1}|7')
