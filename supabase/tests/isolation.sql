@@ -866,6 +866,45 @@ begin
     reset role;
   end;
 
+  -- Rentals: no double booking (capacity), fixed parts not alone, renewal extends, people from the same org; B sees nothing
+  insert into public.org_modules (org_id, module_key) values (org_a, 'rentals') on conflict do nothing;
+  declare v_studio uuid; v_shelf uuid; v_room uuid; v_r uuid; v_ct uuid; v_end timestamptz;
+  begin
+    perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    insert into public.rental_objects (org_id, kind, name, rentable) values (org_a, 'studio', 'Studio A', true) returning id into v_studio;
+    insert into public.rental_objects (org_id, parent_id, kind, name, included) values (org_a, v_studio, 'furniture', 'Regal', true) returning id into v_shelf;
+    insert into public.rental_objects (org_id, kind, name, rentable, capacity) values (org_a, 'room', 'Proberaum', true, 2) returning id into v_room;
+    insert into public.rentals (org_id, object_id, starts_at) values (org_a, v_studio, '2026-01-01') returning id into v_r;
+    begin
+      insert into public.rentals (org_id, object_id, starts_at, ends_at) values (org_a, v_studio, '2026-06-01', '2026-07-01');
+      assert false, 'a studio can be rented twice at the same time';
+    exception when raise_exception then null; end;
+    insert into public.rentals (org_id, object_id, starts_at, ends_at, status) values (org_a, v_studio, '2026-06-01', '2026-07-01', 'request'); -- requests don't block
+    insert into public.rentals (org_id, object_id, starts_at, ends_at) values (org_a, v_room, '2026-05-01 10:00', '2026-05-01 12:00');
+    insert into public.rentals (org_id, object_id, starts_at, ends_at) values (org_a, v_room, '2026-05-01 11:00', '2026-05-01 13:00'); -- capacity 2
+    begin
+      insert into public.rentals (org_id, object_id, starts_at, ends_at) values (org_a, v_room, '2026-05-01 11:30', '2026-05-01 12:30');
+      assert false, 'capacity 2 allowed a third booking';
+    exception when raise_exception then null; end;
+    begin
+      insert into public.rentals (org_id, object_id, starts_at) values (org_a, v_shelf, '2027-01-01');
+      assert false, 'a fixed part was rented on its own';
+    exception when raise_exception then null; end;
+    insert into public.contacts (org_id, first_name) values (org_a, 'Mieterin') returning id into v_ct;
+    insert into public.rental_contacts (org_id, rental_id, contact_id) values (org_a, v_r, v_ct);
+    reset role;
+    update public.rentals set ends_at = now() - interval '1 day', renew_months = 12 where id = v_r;
+    perform public.renew_rentals();
+    select ends_at into v_end from public.rentals where id = v_r;  assert v_end > now() + interval '300 days', 'a renewing contract was not extended';
+    perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.rental_objects where org_id = org_a;   assert n = 0, 'B sees rental objects of A';
+    select count(*) into n from public.rentals where org_id = org_a;          assert n = 0, 'B sees rentals of A';
+    select count(*) into n from public.rental_contacts where org_id = org_a;  assert n = 0, 'B sees rental contacts of A';
+    reset role;
+  end;
+
   -- Automations: an event of the trigger type starts one run per active workflow; B sees nothing
   insert into public.org_modules (org_id, module_key) values (org_a, 'automations') on conflict do nothing;
   declare v_wf uuid;

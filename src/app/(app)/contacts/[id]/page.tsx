@@ -19,6 +19,7 @@ import { param } from "@/lib/url"
 import { addNote, deleteNote, linkContactUser, restoreContact, trashContact, updateContact } from "../actions"
 import { ContactForm } from "../contact-form"
 import { contactName } from "../fields"
+import { rentalState } from "@/rentals/fields"
 
 type Ctx = Awaited<ReturnType<typeof requirePerm>>
 const LIMIT = 10
@@ -35,7 +36,7 @@ export default async function ContactPage({ params, searchParams }: PageProps<"/
   const none = Promise.resolve({ data: null })
   const by = <Q extends { eq: (c: string, v: string) => Q }>(q: Q) => q.eq("org_id", ctx.org.id).eq("contact_id", id)
 
-  const [{ data: c }, { data: notes }, { data: tagRows }, defs, { data: membership }, { data: tickets }, { data: docs }, { data: subs }, { data: mails }, { data: changes }] = await Promise.all([
+  const [{ data: c }, { data: notes }, { data: tagRows }, defs, { data: membership }, { data: tickets }, { data: docs }, { data: subs }, { data: mails }, { data: changes }, { data: rentals }] = await Promise.all([
     ctx.supabase.from("contacts").select("*").eq("id", id).eq("org_id", ctx.org.id).maybeSingle(),
     by(ctx.supabase.from("contact_notes").select("id, body, created_at, created_by")).order("created_at", { ascending: false }).limit(200),
     ctx.supabase.rpc("contact_tags", { p_org: ctx.org.id }),
@@ -56,6 +57,9 @@ export default async function ContactPage({ params, searchParams }: PageProps<"/
       ? by(ctx.supabase.from("email_sends").select("id, status, delivery, sent_at, send_after, email_campaigns(name), email_automations(name)")).order("created_at", { ascending: false }).limit(LIMIT)
       : none,
     ctx.supabase.rpc("contact_changes", { p_contact: id }),
+    on("rentals", "rentals.view")
+      ? by(ctx.supabase.from("rental_contacts").select("role, rentals!inner(id, status, starts_at, ends_at, deleted_at, rental_objects(name))")).is("rentals.deleted_at", null).order("created_at", { ascending: false }).limit(LIMIT)
+      : none,
   ])
   if (!c) notFound()
   // Team access: the linked account, and (for managers) the team members who could be linked.
@@ -218,6 +222,19 @@ export default async function ContactPage({ params, searchParams }: PageProps<"/
                     title: x.events?.title ?? "–",
                     detail: [x.ticket_types?.name, day(x.created_at)].filter(Boolean).join(" · "),
                     badge: t.dynamic(`tickets.statuses.${x.status}`),
+                  }))}
+                />
+              </Section>
+            )}
+            {!!rentals?.length && (
+              <Section id="rentals" title={t("rentals.title")}>
+                <Rows
+                  rows={rentals.map((x) => ({
+                    key: x.rentals.id,
+                    href: `/rentals/r/${x.rentals.id}`,
+                    title: x.rentals.rental_objects?.name ?? "–",
+                    detail: [t.dynamic(`rentals.roles.${x.role}`), day(x.rentals.starts_at), x.rentals.ends_at && `– ${day(x.rentals.ends_at)}`].filter(Boolean).join(" "),
+                    badge: t.dynamic(`rentals.states.${rentalState(x.rentals)}`),
                   }))}
                 />
               </Section>

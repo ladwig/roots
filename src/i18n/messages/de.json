@@ -314,6 +314,10 @@
     "projects": {
       "name": "Projekte",
       "description": "Aufgaben auf einem Kanban-Board oder als Liste – mit Zuständigen, Fristen, Unteraufgaben und Tags je Projekt."
+    },
+    "rentals": {
+      "name": "Vermietung",
+      "description": "Räume, Studios, Fahrzeuge und Gegenstände vermieten oder ausgeben – mit Tarifen, Mietverträgen, Buchungen, Schlüsseln und Belegung."
     }
   },
   "permissions": {
@@ -358,7 +362,9 @@
     "wiki.view": "Wiki lesen",
     "wiki.manage": "Wiki schreiben",
     "projects.view": "Projekte ansehen",
-    "projects.manage": "Aufgaben bearbeiten"
+    "projects.manage": "Aufgaben bearbeiten",
+    "rentals.view": "Vermietung ansehen",
+    "rentals.manage": "Vermietung bearbeiten"
   },
   "integrations": {
     "connect": "Verbinden",
@@ -521,7 +527,11 @@
       "wiki_pages": "Wiki-Seiten",
       "task_statuses": "Projektspalten",
       "tasks": "Aufgaben",
-      "task_assignees": "Zuständige"
+      "task_assignees": "Zuständige",
+      "rental_objects": "Objekte",
+      "rental_rates": "Tarife",
+      "rentals": "Vergaben",
+      "rental_contacts": "Personen einer Vergabe"
     }
   },
   "errors": {
@@ -591,7 +601,11 @@
     "cash_month_closed": "Dieser Monat ist abgeschlossen.",
     "cash_month_open": "Der Monat ist noch nicht vorbei.",
     "wiki_cycle": "Eine Seite kann nicht unter sich selbst liegen.",
-    "membership_overlap": "Diese Person hat in diesem Zeitraum schon eine Mitgliedschaft. Beende die bestehende zuerst oder wähle ein späteres Startdatum."
+    "membership_overlap": "Diese Person hat in diesem Zeitraum schon eine Mitgliedschaft. Beende die bestehende zuerst oder wähle ein späteres Startdatum.",
+    "object_busy": "Das Objekt ist in diesem Zeitraum schon belegt.",
+    "object_included": "Dieses Objekt gehört fest zu einem anderen und wird nur mit ihm vergeben.",
+    "object_unavailable": "Dieses Objekt ist nicht verfügbar (verloren oder gelöscht).",
+    "object_cycle": "Ein Objekt kann nicht in sich selbst liegen."
   },
   "admin": {
     "title": "Plattform",
@@ -853,7 +867,11 @@
       "membership.checked_in": "Mitglied beim Einlass einer Veranstaltung eingecheckt",
       "shift.assigned": "Schicht zugeteilt (direkt oder Bewerbung bestätigt)",
       "task.assigned": "Aufgabe zugewiesen",
-      "task.completed": "Aufgabe erledigt"
+      "task.completed": "Aufgabe erledigt",
+      "rental.created": "Vergabe angelegt",
+      "rental.person_added": "Person zu einer Vergabe hinzugefügt",
+      "rental.notice_received": "Kündigung eingegangen",
+      "rental.renewed": "Vertrag verlängert"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -888,7 +906,11 @@
       "membership.checked_in": "🚪 {name} ist da ({title}, Besuch {visits})",
       "shift.assigned": "👷 {name} hat die Schicht {title} ({when})",
       "task.assigned": "📋 Dir wurde die Aufgabe „{title}“ zugewiesen",
-      "task.completed": "✅ Aufgabe „{title}“ ist erledigt"
+      "task.completed": "✅ Aufgabe „{title}“ ist erledigt",
+      "rental.created": "🔑 {object}: neue Vergabe",
+      "rental.person_added": "🔑 {object}: Person hinzugefügt",
+      "rental.notice_received": "📝 {object}: Kündigung eingegangen",
+      "rental.renewed": "🔁 {object}: Vertrag hat sich verlängert"
     },
     "hints": {
       "member.joined": "Jemand aus eurem Team (Vorstand, Einlass …) hat eine Einladung angenommen und kann sich in der App anmelden. Nicht für Vereinsmitglieder.",
@@ -1093,7 +1115,9 @@
     "entities": {
       "contacts": "Kontakte",
       "events": "Veranstaltungen",
-      "memberships": "Mitgliedschaften"
+      "memberships": "Mitgliedschaften",
+      "rental_objects": "Objekte (Vermietung)",
+      "rentals": "Vergaben (Vermietung)"
     },
     "types": {
       "text": "Text",
@@ -3468,7 +3492,9 @@
       "cash_account": "Kasse / Konto",
       "wiki_page": "Wiki-Seite",
       "task": "Aufgabe",
-      "task_status": "Projektspalte"
+      "task_status": "Projektspalte",
+      "rental_object": "Objekt (Vermietung)",
+      "rental": "Vergabe (Vermietung)"
     },
     "fields": {
       "contact": {
@@ -3688,6 +3714,24 @@
       "task_status": {
         "name": "Name",
         "is_done": "Zählt als erledigt"
+      },
+      "rental_object": {
+        "name": "Name",
+        "kind": "Art",
+        "family": "Familie",
+        "status": "Status",
+        "capacity": "Kapazität",
+        "description": "Beschreibung"
+      },
+      "rental": {
+        "status": "Status",
+        "starts_at": "Beginn",
+        "ends_at": "Ende",
+        "notice_at": "Kündigung eingegangen",
+        "price_cents": "Preis (Cent)",
+        "unit": "Einheit",
+        "deposit_cents": "Kaution (Cent)",
+        "note": "Notiz"
       }
     },
     "values": {
@@ -4301,5 +4345,241 @@
       "number": "Bitte eine Zahl eingeben.",
       "date": "Bitte ein Datum eingeben."
     }
+  },
+  "rentals": {
+    "nav": "Vermietung",
+    "title": "Vermietung",
+    "tabs": {
+      "rentals": "Vergaben",
+      "calendar": "Belegung"
+    },
+    "newObject": "Neues Objekt",
+    "createObject": "Objekt anlegen",
+    "objects": "Objekte",
+    "empty": "Noch keine Objekte.",
+    "emptyText": "Lege an, was ihr vermietet oder ausgebt: Räume, Studios, Stellplätze, Fahrzeuge, Geräte – und die Schlüssel dazu.",
+    "noMatch": "Keine Objekte gefunden.",
+    "name": "Name",
+    "kind": "Art",
+    "family": "Familie",
+    "parent": "Gehört zu",
+    "noParent": "– oberste Ebene –",
+    "status": "Status",
+    "capacity": "Gleichzeitig vergebbar",
+    "capacityHint": "Wie viele Vergaben sich überschneiden dürfen (z. B. Arbeitsplätze in einem Raum).",
+    "deposit": "Kaution",
+    "location": "Ort",
+    "description": "Beschreibung",
+    "customKind": "Eigene Art",
+    "rentable": "Vermietbar (mit Tarifen)",
+    "lendable": "Wird ausgegeben (z. B. Schlüssel, Gerät)",
+    "included": "Gehört fest zum übergeordneten Objekt (wird nur mit ihm vergeben)",
+    "basics": "Objekt",
+    "options": "Vergabe",
+    "families": {
+      "place": "Orte & Räume",
+      "vehicle": "Fahrzeuge",
+      "item": "Gegenstände",
+      "access": "Zugang",
+      "other": "Anderes"
+    },
+    "kinds": {
+      "building": "Gebäude",
+      "floor": "Etage",
+      "room": "Raum",
+      "studio": "Studio",
+      "atelier": "Atelier",
+      "rehearsal_room": "Proberaum",
+      "office": "Büro",
+      "desk": "Arbeitsplatz",
+      "flat": "Wohnung",
+      "hall": "Halle / Saal",
+      "storage": "Lager",
+      "outdoor": "Außenfläche",
+      "parking": "Stellplatz / Garage",
+      "locker": "Spind / Schließfach",
+      "car": "Auto",
+      "van": "Transporter",
+      "bike": "Fahrrad / Lastenrad",
+      "trailer": "Anhänger",
+      "boat": "Boot",
+      "device": "Gerät",
+      "tech": "Technik",
+      "instrument": "Instrument",
+      "tool": "Werkzeug",
+      "furniture": "Möbel",
+      "tent": "Zelt / Pavillon",
+      "costume": "Kostüm",
+      "sports": "Sportgerät",
+      "media": "Buch / Medium",
+      "key": "Schlüssel",
+      "transponder": "Transponder",
+      "card": "Karte / Chip"
+    },
+    "statuses": {
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "lost": "Verloren"
+    },
+    "units": {
+      "hour": "pro Stunde",
+      "day": "pro Tag",
+      "week": "pro Woche",
+      "month": "pro Monat",
+      "year": "pro Jahr",
+      "once": "einmalig"
+    },
+    "unitsShort": {
+      "hour": "Std.",
+      "day": "Tag",
+      "week": "Woche",
+      "month": "Monat",
+      "year": "Jahr",
+      "once": "einmalig"
+    },
+    "words": {
+      "contract": "Mietvertrag",
+      "booking": "Buchung",
+      "loan": "Ausleihe",
+      "handout": "Ausgabe"
+    },
+    "newWord": {
+      "contract": "Mietvertrag anlegen",
+      "booking": "Buchen",
+      "loan": "Ausleihen",
+      "handout": "Ausgeben"
+    },
+    "states": {
+      "request": "Anfrage",
+      "cancelled": "Storniert",
+      "upcoming": "Kommend",
+      "running": "Läuft",
+      "ended": "Beendet"
+    },
+    "free": "Frei",
+    "busyWith": "Vergeben an {who}",
+    "busy": "Vergeben",
+    "handedTo": "bei {who} seit {date}",
+    "inOffice": "da",
+    "lostShort": "verloren",
+    "children": "Gehört dazu",
+    "addChild": "+ {kind}",
+    "addSeveral": "+ mehrere…",
+    "howMany": "Wie viele?",
+    "prefix": "Name/Nummer davor",
+    "addChildren": "Anlegen",
+    "childrenAdded": {
+      "one": "{count} Objekt angelegt.",
+      "other": "{count} Objekte angelegt."
+    },
+    "rates": "Tarife",
+    "ratesHint": "Preis und Bedingungen als Vorlage – beim Anlegen einer Vergabe übernommen und änderbar.",
+    "newRate": "Tarif hinzufügen",
+    "noRates": "Noch keine Tarife.",
+    "rateName": "Name",
+    "unit": "Abrechnung",
+    "price": "Preis",
+    "minUnits": "Mindestens",
+    "termMonths": "Feste Laufzeit (Monate)",
+    "renewMonths": "Verlängert sich um (Monate)",
+    "noticeMonths": "Kündigungsfrist (Monate)",
+    "rateActive": "Aktiv",
+    "deleteRate": "Tarif löschen",
+    "rateSaved": "Tarif gespeichert.",
+    "rateDeleted": "Tarif gelöscht.",
+    "current": "Aktuell",
+    "upcoming": "Geplant",
+    "history": "Frühere",
+    "noRentals": "Noch keine Vergaben.",
+    "rental": "Vergabe",
+    "object": "Objekt",
+    "rate": "Tarif",
+    "noRate": "– ohne Tarif –",
+    "starts": "Beginn",
+    "ends": "Ende",
+    "endsOpen": "offen",
+    "endsHint": "Leer = unbefristet.",
+    "renew": "Verlängert sich automatisch um (Monate)",
+    "notice": "Kündigungsfrist (Monate)",
+    "requestStatus": "Status",
+    "note": "Notiz",
+    "people": "Personen",
+    "peopleHint": "Hauptmieter:innen sind Vertragspartner und zahlen; Mitnutzer:innen haben Zugang, aber nichts mit dem Vertrag zu tun.",
+    "roles": {
+      "main": "Hauptmieter:in",
+      "member": "Mitnutzer:in"
+    },
+    "addPerson": "Person hinzufügen",
+    "removePerson": "Entfernen",
+    "nobody": "Noch niemand.",
+    "giveNotice": "Kündigung eintragen",
+    "noticeHint": "Frühestes Ende bei Kündigung heute: {date}.",
+    "noticeOtherDate": "Anderes Enddatum (optional)",
+    "noticeGiven": "Kündigung eingetragen – endet am {date}.",
+    "noticeReceived": "Gekündigt am {date}",
+    "giveBack": "Zurück",
+    "depositBack": "Kaution zurückgegeben",
+    "returned": "Zurückgenommen.",
+    "handOut": "Ausgeben",
+    "handOutTo": "An",
+    "handedOut": "Ausgegeben.",
+    "created": "Angelegt.",
+    "saved": "Gespeichert.",
+    "trashed": "In den Papierkorb verschoben.",
+    "toTrash": "In den Papierkorb",
+    "objectTrashed": "Objekt in den Papierkorb verschoben.",
+    "nameRequired": "Bitte einen Namen angeben.",
+    "endBeforeStart": "Das Ende muss nach dem Beginn liegen.",
+    "renewNeedsEnd": "Eine automatische Verlängerung braucht ein Enddatum (Ende der ersten Laufzeit).",
+    "all": "Alle",
+    "filterFamily": "Familie",
+    "onlyFree": "Frei",
+    "onlyBusy": "Vergeben",
+    "calendarHint": "Belegung der vermietbaren Objekte. Klick auf eine Vergabe öffnet sie, Klick auf einen freien Platz legt eine Buchung an.",
+    "listEmpty": "Noch keine Vergaben.",
+    "whoCol": "Personen",
+    "whenCol": "Zeitraum",
+    "priceCol": "Preis",
+    "stateCol": "Status",
+    "search": "Objekte suchen…",
+    "searchRentals": "Suchen…",
+    "keys": "Schlüssel & Zugang",
+    "since": "seit {date}",
+    "until": "bis {date}",
+    "childCount": {
+      "one": "{count} (vergeben: {out})",
+      "other": "{count} (vergeben: {out})"
+    },
+    "includedShort": "gehört fest dazu",
+    "addSub": "Unterobjekt anlegen",
+    "noChildren": "Nichts – z. B. Schlüssel, Räume oder feste Einrichtung hier anlegen.",
+    "termShort": "{months} Mon. fest",
+    "renewShort": "verlängert um {months} Mon.",
+    "noticeShort": "Kündigung {months} Mon.",
+    "ratePlaceholder": "z. B. Langzeit, Stunde, Wochenende",
+    "longTermOnly": "Nur bei monatlich/jährlich",
+    "prefixHint": "Die Objekte heißen dann z. B. A-1, A-2, A-3 … (fortlaufend nach den vorhandenen).",
+    "peopleHintNew": "Weitere Hauptmieter:innen und Mitnutzer:innen fügst du danach auf der Vergabe hinzu.",
+    "whenTitle": "Zeitraum",
+    "priceTitle": "Preis & Bedingungen",
+    "rateHint": "Leere Felder werden aus dem Tarif übernommen.",
+    "fromRate": "aus dem Tarif",
+    "statusOptions": {
+      "confirmed": "Fest",
+      "request": "Anfrage (blockiert nicht)"
+    },
+    "statusOptionsAll": {
+      "confirmed": "Fest",
+      "request": "Anfrage",
+      "cancelled": "Storniert"
+    },
+    "views": {
+      "current": "Laufend",
+      "upcoming": "Geplant",
+      "requests": "Anfragen",
+      "ended": "Beendet",
+      "all": "Alle"
+    },
+    "pickObject": "Welches Objekt?"
   }
 }

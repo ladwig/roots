@@ -1433,6 +1433,134 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"rental_contacts": {
+                  Row: {
+                    "contact_id": string,"created_at": string,"created_by": string | null,"id": string,"org_id": string,"rental_id": string,"role": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "contact_id": string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id": string,"rental_id": string,"role"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "contact_id"?: string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"org_id"?: string,"rental_id"?: string,"role"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "rental_contacts_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "rental_contacts_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "rental_contacts_rental_id_fkey"
+      columns: ["rental_id"]
+isOneToOne: false
+      referencedRelation: "rentals"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"rental_objects": {
+                  Row: {
+                    "capacity": number,"created_at": string,"created_by": string | null,"custom": NonNullable<Json>,"deleted_at": string | null,"deleted_by": string | null,"deposit_cents": number | null,"description": string,"family": string,"id": string,"included": boolean,"kind": string,"lendable": boolean,"location_id": string | null,"name": string,"org_id": string,"parent_id": string | null,"position": number,"rentable": boolean,"status": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "capacity"?: number,"created_at"?: string,"created_by"?: string | null,"custom"?: NonNullable<Json>,"deleted_at"?: string | null,"deleted_by"?: string | null,"deposit_cents"?: number | null,"description"?: string,"family"?: string,"id"?: string,"included"?: boolean,"kind": string,"lendable"?: boolean,"location_id"?: string | null,"name": string,"org_id": string,"parent_id"?: string | null,"position"?: number,"rentable"?: boolean,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "capacity"?: number,"created_at"?: string,"created_by"?: string | null,"custom"?: NonNullable<Json>,"deleted_at"?: string | null,"deleted_by"?: string | null,"deposit_cents"?: number | null,"description"?: string,"family"?: string,"id"?: string,"included"?: boolean,"kind"?: string,"lendable"?: boolean,"location_id"?: string | null,"name"?: string,"org_id"?: string,"parent_id"?: string | null,"position"?: number,"rentable"?: boolean,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "rental_objects_location_id_fkey"
+      columns: ["location_id"]
+isOneToOne: false
+      referencedRelation: "locations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "rental_objects_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "rental_objects_parent_id_fkey"
+      columns: ["parent_id"]
+isOneToOne: false
+      referencedRelation: "rental_objects"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"rental_rates": {
+                  Row: {
+                    "active": boolean,"created_at": string,"created_by": string | null,"deposit_cents": number | null,"id": string,"min_units": number,"name": string,"notice_months": number | null,"object_id": string,"org_id": string,"position": number,"price_cents": number,"renew_months": number | null,"term_months": number | null,"unit": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"deposit_cents"?: number | null,"id"?: string,"min_units"?: number,"name": string,"notice_months"?: number | null,"object_id": string,"org_id": string,"position"?: number,"price_cents"?: number,"renew_months"?: number | null,"term_months"?: number | null,"unit": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"deposit_cents"?: number | null,"id"?: string,"min_units"?: number,"name"?: string,"notice_months"?: number | null,"object_id"?: string,"org_id"?: string,"position"?: number,"price_cents"?: number,"renew_months"?: number | null,"term_months"?: number | null,"unit"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "rental_rates_object_id_fkey"
+      columns: ["object_id"]
+isOneToOne: false
+      referencedRelation: "rental_objects"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "rental_rates_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"rentals": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"custom": NonNullable<Json>,"deleted_at": string | null,"deleted_by": string | null,"deposit_back_at": string | null,"deposit_cents": number | null,"ends_at": string | null,"id": string,"note": string,"notice_at": string | null,"notice_months": number | null,"object_id": string,"org_id": string,"parent_id": string | null,"price_cents": number | null,"rate_id": string | null,"renew_months": number | null,"starts_at": string,"status": string,"unit": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"custom"?: NonNullable<Json>,"deleted_at"?: string | null,"deleted_by"?: string | null,"deposit_back_at"?: string | null,"deposit_cents"?: number | null,"ends_at"?: string | null,"id"?: string,"note"?: string,"notice_at"?: string | null,"notice_months"?: number | null,"object_id": string,"org_id": string,"parent_id"?: string | null,"price_cents"?: number | null,"rate_id"?: string | null,"renew_months"?: number | null,"starts_at": string,"status"?: string,"unit"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"custom"?: NonNullable<Json>,"deleted_at"?: string | null,"deleted_by"?: string | null,"deposit_back_at"?: string | null,"deposit_cents"?: number | null,"ends_at"?: string | null,"id"?: string,"note"?: string,"notice_at"?: string | null,"notice_months"?: number | null,"object_id"?: string,"org_id"?: string,"parent_id"?: string | null,"price_cents"?: number | null,"rate_id"?: string | null,"renew_months"?: number | null,"starts_at"?: string,"status"?: string,"unit"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "rentals_object_id_fkey"
+      columns: ["object_id"]
+isOneToOne: false
+      referencedRelation: "rental_objects"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "rentals_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "rentals_parent_id_fkey"
+      columns: ["parent_id"]
+isOneToOne: false
+      referencedRelation: "rentals"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "rentals_rate_id_fkey"
+      columns: ["rate_id"]
+isOneToOne: false
+      referencedRelation: "rental_rates"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"roles": {
                   Row: {
                     "created_at": string,"created_by": string | null,"id": string,"is_owner": boolean,"name": NonNullable<Json>,"org_id": string | null,"permissions": (string)[],"updated_at": string,"updated_by": string | null
@@ -2255,6 +2383,12 @@ isOneToOne: false
                            },
 "purge_portal_tokens":
 { Args: Record<PropertyKey, never>; Returns: number
+                           },
+"renew_rentals":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"rental_payload":
+{ Args: { "p_rental": string }; Returns: Json
                            },
 "report_can":
 { Args: { "p_module": string,"p_org": string }; Returns: boolean

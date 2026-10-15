@@ -210,6 +210,24 @@ export const OBJECTS = {
     relations: { status_id: "task_status" },
     create: { fields: ["title", "description", "due_on"] }, // into the first column
   },
+  rental_object: {
+    table: "rental_objects",
+    module: "rentals",
+    idKey: "object_id",
+    remove: "soft",
+    record: true,
+    fields: [text("name", true), text("kind"), pick("family", ["place", "vehicle", "item", "access", "other"]), pick("status", ["active", "inactive", "lost"], true), num("capacity"), text("description", true)],
+    relations: { parent_id: "rental_object" },
+  },
+  rental: {
+    table: "rentals",
+    module: "rentals",
+    idKey: "rental_id",
+    remove: "soft",
+    record: true,
+    fields: [pick("status", ["request", "confirmed", "cancelled"], true), at("starts_at"), at("ends_at", true), at("notice_at"), num("price_cents", true), pick("unit", ["hour", "day", "week", "month", "year", "once"]), num("deposit_cents"), text("note", true)],
+    relations: { object_id: "rental_object" },
+  },
   task_status: { table: "task_statuses", module: "projects", fields: [text("name"), bool("is_done")] },
   wiki_page: { table: "wiki_pages", remove: "soft", module: "wiki", record: true, fields: [text("title")], relations: { parent_id: "wiki_page" } },
   cash_entry: {
@@ -247,7 +265,7 @@ export const def = (k: ObjectKey): ObjectDef => OBJECTS[k]
 export const NOT_OBJECTS = [
   "api_keys", "cash_closings", "custom_fields", "document_items", "email_automations", "email_campaigns", "employee_private", "event_subscriptions",
   "invites", "letter_templates", "locations", "member_settings", "number_ranges", "org_billing", "org_integrations", "org_members",
-  "org_modules", "orgs", "platform_admins", "positions", "roles", "sepa_runs", "shift_series", "site_pages", "sites", "task_assignees", "ticket_codes",
+  "org_modules", "orgs", "platform_admins", "positions", "rental_contacts", "rental_rates", "roles", "sepa_runs", "shift_series", "site_pages", "sites", "task_assignees", "ticket_codes",
   "ticket_tiers", "workflow_runs", "workflows",
 ]
 
@@ -289,6 +307,10 @@ export const EVENT_OBJECTS: Record<string, ObjectKey[]> = {
   "form.submitted": ["submission", "form", "contact"],
   "course.enrolled": ["course", "contact"],
   "course.moved_up": ["course", "contact"],
+  "rental.created": ["rental", "rental_object"],
+  "rental.person_added": ["contact", "rental", "rental_object"],
+  "rental.notice_received": ["rental", "rental_object"],
+  "rental.renewed": ["rental", "rental_object"],
   "task.assigned": ["task"],
   "task.completed": ["task"],
 }

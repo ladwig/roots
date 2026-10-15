@@ -25,6 +25,7 @@ export async function GET(request: Request) {
   const emails = await processEmailQueue().catch((e) => (console.error(e), 0))
   await generateAllSeries().catch(console.error) // recurring shifts stay 8 weeks ahead
   await offerWaitlist().catch(console.error) // freed seats → next on the event waiting lists
+  await createAdminClient().rpc("renew_rentals") // contracts that renew themselves (no notice) run on
   // Empty the trash (soft-deleted rows past their retention).
   const { data: purged } = await createAdminClient().rpc("purge_deleted")
   await createAdminClient().rpc("purge_portal_tokens") // expired portal logins/sessions

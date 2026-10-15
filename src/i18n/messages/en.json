@@ -314,6 +314,10 @@
     "projects": {
       "name": "Projects",
       "description": "Tasks on a kanban board or as a list – with assignees, deadlines, subtasks and tags per project."
+    },
+    "rentals": {
+      "name": "Rentals",
+      "description": "Rent out or hand out rooms, studios, vehicles and items – with rates, contracts, bookings, keys and occupancy."
     }
   },
   "permissions": {
@@ -358,7 +362,9 @@
     "wiki.view": "Read wiki",
     "wiki.manage": "Write wiki",
     "projects.view": "View projects",
-    "projects.manage": "Edit tasks"
+    "projects.manage": "Edit tasks",
+    "rentals.view": "View rentals",
+    "rentals.manage": "Manage rentals"
   },
   "integrations": {
     "connect": "Connect",
@@ -521,7 +527,11 @@
       "wiki_pages": "Wiki pages",
       "task_statuses": "Project columns",
       "tasks": "Tasks",
-      "task_assignees": "Assignees"
+      "task_assignees": "Assignees",
+      "rental_objects": "Objects",
+      "rental_rates": "Rates",
+      "rentals": "Rentals",
+      "rental_contacts": "People on a rental"
     }
   },
   "errors": {
@@ -591,7 +601,11 @@
     "cash_month_closed": "This month is closed.",
     "cash_month_open": "The month isn't over yet.",
     "wiki_cycle": "A page can't be placed below itself.",
-    "membership_overlap": "This person already has a membership in that period. End the existing one first or choose a later start date."
+    "membership_overlap": "This person already has a membership in that period. End the existing one first or choose a later start date.",
+    "object_busy": "The object is already taken in this period.",
+    "object_included": "This object is a fixed part of another one and is only rented along with it.",
+    "object_unavailable": "This object isn't available (lost or deleted).",
+    "object_cycle": "An object can't be inside itself."
   },
   "admin": {
     "title": "Platform",
@@ -853,7 +867,11 @@
       "membership.checked_in": "Member checked in at an event's door",
       "shift.assigned": "Shift assigned (directly or application confirmed)",
       "task.assigned": "Task assigned",
-      "task.completed": "Task completed"
+      "task.completed": "Task completed",
+      "rental.created": "Rental created",
+      "rental.person_added": "Person added to a rental",
+      "rental.notice_received": "Notice received",
+      "rental.renewed": "Contract renewed"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -888,7 +906,11 @@
       "membership.checked_in": "🚪 {name} is here ({title}, visit {visits})",
       "shift.assigned": "👷 {name} has the shift {title} ({when})",
       "task.assigned": "📋 You were assigned the task “{title}”",
-      "task.completed": "✅ Task “{title}” is done"
+      "task.completed": "✅ Task “{title}” is done",
+      "rental.created": "🔑 {object}: new rental",
+      "rental.person_added": "🔑 {object}: person added",
+      "rental.notice_received": "📝 {object}: notice received",
+      "rental.renewed": "🔁 {object}: contract renewed"
     },
     "hints": {
       "member.joined": "Someone from your team (board, door staff …) accepted an invitation and can sign in to the app. Not for club members.",
@@ -1093,7 +1115,9 @@
     "entities": {
       "contacts": "Contacts",
       "events": "Events",
-      "memberships": "Memberships"
+      "memberships": "Memberships",
+      "rental_objects": "Objects (rentals)",
+      "rentals": "Rentals"
     },
     "types": {
       "text": "Text",
@@ -3468,7 +3492,9 @@
       "cash_account": "Cash account",
       "wiki_page": "Wiki page",
       "task": "Task",
-      "task_status": "Project column"
+      "task_status": "Project column",
+      "rental_object": "Object (rentals)",
+      "rental": "Rental"
     },
     "fields": {
       "contact": {
@@ -3688,6 +3714,24 @@
       "task_status": {
         "name": "Name",
         "is_done": "Counts as done"
+      },
+      "rental_object": {
+        "name": "Name",
+        "kind": "Kind",
+        "family": "Family",
+        "status": "Status",
+        "capacity": "Capacity",
+        "description": "Description"
+      },
+      "rental": {
+        "status": "Status",
+        "starts_at": "Start",
+        "ends_at": "End",
+        "notice_at": "Notice received",
+        "price_cents": "Price (cents)",
+        "unit": "Unit",
+        "deposit_cents": "Deposit (cents)",
+        "note": "Note"
       }
     },
     "values": {
@@ -4301,5 +4345,241 @@
       "number": "Please enter a number.",
       "date": "Please enter a date."
     }
+  },
+  "rentals": {
+    "nav": "Rentals",
+    "title": "Rentals",
+    "tabs": {
+      "rentals": "Rentals",
+      "calendar": "Occupancy"
+    },
+    "newObject": "New object",
+    "createObject": "Create object",
+    "objects": "Objects",
+    "empty": "No objects yet.",
+    "emptyText": "Add what you rent out or hand out: rooms, studios, parking spots, vehicles, devices – and their keys.",
+    "noMatch": "No objects found.",
+    "name": "Name",
+    "kind": "Kind",
+    "family": "Family",
+    "parent": "Belongs to",
+    "noParent": "– top level –",
+    "status": "Status",
+    "capacity": "Rentable at the same time",
+    "capacityHint": "How many rentals may overlap (e.g. desks in a room).",
+    "deposit": "Deposit",
+    "location": "Location",
+    "description": "Description",
+    "customKind": "Custom kind",
+    "rentable": "Rentable (with rates)",
+    "lendable": "Handed out (e.g. key, device)",
+    "included": "Fixed part of its parent (only rented along with it)",
+    "basics": "Object",
+    "options": "Renting",
+    "families": {
+      "place": "Places & rooms",
+      "vehicle": "Vehicles",
+      "item": "Items",
+      "access": "Access",
+      "other": "Other"
+    },
+    "kinds": {
+      "building": "Building",
+      "floor": "Floor",
+      "room": "Room",
+      "studio": "Studio",
+      "atelier": "Atelier",
+      "rehearsal_room": "Rehearsal room",
+      "office": "Office",
+      "desk": "Desk",
+      "flat": "Flat",
+      "hall": "Hall",
+      "storage": "Storage",
+      "outdoor": "Outdoor area",
+      "parking": "Parking / garage",
+      "locker": "Locker",
+      "car": "Car",
+      "van": "Van",
+      "bike": "Bike / cargo bike",
+      "trailer": "Trailer",
+      "boat": "Boat",
+      "device": "Device",
+      "tech": "Tech",
+      "instrument": "Instrument",
+      "tool": "Tool",
+      "furniture": "Furniture",
+      "tent": "Tent / gazebo",
+      "costume": "Costume",
+      "sports": "Sports equipment",
+      "media": "Book / media",
+      "key": "Key",
+      "transponder": "Transponder",
+      "card": "Card / chip"
+    },
+    "statuses": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "lost": "Lost"
+    },
+    "units": {
+      "hour": "per hour",
+      "day": "per day",
+      "week": "per week",
+      "month": "per month",
+      "year": "per year",
+      "once": "one-off"
+    },
+    "unitsShort": {
+      "hour": "hr",
+      "day": "day",
+      "week": "week",
+      "month": "month",
+      "year": "year",
+      "once": "one-off"
+    },
+    "words": {
+      "contract": "Rental contract",
+      "booking": "Booking",
+      "loan": "Loan",
+      "handout": "Handout"
+    },
+    "newWord": {
+      "contract": "Create contract",
+      "booking": "Book",
+      "loan": "Lend",
+      "handout": "Hand out"
+    },
+    "states": {
+      "request": "Request",
+      "cancelled": "Cancelled",
+      "upcoming": "Upcoming",
+      "running": "Running",
+      "ended": "Ended"
+    },
+    "free": "Free",
+    "busyWith": "Taken by {who}",
+    "busy": "Taken",
+    "handedTo": "with {who} since {date}",
+    "inOffice": "here",
+    "lostShort": "lost",
+    "children": "Belongs to it",
+    "addChild": "+ {kind}",
+    "addSeveral": "+ several…",
+    "howMany": "How many?",
+    "prefix": "Name/number prefix",
+    "addChildren": "Create",
+    "childrenAdded": {
+      "one": "{count} object created.",
+      "other": "{count} objects created."
+    },
+    "rates": "Rates",
+    "ratesHint": "Price and terms as a template – copied into a rental and changeable there.",
+    "newRate": "Add rate",
+    "noRates": "No rates yet.",
+    "rateName": "Name",
+    "unit": "Billing",
+    "price": "Price",
+    "minUnits": "At least",
+    "termMonths": "Fixed term (months)",
+    "renewMonths": "Renews by (months)",
+    "noticeMonths": "Notice period (months)",
+    "rateActive": "Active",
+    "deleteRate": "Delete rate",
+    "rateSaved": "Rate saved.",
+    "rateDeleted": "Rate deleted.",
+    "current": "Current",
+    "upcoming": "Planned",
+    "history": "Earlier",
+    "noRentals": "No rentals yet.",
+    "rental": "Rental",
+    "object": "Object",
+    "rate": "Rate",
+    "noRate": "– no rate –",
+    "starts": "Start",
+    "ends": "End",
+    "endsOpen": "open",
+    "endsHint": "Empty = open-ended.",
+    "renew": "Renews automatically by (months)",
+    "notice": "Notice period (months)",
+    "requestStatus": "Status",
+    "note": "Note",
+    "people": "People",
+    "peopleHint": "Main tenants are the contract partners and pay; co-users have access but nothing to do with the contract.",
+    "roles": {
+      "main": "Main tenant",
+      "member": "Co-user"
+    },
+    "addPerson": "Add person",
+    "removePerson": "Remove",
+    "nobody": "Nobody yet.",
+    "giveNotice": "Record notice",
+    "noticeHint": "Earliest end with notice today: {date}.",
+    "noticeOtherDate": "Other end date (optional)",
+    "noticeGiven": "Notice recorded – ends on {date}.",
+    "noticeReceived": "Notice given on {date}",
+    "giveBack": "Return",
+    "depositBack": "Deposit returned",
+    "returned": "Returned.",
+    "handOut": "Hand out",
+    "handOutTo": "To",
+    "handedOut": "Handed out.",
+    "created": "Created.",
+    "saved": "Saved.",
+    "trashed": "Moved to the trash.",
+    "toTrash": "Move to trash",
+    "objectTrashed": "Object moved to the trash.",
+    "nameRequired": "Please enter a name.",
+    "endBeforeStart": "The end must be after the start.",
+    "renewNeedsEnd": "Automatic renewal needs an end date (end of the first term).",
+    "all": "All",
+    "filterFamily": "Family",
+    "onlyFree": "Free",
+    "onlyBusy": "Taken",
+    "calendarHint": "Occupancy of the rentable objects. Click a rental to open it, click a free slot to book it.",
+    "listEmpty": "No rentals yet.",
+    "whoCol": "People",
+    "whenCol": "Period",
+    "priceCol": "Price",
+    "stateCol": "Status",
+    "search": "Search objects…",
+    "searchRentals": "Search…",
+    "keys": "Keys & access",
+    "since": "since {date}",
+    "until": "until {date}",
+    "childCount": {
+      "one": "{count} ({out} out)",
+      "other": "{count} ({out} out)"
+    },
+    "includedShort": "fixed part",
+    "addSub": "Add sub-object",
+    "noChildren": "Nothing yet – add keys, rooms or fixed fittings here.",
+    "termShort": "{months} mo. fixed",
+    "renewShort": "renews by {months} mo.",
+    "noticeShort": "notice {months} mo.",
+    "ratePlaceholder": "e.g. long term, hourly, weekend",
+    "longTermOnly": "Only for monthly/yearly",
+    "prefixHint": "Objects are then called e.g. A-1, A-2, A-3 … (continuing after existing ones).",
+    "peopleHintNew": "Add further main tenants and co-users on the rental afterwards.",
+    "whenTitle": "Period",
+    "priceTitle": "Price & terms",
+    "rateHint": "Empty fields are taken from the rate.",
+    "fromRate": "from the rate",
+    "statusOptions": {
+      "confirmed": "Confirmed",
+      "request": "Request (doesn’t block)"
+    },
+    "statusOptionsAll": {
+      "confirmed": "Confirmed",
+      "request": "Request",
+      "cancelled": "Cancelled"
+    },
+    "views": {
+      "current": "Running",
+      "upcoming": "Planned",
+      "requests": "Requests",
+      "ended": "Ended",
+      "all": "All"
+    },
+    "pickObject": "Which object?"
   }
 }
