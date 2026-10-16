@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/client"
 
 // Resize photos to at most 2000 px and re-encode as WebP, but only keep the result when it is smaller.
 // GIFs (animation) and SVGs stay as they are.
-async function compress(file: File): Promise<File> {
+export async function compress(file: File): Promise<File> {
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) return file
   try {
     const bitmap = await createImageBitmap(file)

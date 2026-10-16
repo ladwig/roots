@@ -10,7 +10,7 @@ const TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
 
 export const UPLOAD_INPUT = {
   image_url: { type: "string", description: "https link to the picture (JPEG, PNG, WebP or GIF, max. 2 MB)" },
-  image_base64: { type: "string", description: "Or the picture itself, base64 (or a data: URL)" },
+  image_base64: { type: "string", description: "Or the picture itself, base64 (or a data: URL). Leave both out to get an upload link for the person (e.g. for a picture pasted in the chat)." },
   content_type: { type: "string", description: "With image_base64: image/jpeg, image/png, image/webp or image/gif" },
 }
 

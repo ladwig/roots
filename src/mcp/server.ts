@@ -11,6 +11,7 @@ import { ApiError, invoke, mayCall, parseInput, rateLimit, type Auth, type Endpo
 import { endpoints } from "@/api/v1"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { APP_URL } from "@/lib/url"
+import { uploadLink } from "@/api/upload-link"
 import { imagesOf, UPLOAD_INPUT, uploadRequest } from "./media"
 import { getPrompt, promptList } from "./prompts"
 import { appPath, callArgs, confirmMessage, confirmWindow, opName, riskOf, uniqueNames, type Risk } from "./names"
@@ -72,7 +73,7 @@ const text = (v: unknown, isError = false) => {
 
 const INSTRUCTIONS = `roots is the back office of a club / collective / small org (contacts, memberships and dues, events and tickets, shifts, invoices, email, forms, automations, rentals …).
 How to work (fewer round trips = faster): 1) roots_find_operations to see what this connection may do (filter by a word like "contact" or "rental"), 2) roots_describe_operation for the input schema (pass names: [...] to get several at once), 3) call it with roots_read (GET), roots_write (create/change) or roots_danger (delete, send emails, money, irreversible – first call returns a preview + confirm_token; show the preview to the user and only repeat the call with the token after they agree). For several creates/changes use calls: [{ operation, arguments }, …] in one roots_write. Results of single records carry app_url: link it so the user can open the record in roots.
-Pictures: upload operations (e.g. the event picture) take image_url (https) or image_base64; records with a picture return it as an image. Guided setups are available as prompts (verein_einrichten, mitglieder_importieren, event_erstellen).
+Pictures and files: upload operations (e.g. the event picture) take image_url (https) or image_base64. A picture or document the person pasted into the chat can't be passed on directly: call the upload operation without image_url/image_base64 (or files_upload_link for documents) and give the person the returned upload_url as a link; they drop the file there. Records with a picture return it as an image. Guided setups are available as prompts (verein_einrichten, mitglieder_importieren, event_erstellen).
 Automations: GET workflows_catalog_list (with trigger=…) for triggers, node types and fields → draft a graph (positions optional) → workflows_validate until problems is empty → workflows_create (created inactive) → summarise it for the user → workflows_update { active: true } once they agree. workflow_templates_list has ready-made graphs.
 Conventions: money in cents (integer), timestamps ISO 8601 (UTC), days YYYY-MM-DD, the org's time zone is Europe/Berlin. Lists take limit/offset and return has_more. Deleting usually moves to a trash (restorable for 30 days). German area names: Kontakte = contacts, Mitgliedschaften = memberships, Beiträge = dues, Veranstaltungen = events, Schichten = shifts, Vermietung = rentals, Rechnungen = invoices.`
 
@@ -115,6 +116,14 @@ export function mcpServer(auth: Auth, request: Request) {
       return { confirm: true, operation: op.name, summary: op.e.summary, method: op.e.method, path: op.e.path, arguments: args, target, confirm_token: sign(confirmMessage(auth.key_id, op.name, args, confirmWindow(Date.now()))), note: "Nothing happened yet. Show this to the user; repeat the same call with confirm_token to execute." }
     }
     await rateLimit(auth, op.e.method !== "GET" && risk !== "read")
+    // Upload endpoints without the picture itself → a link for the person (pasted chat images can't be passed on).
+    if (op.e.upload && !args.image_url && !args.image_base64) {
+      const base = OPS.find((x) => x.e.method === "GET" && x.e.path === op.e.path.replace(/\/[a-z-]+$/, ""))
+      const rec = base && mayCall(auth, base.e) ? ((await invoke(base.e, auth, { params: input.params, query: {}, body: undefined }, request).catch(() => null)) as Record<string, unknown> | null) : null
+      if (base && !rec) return { error: { code: "not_found", message: "Not found." } }
+      const label = rec ? String(rec.title ?? rec.name ?? "") || undefined : undefined
+      return { ...uploadLink(auth, { kind: "image", path: Object.entries(input.params).reduce((p, [k, v]) => p.replace(`{${k}}`, v), op.e.path), label }), note: "Give the person this link (as a clickable link): they open it and drop the picture; it is set right away. Then read the record to see it." }
+    }
     // Upload endpoints read a raw body: built from image_url / image_base64.
     const req = op.e.upload ? await uploadRequest(args, op.e.method) : request
     const result = await invoke(op.e, auth, { params: input.params, query: parsed.query, body: parsed.body }, req)

@@ -6,6 +6,7 @@ import { cleanHtml, FIELD_TYPES, readFields } from "@/letters/model"
 import { fillLetter, letterFileName, letterPdf, loadTemplate, storeLetter, textHtml, type LetterCtx } from "@/letters/server"
 import { FILE_PATH, MAX_FILE_BYTES } from "@/lib/files"
 import { sendOrgEmail } from "@/lib/org-email"
+import { uploadLink } from "../upload-link"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
 import { day, ts, type Db } from "./shared"
 
@@ -171,6 +172,23 @@ export const endpoints: Endpoint[] = [
       const { data, error } = await db.storage.from("files").createSignedUploadUrl(`orgs/${orgId}/${crypto.randomUUID()}.${ext}`)
       if (error) throw new ApiError(500, "internal", "Storage error.")
       return { path: data.path, upload_url: data.signedUrl, token: data.token }
+    },
+  }),
+  endpoint({
+    method: "POST",
+    path: "/files/upload-link",
+    permission: "org.files.manage",
+    tag: "Files",
+    summary: "Get an upload link for a person",
+    description:
+      "For clients that can't send the file themselves (e.g. an AI chat where the person pasted a document): returns a link (valid 1 hour) to a page where the person drops one or more files; they are attached to the record (`entity` + `entity_id`) or put in `folder`. A client with a shell can also `PUT` the bytes to `<upload_url with /upload/ replaced by /api/upload/>` with `X-File-Name` (max. 4 MB). Afterwards list the files (GET /files?entity=…) to see them.",
+    body: z.object({ entity: Entity.optional(), entity_id: uuid.optional(), folder: folderText.optional(), label: z.string().max(200).optional().describe("Shown on the page, e.g. the record's name") }).strict(),
+    response: z.object({ upload_url: z.string(), expires_at: ts }),
+    status: 201,
+    async handler({ db, orgId, keyId, body }) {
+      if (!body.entity !== !body.entity_id) throw new ApiError(422, "invalid_input", "Send entity and entity_id together.")
+      if (body.entity) await checkEntity(db, orgId, body.entity, body.entity_id!)
+      return uploadLink({ org_id: orgId, key_id: keyId }, { kind: "file", entity: body.entity, entity_id: body.entity_id, folder: body.entity ? undefined : body.folder || undefined, label: body.label })
     },
   }),
   endpoint({

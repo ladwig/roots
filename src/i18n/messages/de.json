@@ -4660,5 +4660,17 @@
     "added": "hinzugefügt am {date}",
     "used": "zuletzt genutzt {date}",
     "unsupported": "Dieser Browser unterstützt keine Passkeys."
+  },
+  "upload": {
+    "titleImage": "Bild hochladen",
+    "titleFile": "Dateien hochladen",
+    "expired": "Dieser Upload-Link ist abgelaufen. Bitte frag in Claude nach einem neuen.",
+    "dropImage": "Bild hierher ziehen oder auswählen",
+    "dropFiles": "Dateien hierher ziehen oder auswählen",
+    "hint": "Bis {mb} MB. Fotos werden automatisch verkleinert.",
+    "uploading": "Wird hochgeladen …",
+    "tooLarge": "{name} ist zu groß.",
+    "failed": "Hochladen hat nicht geklappt.",
+    "back": "Fertig. Du kannst zurück zu Claude gehen."
   }
 }

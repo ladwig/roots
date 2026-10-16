@@ -46,7 +46,7 @@ Checklist (skip what doesn't apply, ask before each block):
 Ask for (with suggestions where you can): title, date + start/end time (Europe/Berlin), place (GET /locations or a venue name + address), a description (offer to write it from a few keywords and show it first), capacity, free or paid; for paid: ticket types with price, quota, sale period, max. per order, early-bird tiers, discount codes; a picture (an image URL, or the person attaches one).
 Then:
 1. POST /events (status draft).
-2. Picture: events_image_set with image_url (https) or image_base64; it is shown back to you, check it fits.
+2. Picture: events_image_set with image_url (https) or image_base64; if the person pasted the picture into the chat, call it without both and give them the upload link. It is shown back to you, check it fits.
 3. Tickets: POST /events/{id}/ticket-types (prices in cents), tiers POST /ticket-types/{id}/tiers, codes POST /events/{id}/ticket-codes. Free events: one free type means "Anmeldung".
 4. Lineup / programme if it has one: POST /events/{id}/slots, artists POST /artists.
 5. Show a compact summary (date, place, tickets + prices, link) and ask whether to publish; only then PATCH /events/{id} { status: "published" }.`,

@@ -4660,5 +4660,17 @@
     "added": "added on {date}",
     "used": "last used {date}",
     "unsupported": "This browser doesn’t support passkeys."
+  },
+  "upload": {
+    "titleImage": "Upload a picture",
+    "titleFile": "Upload files",
+    "expired": "This upload link has expired. Please ask Claude for a new one.",
+    "dropImage": "Drag a picture here or choose one",
+    "dropFiles": "Drag files here or choose them",
+    "hint": "Up to {mb} MB. Photos are resized automatically.",
+    "uploading": "Uploading …",
+    "tooLarge": "{name} is too large.",
+    "failed": "The upload didn't work.",
+    "back": "Done. You can go back to Claude."
   }
 }
