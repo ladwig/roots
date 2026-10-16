@@ -26,6 +26,7 @@ import {
   type ReactNode,
   useContext,
   useState,
+  useId,
 } from "react";
 import { createPortal } from "react-dom";
 import tunnel from "tunnel-rat";
@@ -307,9 +308,11 @@ export const KanbanProvider = <
     },
   };
 
+  const dndId = useId()
   return (
     <KanbanContext.Provider value={{ columns, data, activeCardId }}>
       <DndContext
+        id={dndId} // stable across server and browser (else dnd-kit's counter differs → hydration warning)
         accessibility={{ announcements }}
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}

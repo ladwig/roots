@@ -13,7 +13,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useT } from "@/i18n/client"
 import { cn } from "@/lib/utils"
-import { MessageView } from "./parts"
+import { ThinkingOrb } from "thinking-orbs"
+import { MessageView, orbState } from "./parts"
 
 export type Model = { provider: Provider; id: string; name: string }
 type Attachment = { id: string; name: string; mime: string }
@@ -60,7 +61,7 @@ export function ChatView({
       }),
     [],
   )
-  const { messages, sendMessage, status, stop, error, addToolApprovalResponse, clearError } = useChat({
+  const { messages, sendMessage, status, stop, error, addToolApprovalResponse, clearError, regenerate } = useChat({
     id: chatId,
     messages: initial,
     transport,
@@ -70,7 +71,10 @@ export function ChatView({
   const busy = status === "submitted" || status === "streaming"
 
   const end = useRef<HTMLDivElement>(null)
-  useEffect(() => end.current?.scrollIntoView({ block: "end" }), [messages])
+  // Braces matter: scrollIntoView returns a Promise in current browsers, which React must not get as "cleanup".
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: "end" })
+  }, [messages])
 
   const [text, setText] = useState("")
   const [files, setFiles] = useState<Attachment[]>([])
@@ -123,6 +127,7 @@ export function ChatView({
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
         {messages.length === 0 ? (
           <div className="grid gap-3 pt-6">
+            <ThinkingOrb state="breathing" size={64} aria-label={t("sprout.name")} />
             <p className="text-sm text-muted-foreground">{t("sprout.hello", { org: orgName })}</p>
             <div className="flex flex-wrap gap-2">
               {(["today", "overdue", "event"] as const).map((k) => (
@@ -137,10 +142,17 @@ export function ChatView({
             {messages.map((m) => (
               <MessageView key={m.id} message={m} onApprove={addToolApprovalResponse} />
             ))}
-            {status === "submitted" && <Loader2Icon className="size-4 animate-spin text-muted-foreground" />}
+            {busy && <ThinkingOrb state={orbState(messages.at(-1))} size={20} />}
           </div>
         )}
-        {errorText && <p className="mt-4 rounded-lg border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">{errorText}</p>}
+        {errorText && (
+          <div className="mt-4 grid gap-2 rounded-lg border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+            <p>{errorText}</p>
+            <Button size="sm" variant="outline" className="justify-self-start" onClick={() => (clearError(), regenerate({ body: { model, page: page ?? undefined } }))}>
+              {t("sprout.retry")}
+            </Button>
+          </div>
+        )}
         <div ref={end} />
       </div>
 
@@ -196,7 +208,7 @@ export function ChatView({
           {canSpeak && (
             <Tooltip>
               <TooltipTrigger render={<Button type="button" variant={listening ? "secondary" : "ghost"} size="icon-sm" aria-label={t("sprout.dictate")} aria-pressed={listening} onClick={dictate} />}>
-                <MicIcon className={cn(listening && "text-destructive")} />
+                {listening ? <ThinkingOrb state="listening" size={20} /> : <MicIcon />}
               </TooltipTrigger>
               <TooltipContent>{t("sprout.dictate")}</TooltipContent>
             </Tooltip>
@@ -235,7 +247,6 @@ export function ChatView({
           )}
         </div>
       </form>
-      <p className="-mt-1 mb-2 px-4 text-center text-[11px] text-muted-foreground">{t("sprout.disclaimer")}</p>
     </div>
   )
 }

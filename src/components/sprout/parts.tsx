@@ -24,6 +24,15 @@ const detailOf = (r: Record<string, unknown>, t: ReturnType<typeof useT>) => {
   return [typeof r.status === "string" ? r.status : null, when, typeof r.email === "string" && r.title ? r.email : null].filter(Boolean).join(" · ")
 }
 
+// What the thinking orb shows while Sprout works: the last step of the answer decides.
+export function orbState(last: UIMessage | undefined) {
+  const step = [...(last?.role === "assistant" ? last.parts : [])].reverse().find((p) => "toolCallId" in p || p.type === "text")
+  if (!step || step.type === "text") return "composing" as const
+  if (step.type === "tool-roots_danger") return "solving" as const
+  if (step.type === "tool-roots_write") return "working" as const
+  return "searching" as const
+}
+
 /** One message: text as markdown, tool steps as compact rows (lists and records as small cards), files as chips. */
 export function MessageView({ message, onApprove }: { message: UIMessage; onApprove: Approve }) {
   const user = message.role === "user"

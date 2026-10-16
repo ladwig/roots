@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
 import type { getContext } from "@/lib/context"
+import { SproutRefresh } from "@/components/sprout/refresh"
 import { deleteAiKeyAction, saveAiKeyAction } from "./ai-actions"
 
 /** Profile → KI-Assistent: the person's own API keys (one per provider); Sprout offers their models. */
@@ -15,6 +16,7 @@ export async function AiKeys({ ctx }: { ctx: Awaited<ReturnType<typeof getContex
   const { data: keys } = await ctx.supabase.from("ai_keys").select("provider, hint, models, updated_at").eq("user_id", ctx.userId).order("provider")
   return (
     <FormCard id="ai" title={t("sprout.keysTitle")} description={t("sprout.keysHint")}>
+      <SproutRefresh stamp={(keys ?? []).map((k) => `${k.provider}${k.updated_at}`).join()} />
       {(keys ?? []).length > 0 && (
         <ul className="grid gap-1.5">
           {(keys ?? []).map((k) => (

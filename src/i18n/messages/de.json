@@ -4816,7 +4816,6 @@
     },
     "stop": "Stoppen",
     "send": "Senden",
-    "disclaimer": "Sprout kann sich irren. Prüf wichtige Angaben.",
     "star": "Merken",
     "unstar": "Nicht mehr merken",
     "newChat": "Neuer Chat",
@@ -4828,6 +4827,15 @@
     "narrow": "Schmaler",
     "wide": "Breiter",
     "needKey": "Sprout braucht einen API-Schlüssel von Claude, ChatGPT, Gemini oder Grok. Du hinterlegst ihn einmal in deinem Profil.",
-    "addKeyLink": "Schlüssel hinzufügen"
+    "addKeyLink": "Schlüssel hinzufügen",
+    "retry": "Nochmal versuchen",
+    "errors": {
+      "credits": "Bei {provider} ist kein Guthaben mehr da (oder das Limit deines Plans ist erreicht). Lade dein Konto beim Anbieter auf oder wähl ein anderes Modell.",
+      "key": "{provider} lehnt den Schlüssel ab – er ist ungültig oder wurde gelöscht. Hinterleg im Profil einen neuen.",
+      "limit": "Zu viele Anfragen bei {provider} gerade (Rate-Limit). Warte einen Moment und versuch es nochmal.",
+      "model": "Dieses Modell gibt es bei {provider} nicht (mehr). Wähl unten ein anderes.",
+      "access": "{provider} erlaubt diesem Schlüssel das nicht (fehlende Freigabe oder Guthaben).",
+      "down": "{provider} hat gerade Probleme. Versuch es gleich nochmal."
+    }
   }
 }

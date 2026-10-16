@@ -62,7 +62,13 @@ export async function POST(request: Request) {
       generateMessageId: () => crypto.randomUUID(),
       onError: (e) => {
         // The provider's own words help most (wrong key, no credits, model not available …).
-        if (APICallError.isInstance(e)) return t("sprout.providerError", { provider: PROVIDERS[provider as Provider].vendor, reason: String(e.message).slice(0, 300) })
+        if (APICallError.isInstance(e)) {
+          const vendor = PROVIDERS[provider as Provider].vendor
+          const reason = String(e.message).slice(0, 300)
+          const s = e.statusCode ?? 0
+          const why = /credit|billing|quota|insufficient|balance|licen[cs]e/i.test(reason) ? "credits" : s === 401 ? "key" : s === 429 ? "limit" : s === 402 ? "credits" : s === 404 ? "model" : s === 403 ? "access" : s >= 500 ? "down" : null
+          return why ? `${t.dynamic(`sprout.errors.${why}`, { provider: vendor })} (${reason})` : t("sprout.providerError", { provider: vendor, reason })
+        }
         console.error("sprout", e)
         return t("sprout.failed")
       },

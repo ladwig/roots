@@ -80,7 +80,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         actions={
           !trash && (
             <>
-              <Button variant="outline" size="sm" render={<Link href="/projects/tasks" />}>
+              <Button variant="outline" size="sm" render={<Link href="/projects/tasks" />} nativeButton={false}>
                 <ListTodoIcon /> {t("projects.allTasks")}
               </Button>
               <ViewSegments t={t} sp={sp} views={VIEWS} current={view} />
@@ -99,7 +99,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         primary={
           canManage &&
           !trash && (
-            <Button size="sm" render={<Link href="/projects/new" />}>
+            <Button size="sm" render={<Link href="/projects/new" />} nativeButton={false}>
               <PlusIcon /> {t("projects.newProject")}
             </Button>
           )
@@ -113,7 +113,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           text={t("projects.emptyText")}
           action={
             canManage && (
-              <Button size="sm" render={<Link href="/projects/new" />}>
+              <Button size="sm" render={<Link href="/projects/new" />} nativeButton={false}>
                 <PlusIcon /> {t("projects.newProject")}
               </Button>
             )

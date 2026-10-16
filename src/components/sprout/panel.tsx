@@ -42,6 +42,12 @@ export function SproutPanel() {
   useEffect(() => {
     if (open && !setup) refresh()
   }, [open, setup, refresh])
+  // Keys added or removed elsewhere (profile page) → reload the models.
+  useEffect(() => {
+    const on = () => refresh()
+    window.addEventListener("sprout:refresh", on)
+    return () => window.removeEventListener("sprout:refresh", on)
+  }, [refresh])
   // The model: last used (this browser), else the first one the keys offer.
   const models: Model[] = setup?.models ?? []
   const has = (m: string) => models.some((x) => `${x.provider}:${x.id}` === m)
@@ -82,12 +88,9 @@ export function SproutPanel() {
           <PlusIcon />
         </Icon>
         <Popover>
-          <Tooltip>
-            <TooltipTrigger render={<PopoverTrigger render={<Button variant="ghost" size="icon-sm" aria-label={t("sprout.history")} />} />}>
-              <HistoryIcon />
-            </TooltipTrigger>
-            <TooltipContent>{t("sprout.history")}</TooltipContent>
-          </Tooltip>
+          <PopoverTrigger render={<Button variant="ghost" size="icon-sm" aria-label={t("sprout.history")} title={t("sprout.history")} />}>
+            <HistoryIcon />
+          </PopoverTrigger>
           <PopoverContent align="end" className="w-80 p-1">
             <p className="px-2 py-1.5 text-xs font-medium text-muted-foreground">{t("sprout.recent")}</p>
             {!setup?.chats.length && <p className="px-2 py-2 text-sm text-muted-foreground">{t("sprout.noChats")}</p>}
@@ -134,7 +137,7 @@ export function SproutPanel() {
       ) : !models.length ? (
         <div className="m-4 grid gap-3 text-sm">
           <p>{t("sprout.needKey")}</p>
-          <Button size="sm" className="justify-self-start" render={<Link href="/settings/profile#ai" />}>
+          <Button size="sm" className="justify-self-start" render={<Link href="/settings/profile#ai" />} nativeButton={false}>
             {t("sprout.addKeyLink")}
           </Button>
         </div>
