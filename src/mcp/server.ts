@@ -6,17 +6,19 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
 import { z } from "zod"
 import { Server } from "@modelcontextprotocol/sdk/server/index.js"
-import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js"
+import { CallToolRequestSchema, GetPromptRequestSchema, ListPromptsRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js"
 import { ApiError, invoke, mayCall, parseInput, rateLimit, type Auth, type Endpoint } from "@/api/core"
 import { endpoints } from "@/api/v1"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { APP_URL } from "@/lib/url"
+import { imagesOf, UPLOAD_INPUT, uploadRequest } from "./media"
+import { getPrompt, promptList } from "./prompts"
 import { appPath, callArgs, confirmMessage, confirmWindow, opName, riskOf, uniqueNames, type Risk } from "./names"
 
 type Op = { name: string; e: Endpoint; risk: Risk; params: string[] }
 
 const OPS: Op[] = (() => {
-  const usable = endpoints.filter((e) => !e.upload)
+  const usable = endpoints
   const names = uniqueNames(usable.map((e) => opName(e.method, e.path)))
   return usable.map((e, i) => ({ name: names[i], e, risk: riskOf(e.method, e.path), params: [...e.path.matchAll(/\{(\w+)\}/g)].map((m) => m[1]) }))
 })()
@@ -38,6 +40,7 @@ function inputSchema(op: Op) {
   if (b && clash) props.body = b
   else for (const [k, v] of Object.entries(b?.properties ?? {})) props[k] = v
   if (b && !clash) required.push(...(b.required ?? []))
+  if (op.e.upload) Object.assign(props, UPLOAD_INPUT)
   return { type: "object", properties: props, required }
 }
 
@@ -69,12 +72,13 @@ const text = (v: unknown, isError = false) => {
 
 const INSTRUCTIONS = `roots is the back office of a club / collective / small org (contacts, memberships and dues, events and tickets, shifts, invoices, email, forms, automations, rentals …).
 How to work (fewer round trips = faster): 1) roots_find_operations to see what this connection may do (filter by a word like "contact" or "rental"), 2) roots_describe_operation for the input schema (pass names: [...] to get several at once), 3) call it with roots_read (GET), roots_write (create/change) or roots_danger (delete, send emails, money, irreversible – first call returns a preview + confirm_token; show the preview to the user and only repeat the call with the token after they agree). For several creates/changes use calls: [{ operation, arguments }, …] in one roots_write. Results of single records carry app_url: link it so the user can open the record in roots.
+Pictures: upload operations (e.g. the event picture) take image_url (https) or image_base64; records with a picture return it as an image. Guided setups are available as prompts (verein_einrichten, mitglieder_importieren, event_erstellen).
 Automations: GET workflows_catalog_list (with trigger=…) for triggers, node types and fields → draft a graph (positions optional) → workflows_validate until problems is empty → workflows_create (created inactive) → summarise it for the user → workflows_update { active: true } once they agree. workflow_templates_list has ready-made graphs.
 Conventions: money in cents (integer), timestamps ISO 8601 (UTC), days YYYY-MM-DD, the org's time zone is Europe/Berlin. Lists take limit/offset and return has_more. Deleting usually moves to a trash (restorable for 30 days). German area names: Kontakte = contacts, Mitgliedschaften = memberships, Beiträge = dues, Veranstaltungen = events, Schichten = shifts, Vermietung = rentals, Rechnungen = invoices.`
 
 /** A fresh server per request (stateless); tools see only what `auth` may call. */
 export function mcpServer(auth: Auth, request: Request) {
-  const server = new Server({ name: "roots", version: "1.0.0" }, { capabilities: { tools: {} }, instructions: INSTRUCTIONS })
+  const server = new Server({ name: "roots", version: "1.0.0" }, { capabilities: { tools: {}, prompts: {} }, instructions: INSTRUCTIONS })
   const ops = OPS.filter((o) => mayCall(auth, o.e))
   const find = (name: unknown) => ops.find((o) => o.name === name)
   const one = { operation: { type: "string", description: "Operation name from roots_find_operations" }, arguments: { type: "object", description: "Input as described by roots_describe_operation (path ids, query and body fields in one object)" } }
@@ -111,10 +115,19 @@ export function mcpServer(auth: Auth, request: Request) {
       return { confirm: true, operation: op.name, summary: op.e.summary, method: op.e.method, path: op.e.path, arguments: args, target, confirm_token: sign(confirmMessage(auth.key_id, op.name, args, confirmWindow(Date.now()))), note: "Nothing happened yet. Show this to the user; repeat the same call with confirm_token to execute." }
     }
     await rateLimit(auth, op.e.method !== "GET" && risk !== "read")
-    const result = await invoke(op.e, auth, { params: input.params, query: parsed.query, body: parsed.body }, request)
+    // Upload endpoints read a raw body: built from image_url / image_base64.
+    const req = op.e.upload ? await uploadRequest(args, op.e.method) : request
+    const result = await invoke(op.e, auth, { params: input.params, query: parsed.query, body: parsed.body }, req)
     const link = op.e.method !== "GET" || op.params.length ? appPath(op.e.path, result, input.params) : null
     return link && result && typeof result === "object" ? { ...(result as object), app_url: `${APP_URL}${link}` } : result
   }
+
+  server.setRequestHandler(ListPromptsRequestSchema, async () => ({ prompts: promptList() }))
+  server.setRequestHandler(GetPromptRequestSchema, async (req) => {
+    const p = getPrompt(req.params.name, req.params.arguments)
+    if (!p) throw new Error(`Unknown prompt ${req.params.name}.`)
+    return p
+  })
 
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: [
@@ -177,7 +190,10 @@ export function mcpServer(auth: Auth, request: Request) {
         return text({ results })
       }
       const r = await runOne(risk, a)
-      return text(r, !!r && typeof r === "object" && "error" in r)
+      const failed = !!r && typeof r === "object" && "error" in r
+      const out = text(r, failed)
+      // The record's picture comes along as an image, so Claude can see it.
+      return failed ? out : { ...out, content: [...out.content, ...(await imagesOf(r).catch(() => []))] }
     } catch (e) {
       if (e instanceof ApiError) return text({ error: { code: e.code, message: e.message, details: e.details } }, true)
       console.error("mcp", e)
