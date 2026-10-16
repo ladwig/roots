@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, useTransition } from "react"
 import Link from "next/link"
 import type { UIMessage } from "ai"
-import { HistoryIcon, Maximize2Icon, Minimize2Icon, PlusIcon, SproutIcon, StarIcon, Trash2Icon, XIcon } from "lucide-react"
+import { HistoryIcon, Maximize2Icon, Minimize2Icon, PlusIcon, StarIcon, Trash2Icon, XIcon } from "lucide-react"
 import { deleteChat, loadChat, sproutSetup, starChat } from "@/assistant/actions"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -12,6 +12,7 @@ import { useT } from "@/i18n/client"
 import { cn } from "@/lib/utils"
 import { ChatView, type Model } from "./chat"
 import { useSprout } from "./context"
+import { SproutOrb } from "./sprout-orb"
 
 type Setup = Awaited<ReturnType<typeof sproutSetup>>
 type Chat = { id: string; messages: UIMessage[]; title: string; starred: boolean; saved: boolean; prompt?: string }
@@ -100,7 +101,7 @@ export function SproutPanel() {
   return (
     <aside id="sprout-panel" aria-label={t("sprout.name")} className={cn("fixed inset-0 z-40 flex flex-col bg-background", !wide && "md:sticky md:top-0 md:z-auto md:h-svh md:w-[26rem] md:shrink-0 md:border-l")}>
       <header className="flex h-12 shrink-0 items-center gap-1 border-b px-3">
-        <SproutIcon className="size-4 shrink-0 text-primary" />
+        <SproutOrb size={22} className="text-foreground" />
         <h2 className="min-w-0 flex-1 truncate text-sm font-medium">{title}</h2>
         {chat.saved && (
           <Icon

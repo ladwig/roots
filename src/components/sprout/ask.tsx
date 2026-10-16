@@ -1,9 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { ArrowUpIcon, SproutIcon } from "lucide-react"
+import { ArrowUpIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useT } from "@/i18n/client"
+import { SproutOrb } from "./sprout-orb"
 
 /** Entry point on the home page: the question opens Sprout's panel and runs there as a new chat. */
 export function SproutAsk() {
@@ -22,8 +23,8 @@ export function SproutAsk() {
       }}
       className="grid gap-3 rounded-xl border bg-card p-3 focus-within:ring-2 focus-within:ring-ring/50"
     >
-      <div className="flex items-start gap-2">
-        <SproutIcon className="mt-2 size-4 shrink-0 text-primary" aria-hidden />
+      <div className="flex items-center gap-2">
+        <SproutOrb size={36} className="text-foreground" label="Sprout" />
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}

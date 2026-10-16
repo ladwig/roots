@@ -15,6 +15,7 @@ import { useT } from "@/i18n/client"
 import { cn } from "@/lib/utils"
 import { ThinkingOrb } from "thinking-orbs"
 import { MessageView, orbState } from "./parts"
+import { SproutOrb } from "./sprout-orb"
 
 export type Model = { provider: Provider; id: string; name: string }
 type Attachment = { id: string; name: string; mime: string }
@@ -138,10 +139,10 @@ export function ChatView({
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
         {messages.length === 0 ? (
-          <div className="grid gap-3 pt-6">
-            <ThinkingOrb state="breathing" size={64} aria-label={t("sprout.name")} className="size-16 justify-self-start" />
-            <p className="text-sm text-muted-foreground">{t("sprout.hello", { org: orgName })}</p>
-            <div className="flex flex-wrap gap-2">
+          <div className="grid justify-items-center gap-4 pt-8 text-center">
+            <SproutOrb size={112} label={t("sprout.name")} className="text-foreground" />
+            <p className="max-w-xs text-sm text-muted-foreground">{t("sprout.hello", { org: orgName })}</p>
+            <div className="flex flex-wrap justify-center gap-2">
               {(["today", "overdue", "event"] as const).map((k) => (
                 <Button key={k} size="sm" variant="outline" disabled={!model} onClick={() => send(t.dynamic(`sprout.ideas.${k}`))}>
                   {t.dynamic(`sprout.ideas.${k}`)}
@@ -156,7 +157,7 @@ export function ChatView({
             ))}
             {/* Before the first step / words arrive: the orb alone. */}
             {busy && !(messages.at(-1)?.role === "assistant" && messages.at(-1)!.parts.some((p) => p.type !== "step-start")) && (
-              <ThinkingOrb state={orbState(messages.at(-1))} size={20} className="size-5 justify-self-start" />
+              <SproutOrb size={28} working label={t.dynamic(`sprout.orb.${orbState(messages.at(-1))}`)} className="justify-self-start text-foreground" />
             )}
           </div>
         )}
