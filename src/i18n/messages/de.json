@@ -563,8 +563,18 @@
       "rental_objects": "Objekte",
       "rental_rates": "Tarife",
       "rentals": "Vergaben",
-      "rental_contacts": "Personen einer Vergabe"
-    }
+      "rental_contacts": "Personen einer Vergabe",
+      "projects": "Projekte",
+      "project_links": "Projekt-Verknüpfungen",
+      "comments": "Kommentare"
+    },
+    "title": "Aktivität",
+    "comment": "Kommentieren",
+    "delete": "Kommentar löschen",
+    "placeholder": "Kommentar schreiben …",
+    "someone": "Jemand",
+    "viaAi": "über KI-App",
+    "viaApi": "über API"
   },
   "errors": {
     "generic": "Etwas ist schiefgelaufen. Bitte versuch es noch einmal.",
@@ -1151,7 +1161,9 @@
       "events": "Veranstaltungen",
       "memberships": "Mitgliedschaften",
       "rental_objects": "Objekte (Vermietung)",
-      "rentals": "Vergaben (Vermietung)"
+      "rentals": "Vergaben (Vermietung)",
+      "projects": "Projekte",
+      "tasks": "Aufgaben"
     },
     "types": {
       "text": "Text",
@@ -3529,7 +3541,8 @@
       "task": "Aufgabe",
       "task_status": "Projektspalte",
       "rental_object": "Objekt (Vermietung)",
-      "rental": "Vergabe (Vermietung)"
+      "rental": "Vergabe (Vermietung)",
+      "project": "Projekt"
     },
     "fields": {
       "contact": {
@@ -3744,7 +3757,8 @@
       "task": {
         "title": "Titel",
         "description": "Beschreibung",
-        "due_on": "Fällig am"
+        "due_on": "Fällig am",
+        "start_on": "Start"
       },
       "task_status": {
         "name": "Name",
@@ -3767,6 +3781,12 @@
         "unit": "Einheit",
         "deposit_cents": "Kaution (Cent)",
         "note": "Notiz"
+      },
+      "project": {
+        "name": "Name",
+        "start_on": "Start",
+        "end_on": "Ende",
+        "completed_at": "Abgeschlossen am"
       }
     },
     "values": {
@@ -4297,7 +4317,9 @@
     "views": {
       "board": "Board",
       "list": "Liste",
-      "calendar": "Kalender"
+      "calendar": "Kalender",
+      "overview": "Übersicht",
+      "timeline": "Zeitachse"
     },
     "search": "Aufgaben suchen",
     "assignee": "Zuständig",
@@ -4357,7 +4379,65 @@
     "searchPeople": "Person suchen…",
     "saving": "Speichert…",
     "columns": "Spalten des Boards",
-    "moveTo": "Verschieben"
+    "moveTo": "Verschieben",
+    "allProjects": "Alle Projekte",
+    "allTasks": "Alle Aufgaben",
+    "backToProjects": "Zurück zu den Projekten",
+    "createProject": "Projekt anlegen",
+    "deletedAt": "Gelöscht am",
+    "details": "Details",
+    "emptyTitle": "Noch keine Projekte",
+    "emptyText": "Ein Projekt bündelt Aufgaben, Termine, Dateien und Verknüpfungen, z. B. „Sommerfest 2027“.",
+    "start": "Start",
+    "end": "Ende",
+    "lead": "Verantwortlich",
+    "leadBy": "Verantwortlich: {name}",
+    "noLead": "Niemand",
+    "links": "Verknüpft",
+    "linksHint": "Wiki-Seiten, Veranstaltungen, Kontakte … die zum Projekt gehören.",
+    "linkSearch": "Suchen und verknüpfen …",
+    "unlink": "Verknüpfung entfernen",
+    "name": "Name",
+    "newProject": "Neues Projekt",
+    "noProject": "Ohne Projekt",
+    "noProjects": "Keine Projekte gefunden.",
+    "openBoard": "Zum Board",
+    "overdueCount": {
+      "one": "{count} Aufgabe überfällig",
+      "other": "{count} Aufgaben überfällig"
+    },
+    "period": "Zeitraum",
+    "progress": "Fortschritt",
+    "project": "Projekt",
+    "projectColumns": "Spalten der Projekte",
+    "projectSetupHint": "Die Status eines Projekts (z. B. Geplant, Aktiv, Abgeschlossen) – das Projekt-Board zeigt sie als Spalten. Projekte in einer Spalte mit „zählt als erledigt“ gelten als abgeschlossen.",
+    "projectCreated": "Projekt angelegt.",
+    "projectToTrash": "Projekt in den Papierkorb",
+    "projectTrashed": "Projekt in den Papierkorb gelegt.",
+    "quickAddProject": "Neues Projekt…",
+    "restore": "Wiederherstellen",
+    "restored": "Projekt wiederhergestellt.",
+    "searchProjects": "Projekte suchen",
+    "tasksDone": {
+      "one": "{done} von {count} Aufgabe erledigt",
+      "other": "{done} von {count} Aufgaben erledigt"
+    },
+    "trash": "Papierkorb",
+    "trashEmpty": "Der Papierkorb ist leer.",
+    "trashHint": "Gelöschte Projekte bleiben {days} Tage hier und lassen sich wiederherstellen.",
+    "dueBeforeStart": "Die Fälligkeit liegt vor dem Start.",
+    "endBeforeStart": "Das Ende liegt vor dem Start.",
+    "commentEmpty": "Bitte einen Kommentar schreiben.",
+    "linkKinds": {
+      "wiki_pages": "Wiki",
+      "events": "Veranstaltung",
+      "contacts": "Kontakt",
+      "courses": "Kurs",
+      "rentals": "Vergabe",
+      "rental_objects": "Objekt",
+      "documents": "Rechnung",
+      "forms": "Formular"
+    }
   },
   "inputs": {
     "placeholder": {
@@ -4672,5 +4752,8 @@
     "tooLarge": "{name} ist zu groß.",
     "failed": "Hochladen hat nicht geklappt.",
     "back": "Fertig. Du kannst zurück zu Claude gehen."
+  },
+  "timeline": {
+    "undated": "Ohne Datum"
   }
 }

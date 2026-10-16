@@ -206,9 +206,18 @@ export const OBJECTS = {
     remove: "soft",
     module: "projects",
     record: true,
-    fields: [text("title", true), text("description", true), date("due_on", true)],
+    fields: [text("title", true), text("description", true), date("start_on", true), date("due_on", true)],
+    relations: { status_id: "task_status", project_id: "project" },
+    create: { fields: ["title", "description", "start_on", "due_on"] }, // into the first column
+  },
+  project: {
+    table: "projects",
+    idKey: "project_id",
+    remove: "soft",
+    module: "projects",
+    record: true,
+    fields: [text("name", true), date("start_on", true), date("end_on", true), at("completed_at")],
     relations: { status_id: "task_status" },
-    create: { fields: ["title", "description", "due_on"] }, // into the first column
   },
   rental_object: {
     table: "rental_objects",
@@ -265,7 +274,7 @@ export const def = (k: ObjectKey): ObjectDef => OBJECTS[k]
 export const NOT_OBJECTS = [
   "api_keys", "cash_closings", "custom_fields", "document_items", "email_automations", "email_campaigns", "employee_private", "event_subscriptions",
   "invites", "letter_templates", "locations", "mcp_connections", "member_settings", "number_ranges", "org_billing", "org_integrations", "org_members",
-  "org_modules", "orgs", "platform_admins", "positions", "rental_contacts", "rental_rates", "roles", "sepa_runs", "shift_series", "site_pages", "sites", "task_assignees", "ticket_codes",
+  "org_modules", "orgs", "platform_admins", "positions", "rental_contacts", "rental_rates", "roles", "sepa_runs", "shift_series", "site_pages", "sites", "task_assignees", "project_links", "comments", "ticket_codes",
   "ticket_tiers", "workflow_runs", "workflows",
 ]
 

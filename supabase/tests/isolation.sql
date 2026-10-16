@@ -865,8 +865,8 @@ begin
   declare v_open uuid; v_done uuid; v_task uuid; v_at timestamptz;
   begin
     perform public.seed_task_statuses(org_a);
-    select id into v_open from public.task_statuses where org_id = org_a and not is_done order by position limit 1;
-    select id into v_done from public.task_statuses where org_id = org_a and is_done limit 1;
+    select id into v_open from public.task_statuses where org_id = org_a and scope = 'task' and not is_done order by position limit 1;
+    select id into v_done from public.task_statuses where org_id = org_a and scope = 'task' and is_done limit 1;
     perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
     set local role authenticated;
     insert into public.tasks (org_id, status_id, title) values (org_a, v_open, 'Flyer drucken') returning id into v_task;
@@ -883,6 +883,43 @@ begin
     select count(*) into n from public.tasks where org_id = org_a;           assert n = 0, 'B sees tasks of A';
     select count(*) into n from public.task_assignees where org_id = org_a;  assert n = 0, 'B sees task assignees of A';
     select count(*) into n from public.task_statuses where org_id = org_a;   assert n = 0, 'B sees task statuses of A';
+    reset role;
+  end;
+
+  -- Projects v2: project columns, tasks in a project, links only to own records, comments; B sees nothing
+  declare v_pstat uuid; v_tstat uuid; v_proj uuid; v_contact uuid; v_other uuid; v_at timestamptz;
+  begin
+    select id into v_pstat from public.task_statuses where org_id = org_a and scope = 'project' and is_done limit 1;
+    select id into v_tstat from public.task_statuses where org_id = org_a and scope = 'task' limit 1;
+    insert into public.contacts (org_id, first_name) values (org_b, 'Fremd') returning id into v_other;
+    perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    insert into public.projects (org_id, status_id, name) values (org_a, v_pstat, 'Sommerfest') returning id into v_proj;
+    select completed_at into v_at from public.projects where id = v_proj;  assert v_at is not null, 'a project in a done column is completed';
+    begin
+      insert into public.projects (org_id, status_id, name) values (org_a, v_tstat, 'Falsch');
+      assert false, 'projects only take project columns';
+    exception when raise_exception then null; end;
+    insert into public.tasks (org_id, status_id, title, project_id) values (org_a, v_tstat, 'Bühne', v_proj);
+    insert into public.contacts (org_id, first_name) values (org_a, 'Erika') returning id into v_contact;
+    insert into public.project_links (org_id, project_id, entity, entity_id) values (org_a, v_proj, 'contacts', v_contact);
+    begin
+      insert into public.project_links (org_id, project_id, entity, entity_id) values (org_a, v_proj, 'contacts', v_other);
+      assert false, 'links only to records of the same org';
+    exception when raise_exception then null; end;
+    insert into public.comments (org_id, entity, entity_id, body) values (org_a, 'projects', v_proj, 'Los gehts');
+    select count(*) into n from public.record_changes('projects', v_proj);  assert n >= 1, 'the project has its change log';
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.projects where org_id = org_a;       assert n = 0, 'B sees projects of A';
+    select count(*) into n from public.project_links where org_id = org_a;  assert n = 0, 'B sees project links of A';
+    select count(*) into n from public.comments where org_id = org_a;       assert n = 0, 'B sees comments of A';
+    select count(*) into n from public.record_changes('projects', v_proj);  assert n = 0, 'B reads the change log of A';
+    begin
+      insert into public.comments (org_id, entity, entity_id, body) values (org_a, 'projects', v_proj, 'hi');
+      assert false, 'B comments in A';
+    exception when insufficient_privilege then null; end;
     reset role;
   end;
 

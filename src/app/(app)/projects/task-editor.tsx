@@ -1,3 +1,4 @@
+import { CustomFieldInputs } from "@/components/custom-field-inputs"
 import { Markdown } from "@/components/markdown"
 import { PeopleSelect } from "./people-select"
 import { TagSelect } from "@/components/tag-select"
@@ -6,12 +7,13 @@ import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
 import type { T } from "@/i18n/translate"
+import type { CustomValues, FieldDef } from "@/lib/custom-fields"
 import type { ChecklistItem } from "@/projects/fields"
 import { autosaveTaskAction, trashTaskAction } from "./actions"
 import { AutosaveForm } from "./autosave-form"
 import { Checklist } from "./checklist"
 
-export type EditorTask = { id: string; title: string; description: string; status_id: string; due_on: string | null; tags: string[]; checklist: unknown; created_at: string; completed_at: string | null; task_assignees: { user_id: string }[] }
+export type EditorTask = { id: string; title: string; description: string; status_id: string; project_id: string | null; start_on: string | null; due_on: string | null; custom: unknown; tags: string[]; checklist: unknown; created_at: string; completed_at: string | null; task_assignees: { user_id: string }[] }
 
 // Everything about one task: fields (save themselves), checklist (saves at once), the hidden trash form (the drawer's
 // ⋯ menu posts it). Used by the board's side panel.
@@ -21,6 +23,8 @@ export function TaskEditor({
   statuses,
   team,
   tags,
+  projects,
+  defs,
   canManage,
   back,
 }: {
@@ -29,6 +33,8 @@ export function TaskEditor({
   statuses: { id: string; name: string }[]
   team: { id: string; name: string }[]
   tags: string[]
+  projects: { id: string; name: string }[]
+  defs: FieldDef[]
   canManage: boolean
   back: string
 }) {
@@ -54,6 +60,21 @@ export function TaskEditor({
               </NativeSelect>
             </div>
             <div className="grid gap-2">
+              <Label htmlFor="tk-project">{t("projects.project")}</Label>
+              <NativeSelect id="tk-project" name="project_id" defaultValue={task.project_id ?? ""} className="w-full">
+                <NativeSelectOption value="">{t("projects.noProject")}</NativeSelectOption>
+                {projects.map((p) => (
+                  <NativeSelectOption key={p.id} value={p.id}>
+                    {p.name}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="tk-start">{t("projects.start")}</Label>
+              <Input id="tk-start" name="start_on" type="date" defaultValue={task.start_on ?? ""} />
+            </div>
+            <div className="grid gap-2">
               <Label htmlFor="tk-due">{t("projects.due")}</Label>
               <Input id="tk-due" name="due_on" type="date" defaultValue={task.due_on ?? ""} />
             </div>
@@ -66,6 +87,7 @@ export function TaskEditor({
             <Label htmlFor="tk-tags">{t("projects.tags")}</Label>
             <TagSelect id="tk-tags" name="tags" options={tags} defaultValue={task.tags} creatable />
           </div>
+          <CustomFieldInputs defs={defs} values={(task.custom ?? {}) as CustomValues} idPrefix="tk-custom" />
           <div className="grid gap-2">
             <Label htmlFor="tk-desc">{t("projects.description")}</Label>
             <Textarea id="tk-desc" name="description" defaultValue={task.description} rows={6} maxLength={100000} placeholder={t("projects.descriptionHint")} />

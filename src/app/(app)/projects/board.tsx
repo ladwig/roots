@@ -11,15 +11,32 @@ import { Input } from "@/components/ui/input"
 import { useT } from "@/i18n/client"
 import { cn } from "@/lib/utils"
 import { DOT } from "@/projects/fields"
-import { createTaskAction, moveTaskAction } from "./actions"
+import { createProjectAction, createTaskAction, moveProjectAction, moveTaskAction } from "./actions"
 
 export type BoardStatus = { id: string; name: string; color: string }
-export type BoardTask = { id: string; title: string; snippet: string; status_id: string; tags: string[]; due_on: string | null; done: boolean; progress: string | null; people: { id: string; initials: string; name: string }[]; href: string }
+export type BoardTask = { id: string; title: string; snippet: string; status_id: string; tags: string[]; due_on: string | null; done: boolean; progress: string | null; people: { id: string; initials: string; name: string }[]; href: string; color?: string; label?: string }
 type Item = { id: string; name: string; column: string; task: BoardTask }
 
-// Kanban: one column per status, drag & drop between and within columns (saved at once), quick add per column,
-// a click opens the task panel. Readers see the board without dragging.
-export function Board({ statuses, tasks, canManage, back, today }: { statuses: BoardStatus[]; tasks: BoardTask[]; canManage: boolean; back: string; today: string }) {
+// Kanban of tasks or projects: one column per status, drag & drop between and within columns (saved at once), quick
+// add per column (`extra` = hidden fields for it, e.g. the project), a click opens the task panel / project page.
+// Readers see the board without dragging.
+export function Board({
+  statuses,
+  tasks,
+  canManage,
+  back,
+  today,
+  kind = "task",
+  extra = {},
+}: {
+  statuses: BoardStatus[]
+  tasks: BoardTask[]
+  canManage: boolean
+  back: string
+  today: string
+  kind?: "task" | "project"
+  extra?: Record<string, string>
+}) {
   const t = useT()
   const toItems = (list: BoardTask[]) => list.map((task) => ({ id: task.id, name: task.title, column: task.status_id, task }))
   const [items, setItems] = useState<Item[]>(() => toItems(tasks))
@@ -51,7 +68,7 @@ export function Board({ statuses, tasks, canManage, back, today }: { statuses: B
       if (!item) return
       const order = latest.current.filter((i) => i.column === item.column).map((i) => i.id)
       start(async () => {
-        const r = await moveTaskAction({ id: item.id, statusId: item.column, order })
+        const r = await (kind === "project" ? moveProjectAction : moveTaskAction)({ id: item.id, statusId: item.column, order })
         if (r.error) toast.error(r.error)
       })
     })
@@ -86,10 +103,20 @@ export function Board({ statuses, tasks, canManage, back, today }: { statuses: B
               )}
             </KanbanCards>
             {canManage && (
-              <form action={createTaskAction} className="flex gap-1.5 p-2">
+              <form action={kind === "project" ? createProjectAction : createTaskAction} className="flex gap-1.5 p-2">
                 <input type="hidden" name="status_id" value={column.id} />
                 <input type="hidden" name="back" value={back} />
-                <Input name="title" placeholder={t("projects.quickAdd")} aria-label={t("projects.quickAdd")} maxLength={300} required className="h-8 text-sm" />
+                {Object.entries(extra).map(([k, v]) => (
+                  <input key={k} type="hidden" name={k} value={v} />
+                ))}
+                <Input
+                  name={kind === "project" ? "name" : "title"}
+                  placeholder={t(kind === "project" ? "projects.quickAddProject" : "projects.quickAdd")}
+                  aria-label={t(kind === "project" ? "projects.quickAddProject" : "projects.quickAdd")}
+                  maxLength={kind === "project" ? 200 : 300}
+                  required
+                  className="h-8 text-sm"
+                />
                 <SubmitButton size="sm" variant="ghost">
                   +
                 </SubmitButton>
@@ -108,6 +135,7 @@ function TaskCard({ task, today }: { task: BoardTask; today: string }) {
   return (
     <Link href={task.href} scroll={false} className="grid min-w-0 gap-1.5 text-sm">
       <span className="flex items-start gap-2">
+        {task.color && <span className="mt-1.5 size-2.5 shrink-0 rounded-full" style={{ background: DOT[task.color] ?? DOT.gray }} aria-hidden />}
         <span className={cn("min-w-0 flex-1 font-medium break-words", task.done && "text-muted-foreground line-through")}>{task.title}</span>
         {task.tags.length > 0 && (
           <span className="flex shrink-0 gap-1">
@@ -124,6 +152,7 @@ function TaskCard({ task, today }: { task: BoardTask; today: string }) {
           </span>
         )}
       </span>
+      {task.label && <span className="truncate text-xs text-muted-foreground">{task.label}</span>}
       {task.snippet && <span className="line-clamp-2 text-xs break-words text-muted-foreground">{task.snippet}</span>}
       {(task.due_on || task.progress || task.people.length > 0) && (
         <span className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">

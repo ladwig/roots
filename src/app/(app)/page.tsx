@@ -62,7 +62,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       <PageHeader icon={SunIcon} title={t("home.today")} meta={`${ctx.org.name} · ${t.date(now, { dateStyle: "full" })}`} />
       <div className="grid gap-6 md:grid-cols-2">
         {tasks && (
-          <FormCard id="tasks" title={t("home.myTasks")} action={<More href="/projects?assignee=me" label={t("home.all")} />}>
+          <FormCard id="tasks" title={t("home.myTasks")} action={<More href="/projects/tasks?assignee=me&view=list" label={t("home.all")} />}>
             <Rows
               empty={t("home.noTasks")}
               rows={tasks.map((x) => ({

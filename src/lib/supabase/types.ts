@@ -195,6 +195,26 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"comments": {
+                  Row: {
+                    "body": string,"created_at": string,"created_by": string | null,"entity": string,"entity_id": string,"id": string,"org_id": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body": string,"created_at"?: string,"created_by"?: string | null,"entity": string,"entity_id": string,"id"?: string,"org_id": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "body"?: string,"created_at"?: string,"created_by"?: string | null,"entity"?: string,"entity_id"?: string,"id"?: string,"org_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "comments_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"contact_notes": {
                   Row: {
                     "body": string,"contact_id": string,"created_at": string,"created_by": string | null,"id": string,"org_id": string,"updated_at": string,"updated_by": string | null
@@ -1467,6 +1487,58 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"project_links": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"entity": string,"entity_id": string,"id": string,"org_id": string,"project_id": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"entity": string,"entity_id": string,"id"?: string,"org_id": string,"project_id": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"entity"?: string,"entity_id"?: string,"id"?: string,"org_id"?: string,"project_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_links_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_links_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"projects": {
+                  Row: {
+                    "color": string,"completed_at": string | null,"created_at": string,"created_by": string | null,"custom": NonNullable<Json>,"deleted_at": string | null,"deleted_by": string | null,"description": string,"end_on": string | null,"id": string,"lead_id": string | null,"name": string,"org_id": string,"position": number,"start_on": string | null,"status_id": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "color"?: string,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"custom"?: NonNullable<Json>,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string,"end_on"?: string | null,"id"?: string,"lead_id"?: string | null,"name": string,"org_id": string,"position"?: number,"start_on"?: string | null,"status_id": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "color"?: string,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"custom"?: NonNullable<Json>,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string,"end_on"?: string | null,"id"?: string,"lead_id"?: string | null,"name"?: string,"org_id"?: string,"position"?: number,"start_on"?: string | null,"status_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "projects_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "projects_status_id_fkey"
+      columns: ["status_id"]
+isOneToOne: false
+      referencedRelation: "task_statuses"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"rental_contacts": {
                   Row: {
                     "contact_id": string,"created_at": string,"created_by": string | null,"id": string,"org_id": string,"rental_id": string,"role": string,"updated_at": string,"updated_by": string | null
@@ -1811,14 +1883,14 @@ isOneToOne: false
                   ]
                 },"task_statuses": {
                   Row: {
-                    "color": string,"created_at": string,"created_by": string | null,"id": string,"is_done": boolean,"name": string,"org_id": string,"position": number,"updated_at": string,"updated_by": string | null
+                    "color": string,"created_at": string,"created_by": string | null,"id": string,"is_done": boolean,"name": string,"org_id": string,"position": number,"scope": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "color"?: string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_done"?: boolean,"name": string,"org_id": string,"position"?: number,"updated_at"?: string,"updated_by"?: string | null
+                    "color"?: string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_done"?: boolean,"name": string,"org_id": string,"position"?: number,"scope"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "color"?: string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_done"?: boolean,"name"?: string,"org_id"?: string,"position"?: number,"updated_at"?: string,"updated_by"?: string | null
+                    "color"?: string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_done"?: boolean,"name"?: string,"org_id"?: string,"position"?: number,"scope"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -1831,14 +1903,14 @@ isOneToOne: false
                   ]
                 },"tasks": {
                   Row: {
-                    "checklist": NonNullable<Json>,"completed_at": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string,"due_on": string | null,"id": string,"org_id": string,"position": number,"status_id": string,"tags": (string)[],"title": string,"updated_at": string,"updated_by": string | null
+                    "checklist": NonNullable<Json>,"completed_at": string | null,"created_at": string,"created_by": string | null,"custom": NonNullable<Json>,"deleted_at": string | null,"deleted_by": string | null,"description": string,"due_on": string | null,"id": string,"org_id": string,"position": number,"project_id": string | null,"start_on": string | null,"status_id": string,"tags": (string)[],"title": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "checklist"?: NonNullable<Json>,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string,"due_on"?: string | null,"id"?: string,"org_id": string,"position"?: number,"status_id": string,"tags"?: (string)[],"title": string,"updated_at"?: string,"updated_by"?: string | null
+                    "checklist"?: NonNullable<Json>,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"custom"?: NonNullable<Json>,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string,"due_on"?: string | null,"id"?: string,"org_id": string,"position"?: number,"project_id"?: string | null,"start_on"?: string | null,"status_id": string,"tags"?: (string)[],"title": string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "checklist"?: NonNullable<Json>,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string,"due_on"?: string | null,"id"?: string,"org_id"?: string,"position"?: number,"status_id"?: string,"tags"?: (string)[],"title"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "checklist"?: NonNullable<Json>,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"custom"?: NonNullable<Json>,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string,"due_on"?: string | null,"id"?: string,"org_id"?: string,"position"?: number,"project_id"?: string | null,"start_on"?: string | null,"status_id"?: string,"tags"?: (string)[],"title"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -1846,6 +1918,12 @@ isOneToOne: false
       columns: ["org_id"]
 isOneToOne: false
       referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "tasks_status_id_fkey"
@@ -2426,6 +2504,11 @@ isOneToOne: false
                            },
 "rate_hit":
 { Args: { "p_key": string,"p_limit": number }; Returns: boolean
+                           },
+"record_changes":
+{ Args: { "p_id": string,"p_table": string }; Returns: {
+              "action": string,"actor_id": string,"at": string,"new": Json,"old": Json,"via": string
+            }[]
                            },
 "renew_rentals":
 { Args: Record<PropertyKey, never>; Returns: number

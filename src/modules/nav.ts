@@ -104,6 +104,7 @@ export const NAV: Area[] = [
     icon: KanbanSquareIcon,
     children: [
       { href: "/projects", label: "nav.overview", module: "projects", permission: "projects.view" },
+      { href: "/projects/tasks", label: "projects.allTasks", module: "projects", permission: "projects.view" },
       { href: "/projects/settings", label: "common.settings", module: "projects", permission: "projects.manage" },
     ],
   },

@@ -1,175 +1,191 @@
-import { Segments } from "@/components/segments"
-import { CalendarView } from "@/components/calendar-view"
-import { BulkBar } from "@/components/bulk-bar"
-import { SubmitButton } from "@/components/submit-button"
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
-import { bulkTasks, moveTaskDue } from "./actions"
-import { FilterMenu } from "@/components/filter-menu"
-import { Page, PageHeader } from "@/components/page"
-import { notFound } from "next/navigation"
-import { ArrowRightIcon, CalendarDaysIcon, KanbanSquareIcon, ListIcon, Trash2Icon } from "lucide-react"
-import { DataTable, SearchBox } from "@/components/data-table"
-import { Notice } from "@/components/notice"
-import { Badge } from "@/components/ui/badge"
+import { redirect } from "next/navigation"
+import { ArchiveRestoreIcon, ListTodoIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { berlinToday } from "@/api/v1/shared"
+import { ActionsMenu, MenuLink } from "@/components/actions-menu"
+import { DataTable, SearchBox } from "@/components/data-table"
+import { FilterMenu } from "@/components/filter-menu"
+import { Notice } from "@/components/notice"
+import { EmptyState, Page, PageHeader } from "@/components/page"
+import { SubmitButton } from "@/components/submit-button"
+import { Timeline } from "@/components/timeline"
+import { Button } from "@/components/ui/button"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param, withParams, type SearchParams } from "@/lib/url"
-import { DOT, progress, type ChecklistItem } from "@/projects/fields"
+import { DOT } from "@/projects/fields"
 import { initials, projectBasics } from "@/projects/load"
-import { TASK_COLS } from "@/projects/server"
+import { PROJECT_COLS } from "@/projects/server"
+import Link from "next/link"
+import { restoreProjectAction } from "./actions"
 import { Board } from "./board"
-import { TaskDrawer } from "./task-drawer"
+import { ViewSegments } from "./view-segments"
 
-const VIEWS = ["board", "list", "calendar"] as const
-const DUES = ["overdue", "week", "none"] as const
+const VIEWS = ["board", "list", "timeline"] as const
 
-// Projects: tasks as a board or a list, filtered by search, tag (e.g. a project), assignee ("me" too) and due date –
-// everything in the URL so a filtered board can be bookmarked. ?task=<id> opens the side panel.
+// Projects: board by project status, list or timeline; each card opens the project page. "Alle Aufgaben" is its own
+// sub-page. Old task links (/projects?task=<id>) go to the task on "Alle Aufgaben".
 export default async function ProjectsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const ctx = await requirePerm("projects.view")
-  if (!ctx.modules.has("projects")) notFound()
-  const t = await getT()
   const sp = await searchParams
+  const task = param(sp, "task")
+  if (task) redirect(`/projects/tasks?task=${encodeURIComponent(task)}`)
+  const ctx = await requirePerm("projects.view")
+  const t = await getT()
   const canManage = ctx.can("projects.manage")
+  const trash = canManage && param(sp, "view") === "trash"
   const view = VIEWS.find((v) => v === param(sp, "view")) ?? "board"
-  const tag = param(sp, "tag")
-  const who = param(sp, "assignee")
-  const due = DUES.find((d) => d === param(sp, "due"))
+  const lead = param(sp, "lead")
   const q = param(sp, "q")?.replace(/[%,()*\\]/g, " ").trim()
   const today = berlinToday()
-  const week = new Date(Date.parse(`${today}T12:00:00Z`) + 7 * 86_400_000).toISOString().slice(0, 10)
-  const assignee = who === "me" ? ctx.userId : who && /^[0-9a-f-]{36}$/.test(who) ? who : null
-  const openId = param(sp, "task")
 
-  let query = ctx.supabase.from("tasks").select((assignee ? TASK_COLS.replace("task_assignees(user_id)", "task_assignees!inner(user_id)") : TASK_COLS) as typeof TASK_COLS).eq("org_id", ctx.org.id).is("deleted_at", null).order("position").limit(1000)
-  if (assignee) query = query.eq("task_assignees.user_id", assignee)
-  if (tag) query = query.contains("tags", [tag])
-  if (q) query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`)
-  if (due === "overdue") query = query.lt("due_on", today).is("completed_at", null)
-  if (due === "week") query = query.gte("due_on", today).lte("due_on", week)
-  if (due === "none") query = query.is("due_on", null)
-  const [basics, { data: rows }] = await Promise.all([projectBasics(ctx), query])
-  const { statuses, team, tags } = basics
-  const nameOf = (id: string) => team.find((p) => p.id === id)?.name ?? "?"
-  const done = new Set(statuses.filter((s) => s.is_done).map((s) => s.id))
-  // With an assignee filter the joined assignees are only that one: the card still shows the filtered person.
-  const tasks = (rows ?? []).map((r) => ({
-    id: r.id,
-    title: r.title,
-    snippet: r.description.replace(/[#*_`>[\]()|~-]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 200),
-    status_id: r.status_id,
-    tags: r.tags,
-    due_on: r.due_on,
-    done: done.has(r.status_id),
-    progress: progress((Array.isArray(r.checklist) ? r.checklist : []) as ChecklistItem[]),
-    people: r.task_assignees.map((a) => ({ id: a.user_id, name: nameOf(a.user_id), initials: initials(nameOf(a.user_id)) })),
-    href: `/projects${withParams(sp, { task: r.id })}`,
+  let query = ctx.supabase.from("projects").select(`${PROJECT_COLS}, deleted_at`).eq("org_id", ctx.org.id).order("position").limit(500)
+  query = trash ? query.not("deleted_at", "is", null).order("deleted_at", { ascending: false }) : query.is("deleted_at", null)
+  if (lead && /^[0-9a-f-]{36}$/.test(lead)) query = query.eq("lead_id", lead)
+  if (q) query = query.ilike("name", `%${q}%`)
+  const [basics, { data: rows }, { data: counts }] = await Promise.all([
+    projectBasics(ctx),
+    query,
+    // Progress per project: done / all tasks (one small query, counted here).
+    ctx.supabase.from("tasks").select("project_id, completed_at").eq("org_id", ctx.org.id).is("deleted_at", null).not("project_id", "is", null).limit(10000),
+  ])
+  const { projectStatuses, team } = basics
+  const nameOf = (id: string | null) => team.find((p) => p.id === id)?.name
+  const tally = (id: string) => {
+    const all = (counts ?? []).filter((c) => c.project_id === id)
+    return all.length ? `${all.filter((c) => c.completed_at).length}/${all.length}` : null
+  }
+  const done = new Set(projectStatuses.filter((s) => s.is_done).map((s) => s.id))
+  const projects = (rows ?? []).map((p) => ({
+    id: p.id,
+    title: p.name,
+    snippet: p.description.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim().slice(0, 160),
+    status_id: p.status_id,
+    tags: [],
+    start_on: p.start_on,
+    due_on: p.end_on,
+    done: done.has(p.status_id),
+    progress: tally(p.id),
+    color: p.color,
+    people: p.lead_id ? [{ id: p.lead_id, name: nameOf(p.lead_id) ?? "?", initials: initials(nameOf(p.lead_id) ?? "?") }] : [],
+    href: `/projects/${p.id}`,
   }))
-  const here = `/projects${withParams(sp, { task: undefined, error: undefined, ok: undefined })}`
+  const here = `/projects${withParams(sp, { error: undefined, ok: undefined })}`
+  const empty = !trash && !q && !lead && !projects.length
 
   return (
-    <Page className="max-w-none">
+    <Page className={view === "list" || trash ? undefined : "max-w-none"}>
       <PageHeader
         area="projects"
-        title={t("projects.title")}
+        title={trash ? `${t("projects.title")} · ${t("projects.trash")}` : t("projects.title")}
         settings={canManage && { href: "/projects/settings", label: t("common.settings") }}
         actions={
-          <Segments
-            label={t("projects.view")}
-            items={[
-              { href: withParams(sp, { view: undefined, task: undefined }), current: view === "board", label: <><KanbanSquareIcon /> {t("projects.views.board")}</> },
-              { href: withParams(sp, { view: "list", task: undefined }), current: view === "list", label: <><ListIcon /> {t("projects.views.list")}</> },
-              { href: withParams(sp, { view: "calendar", task: undefined }), current: view === "calendar", label: <><CalendarDaysIcon /> {t("projects.views.calendar")}</> },
-            ]}
-          />
+          !trash && (
+            <>
+              <Button variant="outline" size="sm" render={<Link href="/projects/tasks" />}>
+                <ListTodoIcon /> {t("projects.allTasks")}
+              </Button>
+              <ViewSegments t={t} sp={sp} views={VIEWS} current={view} />
+            </>
+          )
+        }
+        menu={
+          canManage && (
+            <ActionsMenu>
+              <MenuLink href={trash ? "/projects" : "/projects?view=trash"} icon={trash ? <ArchiveRestoreIcon /> : <Trash2Icon />}>
+                {trash ? t("projects.backToProjects") : t("projects.trash")}
+              </MenuLink>
+            </ActionsMenu>
+          )
+        }
+        primary={
+          canManage &&
+          !trash && (
+            <Button size="sm" render={<Link href="/projects/new" />}>
+              <PlusIcon /> {t("projects.newProject")}
+            </Button>
+          )
         }
       />
-      <Notice error={!openId ? param(sp, "error") : undefined} ok={!openId ? param(sp, "ok") : undefined} />
-      <div className="flex flex-wrap items-center gap-2">
-        <SearchBox q={q} label={t("projects.search")} />
-        <FilterMenu param="assignee" label={t("projects.assignee")} allLabel={t("projects.everyone")} options={[{ value: "me", label: t("projects.mine") }, ...team.map((p) => ({ value: p.id, label: p.name }))]} />
-        <FilterMenu param="due" label={t("projects.due")} allLabel={t("projects.anyDue")} options={DUES.map((d) => ({ value: d, label: t.dynamic(`projects.dues.${d}`) }))} />
-        {tags.length > 0 && <FilterMenu param="tag" label={t("projects.tags")} allLabel={t("projects.allTags")} options={tags.map((x) => ({ value: x, label: x }))} />}
-      </div>
-
-      {view === "board" ? (
-        <Board statuses={statuses} tasks={tasks} canManage={canManage} back={here} today={today} />
-      ) : view === "calendar" ? (
-        // Tasks with a due date as all-day entries in their column's colour; click opens the task panel.
-        <CalendarView
-          viewParam="cal"
-          onMove={canManage ? moveTaskDue : undefined}
-          views={["month", "week", "agenda"]}
-          defaultView="month"
-          events={tasks
-            .filter((x) => x.due_on)
-            .map((x) => ({
-              id: x.id,
-              title: x.done ? `✓ ${x.title}` : x.title,
-              start: `${x.due_on}T00:00:00`,
-              end: `${x.due_on}T23:59:00`,
-              allDay: true,
-              color: DOT[statuses.find((st) => st.id === x.status_id)?.color ?? "gray"] ?? DOT.gray,
-              href: x.href,
-              readOnly: !canManage,
-            }))}
+      <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
+      {empty ? (
+        <EmptyState
+          area="projects"
+          title={t("projects.emptyTitle")}
+          text={t("projects.emptyText")}
+          action={
+            canManage && (
+              <Button size="sm" render={<Link href="/projects/new" />}>
+                <PlusIcon /> {t("projects.newProject")}
+              </Button>
+            )
+          }
         />
-      ) : (
-        <DataTable
-          rows={tasks}
-          rowKey={(r) => r.id}
-          rowHref={(r) => r.href}
-          select={canManage ? { form: "bulk-tasks", label: t("common.select") } : undefined}
-          empty={t("projects.empty")}
-          columns={[
-            {
-              header: t("projects.taskTitle"),
-              cell: (r) => (
-                <span className="grid gap-0.5">
-                  <span className={r.done ? "text-muted-foreground line-through" : "font-medium"}>{r.title}</span>
-                  {r.snippet && <span className="line-clamp-1 max-w-md text-xs break-words text-muted-foreground">{r.snippet}</span>}
-                </span>
-              ),
-            },
-            {
-              header: t("projects.status"),
-              cell: (r) => {
-                const s = statuses.find((x) => x.id === r.status_id)
-                return (
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="size-2 rounded-full" style={{ background: DOT[s?.color ?? "gray"] }} aria-hidden /> {s?.name}
-                  </span>
-                )
+      ) : trash ? (
+        <>
+          <p className="text-sm text-muted-foreground">{t("projects.trashHint", { days: 30 })}</p>
+          <DataTable
+            rows={rows ?? []}
+            rowKey={(r) => r.id}
+            empty={t("projects.trashEmpty")}
+            columns={[
+              { header: t("projects.name"), cell: (r) => r.name },
+              { header: t("projects.deletedAt"), cell: (r) => (r.deleted_at ? t.date(r.deleted_at, { dateStyle: "medium" }) : "–") },
+              {
+                header: "",
+                cell: (r) => (
+                  <form action={restoreProjectAction}>
+                    <input type="hidden" name="id" value={r.id} />
+                    <SubmitButton size="sm" variant="outline">
+                      {t("projects.restore")}
+                    </SubmitButton>
+                  </form>
+                ),
               },
-            },
-            { header: t("projects.due"), cell: (r) => (r.due_on ? <span className={!r.done && r.due_on < today ? "text-destructive" : ""}>{t.date(r.due_on, { dateStyle: "medium" })}</span> : "–") },
-            { header: t("projects.assignees"), cell: (r) => r.people.map((p) => p.name).join(", ") || "–" },
-            { header: t("projects.tags"), cell: (r) => <span className="flex flex-wrap gap-1">{r.tags.map((x) => <Badge key={x} variant="outline">{x}</Badge>)}</span> },
-            { header: t("projects.checklist"), cell: (r) => r.progress ?? "–" },
-          ]}
-        />
+            ]}
+          />
+        </>
+      ) : (
+        <>
+          <div className="flex flex-wrap items-center gap-2">
+            <SearchBox q={q} label={t("projects.searchProjects")} />
+            <FilterMenu param="lead" label={t("projects.lead")} allLabel={t("projects.everyone")} options={team.map((p) => ({ value: p.id, label: p.name }))} />
+          </div>
+          {view === "board" ? (
+            <Board kind="project" statuses={projectStatuses} tasks={projects} canManage={canManage} back={here} today={today} />
+          ) : view === "timeline" ? (
+            <Timeline
+              t={t}
+              today={today}
+              empty={t("projects.noProjects")}
+              items={projects.map((p) => ({ id: p.id, title: p.title, start: p.start_on, end: p.due_on, color: DOT[p.color] ?? DOT.gray, href: p.href, done: p.done, group: projectStatuses.find((s) => s.id === p.status_id)?.name }))}
+            />
+          ) : (
+            <DataTable
+              rows={projects}
+              rowKey={(r) => r.id}
+              rowHref={(r) => r.href}
+              empty={t("projects.noProjects")}
+              columns={[
+                {
+                  header: t("projects.name"),
+                  cell: (r) => (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="size-2.5 shrink-0 rounded-full" style={{ background: DOT[r.color] ?? DOT.gray }} aria-hidden />
+                      <span className={r.done ? "text-muted-foreground line-through" : "font-medium"}>{r.title}</span>
+                    </span>
+                  ),
+                },
+                { header: t("projects.status"), cell: (r) => projectStatuses.find((s) => s.id === r.status_id)?.name ?? "–" },
+                { header: t("projects.lead"), cell: (r) => r.people[0]?.name ?? "–" },
+                {
+                  header: t("projects.period"),
+                  cell: (r) => (r.start_on || r.due_on ? [r.start_on, r.due_on].map((d) => (d ? t.date(`${d}T12:00:00`, { dateStyle: "medium" }) : "…")).join(" – ") : "–"),
+                },
+                { header: t("projects.progress"), cell: (r) => r.progress ?? "–" },
+              ]}
+            />
+          )}
+        </>
       )}
-
-      {canManage && view === "list" && (
-        <BulkBar form="bulk-tasks">
-          <input type="hidden" name="back" value={here} />
-          <NativeSelect name="status_id" aria-label={t("projects.status")} defaultValue={statuses[0]?.id} className="h-8 w-40">
-            {statuses.map((x) => (
-              <NativeSelectOption key={x.id} value={x.id}>
-                {x.name}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-          <SubmitButton size="sm" variant="outline" formAction={bulkTasks} name="intent" value="move">
-            <ArrowRightIcon /> {t("projects.moveTo")}
-          </SubmitButton>
-          <SubmitButton size="sm" variant="ghost" formAction={bulkTasks} name="intent" value="trash" data-confirm="common.confirmTrashMany" className="text-destructive hover:text-destructive">
-            <Trash2Icon /> {t("common.toTrash")}
-          </SubmitButton>
-        </BulkBar>
-      )}
-      <TaskDrawer ctx={ctx} t={t} id={openId} back={here} error={param(sp, "error")} ok={param(sp, "ok")} />
     </Page>
   )
 }

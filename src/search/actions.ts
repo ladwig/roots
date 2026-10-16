@@ -66,7 +66,7 @@ export async function searchApp(input: string): Promise<SearchGroup[]> {
 
   const none = Promise.resolve({ data: [] as never[] })
   const day = (v: string | null) => (v ? t.date(v, { dateStyle: "medium" }) : undefined)
-  const [contacts, members, events, docs, forms, campaigns, files, templates, wiki, tasks, objects] = await Promise.all([
+  const [contacts, members, events, docs, forms, campaigns, files, templates, wiki, projects, tasks, objects] = await Promise.all([
     on("crm", "crm.view")
       ? db
           .from("contacts")
@@ -98,6 +98,7 @@ export async function searchApp(input: string): Promise<SearchGroup[]> {
     on("wiki", "wiki.view")
       ? db.from("wiki_pages").select("id, title").eq("org_id", org).is("deleted_at", null).or(`title.ilike.${like},body.ilike.${like}`).order("updated_at", { ascending: false }).limit(PER_GROUP)
       : none,
+    on("projects", "projects.view") ? db.from("projects").select("id, name").eq("org_id", org).is("deleted_at", null).ilike("name", like).order("updated_at", { ascending: false }).limit(PER_GROUP) : none,
     on("projects", "projects.view")
       ? db.from("tasks").select("id, title, due_on").eq("org_id", org).is("deleted_at", null).or(`title.ilike.${like},description.ilike.${like}`).order("updated_at", { ascending: false }).limit(PER_GROUP)
       : none,
@@ -135,7 +136,8 @@ export async function searchApp(input: string): Promise<SearchGroup[]> {
     { key: "email", label: t("email.nav"), items: (campaigns.data ?? []).map((c) => ({ id: c.id, title: c.name, href: `/email/${c.id}` })) },
     { key: "files", label: t("files.title"), items: (files.data ?? []).map((f) => ({ id: f.id, title: f.name, detail: f.folder ?? undefined, href: `/files?edit=${f.id}` })) },
     { key: "wiki", label: t("wiki.title"), items: (wiki.data ?? []).map((w) => ({ id: w.id, title: w.title, href: `/wiki/${w.id}` })) },
-    { key: "tasks", label: t("projects.title"), items: (tasks.data ?? []).map((x) => ({ id: x.id, title: x.title, detail: x.due_on ?? undefined, href: `/projects?task=${x.id}` })) },
+    { key: "projects", label: t("projects.title"), items: (projects.data ?? []).map((x) => ({ id: x.id, title: x.name, href: `/projects/${x.id}` })) },
+    { key: "tasks", label: t("projects.allTasks"), items: (tasks.data ?? []).map((x) => ({ id: x.id, title: x.title, detail: x.due_on ?? undefined, href: `/projects/tasks?task=${x.id}` })) },
     { key: "rentals", label: t("rentals.title"), items: (objects.data ?? []).map((x) => ({ id: x.id, title: x.name, detail: t.has(`rentals.kinds.${x.kind}`) ? t.dynamic(`rentals.kinds.${x.kind}`) : x.kind, href: `/rentals/${x.id}` })) },
     { key: "templates", label: t("letters.title"), items: (templates.data ?? []).map((x) => ({ id: x.id, title: x.name, href: `/files/templates/${x.id}` })) },
   ]

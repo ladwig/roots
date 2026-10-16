@@ -563,8 +563,18 @@
       "rental_objects": "Objects",
       "rental_rates": "Rates",
       "rentals": "Rentals",
-      "rental_contacts": "People on a rental"
-    }
+      "rental_contacts": "People on a rental",
+      "projects": "Projects",
+      "project_links": "Project links",
+      "comments": "Comments"
+    },
+    "title": "Activity",
+    "comment": "Comment",
+    "delete": "Delete comment",
+    "placeholder": "Write a comment …",
+    "someone": "Someone",
+    "viaAi": "via AI app",
+    "viaApi": "via API"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -1151,7 +1161,9 @@
       "events": "Events",
       "memberships": "Memberships",
       "rental_objects": "Objects (rentals)",
-      "rentals": "Rentals"
+      "rentals": "Rentals",
+      "projects": "Projects",
+      "tasks": "Tasks"
     },
     "types": {
       "text": "Text",
@@ -3529,7 +3541,8 @@
       "task": "Task",
       "task_status": "Project column",
       "rental_object": "Object (rentals)",
-      "rental": "Rental"
+      "rental": "Rental",
+      "project": "Project"
     },
     "fields": {
       "contact": {
@@ -3744,7 +3757,8 @@
       "task": {
         "title": "Title",
         "description": "Description",
-        "due_on": "Due on"
+        "due_on": "Due on",
+        "start_on": "Start"
       },
       "task_status": {
         "name": "Name",
@@ -3767,6 +3781,12 @@
         "unit": "Unit",
         "deposit_cents": "Deposit (cents)",
         "note": "Note"
+      },
+      "project": {
+        "name": "Name",
+        "start_on": "Start",
+        "end_on": "End",
+        "completed_at": "Completed on"
       }
     },
     "values": {
@@ -4297,7 +4317,9 @@
     "views": {
       "board": "Board",
       "list": "List",
-      "calendar": "Calendar"
+      "calendar": "Calendar",
+      "overview": "Overview",
+      "timeline": "Timeline"
     },
     "search": "Search tasks",
     "assignee": "Assignee",
@@ -4357,7 +4379,65 @@
     "searchPeople": "Search people…",
     "saving": "Saving…",
     "columns": "Board columns",
-    "moveTo": "Move"
+    "moveTo": "Move",
+    "allProjects": "All projects",
+    "allTasks": "All tasks",
+    "backToProjects": "Back to projects",
+    "createProject": "Create project",
+    "deletedAt": "Deleted on",
+    "details": "Details",
+    "emptyTitle": "No projects yet",
+    "emptyText": "A project bundles tasks, dates, files and links, e.g. “Summer party 2027”.",
+    "start": "Start",
+    "end": "End",
+    "lead": "Lead",
+    "leadBy": "Lead: {name}",
+    "noLead": "Nobody",
+    "links": "Linked",
+    "linksHint": "Wiki pages, events, contacts … that belong to the project.",
+    "linkSearch": "Search and link …",
+    "unlink": "Remove link",
+    "name": "Name",
+    "newProject": "New project",
+    "noProject": "No project",
+    "noProjects": "No projects found.",
+    "openBoard": "Open the board",
+    "overdueCount": {
+      "one": "{count} task overdue",
+      "other": "{count} tasks overdue"
+    },
+    "period": "Period",
+    "progress": "Progress",
+    "project": "Project",
+    "projectColumns": "Project columns",
+    "projectSetupHint": "A project's states (e.g. Planned, Active, Done) – the project board shows them as columns. Projects in a column marked “counts as done” are completed.",
+    "projectCreated": "Project created.",
+    "projectToTrash": "Move project to trash",
+    "projectTrashed": "Project moved to the trash.",
+    "quickAddProject": "New project…",
+    "restore": "Restore",
+    "restored": "Project restored.",
+    "searchProjects": "Search projects",
+    "tasksDone": {
+      "one": "{done} of {count} task done",
+      "other": "{done} of {count} tasks done"
+    },
+    "trash": "Trash",
+    "trashEmpty": "The trash is empty.",
+    "trashHint": "Deleted projects stay here for {days} days and can be restored.",
+    "dueBeforeStart": "The due date is before the start.",
+    "endBeforeStart": "The end is before the start.",
+    "commentEmpty": "Please write a comment.",
+    "linkKinds": {
+      "wiki_pages": "Wiki",
+      "events": "Event",
+      "contacts": "Contact",
+      "courses": "Course",
+      "rentals": "Rental",
+      "rental_objects": "Object",
+      "documents": "Invoice",
+      "forms": "Form"
+    }
   },
   "inputs": {
     "placeholder": {
@@ -4672,5 +4752,8 @@
     "tooLarge": "{name} is too large.",
     "failed": "The upload didn't work.",
     "back": "Done. You can go back to Claude."
+  },
+  "timeline": {
+    "undated": "No date"
   }
 }

@@ -2,7 +2,7 @@
 // One validator for every way data comes in (form, CSV import, API), so values always have the right shape.
 // New entity: add it to the DB check on custom_fields.entity, give its table a `custom jsonb` column, add it below.
 
-export const CUSTOM_ENTITIES = { contacts: { module: "crm" }, events: { module: "events" }, memberships: { module: "members" }, rental_objects: { module: "rentals" }, rentals: { module: "rentals" } } as const
+export const CUSTOM_ENTITIES = { contacts: { module: "crm" }, events: { module: "events" }, memberships: { module: "members" }, rental_objects: { module: "rentals" }, rentals: { module: "rentals" }, projects: { module: "projects" }, tasks: { module: "projects" } } as const
 export type CustomEntity = keyof typeof CUSTOM_ENTITIES
 export const FIELD_TYPES = ["text", "number", "date", "boolean", "select", "email", "url"] as const
 export type FieldType = (typeof FIELD_TYPES)[number]
