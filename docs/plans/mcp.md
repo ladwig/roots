@@ -55,3 +55,6 @@ org and an access level, and can then run and set up their org through Claude. T
 Test with MCP Inspector (`npx @modelcontextprotocol/inspector`, Streamable HTTP, `http://localhost:3000/api/mcp`),
 Claude Code (`claude mcp add --transport http roots <url>`), and Claude Desktop against production or a tunnel
 (preview deployments are behind Vercel protection).
+
+## Later: upload box in the chat (MCP Apps), parked 2026-10-16
+Pictures/documents pasted into Claude can't reach a tool; today Claude posts an upload link (`src/api/upload-link.ts`, 10 min). MCP Apps could show a roots drop area inside the chat (claude.ai, Desktop, iOS/Android, also ChatGPT/Cursor/VS Code; not Claude Code). Sending to our server is documented (`_meta.ui.csp.connectDomains`, allow Origin `*.claudemcpcontent.com`), but file pickers / drag & drop inside the frame are documented nowhere (spec only has `ui/download-file`); likely fine on web/desktop, open on mobile. Build on top of the upload link (link stays the fallback) and test on all three before relying on it.
