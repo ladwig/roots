@@ -88,7 +88,7 @@ export function SproutPanel() {
 
   if (!open) return null
   return (
-    <aside id="sprout-panel" aria-label={t("sprout.name")} className={cn("fixed inset-0 z-40 flex flex-col bg-background md:sticky md:top-0 md:z-auto md:h-svh md:shrink-0 md:border-l", wide ? "md:w-[min(48rem,55vw)]" : "md:w-[26rem]")}>
+    <aside id="sprout-panel" aria-label={t("sprout.name")} className={cn("fixed inset-0 z-40 flex flex-col bg-background", !wide && "md:sticky md:top-0 md:z-auto md:h-svh md:w-[26rem] md:shrink-0 md:border-l")}>
       <header className="flex h-12 shrink-0 items-center gap-1 border-b px-3">
         <SproutIcon className="size-4 shrink-0 text-primary" />
         <h2 className="min-w-0 flex-1 truncate text-sm font-medium">{title}</h2>
