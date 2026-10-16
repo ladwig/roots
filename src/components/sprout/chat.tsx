@@ -13,7 +13,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useT } from "@/i18n/client"
 import { cn } from "@/lib/utils"
-import { ThinkingOrb } from "thinking-orbs"
 import { MessageView, orbState } from "./parts"
 import { SproutOrb } from "./sprout-orb"
 
@@ -157,7 +156,7 @@ export function ChatView({
             ))}
             {/* Before the first step / words arrive: the orb alone. */}
             {busy && !(messages.at(-1)?.role === "assistant" && messages.at(-1)!.parts.some((p) => p.type !== "step-start")) && (
-              <SproutOrb size={40} working label={t.dynamic(`sprout.orb.${orbState(messages.at(-1))}`)} className="justify-self-start text-foreground" />
+              <SproutOrb size={40} mode={orbState(messages.at(-1))} label={t.dynamic(`sprout.orb.${orbState(messages.at(-1))}`)} className="justify-self-start text-foreground" />
             )}
           </div>
         )}
@@ -224,7 +223,7 @@ export function ChatView({
           {canSpeak && (
             <Tooltip>
               <TooltipTrigger render={<Button type="button" variant={listening ? "secondary" : "ghost"} size="icon-sm" aria-label={t("sprout.dictate")} aria-pressed={listening} onClick={dictate} />}>
-                {listening ? <ThinkingOrb state="listening" size={20} className="size-5" /> : <MicIcon />}
+                {listening ? <SproutOrb mode="listening" size={22} className="text-destructive" /> : <MicIcon />}
               </TooltipTrigger>
               <TooltipContent>{t("sprout.dictate")}</TooltipContent>
             </Tooltip>

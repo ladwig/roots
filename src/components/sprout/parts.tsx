@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ThinkingOrb } from "thinking-orbs"
+import { SproutOrb, type SproutMode } from "./sprout-orb"
 import { CheckIcon, ChevronRightIcon, CircleAlertIcon, ExternalLinkIcon, FileIcon, ShieldAlertIcon, XIcon } from "lucide-react"
 import type { UIMessage } from "ai"
 import { Markdown } from "@/components/markdown"
@@ -27,12 +27,12 @@ const detailOf = (r: Record<string, unknown>, t: ReturnType<typeof useT>) => {
 }
 
 // What the thinking orb shows while Sprout works: the last step of the answer decides.
-export function orbState(last: UIMessage | undefined) {
+export function orbState(last: UIMessage | undefined): SproutMode {
   const step = [...(last?.role === "assistant" ? last.parts : [])].reverse().find((p) => "toolCallId" in p || p.type === "text")
-  if (!step || step.type === "text") return "composing" as const
-  if (step.type === "tool-roots_danger") return "solving" as const
-  if (step.type === "tool-roots_write") return "working" as const
-  return "searching" as const
+  if (!step || step.type === "text") return "thinking"
+  if (step.type === "tool-roots_danger") return "waiting"
+  if (step.type === "tool-roots_write") return "working"
+  return "searching"
 }
 
 /**
@@ -104,7 +104,7 @@ function Steps({ parts, running }: { parts: ToolPart[]; running: boolean }) {
   return (
     <div className="grid gap-1.5">
       <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="flex min-h-7 items-center gap-2 rounded-md text-left text-xs text-muted-foreground hover:text-foreground">
-        {busy ? <ThinkingOrb state={last.type === "tool-roots_write" ? "working" : "searching"} size={20} className="size-5 shrink-0" /> : failed ? <CircleAlertIcon className="size-4 shrink-0 text-destructive" /> : <CheckIcon className="size-4 shrink-0" />}
+        {busy ? <SproutOrb mode={last.type === "tool-roots_write" ? "working" : "searching"} size={24} className="text-foreground" /> : failed ? <CircleAlertIcon className="size-4 shrink-0 text-destructive" /> : <CheckIcon className="size-4 shrink-0" />}
         <span className="min-w-0 truncate">{busy ? label : t("sprout.done", { count: parts.length })}</span>
         <ChevronRightIcon className={cn("size-3.5 shrink-0 transition-transform", open && "rotate-90")} />
       </button>
@@ -161,7 +161,7 @@ function ToolView({ part, onApprove }: { part: ToolPart; onApprove: Approve }) {
   return (
     <div className="grid gap-1.5">
       <p className={cn("flex items-center gap-1.5 text-xs text-muted-foreground", failed && "text-destructive")}>
-        {running ? <ThinkingOrb state="searching" size={20} className="size-3.5" /> : failed ? <CircleAlertIcon className="size-3.5" /> : denied ? <XIcon className="size-3.5" /> : <CheckIcon className="size-3.5" />}
+        {running ? <SproutOrb mode="searching" size={18} className="text-foreground" /> : failed ? <CircleAlertIcon className="size-3.5" /> : denied ? <XIcon className="size-3.5" /> : <CheckIcon className="size-3.5" />}
         <span className="truncate">{denied ? `${label} · ${t("sprout.denied")}` : label}</span>
       </p>
       {part.state === "output-available" && !failed && <ResultView output={part.output} />}

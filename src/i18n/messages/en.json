@@ -4850,10 +4850,10 @@
       "other": "{count} steps done"
     },
     "orb": {
-      "composing": "Sprout is writing …",
       "working": "Sprout is working …",
       "searching": "Sprout is looking …",
-      "solving": "Sprout is waiting for you …"
+      "thinking": "Sprout is thinking …",
+      "waiting": "Sprout is waiting for you …"
     }
   }
 }
