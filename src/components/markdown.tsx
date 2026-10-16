@@ -1,4 +1,5 @@
 import { FileTextIcon } from "lucide-react"
+import Link from "next/link"
 import ReactMarkdown, { type Components } from "react-markdown"
 import remarkGfm from "remark-gfm"
 
@@ -11,7 +12,7 @@ const FILE = /^\/files\/([0-9a-f-]{36})(?:#w=\d+)?$/
 const WIDTH = /#w=(\d+)$/ // image width set in the editor
 const PAGE = /^\/wiki\/([0-9a-f-]{36})$/
 
-function components(links?: Links): Components {
+function components(links?: Links, soft?: boolean): Components {
   const map = (href = "") => {
     const f = FILE.exec(href)
     const w = PAGE.exec(href)
@@ -32,6 +33,11 @@ function components(links?: Links): Components {
           <FileTextIcon className="size-4 shrink-0 text-muted-foreground" />
           <span className="truncate">{children}</span>
         </a>
+      ) : soft && href.startsWith("/") && !href.startsWith("//") ? (
+        // In-App link without a page reload (the assistant panel keeps its conversation).
+        <Link href={href} className="text-primary underline underline-offset-4">
+          {children}
+        </Link>
       ) : (
         <a href={map(href)} className="text-primary underline underline-offset-4" {...(/^https?:/.test(href) ? { target: "_blank", rel: "noreferrer" } : {})} {...p}>
           {children}
@@ -57,10 +63,10 @@ function components(links?: Links): Components {
   }
 }
 
-export function Markdown({ children, links }: { children: string; links?: Links }) {
+export function Markdown({ children, links, soft }: { children: string; links?: Links; soft?: boolean }) {
   return (
     <div className="min-w-0 text-sm break-words">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components(links)}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components(links, soft)}>
         {children}
       </ReactMarkdown>
     </div>

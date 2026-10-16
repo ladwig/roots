@@ -127,7 +127,7 @@ export function ChatView({
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
         {messages.length === 0 ? (
           <div className="grid gap-3 pt-6">
-            <ThinkingOrb state="breathing" size={64} aria-label={t("sprout.name")} />
+            <ThinkingOrb state="breathing" size={64} aria-label={t("sprout.name")} className="size-16 justify-self-start" />
             <p className="text-sm text-muted-foreground">{t("sprout.hello", { org: orgName })}</p>
             <div className="flex flex-wrap gap-2">
               {(["today", "overdue", "event"] as const).map((k) => (
@@ -142,7 +142,7 @@ export function ChatView({
             {messages.map((m) => (
               <MessageView key={m.id} message={m} onApprove={addToolApprovalResponse} />
             ))}
-            {busy && <ThinkingOrb state={orbState(messages.at(-1))} size={20} />}
+            {busy && <ThinkingOrb state={orbState(messages.at(-1))} size={20} className="size-5 justify-self-start" />}
           </div>
         )}
         {errorText && (
@@ -208,7 +208,7 @@ export function ChatView({
           {canSpeak && (
             <Tooltip>
               <TooltipTrigger render={<Button type="button" variant={listening ? "secondary" : "ghost"} size="icon-sm" aria-label={t("sprout.dictate")} aria-pressed={listening} onClick={dictate} />}>
-                {listening ? <ThinkingOrb state="listening" size={20} /> : <MicIcon />}
+                {listening ? <ThinkingOrb state="listening" size={20} className="size-5" /> : <MicIcon />}
               </TooltipTrigger>
               <TooltipContent>{t("sprout.dictate")}</TooltipContent>
             </Tooltip>

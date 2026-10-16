@@ -34,5 +34,17 @@ export function pickModels(provider: Provider, raw: unknown): ModelInfo[] {
     const want = provider === "anthropic" ? /^claude/ : provider === "xai" ? /^grok/ : /^(gpt-|o\d|chatgpt)/
     list = (r.data ?? []).filter((m) => want.test(m.id)).map((m) => ({ id: m.id, name: m.display_name || m.id }))
   }
-  return list.filter((m) => !NOT_CHAT.test(m.id)).slice(0, 40)
+  list = list.filter((m) => !NOT_CHAT.test(m.id))
+  if (provider === "google") list = newestGemini(list)
+  return list.slice(0, 40)
+}
+
+// Google keeps old generations in its list but blocks them for new accounts: only the newest of each variant
+// ("gemini-3.5-flash-lite" beats "gemini-2.5-flash-lite"; previews of that version stay). Also used on stored lists.
+export function newestGemini(list: ModelInfo[]) {
+  const ver = (id: string) => Number(/^gemini-(\d+(?:\.\d+)?)/.exec(id)?.[1] ?? 0)
+  const variant = (id: string) => id.replace(/^gemini-\d+(?:\.\d+)?-?/, "").replace(/-(preview|exp)[\w-]*$|-\d{3,}$/, "")
+  const best = new Map<string, number>()
+  for (const m of list) best.set(variant(m.id), Math.max(best.get(variant(m.id)) ?? 0, ver(m.id)))
+  return list.filter((m) => ver(m.id) === best.get(variant(m.id))).sort((a, b) => ver(b.id) - ver(a.id))
 }

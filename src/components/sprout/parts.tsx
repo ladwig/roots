@@ -46,7 +46,7 @@ export function MessageView({ message, onApprove }: { message: UIMessage; onAppr
             </p>
           ) : (
             <div key={i} className="min-w-0 break-words [&_table]:block [&_table]:overflow-x-auto">
-              <Markdown>{part.text}</Markdown>
+              <Markdown soft>{part.text.replace(/\]\(https?:\/\/[^/)\s]+(?:\/app)?(\/[^)\s]*)\)/g, "]($1)")}</Markdown>
             </div>
           )
         if (part.type === "file") {

@@ -17,6 +17,13 @@ type Setup = Awaited<ReturnType<typeof sproutSetup>>
 type Chat = { id: string; messages: UIMessage[]; title: string; starred: boolean; saved: boolean }
 const fresh = (): Chat => ({ id: crypto.randomUUID(), messages: [], title: "", starred: false, saved: false })
 const MODEL_KEY = "sprout_model"
+const CHAT_KEY = "sprout_chat"
+const store = (k: string, v: string | null) => {
+  try {
+    if (v) localStorage.setItem(k, v)
+    else localStorage.removeItem(k)
+  } catch {}
+}
 const readModel = () => {
   try {
     return localStorage.getItem(MODEL_KEY) ?? ""
@@ -39,8 +46,19 @@ export function SproutPanel() {
   const [, start] = useTransition()
 
   const refresh = useCallback(() => start(async () => setSetup(await sproutSetup())), [])
+  // First open: setup, and the chat that was open before a reload (this browser).
   useEffect(() => {
-    if (open && !setup) refresh()
+    if (!open || setup) return
+    refresh()
+    let last: string | null = null
+    try {
+      last = localStorage.getItem(CHAT_KEY)
+    } catch {}
+    if (last)
+      start(async () => {
+        const c = await loadChat(last)
+        if (c) setChat({ id: c.id, messages: c.messages, title: c.title, starred: c.starred, saved: true })
+      })
   }, [open, setup, refresh])
   // Keys added or removed elsewhere (profile page) → reload the models.
   useEffect(() => {
@@ -63,6 +81,7 @@ export function SproutPanel() {
     start(async () => {
       const c = await loadChat(id)
       if (c) setChat({ id: c.id, messages: c.messages, title: c.title, starred: c.starred, saved: true })
+      if (c) store(CHAT_KEY, c.id)
       if (c?.model && has(c.model)) setModelState(c.model)
     })
   const title = chat.title || setup?.chats.find((c) => c.id === chat.id)?.title || t("sprout.name")
@@ -84,7 +103,7 @@ export function SproutPanel() {
             <StarIcon className={cn(chat.starred && "fill-current text-primary")} />
           </Icon>
         )}
-        <Icon label={t("sprout.newChat")} onClick={() => setChat(fresh())}>
+        <Icon label={t("sprout.newChat")} onClick={() => (setChat(fresh()), store(CHAT_KEY, null))}>
           <PlusIcon />
         </Icon>
         <Popover>
@@ -153,6 +172,7 @@ export function SproutPanel() {
           orgName={setup.orgName}
           onSent={() => {
             setChat((c) => ({ ...c, saved: true }))
+            store(CHAT_KEY, chat.id)
             refresh()
           }}
         />

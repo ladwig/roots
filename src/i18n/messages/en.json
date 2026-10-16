@@ -4833,7 +4833,7 @@
       "credits": "There's no credit left with {provider} (or your plan's limit is reached). Top up your account with the provider or pick another model.",
       "key": "{provider} rejects the key – it's invalid or was deleted. Add a new one in your profile.",
       "limit": "Too many requests to {provider} right now (rate limit). Wait a moment and try again.",
-      "model": "{provider} doesn't offer this model (any more). Pick another one below.",
+      "model": "{provider} doesn't offer this model (any more). Pick another one below and try again.",
       "access": "{provider} doesn't allow this for the key (missing access or credit).",
       "down": "{provider} is having trouble right now. Try again in a moment."
     }

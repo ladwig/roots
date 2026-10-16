@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { FileList } from "@/components/file-list"
 import { ImageForm } from "@/components/image-form"
 import { Notice } from "@/components/notice"
 import { FormCard, RecordLayout } from "@/components/page"
@@ -40,7 +41,13 @@ export default async function EventPage({ params, searchParams }: { params: Prom
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
       <RecordLayout
         aside={
-          canManage && (
+          <>
+            {ctx.can("org.files.view") && (
+              <FormCard id="files" title={t("files.title")}>
+                <FileList ctx={ctx} entity="events" entityId={ev.id} back={`/events/${ev.id}`} />
+              </FormCard>
+            )}
+            {canManage && (
             <>
               <FormCard id="image" title={t("eventsPage.image")}>
                 <ImageForm action={updateEventImage} id="ev-image" label={t("eventsPage.image")} hint={t("eventsPage.imageHint")} name={ev.title} path={ev.image_path} square hidden={{ id: ev.id }} />
@@ -57,7 +64,8 @@ export default async function EventPage({ params, searchParams }: { params: Prom
                 </FormCard>
               )}
             </>
-          )
+            )}
+          </>
         }
       >
         {!canManage && <p className="text-sm text-muted-foreground">{t("eventsPage.readOnly")}</p>}

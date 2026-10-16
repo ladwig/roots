@@ -2,7 +2,7 @@
 
 import type { UIMessage } from "ai"
 import { getContext } from "@/lib/context"
-import type { Provider } from "./providers"
+import { newestGemini, type ModelInfo, type Provider } from "./providers"
 
 // Sprout panel data, loaded when the panel opens (not on every page): models of the person's keys, recent chats.
 export async function sproutSetup() {
@@ -12,7 +12,10 @@ export async function sproutSetup() {
     ctx.supabase.from("assistant_chats").select("id, title, starred, updated_at").eq("org_id", ctx.org.id).eq("user_id", ctx.userId).order("starred", { ascending: false }).order("updated_at", { ascending: false }).limit(30),
     ctx.supabase.from("orgs").select("allow_ai").eq("id", ctx.org.id).maybeSingle(),
   ])
-  const models = (keys ?? []).flatMap((k) => (Array.isArray(k.models) ? (k.models as { id: string; name: string }[]) : []).map((m) => ({ provider: k.provider as Provider, id: m.id, name: m.name })))
+  const models = (keys ?? []).flatMap((k) => {
+    const list = Array.isArray(k.models) ? (k.models as ModelInfo[]) : []
+    return (k.provider === "google" ? newestGemini(list) : list).map((m) => ({ provider: k.provider as Provider, id: m.id, name: m.name }))
+  })
   return { models, chats: chats ?? [], aiOff: org?.allow_ai === false, orgId: ctx.org.id, orgName: ctx.org.name }
 }
 
