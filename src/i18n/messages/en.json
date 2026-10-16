@@ -1722,7 +1722,9 @@
     "thanks": {
       "one": "Thanks! 1 name is on the list.",
       "other": "Thanks! {count} names are on the list."
-    }
+    },
+    "linkNeedsPublished": "The link only opens once the event is published – until then guests see “closed”.",
+    "toEvent": "Go to the event"
   },
   "lineup": {
     "title": "Lineup & timetable",

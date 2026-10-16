@@ -27,7 +27,7 @@ export default async function GuestListPage({ params, searchParams }: PageProps<
   const t = await getT()
   const canManage = ctx.can("guestlists.manage")
   const [{ data: list }, { data: entries }] = await Promise.all([
-    ctx.supabase.from("guest_lists").select("*, events(title, starts_at), artists(name)").eq("id", id).eq("org_id", ctx.org.id).is("deleted_at", null).maybeSingle(),
+    ctx.supabase.from("guest_lists").select("*, events(id, title, starts_at, status), artists(name)").eq("id", id).eq("org_id", ctx.org.id).is("deleted_at", null).maybeSingle(),
     ctx.supabase.from("guest_entries").select("id, name, email, added_via, submitted_by, created_at, tickets!guest_entries_ticket_id_fkey(code, status), guest_checkins(event_id, checked_in_at)").eq("list_id", id).order("name"),
   ])
   if (!list) notFound()
@@ -68,6 +68,15 @@ export default async function GuestListPage({ params, searchParams }: PageProps<
           <Badge variant={list.link_enabled ? "default" : "secondary"}>{list.link_enabled ? t("guestlists.linkOn") : t("guestlists.linkOff")}</Badge>
         </div>
         <p className="text-sm text-muted-foreground">{t("guestlists.linkHint", { count: list.per_submission })}</p>
+        {list.link_enabled && list.events && list.events.status !== "published" && (
+          // The public link only opens for published events (guest_link_info): say so instead of a silent "closed".
+          <p className="rounded-lg border bg-muted px-3 py-2 text-sm">
+            {t("guestlists.linkNeedsPublished")}{" "}
+            <Link href={`/events/${list.events.id}`} className="text-primary underline underline-offset-4">
+              {t("guestlists.toEvent")}
+            </Link>
+          </p>
+        )}
         {link && list.link_enabled && (
           <a href={link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm break-all underline underline-offset-4">
             {link} <ExternalLinkIcon className="size-3.5 shrink-0" />

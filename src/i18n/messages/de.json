@@ -1722,7 +1722,9 @@
     "thanks": {
       "one": "Danke! 1 Name steht auf der Liste.",
       "other": "Danke! {count} Namen stehen auf der Liste."
-    }
+    },
+    "linkNeedsPublished": "Der Link öffnet sich erst, wenn die Veranstaltung veröffentlicht ist – bis dahin sehen Gäste „geschlossen“.",
+    "toEvent": "Zur Veranstaltung"
   },
   "lineup": {
     "title": "Lineup & Timetable",
