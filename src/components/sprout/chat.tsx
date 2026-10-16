@@ -33,6 +33,7 @@ export function ChatView({
   orgId,
   orgName,
   onSent,
+  prompt,
 }: {
   chatId: string
   initial: UIMessage[]
@@ -42,6 +43,7 @@ export function ChatView({
   orgId: string
   orgName: string
   onSent: () => void
+  prompt?: string // sent once right away (question from the home page)
 }) {
   const t = useT()
   const pathname = usePathname()
@@ -103,6 +105,16 @@ export function ChatView({
   const [listening, setListening] = useState(false)
   const rec = useRef<Recognition | null>(null)
   const [canSpeak] = useState(() => !!speech()) // the chat only renders in the browser
+  // One tick later and cancelled on unmount: React may mount twice (dev), the question goes to the instance that stays.
+  const asked = useRef(false)
+  useEffect(() => {
+    if (!prompt || asked.current || !model) return
+    const id = setTimeout(() => {
+      asked.current = true
+      sendMessage({ text: prompt }, { body: { model } })
+    }, 0)
+    return () => clearTimeout(id)
+  }, [prompt, model, sendMessage])
   const dictate = () => {
     if (listening) return rec.current?.stop()
     const SR = speech()

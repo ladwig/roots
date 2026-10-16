@@ -7,6 +7,7 @@ import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
 import { titled } from "@/lib/title"
 import { param } from "@/lib/url"
+import { SproutAsk } from "@/components/sprout/ask"
 import { TaskDrawer } from "./projects/task-drawer"
 
 export const generateMetadata = titled("shell.home")
@@ -60,6 +61,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
   return (
     <Page>
       <PageHeader icon={SunIcon} title={t("home.today")} meta={`${ctx.org.name} · ${t.date(now, { dateStyle: "full" })}`} />
+      <SproutAsk />
       <div className="grid gap-6 md:grid-cols-2">
         {tasks && (
           <FormCard id="tasks" title={t("home.myTasks")} action={<More href="/projects/tasks?assignee=me&view=list" label={t("home.all")} />}>

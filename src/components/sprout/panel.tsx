@@ -14,7 +14,7 @@ import { ChatView, type Model } from "./chat"
 import { useSprout } from "./context"
 
 type Setup = Awaited<ReturnType<typeof sproutSetup>>
-type Chat = { id: string; messages: UIMessage[]; title: string; starred: boolean; saved: boolean }
+type Chat = { id: string; messages: UIMessage[]; title: string; starred: boolean; saved: boolean; prompt?: string }
 const fresh = (): Chat => ({ id: crypto.randomUUID(), messages: [], title: "", starred: false, saved: false })
 const MODEL_KEY = "sprout_model"
 const CHAT_KEY = "sprout_chat"
@@ -60,6 +60,16 @@ export function SproutPanel() {
         if (c) setChat({ id: c.id, messages: c.messages, title: c.title, starred: c.starred, saved: true })
       })
   }, [open, setup, refresh])
+  // A question from elsewhere (home page): open the panel, new chat, send it there.
+  useEffect(() => {
+    const on = (e: Event) => {
+      setChat({ ...fresh(), prompt: (e as CustomEvent<string>).detail })
+      store(CHAT_KEY, null)
+      setOpen(true)
+    }
+    window.addEventListener("sprout:ask", on)
+    return () => window.removeEventListener("sprout:ask", on)
+  }, [setOpen])
   // Keys added or removed elsewhere (profile page) → reload the models.
   useEffect(() => {
     const on = () => refresh()
@@ -165,6 +175,7 @@ export function SproutPanel() {
           key={chat.id}
           chatId={chat.id}
           initial={chat.messages}
+          prompt={chat.prompt}
           models={models}
           model={chosen}
           setModel={setModel}
