@@ -3,7 +3,14 @@
 import { useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
 
-type P = { x: number; y: number; z: number; leaf: 0 | 1 | 2 } // 0 stem/soil, 1 left leaf, 2 right leaf
+type P = { x: number; y: number; z: number; leaf: 0 | 1 | 2 | 3 } // 0 stem, 1 left leaf, 2 right leaf, 3 soil
+
+const STEM = { bottom: -0.62, height: 0.72 } // the leaves sit on the stem's top (y 0.1)
+const GROW = 2200 // ms: stem out of the soil, then the leaves pop open
+const SHRINK = 900 // ms: back into the soil before growing again
+const clamp = (v: number) => Math.min(1, Math.max(0, v))
+const easeOut = (t: number) => 1 - Math.pow(1 - t, 3)
+const easeBack = (t: number) => 1 + 2.2 * Math.pow(t - 1, 3) + 1.2 * Math.pow(t - 1, 2) // a little overshoot: the "pop"
 
 // The sprout as dots in 3D (unit space, y up): a curved stem, two leaves (filled with dots along their outline and
 // midrib), a ring of soil. Built once; animated by swinging (never edge-on) and bending.
@@ -32,7 +39,7 @@ function shape(): P[] {
   for (const [r, n] of [[0.42, 22], [0.26, 14]] as const)
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2
-      pts.push({ x: Math.cos(a) * r, y: -0.64, z: Math.sin(a) * r, leaf: 0 })
+      pts.push({ x: Math.cos(a) * r, y: -0.64, z: Math.sin(a) * r, leaf: 3 })
     }
   return pts
 }
@@ -40,9 +47,10 @@ function shape(): P[] {
 /**
  * Sprout, the assistant, as an animated dotted 3D sprout (canvas, no WebGL), in the style of the thinking orbs. Drawn
  * in the current text colour (light / dark follows the theme). `working` turns faster and lets the leaves flutter.
- * Respects prefers-reduced-motion (one still frame).
+ * Grows out of the soil on load (and now and then again). `still` (small icons) and prefers-reduced-motion draw one
+ * grown frame.
  */
-export function SproutOrb({ size = 20, working = false, className, label }: { size?: number; working?: boolean; className?: string; label?: string }) {
+export function SproutOrb({ size = 20, working = false, still: fixed = false, className, label }: { size?: number; working?: boolean; still?: boolean; className?: string; label?: string }) {
   const ref = useRef<HTMLCanvasElement>(null)
   const state = useRef({ working })
   useEffect(() => {
@@ -57,13 +65,17 @@ export function SproutOrb({ size = 20, working = false, className, label }: { si
     canvas.width = size * dpr
     canvas.height = size * dpr
     const pts = shape()
-    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    const still = fixed || window.matchMedia("(prefers-reduced-motion: reduce)").matches // icon sizes: one still frame
     const dot = size >= 40 ? 1.3 : 0.75
     let angle = 0
     let phase = 0.4
     let speed = 0.7
     let raf = 0
     let last = performance.now()
+    // Growing: from the bare soil on load; now and then (calm, every 50–80 s) back into the soil and up again.
+    let growFrom = still ? -GROW : last
+    let shrinkFrom = 0
+    let nextReplay = last + 50_000 + Math.random() * 30_000
 
     const draw = (now: number) => {
       const dt = Math.min((now - last) / 1000, 0.05)
@@ -80,7 +92,23 @@ export function SproutOrb({ size = 20, working = false, className, label }: { si
       const flutter = busy ? Math.sin(now / 120) : Math.sin(now / 700) * 0.4
       const cos = Math.cos(angle)
       const sin = Math.sin(angle)
-      const list = pts.map((p, i) => {
+      if (!still && !busy && !shrinkFrom && now > nextReplay) shrinkFrom = now
+      if (shrinkFrom && now - shrinkFrom > SHRINK) {
+        shrinkFrom = 0
+        growFrom = now
+        nextReplay = now + 50_000 + Math.random() * 30_000
+      }
+      const g = shrinkFrom ? 1 - clamp((now - shrinkFrom) / SHRINK) : clamp((now - growFrom) / GROW)
+      const stemUp = easeOut(clamp(g / 0.55)) // the stem rises first …
+      const leafOpen = g >= 1 ? 1 : easeBack(clamp((g - 0.45) / 0.55)) // … then the leaves unfold
+      const top = STEM.bottom + STEM.height * stemUp
+      const shown = pts.flatMap((p) => {
+        if (p.leaf === 3) return [p]
+        if (p.leaf === 0) return [{ ...p, y: STEM.bottom + (p.y - STEM.bottom) * stemUp, x: p.x * stemUp }]
+        if (leafOpen <= 0.02) return []
+        return [{ ...p, x: p.x * leafOpen, y: top + (p.y - 0.1) * leafOpen, z: p.z * leafOpen }]
+      })
+      const list = shown.map((p, i) => {
         // leaves lift and flutter, the stem bends with the sway (more towards the top)
         const lift = p.leaf ? flutter * 0.06 * (p.leaf === 1 ? 1 : -1) * Math.abs(p.x) * 3 : 0
         const bend = sway * Math.max(p.y + 0.75, 0)
@@ -104,7 +132,7 @@ export function SproutOrb({ size = 20, working = false, className, label }: { si
     }
     raf = requestAnimationFrame(draw)
     return () => cancelAnimationFrame(raf)
-  }, [size])
+  }, [size, fixed])
 
   return <canvas ref={ref} role="img" aria-label={label ?? "Sprout"} className={cn("shrink-0", className)} style={{ width: size, height: size }} />
 }
