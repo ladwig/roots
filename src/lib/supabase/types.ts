@@ -2021,14 +2021,14 @@ isOneToOne: false
                   ]
                 },"ticket_types": {
                   Row: {
-                    "active": boolean,"created_at": string,"created_by": string | null,"currency": string,"description": string | null,"event_id": string,"for_members": boolean,"hidden": boolean,"id": string,"name": string,"org_id": string,"position": number,"price": number,"quota": number | null,"sales_end": string | null,"sales_start": string | null,"updated_at": string,"updated_by": string | null
+                    "active": boolean,"created_at": string,"created_by": string | null,"currency": string,"description": string | null,"event_id": string,"for_members": boolean,"guest_list_id": string | null,"hidden": boolean,"id": string,"name": string,"org_id": string,"position": number,"price": number,"quota": number | null,"sales_end": string | null,"sales_start": string | null,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"description"?: string | null,"event_id": string,"for_members"?: boolean,"hidden"?: boolean,"id"?: string,"name": string,"org_id": string,"position"?: number,"price": number,"quota"?: number | null,"sales_end"?: string | null,"sales_start"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"description"?: string | null,"event_id": string,"for_members"?: boolean,"guest_list_id"?: string | null,"hidden"?: boolean,"id"?: string,"name": string,"org_id": string,"position"?: number,"price": number,"quota"?: number | null,"sales_end"?: string | null,"sales_start"?: string | null,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"description"?: string | null,"event_id"?: string,"for_members"?: boolean,"hidden"?: boolean,"id"?: string,"name"?: string,"org_id"?: string,"position"?: number,"price"?: number,"quota"?: number | null,"sales_end"?: string | null,"sales_start"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"description"?: string | null,"event_id"?: string,"for_members"?: boolean,"guest_list_id"?: string | null,"hidden"?: boolean,"id"?: string,"name"?: string,"org_id"?: string,"position"?: number,"price"?: number,"quota"?: number | null,"sales_end"?: string | null,"sales_start"?: string | null,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -2036,6 +2036,12 @@ isOneToOne: false
       columns: ["event_id"]
 isOneToOne: false
       referencedRelation: "events"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ticket_types_guest_list_id_fkey"
+      columns: ["guest_list_id"]
+isOneToOne: true
+      referencedRelation: "guest_lists"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "ticket_types_org_id_fkey"

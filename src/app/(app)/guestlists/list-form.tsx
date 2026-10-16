@@ -14,12 +14,11 @@ export async function ListForm({ eventId, list }: { eventId: string | null; list
   const ctx = await getContext()
   const t = await getT()
   const ev = list?.event_id ?? eventId
-  const [{ data: events }, { data: artists }, { data: types }] = await Promise.all([
+  const [{ data: events }, { data: artists }] = await Promise.all([
     list || eventId
       ? Promise.resolve({ data: [] })
       : ctx.supabase.from("events").select("id, title, starts_at").eq("org_id", ctx.org.id).is("deleted_at", null).gte("starts_at", new Date().toISOString()).order("starts_at").limit(50),
     ctx.supabase.from("artists").select("id, name").eq("org_id", ctx.org.id).is("deleted_at", null).order("name").limit(500),
-    ev && ctx.modules.has("tickets") ? ctx.supabase.from("ticket_types").select("id, name").eq("event_id", ev).order("position") : Promise.resolve({ data: [] }),
   ])
   return (
     <form action={saveList} className="grid gap-4">
@@ -73,20 +72,7 @@ export async function ListForm({ eventId, list }: { eventId: string | null; list
           <Input id="gl-closes" name="link_closes_at" type="datetime-local" defaultValue={list?.link_closes_at ? toLocalInput(list.link_closes_at) : undefined} />
         </div>
       </div>
-      {ev && (types?.length ?? 0) > 0 && (
-        <div className="grid gap-2">
-          <Label htmlFor="gl-type">{t("guestlists.ticketType")}</Label>
-          <NativeSelect id="gl-type" name="ticket_type" defaultValue={list?.ticket_type_id ?? ""} className="w-full">
-            <NativeSelectOption value="">{t("guestlists.noTickets")}</NativeSelectOption>
-            {types?.map((ty) => (
-              <NativeSelectOption key={ty.id} value={ty.id}>
-                {ty.name}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-          <p className="text-xs text-muted-foreground">{t("guestlists.ticketHint")}</p>
-        </div>
-      )}
+      {ev && <p className="text-xs text-muted-foreground">{t("guestlists.autoTickets")}</p>}
       <div className="grid gap-2">
         <Label htmlFor="gl-notes">{t("guestlists.notes")}</Label>
         <Input id="gl-notes" name="notes" defaultValue={list?.notes ?? ""} maxLength={2000} />

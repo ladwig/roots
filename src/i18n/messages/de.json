@@ -1339,7 +1339,15 @@
     "pauseHint": "Pausiert ist die Ticketart nicht mehr erhältlich, auch nicht mit Code. Verkaufte Tickets bleiben gültig.",
     "pausedHint": "Der Verkauf ist pausiert. Verkaufte Tickets bleiben gültig.",
     "paused": "Verkauf pausiert.",
-    "activated": "Verkauf aktiv."
+    "activated": "Verkauf aktiv.",
+    "onGuestLists": {
+      "one": "{count} auf Gästelisten",
+      "other": "{count} auf Gästelisten"
+    },
+    "membersIn": {
+      "one": "{count} Mitglied eingelassen",
+      "other": "{count} Mitglieder eingelassen"
+    }
   },
   "shop": {
     "title": "Tickets",
@@ -1658,9 +1666,6 @@
     "perSubmission": "Namen pro Link-Eintrag",
     "artist": "Artist",
     "closesAt": "Link schließt am (optional)",
-    "ticketType": "Mit Ticket verknüpfen (optional)",
-    "noTickets": "Keine Tickets",
-    "ticketHint": "Jeder Eintrag bekommt ein kostenloses Ticket dieser Art (QR, zählt aufs Kontingent). Namen ändern = gleiches Ticket, neuer Name; Eintrag löschen = Ticket ungültig.",
     "notes": "Notiz (intern)",
     "link": "Link",
     "linkOn": "Link aktiv",
@@ -1724,7 +1729,8 @@
       "other": "Danke! {count} Namen stehen auf der Liste."
     },
     "linkNeedsPublished": "Der Link öffnet sich erst, wenn die Veranstaltung veröffentlicht ist – bis dahin sehen Gäste „geschlossen“.",
-    "toEvent": "Zur Veranstaltung"
+    "toEvent": "Zur Veranstaltung",
+    "autoTickets": "Jeder Eintrag bekommt automatisch ein Ticket mit QR-Code (per E-Mail, wenn eine Adresse angegeben ist) und zählt zur Kapazität der Veranstaltung."
   },
   "lineup": {
     "title": "Lineup & Timetable",

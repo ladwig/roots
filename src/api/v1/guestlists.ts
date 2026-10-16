@@ -12,7 +12,7 @@ const GuestList = z.object({
   name: z.string(),
   event_id: uuid.nullable().describe("null = permanent list, valid at every event"),
   artist_id: uuid.nullable(),
-  ticket_type_id: uuid.nullable().describe("Set = every entry gets a free ticket of this type"),
+  ticket_type_id: uuid.nullable().describe("The ticket type its entries get (event lists: the list's own hidden type, created automatically)"),
   door_price: z.number().int().describe("Cents to pay at the door (0 = free)"),
   quota: z.number().int().nullable().describe("Max. entries (null = unlimited)"),
   per_submission: z.number().int().describe("Max. names per sign-up link submission"),
@@ -68,7 +68,7 @@ const ListFields = {
   per_submission: z.number().int().min(1).max(50),
   link_closes_at: z.iso.datetime({ offset: true }).nullable(),
   artist_id: uuid.nullable(),
-  ticket_type_id: uuid.nullable().describe("Only for event lists: a ticket type of that event"),
+  ticket_type_id: uuid.nullable().describe("Optional, event lists only: use this ticket type of the event instead of the list's own automatic one"),
   notes: z.string().max(2000).nullable(),
 }
 

@@ -69,7 +69,13 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
       ctx.supabase.from("ticket_codes").select("*").eq("event_id", eventId).order("created_at"),
     ])
   if (!ev) notFound()
-  const sold = (typeId?: string) => counts?.filter((c) => !typeId || c.type_id === typeId).length ?? 0
+  // Shop types vs. the automatic ones (guest lists, members): counted apart, all against the capacity.
+  const shopTypes = (types ?? []).filter((ty) => !ty.guest_list_id && !ty.for_members)
+  const isShop = new Set(shopTypes.map((ty) => ty.id))
+  const sold = (typeId?: string) => counts?.filter((c) => (typeId ? c.type_id === typeId : isShop.has(c.type_id))).length ?? 0
+  const listTypes = (types ?? []).filter((ty) => ty.guest_list_id).map((ty) => ({ name: ty.name.replace(/^Gästeliste: /, ""), n: sold(ty.id) })).filter((x) => x.n)
+  const members = (types ?? []).filter((ty) => ty.for_members).reduce((n, ty) => n + sold(ty.id), 0)
+  const guests = listTypes.reduce((n, x) => n + x.n, 0)
   const checkedIn = counts?.filter((c) => c.status === "used").length ?? 0
   const left = new Map(avail?.map((a) => [a.type_id, a.remaining]))
   const editing = types?.find((ty) => ty.id === param(sp, "edit"))
@@ -103,7 +109,12 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
             )}
           </div>
         </div>
-        <p className="text-sm text-muted-foreground">{t("tickets.summary", { sold: sold(), checkedIn })}</p>
+        <p className="text-sm text-muted-foreground">
+          {t("tickets.summary", { sold: sold(), checkedIn })}
+          {shopTypes.length > 1 && sold() > 0 && ` (${shopTypes.filter((ty) => sold(ty.id)).map((ty) => `${sold(ty.id)} ${ty.name}`).join(", ")})`}
+          {guests > 0 && ` · ${t("tickets.onGuestLists", { count: guests })} (${listTypes.map((x) => `${x.n} ${x.name}`).join(", ")})`}
+          {members > 0 && ` · ${t("tickets.membersIn", { count: members })}`}
+        </p>
       </div>
       <Notice error={!editing && !creating && !editingCode && !creatingCode ? param(sp, "error") : undefined} ok={param(sp, "ok")} />
       {ev.status !== "published" && <p className="rounded-lg border bg-muted px-3 py-2 text-sm">{t("tickets.notPublished")}</p>}
@@ -120,7 +131,7 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
           )}
         </div>
         <DataTable
-          rows={types ?? []}
+          rows={shopTypes}
           rowKey={(ty) => ty.id}
           rowHref={canManage ? (ty) => withParams(sp, { edit: ty.id, new: undefined }) : undefined}
           empty={t("tickets.noTypes")}
@@ -315,7 +326,7 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
       {(creatingCode || (canManage && editingCode)) && (
         <UrlSheet params={["new", "code"]} title={editingCode ? editingCode.code : t("tickets.newCode")}>
           <Notice error={param(sp, "error")} />
-          <CodeForm t={t} eventId={ev.id} c={editingCode} types={types ?? []} />
+          <CodeForm t={t} eventId={ev.id} c={editingCode} types={shopTypes} />
           {editingCode && (
             <>
               <p className="text-sm">

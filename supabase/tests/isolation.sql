@@ -923,6 +923,22 @@ begin
     reset role;
   end;
 
+  -- Guest lists of an event get their own hidden ticket type; every entry a ticket (QR, counts against capacity)
+  declare v_ev uuid; v_list uuid; v_type uuid; v_active boolean;
+  begin
+    insert into public.org_modules (org_id, module_key) values (org_a, 'guestlists') on conflict do nothing;
+    insert into public.events (org_id, title, slug, starts_at) values (org_a, 'GL Party', 'gl-party', now() + interval '3 days') returning id into v_ev;
+    insert into public.guest_lists (org_id, event_id, name, link_token) values (org_a, v_ev, 'DJ Foo +', 'glisttokenglisttokenglis') returning id into v_list;
+    select ticket_type_id into v_type from public.guest_lists where id = v_list;
+    select active into v_active from public.ticket_types where id = v_type;
+    assert v_type is not null and v_active = false, 'an event guest list gets its own hidden ticket type';
+    insert into public.guest_entries (org_id, list_id, name, email, added_via) values (org_a, v_list, 'Ada', 'ada@x.de', 'app');
+    perform public.guest_sync_tickets(v_list);
+    select count(*) into n from public.tickets where type_id = v_type and status = 'valid';  assert n = 1, 'each guest gets a ticket';
+    update public.guest_lists set name = 'Crew' where id = v_list;
+    select count(*) into n from public.ticket_types where id = v_type and name = 'Gästeliste: Crew';  assert n = 1, 'renaming the list renames its type';
+  end;
+
   -- Assistant: chats and AI keys are private to their person (not even teammates in the same org see them)
   declare v_chat uuid;
   begin

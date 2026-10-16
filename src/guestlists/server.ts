@@ -1,7 +1,8 @@
-// Guest lists, server side. Lists linked to a ticket type give every entry a real (free) ticket: renaming the entry
+// Guest lists, server side. Event lists give every entry a real (free) ticket of the list's own hidden type (DB trigger): renaming the entry
 // renames the ticket (same code), removing the entry voids it. Service role: callers check permissions first.
 import { randomBytes } from "node:crypto"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { emailTickets } from "@/tickets/server"
 
 const db = () => createAdminClient()
 export const linkToken = () => Array.from(randomBytes(24), (b) => "abcdefghijklmnopqrstuvwxyz0123456789"[b % 36]).join("")
@@ -13,6 +14,24 @@ export const linkToken = () => Array.from(randomBytes(24), (b) => "abcdefghijklm
 export async function syncTickets(listId: string) {
   const { error } = await db().rpc("guest_sync_tickets", { p_list: listId })
   if (error) throw error
+  await mailGuestTickets(listId)
+}
+
+/** Guests with an email get their ticket (QR, PDF) once, like a shop order; marked in the order's metadata. */
+export async function mailGuestTickets(listId: string) {
+  const { data: orders } = await db()
+    .from("pay_orders")
+    .select("id, metadata")
+    .eq("source_module", "guestlists")
+    .eq("source_id", listId)
+    .eq("status", "paid")
+    .not("customer_email", "is", null)
+    .is("metadata->>mailed_at", null)
+    .limit(200)
+  for (const o of orders ?? []) {
+    const sent = await emailTickets(o.id).catch(() => false)
+    if (sent) await db().from("pay_orders").update({ metadata: { ...(o.metadata as object), mailed_at: new Date().toISOString() } }).eq("id", o.id)
+  }
 }
 
 /** Entry removed (or list unlinked): its ticket can't be used any more. */

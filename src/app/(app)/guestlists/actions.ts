@@ -34,7 +34,6 @@ export async function saveList(fd: FormData) {
   const closesRaw = String(fd.get("link_closes_at") ?? "").trim()
   const closes = closesRaw ? fromLocalInput(closesRaw)?.toISOString() : null
   const artist = String(fd.get("artist") ?? "")
-  const ticketType = String(fd.get("ticket_type") ?? "")
   if (!name || price === null || (quota !== null && !(Number.isInteger(quota) && quota > 0)) || !(Number.isInteger(per) && per >= 1 && per <= 50) || closes === undefined)
     back(retry, { error: t("errors.invalid_input") })
   const row = {
@@ -44,7 +43,6 @@ export async function saveList(fd: FormData) {
     per_submission: per,
     link_closes_at: closes,
     artist_id: UUID.test(artist) ? artist : null,
-    ticket_type_id: eventId || id ? (UUID.test(ticketType) ? ticketType : null) : null,
     notes: String(fd.get("notes") ?? "").trim().slice(0, 2000) || null,
   }
   if (id) {

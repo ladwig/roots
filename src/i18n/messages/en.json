@@ -1339,7 +1339,15 @@
     "pauseHint": "While paused, this ticket type can't be bought, not even with a code. Sold tickets stay valid.",
     "pausedHint": "Sales are paused. Sold tickets stay valid.",
     "paused": "Sales paused.",
-    "activated": "Sales active."
+    "activated": "Sales active.",
+    "onGuestLists": {
+      "one": "{count} on guest lists",
+      "other": "{count} on guest lists"
+    },
+    "membersIn": {
+      "one": "{count} member admitted",
+      "other": "{count} members admitted"
+    }
   },
   "shop": {
     "title": "Tickets",
@@ -1658,9 +1666,6 @@
     "perSubmission": "Names per link entry",
     "artist": "Artist",
     "closesAt": "Link closes at (optional)",
-    "ticketType": "Link to tickets (optional)",
-    "noTickets": "No tickets",
-    "ticketHint": "Every entry gets a free ticket of this type (QR, counts against the quota). Renaming = same ticket, new name; removing the entry voids the ticket.",
     "notes": "Note (internal)",
     "link": "Link",
     "linkOn": "Link on",
@@ -1724,7 +1729,8 @@
       "other": "Thanks! {count} names are on the list."
     },
     "linkNeedsPublished": "The link only opens once the event is published – until then guests see “closed”.",
-    "toEvent": "Go to the event"
+    "toEvent": "Go to the event",
+    "autoTickets": "Every entry automatically gets a ticket with a QR code (by email if an address is given) and counts against the event's capacity."
   },
   "lineup": {
     "title": "Lineup & timetable",
