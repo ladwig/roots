@@ -4755,5 +4755,79 @@
   },
   "timeline": {
     "undated": "No date"
+  },
+  "sprout": {
+    "name": "Sprout",
+    "keysTitle": "AI assistant (Sprout)",
+    "keysHint": "Sprout works with your own key from Anthropic (Claude), OpenAI (ChatGPT), Google (Gemini) or xAI (Grok). The key is stored encrypted and only used on the server; usage is billed to your account with the provider.",
+    "addKey": "Add an API key",
+    "saveKey": "Check & save",
+    "deleteKey": "Remove key",
+    "confirmDeleteKey": "Really remove this key?",
+    "modelCount": {
+      "one": "{count} model",
+      "other": "{count} models"
+    },
+    "keyUnknown": "I don't recognise this key. Supported: Anthropic (sk-ant-…), OpenAI (sk-…), Google (AIza…), xAI (xai-…).",
+    "keyRejected": "{provider} rejected the key: {reason}",
+    "keySaved": "{provider} connected – {count} models available.",
+    "keyDeleted": "Key removed.",
+    "pickModel": "Choose a model",
+    "aiOff": "AI is switched off for this organisation (Settings → API).",
+    "noKey": "There's no key for {provider}.",
+    "providerError": "{provider} says: {reason}",
+    "failed": "Something went wrong. Please try again.",
+    "steps": {
+      "one": "{count} step",
+      "other": "{count} steps"
+    },
+    "tools": {
+      "roots_whoami": "Checks access",
+      "roots_find_operations": "Looks for functions",
+      "roots_describe_operation": "Reads description",
+      "roots_read": "Reads",
+      "roots_write": "Changes",
+      "roots_danger": "Runs"
+    },
+    "approveTitle": "May I run this?",
+    "approve": "Run",
+    "denied": "cancelled",
+    "more": {
+      "one": "and {count} more",
+      "other": "and {count} more"
+    },
+    "hello": "Hi, I'm Sprout. I know {org} in roots and can look things up, create and change them – just like you. What should I do?",
+    "ideas": {
+      "today": "What's on today?",
+      "overdue": "Which tasks are overdue?",
+      "event": "Help me create an event"
+    },
+    "seeFiles": "See attachment.",
+    "removeContext": "Don't send this page",
+    "removeFile": "Remove file",
+    "placeholder": "Ask Sprout …",
+    "attach": "Attach a file",
+    "dictate": "Dictate",
+    "providers": {
+      "anthropic": "Claude",
+      "openai": "ChatGPT",
+      "google": "Gemini",
+      "xai": "Grok"
+    },
+    "stop": "Stop",
+    "send": "Send",
+    "disclaimer": "Sprout can make mistakes. Check important details.",
+    "star": "Star",
+    "unstar": "Unstar",
+    "newChat": "New chat",
+    "history": "Recent chats",
+    "recent": "Recent chats",
+    "noChats": "No chats yet.",
+    "untitled": "Untitled",
+    "deleteChat": "Delete chat",
+    "narrow": "Narrower",
+    "wide": "Wider",
+    "needKey": "Sprout needs an API key from Claude, ChatGPT, Gemini or Grok. You add it once in your profile.",
+    "addKeyLink": "Add a key"
   }
 }

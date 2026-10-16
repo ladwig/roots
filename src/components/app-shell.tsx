@@ -4,6 +4,8 @@ import { Shortcuts } from "@/components/shortcuts"
 import { Separator } from "@/components/ui/separator"
 import { ConfirmHost } from "@/components/confirm-submit"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { SproutButton, SproutProvider } from "@/components/sprout/context"
+import { SproutPanel } from "@/components/sprout/panel"
 
 // The one layout for signed-in areas (App + /admin): sidebar (drawer on phones, icons when collapsed) + top bar + content.
 export async function AppShell({
@@ -18,12 +20,14 @@ export async function AppShell({
   groups: { label?: string; items: SidebarLink[] }[]
   me: Me
   title: string
-  search?: boolean // ⌘K search over the active org (App only)
+  search?: boolean // ⌘K search over the active org (App only); also turns on Sprout, the assistant panel
   children: React.ReactNode
 }) {
   // Open/collapsed is remembered in the sidebar_state cookie (set by the shadcn sidebar).
-  const open = (await cookies()).get("sidebar_state")?.value !== "false"
+  const jar = await cookies()
+  const open = jar.get("sidebar_state")?.value !== "false"
   return (
+    <SproutProvider initial={search ? jar.get("sprout")?.value : undefined}>
     <SidebarProvider defaultOpen={open}>
       <AppSidebar header={header} groups={groups} me={me} search={search} />
       <SidebarInset className="min-w-0">
@@ -31,6 +35,7 @@ export async function AppShell({
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-1 data-vertical:h-4" />
           <span className="truncate text-sm font-medium">{title}</span>
+          {search && <SproutButton />}
         </header>
         <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">
           {children}
@@ -38,6 +43,8 @@ export async function AppShell({
           <ConfirmHost />
         </main>
       </SidebarInset>
+      {search && <SproutPanel />}
     </SidebarProvider>
+    </SproutProvider>
   )
 }

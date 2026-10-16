@@ -31,6 +31,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"ai_keys": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"hint": string,"id": string,"models": NonNullable<Json>,"provider": string,"secret_id": string | null,"updated_at": string,"updated_by": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"hint"?: string,"id"?: string,"models"?: NonNullable<Json>,"provider": string,"secret_id"?: string | null,"updated_at"?: string,"updated_by"?: string | null,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"hint"?: string,"id"?: string,"models"?: NonNullable<Json>,"provider"?: string,"secret_id"?: string | null,"updated_at"?: string,"updated_by"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"api_keys": {
                   Row: {
                     "created_at": string,"created_by": string | null,"expires_at": string | null,"id": string,"key_hash": string,"last_used_at": string | null,"name": string,"org_id": string,"permissions": (string)[],"prefix": string,"revoked_at": string | null,"updated_at": string,"updated_by": string | null
@@ -85,6 +99,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     },{
       foreignKeyName: "artists_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"assistant_chats": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"id": string,"messages": NonNullable<Json>,"model": string,"org_id": string,"starred": boolean,"title": string,"updated_at": string,"updated_by": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"messages"?: NonNullable<Json>,"model"?: string,"org_id": string,"starred"?: boolean,"title"?: string,"updated_at"?: string,"updated_by"?: string | null,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"messages"?: NonNullable<Json>,"model"?: string,"org_id"?: string,"starred"?: boolean,"title"?: string,"updated_at"?: string,"updated_by"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "assistant_chats_org_id_fkey"
       columns: ["org_id"]
 isOneToOne: false
       referencedRelation: "orgs"
@@ -2353,6 +2387,9 @@ isOneToOne: false
 "default_module_keys":
 { Args: Record<PropertyKey, never>; Returns: (string)[]
                            },
+"delete_ai_key":
+{ Args: { "p_provider": string }; Returns: undefined
+                           },
 "delete_integration":
 { Args: { "p_org": string,"p_provider": string }; Returns: undefined
                            },
@@ -2385,6 +2422,9 @@ isOneToOne: false
                            },
 "format_document_number":
 { Args: { "p_birth"?: string,"p_date": string,"p_format": string,"p_n": number }; Returns: string
+                           },
+"get_ai_key":
+{ Args: { "p_provider": string,"p_user": string }; Returns: string
                            },
 "get_integration_secret":
 { Args: { "p_org": string,"p_provider": string }; Returns: string
@@ -2581,6 +2621,9 @@ isOneToOne: false
                            },
 "restore_deleted":
 { Args: { "p_id": string,"p_table": unknown }; Returns: boolean
+                           },
+"save_ai_key":
+{ Args: { "p_hint": string,"p_key": string,"p_models": Json,"p_provider": string }; Returns: undefined
                            },
 "save_integration":
 { Args: { "p_config": Json,"p_expires_at"?: string,"p_org": string,"p_provider": string,"p_secret"?: string,"p_status"?: string }; Returns: string

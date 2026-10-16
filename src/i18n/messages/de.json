@@ -4755,5 +4755,79 @@
   },
   "timeline": {
     "undated": "Ohne Datum"
+  },
+  "sprout": {
+    "name": "Sprout",
+    "keysTitle": "KI-Assistent (Sprout)",
+    "keysHint": "Sprout arbeitet mit deinem eigenen Schlüssel von Anthropic (Claude), OpenAI (ChatGPT), Google (Gemini) oder xAI (Grok). Der Schlüssel wird verschlüsselt gespeichert und nur auf dem Server benutzt; die Kosten laufen über dein Konto beim Anbieter.",
+    "addKey": "API-Schlüssel hinzufügen",
+    "saveKey": "Prüfen & speichern",
+    "deleteKey": "Schlüssel entfernen",
+    "confirmDeleteKey": "Schlüssel wirklich entfernen?",
+    "modelCount": {
+      "one": "{count} Modell",
+      "other": "{count} Modelle"
+    },
+    "keyUnknown": "Diesen Schlüssel erkenne ich nicht. Unterstützt: Anthropic (sk-ant-…), OpenAI (sk-…), Google (AIza…), xAI (xai-…).",
+    "keyRejected": "{provider} hat den Schlüssel abgelehnt: {reason}",
+    "keySaved": "{provider} verbunden – {count} Modelle verfügbar.",
+    "keyDeleted": "Schlüssel entfernt.",
+    "pickModel": "Modell wählen",
+    "aiOff": "KI ist für diese Organisation ausgeschaltet (Einstellungen → API).",
+    "noKey": "Für {provider} ist kein Schlüssel hinterlegt.",
+    "providerError": "{provider} meldet: {reason}",
+    "failed": "Da ist etwas schiefgegangen. Versuch es nochmal.",
+    "steps": {
+      "one": "{count} Schritt",
+      "other": "{count} Schritte"
+    },
+    "tools": {
+      "roots_whoami": "Prüft Zugriff",
+      "roots_find_operations": "Sucht Funktionen",
+      "roots_describe_operation": "Liest Beschreibung",
+      "roots_read": "Liest",
+      "roots_write": "Ändert",
+      "roots_danger": "Ausführen"
+    },
+    "approveTitle": "Darf ich das ausführen?",
+    "approve": "Ausführen",
+    "denied": "abgebrochen",
+    "more": {
+      "one": "und {count} weiterer",
+      "other": "und {count} weitere"
+    },
+    "hello": "Hallo, ich bin Sprout. Ich kenne {org} in roots und kann nachschauen, anlegen und ändern – so wie du. Was soll ich tun?",
+    "ideas": {
+      "today": "Was steht heute an?",
+      "overdue": "Welche Aufgaben sind überfällig?",
+      "event": "Hilf mir, ein Event anzulegen"
+    },
+    "seeFiles": "Siehe Anhang.",
+    "removeContext": "Seite nicht mitschicken",
+    "removeFile": "Datei entfernen",
+    "placeholder": "Frag Sprout …",
+    "attach": "Datei anhängen",
+    "dictate": "Diktieren",
+    "providers": {
+      "anthropic": "Claude",
+      "openai": "ChatGPT",
+      "google": "Gemini",
+      "xai": "Grok"
+    },
+    "stop": "Stoppen",
+    "send": "Senden",
+    "disclaimer": "Sprout kann sich irren. Prüf wichtige Angaben.",
+    "star": "Merken",
+    "unstar": "Nicht mehr merken",
+    "newChat": "Neuer Chat",
+    "history": "Letzte Chats",
+    "recent": "Letzte Chats",
+    "noChats": "Noch keine Chats.",
+    "untitled": "Ohne Titel",
+    "deleteChat": "Chat löschen",
+    "narrow": "Schmaler",
+    "wide": "Breiter",
+    "needKey": "Sprout braucht einen API-Schlüssel von Claude, ChatGPT, Gemini oder Grok. Du hinterlegst ihn einmal in deinem Profil.",
+    "addKeyLink": "Schlüssel hinzufügen"
   }
 }

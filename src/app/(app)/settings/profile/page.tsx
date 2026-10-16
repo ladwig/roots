@@ -4,6 +4,7 @@ import { Passkeys } from "@/components/passkeys"
 import { Badge } from "@/components/ui/badge"
 import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
+import { AiKeys } from "../ai-keys"
 import { ConnectAi } from "../connect-ai"
 import { Connections } from "../connections"
 
@@ -33,6 +34,7 @@ export default async function ProfileSettings({ searchParams }: PageProps<"/sett
       <FormCard id="passkeys" title={t("passkeys.title")} description={t("passkeys.hint")}>
         <Passkeys />
       </FormCard>
+      <AiKeys ctx={ctx} />
       <ConnectAi />
       <Connections ctx={ctx} scope="mine" back="/settings/profile" />
     </div>

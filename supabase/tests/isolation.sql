@@ -923,6 +923,32 @@ begin
     reset role;
   end;
 
+  -- Assistant: chats and AI keys are private to their person (not even teammates in the same org see them)
+  declare v_chat uuid;
+  begin
+    perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    insert into public.assistant_chats (org_id, user_id, title) values (org_a, a, 'Mein Chat') returning id into v_chat;
+    perform public.save_ai_key('xai', 'xai-test-secret', '…cret', '[]');
+    begin
+      insert into public.assistant_chats (org_id, user_id, title) values (org_a, c, 'fremd');
+      assert false, 'A creates a chat for someone else';
+    exception when insufficient_privilege then null; end;
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.assistant_chats where id = v_chat;  assert n = 0, 'a teammate sees my chat';
+    select count(*) into n from public.ai_keys where user_id = a;           assert n = 0, 'a teammate sees my AI key';
+    begin
+      perform public.get_ai_key(a, 'xai');
+      assert false, 'a signed-in person reads a key';
+    exception when insufficient_privilege then null; end;
+    reset role;
+    assert public.get_ai_key(a, 'xai') = 'xai-test-secret', 'the server reads the key';
+    perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+    perform public.delete_ai_key('xai');
+  end;
+
   -- Rentals: no double booking (capacity), fixed parts not alone, renewal extends, people from the same org; B sees nothing
   insert into public.org_modules (org_id, module_key) values (org_a, 'rentals') on conflict do nothing;
   declare v_studio uuid; v_shelf uuid; v_room uuid; v_r uuid; v_ct uuid; v_end timestamptz;
