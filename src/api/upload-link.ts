@@ -1,6 +1,6 @@
 // Upload links: for clients that can't send file bytes themselves (Claude in the browser sees a pasted picture but
 // can't pass the file on). The connection asks for a link to one target; the person opens /upload/<token> and drops
-// the file there, or a client with a shell PUTs the bytes to /api/upload/<token>. The token is signed and short-lived
+// the file there, or a client with a shell PUTs the bytes to /api/upload/<token>. The token is signed and valid 10 minutes
 // and runs the upload as that key / AI connection with its live rights, through the normal endpoints:
 //   image target: PUT <image endpoint> (e.g. /events/{id}/image), raw body
 //   file target:  POST /files/uploads → store bytes → POST /files { path, name, entity/entity_id | folder }
@@ -11,7 +11,7 @@ import { APP_URL } from "@/lib/url"
 import { MAX_FILE_BYTES } from "@/lib/files"
 import { ApiError, allowed, invoke, match, parseInput, type Auth, type Endpoint } from "./core"
 
-const TTL_MS = 60 * 60 * 1000
+const TTL_MS = 10 * 60 * 1000
 // Vercel function bodies are limited to 4.5 MB.
 // ponytail: bigger documents would need the browser to PUT straight to a signed Storage URL; add when someone needs it.
 export const MAX_LINK_BYTES = Math.min(MAX_FILE_BYTES, 4 * 1024 * 1024)

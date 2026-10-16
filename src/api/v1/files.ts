@@ -181,7 +181,7 @@ export const endpoints: Endpoint[] = [
     tag: "Files",
     summary: "Get an upload link for a person",
     description:
-      "For clients that can't send the file themselves (e.g. an AI chat where the person pasted a document): returns a link (valid 1 hour) to a page where the person drops one or more files; they are attached to the record (`entity` + `entity_id`) or put in `folder`. A client with a shell can also `PUT` the bytes to `<upload_url with /upload/ replaced by /api/upload/>` with `X-File-Name` (max. 4 MB). Afterwards list the files (GET /files?entity=…) to see them.",
+      "For clients that can't send the file themselves (e.g. an AI chat where the person pasted a document): returns a link (valid 10 minutes) to a page where the person drops one or more files; they are attached to the record (`entity` + `entity_id`) or put in `folder`. A client with a shell can also `PUT` the bytes to `<upload_url with /upload/ replaced by /api/upload/>` with `X-File-Name` (max. 4 MB). Afterwards list the files (GET /files?entity=…) to see them.",
     body: z.object({ entity: Entity.optional(), entity_id: uuid.optional(), folder: folderText.optional(), label: z.string().max(200).optional().describe("Shown on the page, e.g. the record's name") }).strict(),
     response: z.object({ upload_url: z.string(), expires_at: ts }),
     status: 201,
