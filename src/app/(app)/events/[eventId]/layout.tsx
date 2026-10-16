@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { CalendarClockIcon, ExternalLinkIcon, EyeOffIcon, ListChecksIcon, ScanLineIcon, SendIcon, Trash2Icon } from "lucide-react"
+import { CalendarClockIcon, ExternalLinkIcon, EyeOffIcon, ScanLineIcon, SendIcon, Trash2Icon } from "lucide-react"
 import { NavLink } from "@/components/nav-link"
 import { ActionsMenu, MenuLink, MenuSeparator, MenuSubmit } from "@/components/actions-menu"
 import { SubmitButton } from "@/components/submit-button"
@@ -40,16 +40,11 @@ export default async function EventLayout({ children, params }: { children: Reac
         }
         menu={
           !ev.deleted_at &&
-          (canManage || on("shifts", "shifts.view") || on("guestlists", "guestlists.view") || on("tickets", "tickets.scan") || on("guestlists", "guestlists.checkin")) && (
+          (canManage || on("shifts", "shifts.view") || on("tickets", "tickets.scan") || on("guestlists", "guestlists.checkin")) && (
             <ActionsMenu>
               {on("shifts", "shifts.view") && (
                 <MenuLink href={`/shifts?event=${ev.id}`} icon={<CalendarClockIcon />}>
                   {t("shifts.title")}
-                </MenuLink>
-              )}
-              {on("guestlists", "guestlists.view") && (
-                <MenuLink href={`/guestlists?event=${ev.id}`} icon={<ListChecksIcon />}>
-                  {t("guestlists.title")}
                 </MenuLink>
               )}
               {(on("tickets", "tickets.scan") || on("guestlists", "guestlists.checkin")) && (
@@ -94,6 +89,7 @@ export default async function EventLayout({ children, params }: { children: Reac
           </NavLink>
           <NavLink href={`/events/${ev.id}/lineup`}>{t("lineup.title")}</NavLink>
           {on("tickets", "tickets.view") && <NavLink href={`/events/${ev.id}/tickets`}>{t("tickets.title")}</NavLink>}
+          {on("guestlists", "guestlists.view") && <NavLink href={`/events/${ev.id}/guestlists`}>{t("guestlists.title")}</NavLink>}
         </nav>
       )}
       {children}
