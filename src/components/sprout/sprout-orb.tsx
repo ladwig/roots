@@ -53,6 +53,8 @@ function shape(): P[] {
 export function SproutOrb({ size = 20, working = false, still: fixed = false, className, label }: { size?: number; working?: boolean; still?: boolean; className?: string; label?: string }) {
   const ref = useRef<HTMLCanvasElement>(null)
   const state = useRef({ working })
+  // Clicks: one = a wiggle, three in a row = back into the soil and up again after a moment (read by the draw loop).
+  const poke = useRef({ wiggle: 0, burrow: 0, clicks: [] as number[] })
   useEffect(() => {
     state.current.working = working
   }, [working])
@@ -84,6 +86,12 @@ export function SproutOrb({ size = 20, working = false, still: fixed = false, cl
       speed += ((busy ? 2.6 : 0.7) - speed) * Math.min(dt * 3, 1) // ease between calm and busy
       phase += dt * speed
       angle = Math.sin(phase) * (busy ? 0.95 : 0.7) // swing, never edge-on (leaves stay visible)
+      const since = (now - poke.current.wiggle) / 1000
+      if (poke.current.wiggle && since < 1.2) angle += 0.45 * Math.sin(since * 24) * Math.exp(-since * 4)
+      if (poke.current.burrow) {
+        shrinkFrom = poke.current.burrow
+        poke.current.burrow = 0
+      }
       const color = getComputedStyle(canvas).color
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, size, size)
@@ -94,8 +102,10 @@ export function SproutOrb({ size = 20, working = false, still: fixed = false, cl
       const sin = Math.sin(angle)
       if (!still && !busy && !shrinkFrom && now > nextReplay) shrinkFrom = now
       if (shrinkFrom && now - shrinkFrom > SHRINK) {
+        const poked = poke.current.clicks.length >= 3
+        poke.current.clicks = []
         shrinkFrom = 0
-        growFrom = now
+        growFrom = now + (poked ? 1500 : 0) // after a poke it stays in the soil for a moment
         nextReplay = now + 50_000 + Math.random() * 30_000
       }
       const g = shrinkFrom ? 1 - clamp((now - shrinkFrom) / SHRINK) : clamp((now - growFrom) / GROW)
@@ -134,5 +144,13 @@ export function SproutOrb({ size = 20, working = false, still: fixed = false, cl
     return () => cancelAnimationFrame(raf)
   }, [size, fixed])
 
-  return <canvas ref={ref} role="img" aria-label={label ?? "Sprout"} className={cn("shrink-0", className)} style={{ width: size, height: size }} />
+  const click = () => {
+    if (fixed) return
+    const now = performance.now()
+    const p = poke.current
+    p.clicks = [...p.clicks.filter((c) => now - c < 1200), now]
+    if (p.clicks.length >= 3) p.burrow = now
+    else p.wiggle = now
+  }
+  return <canvas ref={ref} role="img" aria-label={label ?? "Sprout"} onClick={click} className={cn("shrink-0", !fixed && "cursor-pointer", className)} style={{ width: size, height: size }} />
 }
