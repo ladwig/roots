@@ -1,7 +1,9 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
-import { CheckIcon, CircleAlertIcon, ExternalLinkIcon, FileIcon, Loader2Icon, ShieldAlertIcon, XIcon } from "lucide-react"
+import { ThinkingOrb } from "thinking-orbs"
+import { CheckIcon, ChevronRightIcon, CircleAlertIcon, ExternalLinkIcon, FileIcon, ShieldAlertIcon, XIcon } from "lucide-react"
 import type { UIMessage } from "ai"
 import { Markdown } from "@/components/markdown"
 import { Button } from "@/components/ui/button"
@@ -33,12 +35,28 @@ export function orbState(last: UIMessage | undefined) {
   return "searching" as const
 }
 
-/** One message: text as markdown, tool steps as compact rows (lists and records as small cards), files as chips. */
-export function MessageView({ message, onApprove }: { message: UIMessage; onApprove: Approve }) {
+/**
+ * One message: text as markdown, files as chips. Tool steps in a row become one line with the current step (orb while
+ * it runs) that unfolds to all steps, like ChatGPT / Claude; approval cards and created / changed records stay visible.
+ */
+export function MessageView({ message, onApprove, live }: { message: UIMessage; onApprove: Approve; live?: boolean }) {
   const user = message.role === "user"
+  type Item = { kind: "part"; part: Part; i: number } | { kind: "steps"; parts: ToolPart[]; i: number }
+  const items: Item[] = []
+  message.parts.forEach((part, i) => {
+    const tool = "toolCallId" in part ? (part as ToolPart) : null
+    const asks = tool?.state === "approval-requested" && !tool.approval?.isAutomatic
+    const last = items.at(-1)
+    if (tool && !asks) {
+      if (last?.kind === "steps") last.parts.push(tool)
+      else items.push({ kind: "steps", parts: [tool], i })
+    } else if (part.type !== "step-start") items.push({ kind: "part", part, i })
+  })
   return (
     <div className={cn("grid gap-2 text-sm", user && "justify-items-end")}>
-      {message.parts.map((part, i) => {
+      {items.map((it, n) => {
+        if (it.kind === "steps") return <Steps key={it.i} parts={it.parts} running={!!live && n === items.length - 1} />
+        const { part, i } = it
         if (part.type === "text")
           return user ? (
             <p key={i} className="max-w-[85%] rounded-2xl bg-muted px-3 py-2 break-words whitespace-pre-wrap">
@@ -64,12 +82,51 @@ export function MessageView({ message, onApprove }: { message: UIMessage; onAppr
   )
 }
 
-function ToolView({ part, onApprove }: { part: ToolPart; onApprove: Approve }) {
+// "Liest · invoice settings list": the tool's verb plus the operation in words.
+function useLabel(part: ToolPart) {
   const t = useT()
   const name = part.type.replace(/^tool-/, "")
   const input = rec(part.input)
-  const op = typeof input?.operation === "string" ? input.operation : Array.isArray(input?.calls) ? t("sprout.steps", { count: input.calls.length }) : null
-  const label = `${t.dynamic(`sprout.tools.${name}`)}${op ? ` · ${op}` : ""}`
+  const op = typeof input?.operation === "string" ? input.operation.replace(/_/g, " ") : Array.isArray(input?.calls) ? t("sprout.steps", { count: input.calls.length }) : null
+  return { label: `${t.dynamic(`sprout.tools.${name}`)}${op ? ` · ${op}` : ""}`, op, input }
+}
+const failedOf = (p: ToolPart) => p.state === "output-error" || (p.state === "output-available" && rec(p.output)?.error !== undefined)
+const shownResult = (p: ToolPart) => p.state === "output-available" && !failedOf(p) && (p.type === "tool-roots_write" || p.type === "tool-roots_danger") ? p.output : null
+
+/** Steps in a row: the current one (orb while running), unfold for all; results of changes stay visible. */
+function Steps({ parts, running }: { parts: ToolPart[]; running: boolean }) {
+  const t = useT()
+  const [open, setOpen] = useState(false)
+  const last = parts.at(-1)!
+  const { label } = useLabel(last)
+  const busy = running || parts.some((p) => p.state === "input-streaming" || p.state === "input-available" || p.state === "approval-responded")
+  const failed = parts.some(failedOf)
+  return (
+    <div className="grid gap-1.5">
+      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="flex min-h-7 items-center gap-2 rounded-md text-left text-xs text-muted-foreground hover:text-foreground">
+        {busy ? <ThinkingOrb state={last.type === "tool-roots_write" ? "working" : "searching"} size={20} className="size-5 shrink-0" /> : failed ? <CircleAlertIcon className="size-4 shrink-0 text-destructive" /> : <CheckIcon className="size-4 shrink-0" />}
+        <span className="min-w-0 truncate">{busy ? label : t("sprout.done", { count: parts.length })}</span>
+        <ChevronRightIcon className={cn("size-3.5 shrink-0 transition-transform", open && "rotate-90")} />
+      </button>
+      {open && (
+        <div className="grid gap-1.5 border-l pl-3">
+          {parts.map((p) => (
+            <ToolView key={p.toolCallId} part={p} onApprove={() => {}} />
+          ))}
+        </div>
+      )}
+      {!open &&
+        parts.map((p) => {
+          const out = shownResult(p)
+          return out ? <ResultView key={p.toolCallId} output={out} /> : null
+        })}
+    </div>
+  )
+}
+
+function ToolView({ part, onApprove }: { part: ToolPart; onApprove: Approve }) {
+  const t = useT()
+  const { label, op, input } = useLabel(part)
 
   if (part.state === "approval-requested" && !part.approval?.isAutomatic)
     return (
@@ -104,7 +161,7 @@ function ToolView({ part, onApprove }: { part: ToolPart; onApprove: Approve }) {
   return (
     <div className="grid gap-1.5">
       <p className={cn("flex items-center gap-1.5 text-xs text-muted-foreground", failed && "text-destructive")}>
-        {running ? <Loader2Icon className="size-3.5 animate-spin" /> : failed ? <CircleAlertIcon className="size-3.5" /> : denied ? <XIcon className="size-3.5" /> : <CheckIcon className="size-3.5" />}
+        {running ? <ThinkingOrb state="searching" size={20} className="size-3.5" /> : failed ? <CircleAlertIcon className="size-3.5" /> : denied ? <XIcon className="size-3.5" /> : <CheckIcon className="size-3.5" />}
         <span className="truncate">{denied ? `${label} · ${t("sprout.denied")}` : label}</span>
       </p>
       {part.state === "output-available" && !failed && <ResultView output={part.output} />}

@@ -151,10 +151,13 @@ export function ChatView({
           </div>
         ) : (
           <div className="grid gap-5">
-            {messages.map((m) => (
-              <MessageView key={m.id} message={m} onApprove={addToolApprovalResponse} />
+            {messages.map((m, i) => (
+              <MessageView key={m.id} message={m} onApprove={addToolApprovalResponse} live={busy && i === messages.length - 1} />
             ))}
-            {busy && <ThinkingOrb state={orbState(messages.at(-1))} size={20} className="size-5 justify-self-start" />}
+            {/* Before the first step / words arrive: the orb alone. */}
+            {busy && !(messages.at(-1)?.role === "assistant" && messages.at(-1)!.parts.some((p) => p.type !== "step-start")) && (
+              <ThinkingOrb state={orbState(messages.at(-1))} size={20} className="size-5 justify-self-start" />
+            )}
           </div>
         )}
         {errorText && (

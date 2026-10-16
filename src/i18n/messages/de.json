@@ -4844,6 +4844,10 @@
       "model": "Dieses Modell bietet {provider} nicht (mehr) an. Wähl unten ein anderes und versuch es nochmal.",
       "access": "{provider} erlaubt diesem Schlüssel das nicht (fehlende Freigabe oder Guthaben).",
       "down": "{provider} hat gerade Probleme. Versuch es gleich nochmal."
+    },
+    "done": {
+      "one": "{count} Schritt erledigt",
+      "other": "{count} Schritte erledigt"
     }
   }
 }

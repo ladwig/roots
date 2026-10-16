@@ -4844,6 +4844,10 @@
       "model": "{provider} doesn't offer this model (any more). Pick another one below and try again.",
       "access": "{provider} doesn't allow this for the key (missing access or credit).",
       "down": "{provider} is having trouble right now. Try again in a moment."
+    },
+    "done": {
+      "one": "{count} step done",
+      "other": "{count} steps done"
     }
   }
 }

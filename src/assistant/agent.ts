@@ -54,7 +54,17 @@ export function sproutTools(auth: Auth, request: Request) {
   }
 }
 
-export function systemPrompt(ctx: Ctx, page: { path?: string; title?: string }, locale: string) {
+/** All operations this person may run, by area: lets the model pick directly instead of searching first. */
+export function catalog(auth: Auth) {
+  const by = new Map<string, string[]>()
+  for (const o of findOps(auth)) {
+    const area = o.name.split("_")[0]
+    by.set(area, [...(by.get(area) ?? []), o.name])
+  }
+  return [...by.values()].map((names) => names.join(", ")).join("\n")
+}
+
+export function systemPrompt(ctx: Ctx, page: { path?: string; title?: string }, locale: string, ops: string) {
   const now = new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin", dateStyle: "full", timeStyle: "short" })
   return `You are Sprout, the assistant inside roots. You help ${ctx.email} (role: ${ctx.role.name}) in the organisation "${ctx.org.name}". Now: ${now} (Europe/Berlin).
 Answer in the person's language (UI language: ${locale === "en" ? "English" : "German"}; use "du" in German). Be brief and concrete: lists over prose, no filler.
@@ -62,6 +72,8 @@ You act with exactly the person's rights. Before changing things, read what exis
 Links: records you created or read carry app_url. Link them as markdown with the path only, e.g. [Sommerfest](/events/…), so they open in the App.
 The person is currently on ${page.path ? `the page ${page.path}${page.title ? ` ("${page.title}")` : ""}` : "the start page"}; "here" / "this" usually means that record.
 Files the person attached are already stored in roots (Dateien); their file_id is in the message. To put one on a record use files_update { id, entity, entity_id }; as an event picture use events_image_set with image_url = its download_url from files_get.
+Operations you can use (call roots_describe_operation with names: [...] for their input, then run them; only use roots_find_operations if nothing here fits):
+${ops}
 ${INSTRUCTIONS}`
 }
 

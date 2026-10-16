@@ -1,5 +1,5 @@
 import { APICallError, convertToModelMessages, createUIMessageStreamResponse, isStepCount, safeValidateUIMessages, streamText, toUIMessageStream, type UIMessage } from "ai"
-import { chatTitle, filesForModel, personAuth, sproutTools, systemPrompt } from "@/assistant/agent"
+import { catalog, chatTitle, filesForModel, personAuth, sproutTools, systemPrompt } from "@/assistant/agent"
 import { modelFor } from "@/assistant/keys"
 import { PROVIDERS, type Provider } from "@/assistant/providers"
 import { getT } from "@/i18n/server"
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
 
   const result = streamText({
     model,
-    system: systemPrompt(ctx, body.page ?? {}, t.locale),
+    system: systemPrompt(ctx, body.page ?? {}, t.locale, catalog(auth)),
     messages: await convertToModelMessages(await filesForModel(ctx.supabase, messages), { tools }),
     tools,
     stopWhen: isStepCount(25),
