@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useId, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { createPortal, useFormStatus } from "react-dom"
 import { Loader2Icon } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -16,26 +16,26 @@ import { useT } from "@/i18n/client"
 export function SaveBar({ label, always }: { label?: string; always?: boolean }) {
   const t = useT()
   const ref = useRef<HTMLSpanElement>(null)
-  const ownId = useId()
-  const [formId, setFormId] = useState<string | null>(null)
   const [target, setTarget] = useState<Element | null>(null)
   const [dirty, setDirty] = useState(false)
+  // The form is looked up when needed, never remembered: React may swap the <form> element after the first render
+  // (streamed parts of the page), and a remembered element / id then points nowhere (button did nothing).
+  const form = () => ref.current?.closest("form") ?? null
 
   useEffect(() => {
-    const form = ref.current?.closest("form")
-    if (!form) return
-    if (!form.id) form.id = `form-${ownId.replace(/:/g, "")}`
-    setFormId(form.id)
     // Page: a bar across the whole content area (portal to its end). Drawer: inline, sticky inside the drawer.
-    setTarget(form.closest("[data-slot=sheet-content]") ? null : document.querySelector("[data-slot=sidebar-inset]"))
-    const change = () => setDirty(true)
-    form.addEventListener("input", change)
-    form.addEventListener("change", change)
-    return () => {
-      form.removeEventListener("input", change)
-      form.removeEventListener("change", change)
+    const place = setTimeout(() => setTarget(form()?.closest("[data-slot=sheet-content]") ? null : document.querySelector("[data-slot=sidebar-inset]")))
+    const change = (e: Event) => {
+      if (e.target instanceof Node && form()?.contains(e.target)) setDirty(true)
     }
-  }, [ownId])
+    document.addEventListener("input", change, true)
+    document.addEventListener("change", change, true)
+    return () => {
+      clearTimeout(place)
+      document.removeEventListener("input", change, true)
+      document.removeEventListener("change", change, true)
+    }
+  }, [])
 
   // Unsaved changes: ask before reload/close and before following links inside the App.
   useEffect(() => {
@@ -58,7 +58,7 @@ export function SaveBar({ label, always }: { label?: string; always?: boolean })
   }, [dirty, always, t])
 
   const show = always || dirty
-  const bar = show && formId && (
+  const bar = show && (
     <div
       role="region"
       aria-label={t("common.unsaved")}
@@ -76,7 +76,7 @@ export function SaveBar({ label, always }: { label?: string; always?: boolean })
             {t("common.cancel")}
           </Button>
         )}
-        <Save form={formId} label={label ?? t("common.save")} onDone={() => setDirty(false)} />
+        <Save submit={() => form()?.requestSubmit()} label={label ?? t("common.save")} onDone={() => setDirty(false)} />
       </div>
     </div>
   )
@@ -88,7 +88,7 @@ export function SaveBar({ label, always }: { label?: string; always?: boolean })
 }
 
 // Inside the form's React tree (also through the portal), so useFormStatus sees the running action.
-function Save({ form, label, onDone }: { form: string; label: string; onDone: () => void }) {
+function Save({ submit, label, onDone }: { submit: () => void; label: string; onDone: () => void }) {
   const { pending } = useFormStatus()
   const was = useRef(false)
   useEffect(() => {
@@ -96,7 +96,8 @@ function Save({ form, label, onDone }: { form: string; label: string; onDone: ()
     was.current = pending
   }, [pending, onDone])
   return (
-    <Button type="submit" form={form} size="sm" disabled={pending} aria-busy={pending || undefined}>
+    // requestSubmit runs the browser's checks (required, patterns) and shows their hints like a normal submit.
+    <Button type="button" onClick={submit} size="sm" disabled={pending} aria-busy={pending || undefined}>
       {pending && <Loader2Icon className="animate-spin" aria-hidden />}
       {label}
     </Button>
