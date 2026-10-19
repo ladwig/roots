@@ -49,7 +49,8 @@ Then:
 2. Picture: events_image_set with image_url (https) or image_base64; if the person pasted the picture into the chat, call it without both and give them the upload link. It is shown back to you, check it fits.
 3. Tickets: POST /events/{id}/ticket-types (prices in cents), tiers POST /ticket-types/{id}/tiers, codes POST /events/{id}/ticket-codes. Free events: one free type means "Anmeldung".
 4. Lineup / programme if it has one: POST /events/{id}/slots, artists POST /artists.
-5. Show a compact summary (date, place, tickets + prices, link) and ask whether to publish; only then PATCH /events/{id} { status: "published" }.`,
+5. Ticket mail (email module): GET /email/templates; if the person wants a special look or text for this event, read GET /email/template-placeholders, write a template (POST /email/templates, show it first) and set PATCH /events/{id} { email_template_id }. Otherwise the org's default is used.
+6. Show a compact summary (date, place, tickets + prices, link) and ask whether to publish; only then PATCH /events/{id} { status: "published" }.`,
   },
 ]
 

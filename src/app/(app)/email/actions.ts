@@ -1,7 +1,7 @@
 "use server"
 
 import { parseTags } from "@/app/(app)/contacts/fields"
-import { saveTemplate, testEventMail } from "@/email/event-mail"
+import { builtInTemplate, saveTemplate, testEventMail } from "@/email/event-mail"
 import { AUTOMATION_EVENTS } from "@/email/events"
 import { contactVars, FORMATS, renderMail } from "@/email/render"
 import { queueCampaign, sendProblem, type Audience } from "@/email/server"
@@ -150,4 +150,12 @@ export async function deleteTemplate(fd: FormData) {
   const { ctx, t } = await manager(TPL)
   const { error } = await ctx.supabase.from("email_templates").delete().eq("id", str(fd, "id", 36)).eq("org_id", ctx.org.id)
   back(TPL, error ? { error: dbError(t, error) } : { ok: t("email.deleted") })
+}
+
+/** The built-in mail as the org's own (default) template, ready to change. */
+export async function copyBuiltInTemplate() {
+  const { ctx, t } = await manager(TPL)
+  const { data, error } = await saveTemplate(ctx.supabase, ctx.org.id, null, { ...builtInTemplate(t), name: t("email.templates.copyName"), is_default: true })
+  if (error || !data) back(TPL, { error: error ? dbError(t, error) : t("errors.not_allowed") })
+  back(`${TPL}?edit=${data.id}`, { ok: t("email.saved") })
 }

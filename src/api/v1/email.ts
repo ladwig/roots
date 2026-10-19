@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { parseTags } from "@/app/(app)/contacts/fields"
-import { saveTemplate, TEMPLATE_COLS, testEventMail } from "@/email/event-mail"
+import { builtInTemplate, saveTemplate, TEMPLATE_COLS, testEventMail } from "@/email/event-mail"
 import { AUTOMATION_EVENTS } from "@/email/events"
 import { BASE_PLACEHOLDERS, contactVars, EVENT_PLACEHOLDERS, FORMATS, renderMail } from "@/email/render"
 import { queueCampaign, resolveAudience, sendProblem, type Audience } from "@/email/server"
@@ -13,6 +13,7 @@ import { ts, type Db } from "./shared"
 
 // Texts that end up in emails (unsubscribe link, test name, error messages for the caller): German for now.
 const t = createT(defaultLocale, messages[defaultLocale])
+const en = createT("en", messages.en)
 
 const Format = z.enum(FORMATS as ["text", "rich", "html"]).describe("rich = HTML from the editor (styles get inlined), html = own full HTML, text = plain text")
 const AudienceSchema = z
@@ -99,7 +100,7 @@ const Template = z.object({
 const TemplateFields = z.object({
   name: z.string().trim().min(1).max(200),
   subject: z.string().trim().min(1).max(300).describe("Placeholders allowed, e.g. {title} or {event}"),
-  body: z.string().trim().min(1).max(200000).describe(`Placeholders: ${EVENT_PLACEHOLDERS.map((p) => `{${p}}`).join(" ")}. {message} = what the mail is about (tickets attached / on the guest list / a seat is free), {button} = link button to the tickets or the claim page`),
+  body: z.string().trim().min(1).max(200000).describe(`See GET /email/template-placeholders for what each means and the built-in mail to start from. Placeholders: ${EVENT_PLACEHOLDERS.map((p) => `{${p}}`).join(" ")}. {message} = what the mail is about (tickets attached / on the guest list / a seat is free), {button} = link button to the tickets or the claim page`),
   format: Format,
   is_default: z.boolean().describe("Make it the org's default (takes it from the previous default)"),
 })
@@ -485,6 +486,25 @@ export const endpoints: Endpoint[] = [
     },
   }),
   // Templates for event mails (tickets, guest-list tickets, waiting-list offers)
+  endpoint({
+    method: "GET",
+    path: "/email/template-placeholders",
+    permission: "email.view",
+    tag: "Email",
+    summary: "Placeholders and the built-in event mail",
+    description:
+      "Read this before writing a template. Every placeholder with what it stands for, and roots' built-in mail (what events send while the org has no default template) as a starting point. Placeholders work in the subject and in both body formats (rich editor HTML and own full HTML); {button} inserts a ready-made styled link button.",
+    response: z.object({
+      placeholders: z.array(z.object({ key: z.string().describe("Write it as {key}"), description: z.string() })),
+      built_in: z.object({ subject: z.string(), body: z.string(), format: Format }),
+    }),
+    async handler() {
+      return {
+        placeholders: EVENT_PLACEHOLDERS.map((key) => ({ key, description: en.dynamic(`email.eventMail.vars.${key}`) })),
+        built_in: builtInTemplate(t) as { subject: string; body: string; format: "rich" },
+      }
+    },
+  }),
   endpoint({
     method: "GET",
     path: "/email/templates",

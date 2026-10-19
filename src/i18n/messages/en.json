@@ -2455,15 +2455,18 @@
       "title": "Templates",
       "hint": "How ticket, guest-list and waiting-list mails look. One template fits all three; the default applies to every event that doesn't pick its own.",
       "new": "New template",
-      "empty": "No templates yet",
-      "emptyText": "Without a template roots sends a plain mail with your logo.",
       "default": "Default",
       "makeDefault": "Default template for all events",
       "namePlaceholder": "e.g. Summer look",
       "placeholderHint": "{message} says what it's about (tickets attached, guest list, seat free), {button} links to the tickets or the seat. {list} and {until} are only filled for guest lists and waiting lists. The ticket PDF is attached automatically.",
       "test": "Test mail to me",
       "confirmDelete": "Delete template? Events using it switch to the default template.",
-      "invalid": "Fill in name, subject and text."
+      "invalid": "Fill in name, subject and text.",
+      "builtIn": "roots standard",
+      "builtInHint": "This is how your event mails look while you have no default template of your own. Copy it to change text and look – in the editor or as your own HTML (placeholders work in both).",
+      "copy": "Copy & customise",
+      "placeholders": "Placeholders",
+      "copyName": "My event mail"
     },
     "eventMail": {
       "greeting": "Hello {name},",
@@ -2489,6 +2492,21 @@
           "other": "{count} seats for {event} have become free for you. We'll hold them until {until}."
         },
         "button": "Claim your seat"
+      },
+      "vars": {
+        "name": "The person's name",
+        "email": "The person's email",
+        "org": "Your organisation's name",
+        "event": "Event title",
+        "when": "Date and time",
+        "venue": "Venue and address",
+        "count": "Number of tickets or seats",
+        "list": "Guest list name (guest lists only)",
+        "until": "Seat held until (waiting list only)",
+        "title": "Matching subject for the mail",
+        "message": "The sentence saying what it's about (tickets, guest list, seat free)",
+        "button": "Button to the tickets or the seat",
+        "link": "The same link as a plain address"
       }
     }
   },

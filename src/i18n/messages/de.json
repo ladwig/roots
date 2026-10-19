@@ -2455,15 +2455,18 @@
       "title": "Vorlagen",
       "hint": "Wie Ticket-, Gästelisten- und Wartelisten-Mails aussehen. Eine Vorlage passt für alle drei; die Standardvorlage gilt für jedes Event, das keine eigene wählt.",
       "new": "Neue Vorlage",
-      "empty": "Noch keine Vorlagen",
-      "emptyText": "Ohne Vorlage verschickt roots eine schlichte Mail mit eurem Logo.",
       "default": "Standard",
       "makeDefault": "Standardvorlage für alle Events",
       "namePlaceholder": "z. B. Sommer-Look",
       "placeholderHint": "{message} sagt, worum es geht (Tickets im Anhang, Gästeliste, Platz frei), {button} verlinkt Tickets bzw. Platz. {list} und {until} sind nur bei Gästeliste bzw. Warteliste gefüllt. Das Ticket-PDF hängt automatisch an.",
       "test": "Testmail an mich",
       "confirmDelete": "Vorlage löschen? Events damit nutzen danach die Standardvorlage.",
-      "invalid": "Name, Betreff und Text ausfüllen."
+      "invalid": "Name, Betreff und Text ausfüllen.",
+      "builtIn": "roots-Standard",
+      "builtInHint": "So sehen eure Event-Mails aus, solange ihr keine eigene Standardvorlage habt. Kopiert sie, um Text und Aussehen anzupassen – im Editor oder als eigenes HTML (Platzhalter funktionieren in beiden).",
+      "copy": "Kopieren & anpassen",
+      "placeholders": "Platzhalter",
+      "copyName": "Meine Event-Mail"
     },
     "eventMail": {
       "greeting": "Hallo {name},",
@@ -2489,6 +2492,21 @@
           "other": "Bei {event} sind {count} Plätze für dich frei geworden. Wir halten sie bis {until} für dich."
         },
         "button": "Platz sichern"
+      },
+      "vars": {
+        "name": "Name der Person",
+        "email": "E-Mail der Person",
+        "org": "Name eures Vereins",
+        "event": "Titel des Events",
+        "when": "Datum und Uhrzeit",
+        "venue": "Ort und Adresse",
+        "count": "Anzahl Tickets bzw. Plätze",
+        "list": "Name der Gästeliste (nur Gästeliste)",
+        "until": "Platz reserviert bis (nur Warteliste)",
+        "title": "Passender Betreff je nach Mail",
+        "message": "Der Satz, worum es geht (Tickets, Gästeliste, Platz frei)",
+        "button": "Button zu den Tickets bzw. zum Platz",
+        "link": "Derselbe Link als Adresse"
       }
     }
   },
