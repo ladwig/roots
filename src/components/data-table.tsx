@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -82,20 +83,22 @@ export function DataTable<R>({
             {rows.map((row) => {
               const href = rowHref?.(row)
               return (
-                <TableRow key={rowKey(row)} className={href ? "relative cursor-pointer has-checked:bg-muted/60" : "has-checked:bg-muted/60"}>
+                <TableRow key={rowKey(row)} className={href ? "cursor-pointer has-checked:bg-muted/60" : "has-checked:bg-muted/60"}>
                   {select && <TableCell className="w-10">{box(row)}</TableCell>}
+                  {/* The row link is stretched per cell: Safari ignores position:relative on <tr>, so one link stretched
+                      over the row would cover the whole table (every click opened the last row). The first cell's link
+                      is the real one (focus, screen readers); the others are mouse-only copies. */}
                   {columns.map((c, i) => (
-                    <TableCell key={i} className={c.className}>
+                    <TableCell key={i} className={cn(c.className, href && "relative")}>
                       {i === 0 && href ? (
-                        <Link
-                          href={href}
-                          scroll={false}
-                          className="after:absolute after:inset-0 focus-visible:underline focus-visible:outline-none"
-                        >
+                        <Link href={href} scroll={false} className="after:absolute after:inset-0 focus-visible:underline focus-visible:outline-none">
                           {c.cell(row)}
                         </Link>
                       ) : (
-                        c.cell(row)
+                        <>
+                          {href && <Link href={href} scroll={false} tabIndex={-1} aria-hidden className="absolute inset-0" />}
+                          {c.cell(row)}
+                        </>
                       )}
                     </TableCell>
                   ))}
