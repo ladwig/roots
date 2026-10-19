@@ -35,5 +35,7 @@ test("event mails: {button} stays our markup (not escaped, own style), text gets
   assert.ok(!m.html.includes("undefined") && !m.text.includes("undefined"))
   assert.match(m.text, /Tickets ansehen \(https:\/\/x.de\/t\/1\?k=a&b\)/)
   const plain = renderMail({ format: "text", subject: "Hi", body: "{button}" }, vars, { org: "TSV" })
-  assert.match(plain.text, /^Tickets ansehen: https:\/\/x.de\/t\/1\?k=a&b/)
+  assert.match(plain.text, /^Tickets ansehen: https:\/\/x.de\/t\/1\?k=a&b$/)
+  const own = renderMail({ format: "html", subject: "Hi", body: "<html><body><p>{name}</p></body></html>" }, vars, { org: "TSV" })
+  assert.equal(own.html, "<html><body><p>&#60;Ana&#62;</p></body></html>")
 })

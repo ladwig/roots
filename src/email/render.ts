@@ -56,18 +56,19 @@ export function htmlToText(html: string) {
     .trim()
 }
 
-/** Transactional mails (tickets …) have no unsubscribe link; `logo` (image URL) goes on top of editor/text mails. */
+/** Transactional mails (tickets …) have no unsubscribe link and no footer; `logo` (image URL) goes on top of editor/text mails. */
 export function renderMail(t: { subject: string; body: string; format?: string }, vars: Vars, footer: { org: string; unsubscribeUrl?: string; unsubscribeLabel?: string; logo?: string | null }) {
   const subject = fill(t.subject, vars).replace(/\s+/g, " ").trim()
   const unsub = footer.unsubscribeUrl && footer.unsubscribeLabel
-  const foot = `<p style="margin:28px 0 0;font-size:12px;color:#777">${esc(footer.org)}${unsub ? ` · <a href="${esc(footer.unsubscribeUrl!)}" style="color:#777">${esc(footer.unsubscribeLabel!)}</a>` : ""}</p>`
-  const textFoot = `\n\n--\n${footer.org}${unsub ? ` · ${footer.unsubscribeLabel}: ${footer.unsubscribeUrl}` : ""}\n`
+  // Only campaigns/automations get a footer (the unsubscribe link); event mails end where the template ends.
+  const foot = unsub ? `<p style="margin:28px 0 0;font-size:12px;color:#777">${esc(footer.org)} · <a href="${esc(footer.unsubscribeUrl!)}" style="color:#777">${esc(footer.unsubscribeLabel!)}</a></p>` : ""
+  const textFoot = unsub ? `\n\n--\n${footer.org} · ${footer.unsubscribeLabel}: ${footer.unsubscribeUrl}\n` : ""
   const logo = footer.logo ? `<img src="${esc(footer.logo)}" alt="${esc(footer.org)}" style="max-height:56px;max-width:200px;margin:0 0 20px">` : ""
   const wrap = (inner: string) => `<div style="font:15px/1.6 system-ui,-apple-system,sans-serif;color:#1a1a1a;max-width:600px">${logo}${inner}${foot}</div>`
 
   if (t.format === "html") {
     const body = noScripts(fill(t.body, vars, true))
-    const html = /<\/body>/i.test(body) ? body.replace(/<\/body>/i, `<div style="max-width:600px;margin:0 auto;font:12px system-ui,sans-serif">${foot}</div></body>`) : body + foot
+    const html = foot && /<\/body>/i.test(body) ? body.replace(/<\/body>/i, `<div style="max-width:600px;margin:0 auto;font:12px system-ui,sans-serif">${foot}</div></body>`) : body + foot
     return { subject, html, text: htmlToText(body) + textFoot }
   }
   if (t.format === "rich") {
