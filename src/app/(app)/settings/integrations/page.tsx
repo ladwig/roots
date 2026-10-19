@@ -168,6 +168,17 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
         >
           <form action={connectIntegration.bind(null, connecting.key)} className="grid gap-4">
             <Notice error={param(sp, "error")} />
+            {t.has(`integrations.${connecting.key}.setup`) && (
+              // One step per line in integrations.<key>.setup: what to do at the provider before pasting anything here.
+              <details open={!current} className="rounded-lg border p-3 text-sm">
+                <summary className="cursor-pointer font-medium">{t("integrations.setupTitle", { name: connecting.name })}</summary>
+                <ol className="mt-2 grid list-decimal gap-1.5 pl-5 text-muted-foreground">
+                  {t.dynamic(`integrations.${connecting.key}.setup`).split("\n").map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ol>
+              </details>
+            )}
             {connecting.fields.map((f) => {
               const help = `integrations.${connecting.key}.help.${f.key}`
               return (

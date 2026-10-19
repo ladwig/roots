@@ -446,7 +446,8 @@
         "apiKey": "API-Schlüssel",
         "from": "Absender"
       },
-      "invalidKey": "Resend hat diesen API-Schlüssel abgelehnt."
+      "invalidKey": "Resend hat diesen API-Schlüssel abgelehnt.",
+      "setup": "Konto auf resend.com anlegen (kostenlos bis 3.000 E-Mails im Monat).\nUnter „Domains“ eure Domain hinzufügen und Resends Anweisungen folgen (DNS-Einträge beim Domain-Anbieter eintragen).\nUnter „API Keys“ einen Schlüssel mit „Full access“ erstellen und hier einfügen.\nAbsender = eine Adresse dieser Domain, z. B. Euer Verein <tickets@euerverein.de>."
     },
     "continueSetup": "Einrichtung fortsetzen",
     "checkStatus": "Status prüfen",
@@ -495,10 +496,12 @@
       },
       "help": {
         "apiKey": "In Brevo: Einstellungen → SMTP & API → API-Schlüssel erstellen.",
-        "from": "Die Absenderadresse muss in Brevo als Absender bzw. Domain bestätigt sein."
+        "from": "Genau die Adresse, die ihr in Brevo als Absender angelegt habt."
       },
-      "invalidKey": "Brevo hat diesen API-Schlüssel abgelehnt."
-    }
+      "invalidKey": "Brevo hat diesen API-Schlüssel abgelehnt.",
+      "setup": "Konto auf brevo.com anlegen (kostenlos bis 300 E-Mails am Tag).\nUnter „Absender, Domains & IPs“ → „Domains“ eure Domain hinzufügen und Brevos Anweisungen folgen (DNS-Einträge beim Domain-Anbieter eintragen).\nUnter „Absender“ eine Adresse dieser Domain anlegen – keine Gmail-, GMX- oder iCloud-Adresse.\nUnter „SMTP & API“ einen API-Schlüssel erstellen und hier mit dem Absender einfügen."
+    },
+    "setupTitle": "So richtet ihr {name} ein"
   },
   "activity": {
     "filter": "Nach Bereich filtern",

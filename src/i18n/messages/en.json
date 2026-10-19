@@ -446,7 +446,8 @@
         "apiKey": "API key",
         "from": "Sender"
       },
-      "invalidKey": "Resend rejected this API key."
+      "invalidKey": "Resend rejected this API key.",
+      "setup": "Create an account at resend.com (free up to 3,000 emails a month).\nUnder “Domains”, add your domain and follow Resend's instructions (add the DNS records at your domain provider).\nUnder “API Keys”, create a key with “Full access” and paste it here.\nSender = an address on that domain, e.g. Your Club <tickets@yourclub.org>."
     },
     "continueSetup": "Continue setup",
     "checkStatus": "Check status",
@@ -495,10 +496,12 @@
       },
       "help": {
         "apiKey": "In Brevo: Settings → SMTP & API → create an API key.",
-        "from": "The sender address must be verified in Brevo as a sender or domain."
+        "from": "Exactly the address you added as a sender in Brevo."
       },
-      "invalidKey": "Brevo rejected this API key."
-    }
+      "invalidKey": "Brevo rejected this API key.",
+      "setup": "Create an account at brevo.com (free up to 300 emails a day).\nUnder “Senders, Domains & IPs” → “Domains”, add your domain and follow Brevo's instructions (add the DNS records at your domain provider).\nUnder “Senders”, add an address on that domain – no Gmail, GMX or iCloud address.\nUnder “SMTP & API”, create an API key and paste it here with the sender."
+    },
+    "setupTitle": "How to set up {name}"
   },
   "activity": {
     "filter": "Filter by area",
