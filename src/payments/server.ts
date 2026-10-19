@@ -2,7 +2,8 @@
 // Flow: createOrder → startCheckout (hosted page at the org's provider) → webhook → markPaid → module fulfilment.
 import { createAdminClient } from "@/lib/supabase/admin"
 import { APP_URL } from "@/lib/url"
-import { applicationFee, feeConfig } from "./fees"
+import { currentPrice } from "@/billing/server"
+import { salesFee } from "@/billing/pricing"
 import { fulfilment, type PaidOrder } from "./fulfilment"
 import type { PaymentProvider } from "./provider"
 import { stripeProvider } from "./providers/stripe"
@@ -54,7 +55,7 @@ export async function createOrder(o: NewOrder): Promise<string> {
       source_id: o.sourceId,
       currency: o.currency ?? "eur",
       amount_total: total,
-      application_fee: applicationFee(total, feeConfig()),
+      application_fee: salesFee(total, await currentPrice(o.orgId)), // roots' fee from the org's price (/admin/billing)
       customer_email: o.customerEmail?.trim().toLowerCase() || null,
       customer_name: o.customerName?.trim() || null,
       metadata: (o.metadata ?? {}) as never,
@@ -99,7 +100,7 @@ export async function startCheckout(orderId: string, urls?: { successUrl?: strin
   await db()
     .from("pay_payments")
     .upsert(
-      { org_id: order.org_id, order_id: order.id, provider: provider.key, provider_ref: checkout.providerRef, amount: order.amount_total, application_fee: order.application_fee },
+      { org_id: order.org_id, order_id: order.id, provider: provider.key, provider_ref: checkout.providerRef, amount: order.amount_total, application_fee: order.application_fee, fee_collected: checkout.feeCollected ?? false },
       { onConflict: "provider,provider_ref", ignoreDuplicates: true }
     )
   await db().from("pay_orders").update({ provider: provider.key, expires_at: expiresAt.toISOString() }).eq("id", order.id)

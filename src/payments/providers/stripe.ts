@@ -39,7 +39,7 @@ export const stripeProvider: PaymentProvider = {
       },
       { ...s.options, idempotencyKey: `checkout_${o.orderId}` }
     )
-    return { url: session.url!, providerRef: session.id }
+    return { url: session.url!, providerRef: session.id, feeCollected: !s.direct && o.applicationFee > 0 }
   },
   async checkoutStatus({ orgId, providerRef }) {
     const s = await stripeFor(orgId)

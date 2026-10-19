@@ -727,6 +727,17 @@ begin
   select count(*) into n from public.email_sends where org_id = org_a;       assert n = 0, 'B sees sends of A';
   reset role;
 
+  -- Prices: platform admins only (an org owner neither sees its price nor the billing usage)
+  insert into public.org_prices (org_id, starts_on, base_cents) values (org_a, date_trunc('month', now())::date, 1000);
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.org_prices;                              assert n = 0, 'owners must not see prices';
+  begin
+    perform public.billing_usage(current_date, current_date + 1);
+    assert false, 'billing usage is for platform admins only';
+  exception when raise_exception then null; end;
+  reset role;
+
   -- Own domains: written by the server only, seen by settings managers of the org; the host lookup knows only live ones
   insert into public.org_domains (org_id, domain) values (org_a, 'tickets.a-verein.de');
   select public.site_for_host('tickets.a-verein.de') into v_text;                assert v_text is null, 'pending domain must not resolve';

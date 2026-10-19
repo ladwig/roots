@@ -16,7 +16,7 @@ export type PaymentProvider = {
   /** Can this org take payments right now (connected and fully onboarded)? */
   ready(orgId: string): Promise<boolean>
   /** Starts a hosted checkout; returns where to send the buyer and the provider's reference for it. */
-  createCheckout(input: CheckoutInput): Promise<{ url: string; providerRef: string }>
+  createCheckout(input: CheckoutInput): Promise<{ url: string; providerRef: string; feeCollected?: boolean }> // feeCollected: the provider takes roots' fee itself (else it's invoiced)
   /** Asks the provider whether a checkout was paid (backup when a webhook is late or lost). Optional. */
   checkoutStatus?(input: { orgId: string; providerRef: string }): Promise<{ paid: boolean; providerPaymentRef?: string }>
   /** Refunds (part of) a payment; `providerPaymentRef` is what the provider needs to refund. */

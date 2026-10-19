@@ -1375,6 +1375,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"org_prices": {
+                  Row: {
+                    "base_cents": number,"created_at": string,"created_by": string | null,"discount_percent": number,"id": string,"included_members": number,"included_users": number,"member_cents": number,"module_cents": NonNullable<Json>,"note": string | null,"org_id": string | null,"sales_fixed_cents": number,"sales_percent": number,"starts_on": string,"updated_at": string,"updated_by": string | null,"user_cents": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "base_cents"?: number,"created_at"?: string,"created_by"?: string | null,"discount_percent"?: number,"id"?: string,"included_members"?: number,"included_users"?: number,"member_cents"?: number,"module_cents"?: NonNullable<Json>,"note"?: string | null,"org_id"?: string | null,"sales_fixed_cents"?: number,"sales_percent"?: number,"starts_on": string,"updated_at"?: string,"updated_by"?: string | null,"user_cents"?: number
+                  }
+                  Update: {
+                    "base_cents"?: number,"created_at"?: string,"created_by"?: string | null,"discount_percent"?: number,"id"?: string,"included_members"?: number,"included_users"?: number,"member_cents"?: number,"module_cents"?: NonNullable<Json>,"note"?: string | null,"org_id"?: string | null,"sales_fixed_cents"?: number,"sales_percent"?: number,"starts_on"?: string,"updated_at"?: string,"updated_by"?: string | null,"user_cents"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "org_prices_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"orgs": {
                   Row: {
                     "allow_ai": boolean,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"id": string,"logo_path": string | null,"name": string,"settings": NonNullable<Json>,"site_domain": string | null,"slug": string,"updated_at": string,"updated_by": string | null
@@ -1437,14 +1457,14 @@ isOneToOne: false
                   ]
                 },"pay_payments": {
                   Row: {
-                    "amount": number,"application_fee": number,"created_at": string,"created_by": string | null,"id": string,"order_id": string,"org_id": string,"provider": string,"provider_payment_ref": string | null,"provider_ref": string,"status": string,"updated_at": string,"updated_by": string | null
+                    "amount": number,"application_fee": number,"created_at": string,"created_by": string | null,"fee_collected": boolean,"id": string,"order_id": string,"org_id": string,"provider": string,"provider_payment_ref": string | null,"provider_ref": string,"status": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount": number,"application_fee"?: number,"created_at"?: string,"created_by"?: string | null,"id"?: string,"order_id": string,"org_id": string,"provider": string,"provider_payment_ref"?: string | null,"provider_ref": string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "amount": number,"application_fee"?: number,"created_at"?: string,"created_by"?: string | null,"fee_collected"?: boolean,"id"?: string,"order_id": string,"org_id": string,"provider": string,"provider_payment_ref"?: string | null,"provider_ref": string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "amount"?: number,"application_fee"?: number,"created_at"?: string,"created_by"?: string | null,"id"?: string,"order_id"?: string,"org_id"?: string,"provider"?: string,"provider_payment_ref"?: string | null,"provider_ref"?: string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "amount"?: number,"application_fee"?: number,"created_at"?: string,"created_by"?: string | null,"fee_collected"?: boolean,"id"?: string,"order_id"?: string,"org_id"?: string,"provider"?: string,"provider_payment_ref"?: string | null,"provider_ref"?: string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -2343,6 +2363,11 @@ isOneToOne: false
                            },
 "attendance_refs_ok":
 { Args: { "p_org": string,"p_participant": string,"p_session": string }; Returns: boolean
+                           },
+"billing_usage":
+{ Args: { "p_from": string,"p_to": string }; Returns: {
+              "fees_collected_cents": number,"fees_open_cents": number,"members": number,"modules": (string)[],"orders": number,"org_id": string,"sales_cents": number,"users": number
+            }[]
                            },
 "can_see_deleted":
 { Args: { "p_org": string,"p_table": unknown }; Returns: boolean

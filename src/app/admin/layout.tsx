@@ -1,6 +1,6 @@
 import { APP_HOME } from "@/lib/url"
 import Link from "next/link"
-import { ActivityIcon, BookOpenIcon, ArrowLeftIcon, BuildingIcon, ShieldIcon, UsersIcon } from "lucide-react"
+import { ActivityIcon, BookOpenIcon, ArrowLeftIcon, BuildingIcon, ReceiptIcon, ShieldIcon, UsersIcon } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
 import { getT } from "@/i18n/server"
@@ -31,6 +31,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           items: [
             { href: "/admin/orgs", label: t("admin.orgs.title"), icon: <BuildingIcon /> },
             { href: "/admin/users", label: t("admin.users.title"), icon: <UsersIcon /> },
+            { href: "/admin/billing", label: t("admin.billing.title"), icon: <ReceiptIcon /> },
             { href: "/admin/roles", label: t("admin.roles.title"), icon: <ShieldIcon /> },
             { href: "/admin/activity", label: t("admin.activity.title"), icon: <ActivityIcon /> },
             { href: "/api/docs", label: t("admin.apiDocs"), icon: <BookOpenIcon /> },
