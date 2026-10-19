@@ -39,15 +39,17 @@ export async function emailReady(orgId: string) {
 }
 
 // roots' own sending (env, no Vault: platform-level). EMAIL_PROVIDER = roots' own mails (logins, invites,
-// notifications); EMAIL_PROVIDER_ORGS = mails of orgs without their own provider (tickets, campaigns …), default the
-// same. Values: resend | brevo; unset = the first one with a key. Sender: EMAIL_FROM ("roots <hallo@roots.app>").
+// notifications); unset = the first provider with a key. EMAIL_PROVIDER_ORGS = mails of orgs without their own
+// provider (tickets, campaigns …); unset = no fallback, orgs must connect their own. Values: resend | brevo.
+// Sender: EMAIL_FROM ("roots <hallo@roots.app>").
 const PLATFORM = { resend: { integration: resend, env: "RESEND_API_KEY" }, brevo: { integration: brevo, env: "BREVO_API_KEY" } }
 type PlatformKey = keyof typeof PLATFORM
 export type Purpose = "platform" | "orgs"
 
 function platformProvider(purpose: Purpose) {
   if (!process.env.EMAIL_FROM) return null
-  const wanted = (purpose === "orgs" && process.env.EMAIL_PROVIDER_ORGS) || process.env.EMAIL_PROVIDER
+  const wanted = purpose === "orgs" ? process.env.EMAIL_PROVIDER_ORGS : process.env.EMAIL_PROVIDER
+  if (purpose === "orgs" && !(wanted && wanted in PLATFORM)) return null // orgs only get ours when explicitly allowed
   const key = (wanted && wanted in PLATFORM ? wanted : (Object.keys(PLATFORM) as PlatformKey[]).find((k) => process.env[PLATFORM[k].env])) as PlatformKey | undefined
   const apiKey = key && process.env[PLATFORM[key].env]
   return apiKey ? { ...PLATFORM[key], key, apiKey } : null
