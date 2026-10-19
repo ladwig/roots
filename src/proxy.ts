@@ -16,9 +16,45 @@ const under = (pathname: string, list: string[]) => list.some((p) => pathname ==
 //   the paths in ROOT_PATHS at the root. Internally App routes have no /app prefix: a rewrite strips it.
 // ponytail: on the bare domain an in-app link like "/contacts" costs one redirect to "/app/contacts" (links are
 // written without the prefix). Fine while app.<domain> is the main entry; make links host-aware if it isn't.
+// Own domains (tickets.club.de): which org a host belongs to, asked anonymously (definer RPC site_for_host), kept a
+// minute per instance. ponytail: in-memory per instance; Global Config if lookups ever show up in latency.
+const hosts = new Map<string, { slug: string | null; until: number }>()
+async function siteForHost(host: string) {
+  const hit = hosts.get(host)
+  if (hit && hit.until > Date.now()) return hit.slug
+  const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/rpc/site_for_host`, {
+    method: "POST",
+    headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, "content-type": "application/json" },
+    body: JSON.stringify({ p_host: host }),
+    signal: AbortSignal.timeout(3000),
+  }).catch(() => null)
+  if (!res?.ok) return hit?.slug ?? null // database hiccup: keep serving what we knew
+  const slug = ((await res.json()) as string | null) || null
+  if (hosts.size > 1000) hosts.clear()
+  hosts.set(host, { slug, until: Date.now() + 60_000 })
+  return slug
+}
+const ownHost = (host: string) => host === ROOT || host.endsWith(`.${ROOT}`) || host.endsWith(".vercel.app") || /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host)
+
 export async function proxy(request: NextRequest) {
-  // ponytail: custom domains later = look up the host here and rewrite like org subdomains.
-  const host = request.headers.get("host") ?? ""
+  const host = (request.headers.get("host") ?? "").toLowerCase()
+  if (!ownHost(host)) {
+    const slug = await siteForHost(host.replace(/:\d+$/, ""))
+    if (!slug) return new NextResponse("This domain isn't connected to a site.", { status: 404 })
+    const { pathname } = request.nextUrl
+    if (pathname.startsWith("/api/") || pathname.startsWith("/_next/")) return NextResponse.next()
+    // Links on public pages carry /s/<slug>/… (path mode): clean addresses on the own domain.
+    // ponytail: one redirect per such click; make sitePath host-aware if it matters.
+    if (pathname === `/s/${slug}` || pathname.startsWith(`/s/${slug}/`)) {
+      if (request.method !== "GET") return NextResponse.next()
+      const url = request.nextUrl.clone()
+      url.pathname = pathname.slice(`/s/${slug}`.length) || "/"
+      return NextResponse.redirect(url, 308)
+    }
+    const url = request.nextUrl.clone()
+    url.pathname = `/s/${slug}${pathname === "/" ? "" : pathname}`
+    return NextResponse.rewrite(url)
+  }
   const sub = host.endsWith(`.${ROOT}`) ? host.slice(0, -ROOT.length - 1) : null
   if (sub && sub !== "app") {
     // Already the internal route (redirect target of a public Server Action, see siteActionPath).

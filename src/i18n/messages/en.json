@@ -162,7 +162,8 @@
       "api": "API",
       "locations": "Locations",
       "team": "Team",
-      "areas": "Areas"
+      "areas": "Areas",
+      "domain": "Domain"
     },
     "areasIntro": "Settings that only concern one area live there as the last sidebar item “Settings” – or collected here.",
     "areasNone": "None of your areas has settings you're allowed to change.",
@@ -567,7 +568,8 @@
       "projects": "Projects",
       "project_links": "Project links",
       "comments": "Comments",
-      "email_templates": "Email templates"
+      "email_templates": "Email templates",
+      "org_domains": "Domains"
     },
     "title": "Activity",
     "comment": "Comment",
@@ -914,7 +916,8 @@
       "rental.created": "Rental created",
       "rental.person_added": "Person added to a rental",
       "rental.notice_received": "Notice received",
-      "rental.renewed": "Contract renewed"
+      "rental.renewed": "Contract renewed",
+      "domain.connected": "Own domain connected"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -953,7 +956,8 @@
       "rental.created": "🔑 {object}: new rental",
       "rental.person_added": "🔑 {object}: person added",
       "rental.notice_received": "📝 {object}: notice received",
-      "rental.renewed": "🔁 {object}: contract renewed"
+      "rental.renewed": "🔁 {object}: contract renewed",
+      "domain.connected": "🌐 {domain} is live now"
     },
     "hints": {
       "member.joined": "Someone from your team (board, door staff …) accepted an invitation and can sign in to the app. Not for club members.",
@@ -4919,5 +4923,51 @@
       "thinking": "Sprout is thinking …",
       "waiting": "Sprout is waiting for you …"
     }
+  },
+  "domains": {
+    "intro": "Shows your public pages – events, ticket shop, forms, member portal – under your own address. Until then they're here: {url}",
+    "notConfigured": "Own domains aren't set up on this roots installation yet.",
+    "connectTitle": "Connect a domain",
+    "connectHint": "Best is a subdomain like tickets.yourclub.org or club.yourclub.org – your existing website stays as it is. The domain itself (yourclub.org) works too, but replaces whatever runs there now.",
+    "domain": "Your domain",
+    "connect": "Connect domain",
+    "added": "Domain added. Now only the DNS records are missing.",
+    "active": "Connected",
+    "pending": "Waiting for DNS",
+    "checkedAt": "Last checked {when}",
+    "checkNow": "Check now",
+    "nowLive": "Your domain is live.",
+    "liveText": "Your pages are live at https://{domain} – with an SSL certificate (https). Links in emails still point to the roots address for now; both work.",
+    "open": "Open site",
+    "stepsTitle": "How to connect the domain",
+    "step1": "Open the DNS settings at your domain provider",
+    "step1Text": "Sign in where you bought the domain (e.g. IONOS, Strato, GoDaddy, Namecheap, Cloudflare). The section is usually called “DNS”, “DNS records” or “Manage records”.",
+    "step2": "Add these records",
+    "step3": "Save – we check automatically",
+    "step3Text": "Usually the domain is connected within minutes, rarely it takes up to 48 hours. This page checks by itself and you get a notification once it's live. The SSL certificate comes automatically.",
+    "type": "Type",
+    "name": "Name / Host",
+    "value": "Value / Target",
+    "copy": "Copy",
+    "tipApex": "“@” means the domain itself. Some providers just leave the field empty for it.",
+    "tipFullName": "If your provider wants the full address as name, enter {domain}.",
+    "tipReplace": "If there's already a record for this name (A, AAAA or CNAME), delete or replace it – otherwise the new one won't work.",
+    "tipCloudflare": "On Cloudflare: set the proxy status to “DNS only” (grey cloud).",
+    "tipTxt": "The TXT record confirms the domain is yours (it was registered with another service before).",
+    "problems": {
+      "verify": "Still waiting for the TXT record that confirms the domain is yours.",
+      "dns": "The domain doesn't point to roots yet. Check the record above – changes sometimes take a while.",
+      "certificate": "The domain points to roots; the SSL certificate is being issued. That usually takes a few minutes.",
+      "removed": "The domain is no longer registered with our host. Remove it and connect it again.",
+      "unknown": "We couldn't get the status just now. We'll try again shortly."
+    },
+    "remove": "Remove domain",
+    "confirmRemove": "Remove the domain? Your pages will only be reachable at the roots address.",
+    "removed": "Domain removed.",
+    "invalid": "That doesn't look like a domain. Example: tickets.yourclub.org",
+    "onlyOne": "You already have a domain connected. Remove it first.",
+    "taken": "This domain is already connected to another organisation.",
+    "takenElsewhere": "This domain is registered in another Vercel project. Remove it there first.",
+    "failed": "That didn't work. Please try again in a moment."
   }
 }

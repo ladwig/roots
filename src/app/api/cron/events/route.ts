@@ -7,12 +7,14 @@ import { processEmailQueue } from "@/email/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { offerWaitlist } from "@/tickets/waitlist"
 import { fulfilPending } from "@/payments/server"
+import { checkPendingDomains } from "@/domains/server"
 
 // Called every minute (vercel.json cron, or `npm run worker` locally). Protected by CRON_SECRET.
 export async function GET(request: Request) {
   if (!process.env.CRON_SECRET || request.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`)
     return new NextResponse("Unauthorized", { status: 401 })
   await pollTelegram().catch(console.error)
+  await checkPendingDomains().catch(console.error) // own domains waiting for DNS (before deliveries: "connected" goes out now)
   let sent = 0
   for (let round = 0; round < 10; round++) {
     const n = await deliverDue() // routes new events first

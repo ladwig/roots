@@ -8,6 +8,7 @@ import { CUSTOM_ENTITIES, FIELD_TYPES, type CustomEntity } from "@/lib/custom-fi
 import { refreshPublicFromApi } from "@/lib/public-cache"
 import { createField, inviteMember, updateField, type SetupFail } from "@/settings/server"
 import { deliverSoon } from "@/events/worker"
+import { checkDomain, connectDomain, orgDomain, removeDomain } from "@/domains/server"
 import { ApiError, dbError, endpoint, notFound, uuid, type Endpoint } from "../core"
 import { ts, type Db } from "./shared"
 
@@ -85,6 +86,24 @@ async function team(db: Db, orgId: string) {
     })),
   }
 }
+
+const Domain = z.object({
+  id: uuid,
+  domain: z.string(),
+  status: z.enum(["pending", "active"]).describe("active = live with https"),
+  records: z.array(z.object({ type: z.enum(["CNAME", "A", "TXT"]), name: z.string().describe("Host/name field at the provider (@ = the domain itself)"), value: z.string() })).describe("What to enter at the domain provider"),
+  problem: z.enum(["verify", "dns", "certificate", "removed", "unknown"]).nullable().describe("Why it isn't live yet: verify = TXT record missing, dns = not pointing to us, certificate = being issued"),
+  checked_at: ts.nullable(),
+  active_at: ts.nullable(),
+})
+const DOMAIN_ERRORS: Record<string, [number, string, string]> = {
+  "domains.invalid": [422, "invalid_domain", "That isn't a usable domain (e.g. tickets.club.de)."],
+  "domains.onlyOne": [409, "domain_exists", "The org already has a domain. DELETE /domain first."],
+  "domains.taken": [409, "domain_taken", "Another organisation uses this domain."],
+  "domains.takenElsewhere": [409, "domain_taken", "The domain is registered in another Vercel project."],
+  "domains.notConfigured": [503, "not_configured", "Own domains aren't set up on this installation."],
+}
+const domainError = (key: string) => new ApiError(...(DOMAIN_ERRORS[key] ?? [502, "domain_failed", "The host didn't accept the change. Try again."]))
 
 export const endpoints: Endpoint[] = [
   endpoint({
@@ -274,6 +293,63 @@ export const endpoints: Endpoint[] = [
       if (error) throw dbError(error)
       if (!count) throw notFound()
       return { id: params.id }
+    },
+  }),
+  // Own domain for the public pages
+  endpoint({
+    method: "GET",
+    path: "/domain",
+    permission: "org.settings.manage",
+    tag: "Settings",
+    summary: "Get the own domain",
+    description: "The org's own domain for its public pages, whether it's live, and the DNS records to enter at the domain provider. null = none connected.",
+    response: Domain.nullable(),
+    handler: ({ orgId }) => orgDomain(orgId),
+  }),
+  endpoint({
+    method: "PUT",
+    path: "/domain",
+    permission: "org.settings.manage",
+    tag: "Settings",
+    summary: "Connect an own domain",
+    description:
+      "Adds the domain (best a subdomain like tickets.club.de) and returns the DNS records the person has to enter at their domain provider (`records`). It goes live by itself once DNS is right (checked every few minutes; POST /domain/check to check now). One domain per org.",
+    body: z.object({ domain: z.string().trim().min(3).max(253).describe("e.g. tickets.club.de (a pasted URL is fine)") }).strict(),
+    response: Domain,
+    async handler({ orgId, body }) {
+      try {
+        return (await connectDomain(orgId, body.domain))!
+      } catch (e) {
+        throw domainError((e as Error).message)
+      }
+    },
+  }),
+  endpoint({
+    method: "POST",
+    path: "/domain/check",
+    permission: "org.settings.manage",
+    tag: "Settings",
+    summary: "Check the own domain now",
+    description: "Asks the host whether the DNS records are in place and the certificate is issued; `status` becomes active then.",
+    response: Domain,
+    async handler({ orgId }) {
+      const row = await checkDomain(orgId)
+      if (!row) throw notFound()
+      if (row.status === "active") deliverSoon()
+      return row
+    },
+  }),
+  endpoint({
+    method: "DELETE",
+    path: "/domain",
+    permission: "org.settings.manage",
+    tag: "Settings",
+    summary: "Remove the own domain",
+    description: "The public pages are then only reachable at the roots address.",
+    response: z.object({ ok: z.literal(true) }),
+    async handler({ orgId }) {
+      if (!(await removeDomain(orgId).catch(() => { throw domainError("domains.failed") }))) throw notFound()
+      return { ok: true as const }
     },
   }),
 ]

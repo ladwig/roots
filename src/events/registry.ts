@@ -18,6 +18,7 @@ export const eventTypes: EventType[] = [
   { key: "member.joined", module: "org", audience: { permission: "org.members.manage", defaults: ["in_app"] }, href: () => "/settings/team" },
   { key: "member.left", module: "org", audience: { permission: "org.members.manage", defaults: ["in_app"] }, href: () => "/settings/team" },
   { key: "member.invited", module: "org" },
+  { key: "domain.connected", module: "org", audience: { permission: "org.settings.manage", defaults: ["in_app", "email"] }, href: () => "/settings/domain" },
   { key: "order.paid", module: "payments", audience: { permission: "payments.view", defaults: ["in_app"] }, href: (p) => `/payments?edit=${p.order_id}` },
   { key: "order.refunded", module: "payments", audience: { permission: "payments.view", defaults: ["in_app"] }, href: (p) => `/payments?edit=${p.order_id}` },
   { key: "order.failed", module: "payments", audience: { permission: "payments.view", defaults: ["in_app"] }, href: (p) => `/payments?edit=${p.order_id}` },

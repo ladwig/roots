@@ -12,6 +12,7 @@ declare
   org_a uuid;
   org_b uuid;
   n int;
+  v_text text;
 begin
   insert into auth.users (id, email, aud, role) values
     (a, 'a@isolation.test', 'authenticated', 'authenticated'),
@@ -724,6 +725,20 @@ begin
   set local role authenticated;
   select count(*) into n from public.email_campaigns where org_id = org_a;    assert n = 0, 'B sees campaigns of A';
   select count(*) into n from public.email_sends where org_id = org_a;       assert n = 0, 'B sees sends of A';
+  reset role;
+
+  -- Own domains: written by the server only, seen by settings managers of the org; the host lookup knows only live ones
+  insert into public.org_domains (org_id, domain) values (org_a, 'tickets.a-verein.de');
+  select public.site_for_host('tickets.a-verein.de') into v_text;                assert v_text is null, 'pending domain must not resolve';
+  update public.org_domains set status = 'active' where domain = 'tickets.a-verein.de';
+  select public.site_for_host('Tickets.A-Verein.de') into v_text;                assert v_text = (select slug from public.orgs where id = org_a), 'active domain resolves to its org';
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.org_domains;                               assert n = 0, 'B sees the domain of A';
+  begin
+    insert into public.org_domains (org_id, domain) values (org_b, 'evil.de');
+    assert false, 'domains are written by the server only';
+  exception when insufficient_privilege then null; end;
   reset role;
 
   -- Email templates: one default per org, events can only use their own org's template, B sees nothing

@@ -162,7 +162,8 @@
       "api": "API",
       "locations": "Orte",
       "team": "Team",
-      "areas": "Bereiche"
+      "areas": "Bereiche",
+      "domain": "Domain"
     },
     "areasIntro": "Einstellungen, die nur einen Bereich betreffen, findest du dort als letzten Punkt „Einstellungen“ in der Seitenleiste – oder hier gesammelt.",
     "areasNone": "Für deine Bereiche gibt es keine eigenen Einstellungen, die du ändern darfst.",
@@ -567,7 +568,8 @@
       "projects": "Projekte",
       "project_links": "Projekt-Verknüpfungen",
       "comments": "Kommentare",
-      "email_templates": "E-Mail-Vorlagen"
+      "email_templates": "E-Mail-Vorlagen",
+      "org_domains": "Domains"
     },
     "title": "Aktivität",
     "comment": "Kommentieren",
@@ -914,7 +916,8 @@
       "rental.created": "Vergabe angelegt",
       "rental.person_added": "Person zu einer Vergabe hinzugefügt",
       "rental.notice_received": "Kündigung eingegangen",
-      "rental.renewed": "Vertrag verlängert"
+      "rental.renewed": "Vertrag verlängert",
+      "domain.connected": "Eigene Domain verbunden"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -953,7 +956,8 @@
       "rental.created": "🔑 {object}: neue Vergabe",
       "rental.person_added": "🔑 {object}: Person hinzugefügt",
       "rental.notice_received": "📝 {object}: Kündigung eingegangen",
-      "rental.renewed": "🔁 {object}: Vertrag hat sich verlängert"
+      "rental.renewed": "🔁 {object}: Vertrag hat sich verlängert",
+      "domain.connected": "🌐 {domain} ist jetzt live"
     },
     "hints": {
       "member.joined": "Jemand aus eurem Team (Vorstand, Einlass …) hat eine Einladung angenommen und kann sich in der App anmelden. Nicht für Vereinsmitglieder.",
@@ -4919,5 +4923,51 @@
       "thinking": "Sprout denkt nach …",
       "waiting": "Sprout wartet auf dich …"
     }
+  },
+  "domains": {
+    "intro": "Zeigt eure öffentlichen Seiten – Events, Ticketshop, Formulare, Mitgliederportal – unter eurer eigenen Adresse. Bis dahin sind sie hier erreichbar: {url}",
+    "notConfigured": "Eigene Domains sind auf dieser roots-Installation noch nicht eingerichtet.",
+    "connectTitle": "Domain verbinden",
+    "connectHint": "Am besten eine Subdomain wie tickets.euerverein.de oder verein.euerverein.de – eure bestehende Website bleibt dann, wie sie ist. Die Domain selbst (euerverein.de) geht auch, ersetzt aber, was dort gerade läuft.",
+    "domain": "Eure Domain",
+    "connect": "Domain verbinden",
+    "added": "Domain hinzugefügt. Jetzt fehlen nur noch die DNS-Einträge.",
+    "active": "Verbunden",
+    "pending": "Wartet auf DNS",
+    "checkedAt": "Zuletzt geprüft {when}",
+    "checkNow": "Jetzt prüfen",
+    "nowLive": "Eure Domain ist live.",
+    "liveText": "Eure Seiten sind live unter https://{domain} – mit SSL-Zertifikat (https). Links in E-Mails zeigen vorerst noch auf die roots-Adresse; beide funktionieren.",
+    "open": "Seite öffnen",
+    "stepsTitle": "So verbindet ihr die Domain",
+    "step1": "DNS-Einstellungen beim Domain-Anbieter öffnen",
+    "step1Text": "Meldet euch dort an, wo ihr die Domain gekauft habt (z. B. IONOS, Strato, All-Inkl, GoDaddy, Cloudflare). Der Bereich heißt meist „DNS“, „DNS-Einträge“ oder „Records verwalten“.",
+    "step2": "Diese Einträge anlegen",
+    "step3": "Speichern – wir prüfen automatisch",
+    "step3Text": "Meist ist die Domain nach wenigen Minuten verbunden, selten dauert es bis zu 48 Stunden. Diese Seite prüft von selbst und ihr bekommt eine Benachrichtigung, sobald alles live ist. Das SSL-Zertifikat kommt automatisch.",
+    "type": "Typ",
+    "name": "Name / Host",
+    "value": "Wert / Ziel",
+    "copy": "Kopieren",
+    "tipApex": "„@“ steht für die Domain selbst ohne Zusatz. Manche Anbieter lassen das Feld dafür einfach leer.",
+    "tipFullName": "Will euer Anbieter beim Namen die ganze Adresse, tragt {domain} ein.",
+    "tipReplace": "Gibt es für diesen Namen schon einen Eintrag (A, AAAA oder CNAME), löscht oder ersetzt ihn – sonst greift der neue nicht.",
+    "tipCloudflare": "Bei Cloudflare: Proxy-Status auf „Nur DNS“ stellen (graue Wolke).",
+    "tipTxt": "Der TXT-Eintrag bestätigt, dass die Domain euch gehört (sie war schon einmal bei einem anderen Dienst eingetragen).",
+    "problems": {
+      "verify": "Wir warten noch auf den TXT-Eintrag, der bestätigt, dass die Domain euch gehört.",
+      "dns": "Die Domain zeigt noch nicht auf roots. Prüft den Eintrag oben – Änderungen brauchen manchmal etwas Zeit.",
+      "certificate": "Die Domain zeigt auf roots, das SSL-Zertifikat wird gerade ausgestellt. Das dauert meist nur ein paar Minuten.",
+      "removed": "Die Domain ist bei unserem Hoster nicht mehr eingetragen. Entfernt sie und verbindet sie neu.",
+      "unknown": "Der Status ließ sich gerade nicht abrufen. Wir versuchen es gleich noch einmal."
+    },
+    "remove": "Domain entfernen",
+    "confirmRemove": "Domain entfernen? Eure Seiten sind dann nur noch unter der roots-Adresse erreichbar.",
+    "removed": "Domain entfernt.",
+    "invalid": "Das sieht nicht nach einer Domain aus. Beispiel: tickets.euerverein.de",
+    "onlyOne": "Ihr habt schon eine Domain verbunden. Entfernt sie zuerst.",
+    "taken": "Diese Domain ist schon mit einer anderen Organisation verbunden.",
+    "takenElsewhere": "Diese Domain ist bei einem anderen Vercel-Projekt eingetragen. Entfernt sie dort zuerst.",
+    "failed": "Das hat nicht geklappt. Versucht es gleich noch einmal."
   }
 }

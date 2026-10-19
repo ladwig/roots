@@ -1289,6 +1289,26 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"org_domains": {
+                  Row: {
+                    "active_at": string | null,"checked_at": string | null,"created_at": string,"created_by": string | null,"domain": string,"id": string,"org_id": string,"problem": string | null,"records": NonNullable<Json>,"status": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active_at"?: string | null,"checked_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"domain": string,"id"?: string,"org_id": string,"problem"?: string | null,"records"?: NonNullable<Json>,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "active_at"?: string | null,"checked_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"domain"?: string,"id"?: string,"org_id"?: string,"problem"?: string | null,"records"?: NonNullable<Json>,"status"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "org_domains_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: true
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"org_integrations": {
                   Row: {
                     "config": NonNullable<Json>,"created_at": string,"created_by": string | null,"expires_at": string | null,"id": string,"last_error": string | null,"org_id": string,"provider": string,"secret_id": string | null,"status": string,"updated_at": string,"updated_by": string | null
@@ -2677,6 +2697,9 @@ isOneToOne: false
                            },
 "shift_self":
 { Args: { "p_action": string,"p_shift": string,"p_token"?: string }; Returns: string
+                           },
+"site_for_host":
+{ Args: { "p_host": string }; Returns: string
                            },
 "soft_delete":
 { Args: { "p_id": string,"p_table": unknown }; Returns: boolean
