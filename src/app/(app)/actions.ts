@@ -19,5 +19,5 @@ export async function openMyMemberArea() {
   const { data: me } = await ctx.supabase.from("contacts").select("id").eq("org_id", ctx.org.id).eq("user_id", ctx.userId).is("deleted_at", null).maybeSingle()
   if (!me) redirect(APP_HOME)
   const token = await loginTokenForContact(ctx.org.id, me.id)
-  redirect(`${siteUrl(ctx.org.slug, "/portal/login")}?token=${token}`)
+  redirect(`${siteUrl(ctx.org.slug, "/portal/login", ctx.org.site_domain)}?token=${token}`)
 }

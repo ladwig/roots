@@ -33,7 +33,7 @@ export default async function EventLayout({ children, params }: { children: Reac
         actions={
           ev.status !== "draft" &&
           !ev.deleted_at && (
-            <Button render={<a href={siteUrl(ctx.org.slug, `/e/${ev.slug}`)} target="_blank" rel="noreferrer" />} nativeButton={false} size="sm" variant="outline">
+            <Button render={<a href={siteUrl(ctx.org.slug, `/e/${ev.slug}`, ctx.org.site_domain)} target="_blank" rel="noreferrer" />} nativeButton={false} size="sm" variant="outline">
               <ExternalLinkIcon /> {t("eventsPage.publicLink")}
             </Button>
           )

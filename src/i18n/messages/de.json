@@ -4937,7 +4937,7 @@
     "checkedAt": "Zuletzt geprüft {when}",
     "checkNow": "Jetzt prüfen",
     "nowLive": "Eure Domain ist live.",
-    "liveText": "Eure Seiten sind live unter https://{domain} – mit SSL-Zertifikat (https). Links in E-Mails zeigen vorerst noch auf die roots-Adresse; beide funktionieren.",
+    "liveText": "Eure Seiten sind live unter https://{domain} – mit SSL-Zertifikat (https). Ticket-Mails, Links und der Checkout nutzen jetzt diese Adresse. Die roots-Adresse funktioniert weiter; fällt eure Domain mal aus (z. B. DNS-Eintrag gelöscht), merken wir das und verlinken automatisch wieder dorthin.",
     "open": "Seite öffnen",
     "stepsTitle": "So verbindet ihr die Domain",
     "step1": "DNS-Einstellungen beim Domain-Anbieter öffnen",

@@ -83,7 +83,7 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
   const creatingCode = canManage && param(sp, "new") === "code"
   const editingCode = codes?.find((c) => c.id === param(sp, "code"))
   const used = (key: "tier_id" | "code_id", id: string) => counts?.filter((c) => c[key] === id).length ?? 0
-  const shopUrl = siteUrl(ctx.org.slug, `/e/${ev?.slug}`)
+  const shopUrl = siteUrl(ctx.org.slug, `/e/${ev?.slug}`, ctx.org.site_domain)
   const rows = tickets?.slice(0, PAGE_SIZE) ?? []
 
   return (
@@ -99,7 +99,7 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
             )}
             {ev.status === "published" && (
               <Button
-                render={<a href={siteUrl(ctx.org.slug, `/e/${ev.slug}`)} target="_blank" rel="noreferrer" />}
+                render={<a href={siteUrl(ctx.org.slug, `/e/${ev.slug}`, ctx.org.site_domain)} target="_blank" rel="noreferrer" />}
                 nativeButton={false}
                 size="sm"
                 variant="outline"

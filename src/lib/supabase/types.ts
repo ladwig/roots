@@ -1377,14 +1377,14 @@ isOneToOne: false
                   ]
                 },"orgs": {
                   Row: {
-                    "allow_ai": boolean,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"id": string,"logo_path": string | null,"name": string,"settings": NonNullable<Json>,"slug": string,"updated_at": string,"updated_by": string | null
+                    "allow_ai": boolean,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"id": string,"logo_path": string | null,"name": string,"settings": NonNullable<Json>,"site_domain": string | null,"slug": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "allow_ai"?: boolean,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"logo_path"?: string | null,"name": string,"settings"?: NonNullable<Json>,"slug": string,"updated_at"?: string,"updated_by"?: string | null
+                    "allow_ai"?: boolean,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"logo_path"?: string | null,"name": string,"settings"?: NonNullable<Json>,"site_domain"?: string | null,"slug": string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "allow_ai"?: boolean,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"logo_path"?: string | null,"name"?: string,"settings"?: NonNullable<Json>,"slug"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "allow_ai"?: boolean,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"id"?: string,"logo_path"?: string | null,"name"?: string,"settings"?: NonNullable<Json>,"site_domain"?: string | null,"slug"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     

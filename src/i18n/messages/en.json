@@ -4937,7 +4937,7 @@
     "checkedAt": "Last checked {when}",
     "checkNow": "Check now",
     "nowLive": "Your domain is live.",
-    "liveText": "Your pages are live at https://{domain} – with an SSL certificate (https). Links in emails still point to the roots address for now; both work.",
+    "liveText": "Your pages are live at https://{domain} – with an SSL certificate (https). Ticket mails, links and checkout now use this address. The roots address keeps working; if your domain ever stops working (e.g. the DNS record was deleted), we notice and link there again automatically.",
     "open": "Open site",
     "stepsTitle": "How to connect the domain",
     "step1": "Open the DNS settings at your domain provider",

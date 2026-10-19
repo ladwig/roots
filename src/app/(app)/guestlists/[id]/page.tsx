@@ -31,7 +31,7 @@ export default async function GuestListPage({ params, searchParams }: PageProps<
     ctx.supabase.from("guest_entries").select("id, name, email, added_via, submitted_by, created_at, tickets!guest_entries_ticket_id_fkey(code, status), guest_checkins(event_id, checked_in_at)").eq("list_id", id).order("name"),
   ])
   if (!list) notFound()
-  const link = list.link_token ? siteUrl(ctx.org.slug, `/g/${list.link_token}`) : null
+  const link = list.link_token ? siteUrl(ctx.org.slug, `/g/${list.link_token}`, ctx.org.site_domain) : null
   const checkedIn = (e: NonNullable<typeof entries>[number]) =>
     list.event_id ? e.guest_checkins.find((c) => c.event_id === list.event_id) : e.guest_checkins.at(-1)
   const editing = canManage && param(sp, "edit") === "1"

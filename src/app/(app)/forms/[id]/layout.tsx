@@ -23,7 +23,7 @@ export default async function FormLayout({ children, params }: LayoutProps<"/for
         badge={<Badge variant={form.status === "published" ? "default" : "outline"}>{t.dynamic(`forms.statuses.${form.status}`)}</Badge>}
         actions={
           form.status === "published" && (
-            <Button render={<a href={siteUrl(ctx.org.slug, `/f/${form.slug}`)} target="_blank" rel="noreferrer" />} nativeButton={false} size="sm" variant="outline">
+            <Button render={<a href={siteUrl(ctx.org.slug, `/f/${form.slug}`, ctx.org.site_domain)} target="_blank" rel="noreferrer" />} nativeButton={false} size="sm" variant="outline">
               <ExternalLinkIcon /> {t("forms.openPublic")}
             </Button>
           )

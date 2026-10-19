@@ -226,7 +226,7 @@ export async function addLevy(db: Db, orgId: string, l: { description: string | 
 }
 
 /** Email every member with overdue open dues (one mail per person, all items listed). Optional: only one due. */
-export async function sendReminders(db: Db, org: { id: string; name: string; slug: string }, only: string | string[] | null, t: T): Promise<Fail | { people: number; withoutEmail: number }> {
+export async function sendReminders(db: Db, org: { id: string; name: string; slug: string; site_domain?: string | null }, only: string | string[] | null, t: T): Promise<Fail | { people: number; withoutEmail: number }> {
   let q = db
     .from("member_dues")
     .select("id, description, amount_cents, due_on, reminders, memberships!inner(member_no, contacts(first_name, last_name, company, email))")
@@ -250,7 +250,7 @@ export async function sendReminders(db: Db, org: { id: string; name: string; slu
     const total = items.reduce((s, d) => s + d.amount_cents, 0)
     const lines = items.map((d) => `• ${d.description} (${t.date(d.due_on)}): ${t.money(d.amount_cents)}`)
     const pay = settings?.iban ? t("membership.reminderPay", { name: settings.creditor_name ?? org.name, iban: settings.iban, ref: items[0].memberships!.member_no ?? "" }) : ""
-    const text = [t("membership.reminderHello", { name }), "", t("membership.reminderIntro", { org: org.name }), "", ...lines, "", t("membership.reminderTotal", { total: t.money(total) }), pay, t("membership.reminderPortal", { url: siteUrl(org.slug, "/portal") }), "", t("membership.reminderBye", { org: org.name })].filter((l, i, a) => l || a[i - 1]).join("\n")
+    const text = [t("membership.reminderHello", { name }), "", t("membership.reminderIntro", { org: org.name }), "", ...lines, "", t("membership.reminderTotal", { total: t.money(total) }), pay, t("membership.reminderPortal", { url: siteUrl(org.slug, "/portal", org.site_domain) }), "", t("membership.reminderBye", { org: org.name })].filter((l, i, a) => l || a[i - 1]).join("\n")
     const html = text.split("\n").map((l) => (l ? `<p style="margin:0 0 4px">${l.replace(/[<>&]/g, (x) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[x]!)}</p>` : "<br>")).join("")
     if (await sendOrgEmail(org.id, { to: email, subject: t("membership.reminderSubject", { org: org.name }), text, html })) sent.push(...items.map((d) => d.id))
   }

@@ -653,7 +653,7 @@ export const endpoints: Endpoint[] = [
     body: z.object({ due_id: uuid.optional() }).strict(),
     response: z.object({ people: z.number().int().describe("Members emailed"), without_email: z.number().int().describe("Overdue dues skipped because the contact has no email") }),
     async handler({ db, orgId, body }) {
-      const { data: org } = await db.from("orgs").select("id, name, slug").eq("id", orgId).single()
+      const { data: org } = await db.from("orgs").select("id, name, slug, site_domain").eq("id", orgId).single()
       if (!org) throw notFound()
       const r = await members.sendReminders(db, org, body.due_id ?? null, de)
       if ("error" in r) fail(r)

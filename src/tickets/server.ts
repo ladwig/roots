@@ -113,10 +113,10 @@ export async function issueTickets(order: PaidOrder) {
 // ponytail: emails/PDF in German until orgs pick a language for their public pages.
 const tDe = () => createT("de", messages.de)
 
-async function pdfTicketsFor(orderId: string, t: T): Promise<{ list: PdfTicket[]; org: { id: string; slug: string; name: string }; eventId: string } | null> {
+async function pdfTicketsFor(orderId: string, t: T): Promise<{ list: PdfTicket[]; org: { id: string; slug: string; name: string; site_domain: string | null }; eventId: string } | null> {
   const { data: rows } = await db()
     .from("tickets")
-    .select("code, holder_name, status, event_id, ticket_types(name), ticket_tiers(name), events(title, starts_at, venue_name, venue_address), orgs(id, slug, name)")
+    .select("code, holder_name, status, event_id, ticket_types(name), ticket_tiers(name), events(title, starts_at, venue_name, venue_address), orgs(id, slug, name, site_domain)")
     .eq("order_id", orderId)
     .in("status", ["valid", "used"])
     .order("created_at")
@@ -158,7 +158,7 @@ export async function emailTickets(orderId: string) {
       name: order.customer_name ?? "",
       email: order.customer_email,
       count: data.list.length,
-      link: siteUrl(data.org.slug, `/t/${orderId}?k=${meta.ticket_token}`),
+      link: siteUrl(data.org.slug, `/t/${orderId}?k=${meta.ticket_token}`, data.org.site_domain),
       list: guest && typeof meta.list === "string" ? meta.list : undefined,
     },
     [{ filename: "tickets.pdf", content: await ticketsPdf(data.list) }],

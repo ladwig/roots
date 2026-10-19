@@ -11,7 +11,7 @@ import { createLoginToken } from "./session"
  * promising a mail. No provider is checked before the lookup (same answer for every address); a failing provider
  * only shows for known addresses. ponytail: accepted, it only happens while sending is broken anyway.
  */
-export async function sendLoginLink(org: { id: string; name: string }, slug: string, email: string, t: T): Promise<boolean> {
+export async function sendLoginLink(org: { id: string; name: string; site_domain?: string | null }, slug: string, email: string, t: T): Promise<boolean> {
   // Dev goes on without a provider: the mail (with the link) is printed to the server log, the page still says it failed.
   if (process.env.NODE_ENV === "production" && !(await emailReady(org.id))) return false
   // ponytail: simple flood guard per address (3 links per 10 minutes); a per-IP limit if the form gets abused.
@@ -23,7 +23,7 @@ export async function sendLoginLink(org: { id: string; name: string }, slug: str
   if ((count ?? 0) < 3) {
     const login = await createLoginToken(org.id, email)
     if (login) {
-      const link = `${siteUrl(slug, "/portal/login")}?token=${login.token}`
+      const link = `${siteUrl(slug, "/portal/login", org.site_domain)}?token=${login.token}`
       const text = [t("portal.mailHello", { name: login.firstName ?? "" }), "", t("portal.mailIntro", { org: org.name }), "", link, "", t("portal.mailNote")].join("\n")
       return sendOrgEmail(org.id, {
         to: email,

@@ -21,7 +21,7 @@ import { buyTickets, ticketsForBuyer } from "@/tickets/server"
 import { joinWaitlist, waitlistClaim } from "@/tickets/waitlist"
 import { ApiError, error, json, match, notFound, readInput, uuid } from "./core"
 
-type Org = { id: string; slug: string; name: string; logo_path: string | null }
+type Org = { id: string; slug: string; name: string; logo_path: string | null; site_domain: string | null }
 type Ctx<Q, B> = { org: Org; params: Record<string, string>; query: Q; body: B; t: T }
 export type PublicEndpoint = {
   method: "GET" | "POST"
@@ -89,7 +89,7 @@ const eventOut = (org: Org, e: NonNullable<Awaited<ReturnType<typeof cachedEvent
   description: e.description,
   image_url: e.image_path ? imageUrl(e.image_path) : null,
   max_tickets_per_order: e.max_tickets_per_order,
-  url: siteUrl(org.slug, `/e/${e.slug}`),
+  url: siteUrl(org.slug, `/e/${e.slug}`, org.site_domain),
 })
 async function publishedEvent(org: Org, slug: string) {
   const e = await cachedEvent(org.id, slug)
@@ -112,7 +112,7 @@ export const publicEndpoints: PublicEndpoint[] = [
     response: z.object({ data: z.array(z.object({ id: z.string(), title: z.string(), updated_at: ts, url: z.string() })) }),
     maxAge: 60,
     async handler({ org }) {
-      return { data: (await outsideIndex(org.id, "public")).map((p) => ({ ...p, url: siteUrl(org.slug, `/wiki/${p.id}`) })) }
+      return { data: (await outsideIndex(org.id, "public")).map((p) => ({ ...p, url: siteUrl(org.slug, `/wiki/${p.id}`, org.site_domain) })) }
     },
   }),
   endpoint({
@@ -134,7 +134,7 @@ export const publicEndpoints: PublicEndpoint[] = [
       const page = await outsidePage(org.id, params.id, "public")
       if (!page) throw notFound()
       // Files as absolute links to the public file route.
-      return { ...page, body: page.body.replace(/\]\(\/files\/([0-9a-f-]{36})\)/g, (_m, id: string) => `](${siteUrl(org.slug, `/wiki/file/${id}`)})`) }
+      return { ...page, body: page.body.replace(/\]\(\/files\/([0-9a-f-]{36})\)/g, (_m, id: string) => `](${siteUrl(org.slug, `/wiki/file/${id}`, org.site_domain)})`) }
     },
   }),
   endpoint({
@@ -145,7 +145,7 @@ export const publicEndpoints: PublicEndpoint[] = [
     response: z.object({ slug: z.string(), name: z.string(), logo_url: z.string().nullable(), url: z.string().describe("Hosted public pages") }),
     maxAge: 60,
     async handler({ org }) {
-      return { slug: org.slug, name: org.name, logo_url: org.logo_path ? imageUrl(org.logo_path) : null, url: siteUrl(org.slug) }
+      return { slug: org.slug, name: org.name, logo_url: org.logo_path ? imageUrl(org.logo_path) : null, url: siteUrl(org.slug, "", org.site_domain) }
     },
   }),
   endpoint({
@@ -268,9 +268,9 @@ export const publicEndpoints: PublicEndpoint[] = [
           items: body.items.map((i) => ({ typeId: i.type_id, holderName: ev.ticket_names === "off" ? null : i.holder_name || null })),
           successUrl: (order, token) => {
             ids = { order, token }
-            return body.success_url ? body.success_url.replaceAll("{ORDER_ID}", order).replaceAll("{TOKEN}", token) : siteUrl(org.slug, `/t/${order}?k=${token}`)
+            return body.success_url ? body.success_url.replaceAll("{ORDER_ID}", order).replaceAll("{TOKEN}", token) : siteUrl(org.slug, `/t/${order}?k=${token}`, org.site_domain)
           },
-          cancelUrl: body.cancel_url ?? siteUrl(org.slug, `/e/${e.slug}`),
+          cancelUrl: body.cancel_url ?? siteUrl(org.slug, `/e/${e.slug}`, org.site_domain),
         })
       } catch (err) {
         const key = err instanceof Error ? err.message : ""
@@ -278,7 +278,7 @@ export const publicEndpoints: PublicEndpoint[] = [
         console.error("public api checkout", org.slug, e.slug, key)
         throw new ApiError(503, "unavailable", t("shop.unavailable"))
       }
-      return { order_id: ids.order, token: ids.token, checkout_url: url, tickets_url: siteUrl(org.slug, `/t/${ids.order}?k=${ids.token}`) }
+      return { order_id: ids.order, token: ids.token, checkout_url: url, tickets_url: siteUrl(org.slug, `/t/${ids.order}?k=${ids.token}`, org.site_domain) }
     },
   }),
   endpoint({
@@ -321,8 +321,8 @@ export const publicEndpoints: PublicEndpoint[] = [
         tickets: data.tickets
           .filter((k) => k.status !== "void" || !paid)
           .map((k) => ({ code: k.code, status: k.status, type: k.ticket_types?.name ?? null, holder_name: k.holder_name, event: k.events })),
-        pdf_url: paid ? siteUrl(org.slug, `/t/${id}/pdf?k=${query.token}`) : null,
-        tickets_url: siteUrl(org.slug, `/t/${id}?k=${query.token}`),
+        pdf_url: paid ? siteUrl(org.slug, `/t/${id}/pdf?k=${query.token}`, org.site_domain) : null,
+        tickets_url: siteUrl(org.slug, `/t/${id}?k=${query.token}`, org.site_domain),
       }
     },
   }),
@@ -359,7 +359,7 @@ export const publicEndpoints: PublicEndpoint[] = [
     maxAge: 60,
     async handler({ org, params }) {
       const f = await publicForm(org, params.slug)
-      return { id: f.id, title: f.title, intro: f.intro, purpose: f.purpose, elements: f.elements, custom_fields: f.custom_fields, types: f.types, success_text: f.success_text, url: siteUrl(org.slug, `/f/${params.slug}`) }
+      return { id: f.id, title: f.title, intro: f.intro, purpose: f.purpose, elements: f.elements, custom_fields: f.custom_fields, types: f.types, success_text: f.success_text, url: siteUrl(org.slug, `/f/${params.slug}`, org.site_domain) }
     },
   }),
   endpoint({

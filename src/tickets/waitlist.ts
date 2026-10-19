@@ -15,10 +15,10 @@ export async function offerWaitlist() {
   const { data: offers, error } = await db().rpc("offer_waitlist")
   if (error) throw error
   for (const o of offers ?? []) {
-    const { data: ev } = await db().from("events").select("slug, orgs(slug)").eq("id", o.event_id).single()
+    const { data: ev } = await db().from("events").select("slug, orgs(slug, site_domain)").eq("id", o.event_id).single()
     if (!ev?.orgs) continue
     const until = tDe().date(o.offered_until, { dateStyle: "medium", timeStyle: "short" })
-    const link = siteUrl(ev.orgs.slug, `/e/${ev.slug}?w=${o.token}`)
+    const link = siteUrl(ev.orgs.slug, `/e/${ev.slug}?w=${o.token}`, ev.orgs.site_domain)
     await sendEventMail("waitlist", o.event_id, { name: o.name, email: o.email, count: o.quantity, link, until }).catch((e) => console.error("waitlist email", o.id, e))
   }
   return offers?.length ?? 0

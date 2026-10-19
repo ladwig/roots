@@ -1,6 +1,7 @@
 // Own domains: connect, check, remove. Vercel serves the domain (and issues the certificate); we keep one row per org
 // with the records to enter and whether it's live. The App, the API and the worker all go through these functions.
 // Needs VERCEL_TOKEN + VERCEL_PROJECT_ID (+ VERCEL_TEAM_ID for team projects).
+import { refreshPublicFromApi } from "@/lib/public-cache"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { ROOT_DOMAIN } from "@/lib/url"
 import { dnsRecords, normalizeDomain, type DnsRecord } from "./fields"
@@ -72,15 +73,19 @@ export async function checkDomain(orgId: string) {
   const apex = pd.json.apexName ?? row.domain
   const records = dnsRecords(row.domain, apex, config.ok ? config.json : null, pd.json.verified ? [] : pd.json.verification)
   const live = pd.ok && pd.json.verified && config.ok && !config.json.misconfigured
-  const problem = live ? null : !pd.ok ? "removed" : !pd.json.verified ? "verify" : !config.ok ? "unknown" : config.json.configuredBy ? "certificate" : "dns"
+  // Vercel unreachable / erroring: no verdict, a live domain stays live (only a clear "not working" takes it down).
+  const unsure = (!pd.ok && pd.status !== 404) || !config.ok
+  const problem = live ? null : !pd.ok && pd.status === 404 ? "removed" : unsure ? "unknown" : !pd.json.verified ? "verify" : config.json.configuredBy ? "certificate" : "dns"
+  const status = live || (unsure && row.status === "active") ? "active" : "pending"
   const now = new Date().toISOString()
-  const becameLive = live && row.status !== "active"
+  const becameLive = status === "active" && row.status !== "active"
   const { data } = await db()
     .from("org_domains")
-    .update({ status: live ? "active" : "pending", records, problem, checked_at: now, ...(becameLive && { active_at: now }) })
+    .update({ status, records, problem, checked_at: now, ...(becameLive && { active_at: now }) })
     .eq("id", row.id)
     .select(DOMAIN_COLS)
     .single()
+  if (status !== row.status) await siteDomain(orgId, status === "active" ? row.domain : null)
   if (becameLive) await db().rpc("emit_event", { p_org: orgId, p_type: "domain.connected", p_payload: { domain: row.domain }, p_subject_table: "org_domains", p_subject_id: row.id })
   return data as DomainRow
 }
@@ -94,17 +99,27 @@ export async function removeDomain(orgId: string) {
     if (!res.ok && res.status !== 404) throw new Error("domains.failed")
   }
   await db().from("org_domains").delete().eq("id", row.id)
+  if (row.status === "active") await siteDomain(orgId, null)
   return true
 }
 
-/** Minute worker: pending domains get checked every few minutes until they're live (DNS can take hours). */
-export async function checkPendingDomains() {
+// Links to public pages (mails, checkout, App) use orgs.site_domain: set while live, null → the roots address.
+async function siteDomain(orgId: string, domain: string | null) {
+  await db().from("orgs").update({ site_domain: domain }).eq("id", orgId)
+  refreshPublicFromApi(orgId)
+}
+
+/**
+ * Minute worker: pending domains every 5 minutes until they're live (DNS can take hours); live ones hourly, so links
+ * go back to the roots address if the DNS records get removed or broken later.
+ */
+export async function checkDomains() {
   if (!domainsReady()) return 0
+  const ago = (min: number) => new Date(Date.now() - min * 60_000).toISOString()
   const { data } = await db()
     .from("org_domains")
     .select("org_id")
-    .eq("status", "pending")
-    .or(`checked_at.is.null,checked_at.lt.${new Date(Date.now() - 5 * 60_000).toISOString()}`)
+    .or(`checked_at.is.null,and(status.eq.pending,checked_at.lt.${ago(5)}),and(status.eq.active,checked_at.lt.${ago(60)})`)
     .order("checked_at", { nullsFirst: true })
     .limit(10)
   for (const d of data ?? []) await checkDomain(d.org_id).catch((e) => console.error("domain check", d.org_id, e))

@@ -21,7 +21,7 @@ export async function cachedOrg(slug: string) {
   "use cache"
   cacheLife("minutes")
   cacheTag(`site:${slug}`)
-  const { data } = await createPublicClient().from("orgs").select("id, slug, name, logo_path").eq("slug", slug).maybeSingle()
+  const { data } = await createPublicClient().from("orgs").select("id, slug, name, logo_path, site_domain").eq("slug", slug).maybeSingle()
   if (data) cacheTag(publicTag(data.id))
   return data
 }

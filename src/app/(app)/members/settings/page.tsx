@@ -60,8 +60,8 @@ export default async function MembersSetupPage({ searchParams }: PageProps<"/mem
 
       <FormCard id="portal" title={t("portal.title")} description={t("membership.portalHint")}>
         <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-sm">
-          <span className="min-w-0 flex-1 truncate font-mono text-xs">{siteUrl(ctx.org.slug, "/portal")}</span>
-          <CopyButton value={siteUrl(ctx.org.slug, "/portal")} label={t("common.copy")} />
+          <span className="min-w-0 flex-1 truncate font-mono text-xs">{siteUrl(ctx.org.slug, "/portal", ctx.org.site_domain)}</span>
+          <CopyButton value={siteUrl(ctx.org.slug, "/portal", ctx.org.site_domain)} label={t("common.copy")} />
         </div>
       </FormCard>
 

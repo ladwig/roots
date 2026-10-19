@@ -80,10 +80,10 @@ async function listOf(db: Db, orgId: string, id: string) {
 async function getList(db: Db, orgId: string, id: string) {
   const [{ data }, { data: org }] = await Promise.all([
     db.from("guest_lists").select(LIST_COLS).eq("id", id).eq("org_id", orgId).is("deleted_at", null).maybeSingle(),
-    db.from("orgs").select("slug").eq("id", orgId).single(),
+    db.from("orgs").select("slug, site_domain").eq("id", orgId).single(),
   ])
   if (!data) throw notFound()
-  return { ...listOut(data), link_url: data.link_token && org ? siteUrl(org.slug, `/g/${data.link_token}`) : null }
+  return { ...listOut(data), link_url: data.link_token && org ? siteUrl(org.slug, `/g/${data.link_token}`, org.site_domain) : null }
 }
 async function getEntry(db: Db, orgId: string, id: string) {
   const { data } = await db.from("guest_entries").select(ENTRY_COLS).eq("id", id).eq("org_id", orgId).maybeSingle()
