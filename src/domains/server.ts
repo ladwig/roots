@@ -72,11 +72,14 @@ export async function checkDomain(orgId: string) {
   const config = await vercel<Config>(`/v6/domains/${row.domain}/config`, { query: { projectIdOrName: project() } })
   const apex = pd.json.apexName ?? row.domain
   const records = dnsRecords(row.domain, apex, config.ok ? config.json : null, pd.json.verified ? [] : pd.json.verification)
-  const live = pd.ok && pd.json.verified && config.ok && !config.json.misconfigured
+  // Vercel's "configured" comes a little before the certificate is served: only a real https answer counts as live.
+  const ready = pd.ok && pd.json.verified && config.ok && !config.json.misconfigured
+  const live = ready && (await httpsAnswers(row.domain))
   // Vercel unreachable / erroring: no verdict, a live domain stays live (only a clear "not working" takes it down).
   const unsure = (!pd.ok && pd.status !== 404) || !config.ok
-  const problem = live ? null : !pd.ok && pd.status === 404 ? "removed" : unsure ? "unknown" : !pd.json.verified ? "verify" : config.json.configuredBy ? "certificate" : "dns"
-  const status = live || (unsure && row.status === "active") ? "active" : "pending"
+  const problem = live ? null : !pd.ok && pd.status === 404 ? "removed" : unsure ? "unknown" : !pd.json.verified ? "verify" : ready || config.json.configuredBy ? "certificate" : "dns"
+  // A live domain stays live while Vercel has no clear "not working" (unreachable, or https only briefly failing).
+  const status = live || (row.status === "active" && (unsure || ready)) ? "active" : "pending"
   const now = new Date().toISOString()
   const becameLive = status === "active" && row.status !== "active"
   const { data } = await db()
@@ -101,6 +104,13 @@ export async function removeDomain(orgId: string) {
   await db().from("org_domains").delete().eq("id", row.id)
   if (row.status === "active") await siteDomain(orgId, null)
   return true
+}
+
+async function httpsAnswers(domain: string) {
+  return fetch(`https://${domain}/`, { method: "HEAD", redirect: "manual", signal: AbortSignal.timeout(8000) }).then(
+    () => true,
+    () => false,
+  )
 }
 
 // Links to public pages (mails, checkout, App) use orgs.site_domain: set while live, null → the roots address.
