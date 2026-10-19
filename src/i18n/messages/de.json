@@ -486,6 +486,18 @@
         "oauth": "Verbunden über SumUp-Login",
         "key": "Verbunden per API-Schlüssel"
       }
+    },
+    "brevo": {
+      "description": "E-Mails über euer eigenes Brevo-Konto senden (EU-Anbieter, kostenlos bis 300 E-Mails am Tag).",
+      "fields": {
+        "apiKey": "API-Schlüssel",
+        "from": "Absender"
+      },
+      "help": {
+        "apiKey": "In Brevo: Einstellungen → SMTP & API → API-Schlüssel erstellen.",
+        "from": "Die Absenderadresse muss in Brevo als Absender bzw. Domain bestätigt sein."
+      },
+      "invalidKey": "Brevo hat diesen API-Schlüssel abgelehnt."
     }
   },
   "activity": {

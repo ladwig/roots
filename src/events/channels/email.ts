@@ -1,11 +1,11 @@
-import { sendPlatformEmail } from "@/lib/org-email"
+import { platformEmailReady, sendPlatformEmail } from "@/lib/org-email"
 import { APP_URL } from "@/lib/url"
 import { renderEvent } from "../render"
 import type { PersonChannelSender } from "../worker"
 
-// Platform emails from roots (sendPlatformEmail): RESEND_API_KEY + EMAIL_FROM ("roots <hallo@your-domain>").
+// Platform emails from roots (sendPlatformEmail): EMAIL_FROM + the provider in EMAIL_PROVIDER (see src/lib/org-email.ts).
 // Org → customer emails (tickets, receipts) are sent by modules in the org's name, not through here.
-export const emailConfigured = () => !!process.env.RESEND_API_KEY && !!process.env.EMAIL_FROM
+export const emailConfigured = () => platformEmailReady()
 
 const escape = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 

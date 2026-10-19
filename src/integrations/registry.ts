@@ -1,6 +1,7 @@
 // Integration providers. Adding one = one file here + one entry in `integrations`
 // + texts in src/i18n/messages (integrations.<key>.description, .fields.<field>, optional .help.<field>).
 // Secrets (API keys, OAuth tokens) are stored as one JSON object in Supabase Vault; `config` holds non-secret settings.
+import { brevo } from "./brevo"
 import { resend } from "./resend"
 import { stripeIntegration } from "./stripe"
 import { sumupIntegration } from "./sumup"
@@ -74,6 +75,6 @@ export type Integration = {
   }
 }
 
-export const integrations: Integration[] = [stripeIntegration, sumupIntegration, telegram, resend]
+export const integrations: Integration[] = [stripeIntegration, sumupIntegration, telegram, resend, brevo]
 
 export const getIntegration = (key: string) => integrations.find((i) => i.key === key)

@@ -486,6 +486,18 @@
         "oauth": "Connected via SumUp login",
         "key": "Connected with API key"
       }
+    },
+    "brevo": {
+      "description": "Send emails through your own Brevo account (EU provider, free up to 300 emails a day).",
+      "fields": {
+        "apiKey": "API key",
+        "from": "Sender"
+      },
+      "help": {
+        "apiKey": "In Brevo: Settings → SMTP & API → create an API key.",
+        "from": "The sender address must be verified in Brevo as a sender or domain."
+      },
+      "invalidKey": "Brevo rejected this API key."
     }
   },
   "activity": {
