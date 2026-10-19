@@ -566,7 +566,8 @@
       "rental_contacts": "People on a rental",
       "projects": "Projects",
       "project_links": "Project links",
-      "comments": "Comments"
+      "comments": "Comments",
+      "email_templates": "Email templates"
     },
     "title": "Activity",
     "comment": "Comment",
@@ -1058,7 +1059,11 @@
     "emptyText": "Create an event, sell tickets or collect sign-ups, and plan shifts and the guest list alongside.",
     "basics": "Title & time",
     "publicPage": "Public page",
-    "create": "Create event"
+    "create": "Create event",
+    "emails": "Emails",
+    "emailsHint": "Ticket, guest-list and waiting-list mails of this event. If none is picked: {fallback}.",
+    "emailTemplate": "Template",
+    "builtInMail": "roots' standard mail"
   },
   "contacts": {
     "nav": "Contacts",
@@ -1430,10 +1435,10 @@
     "expires": "Expires",
     "expiredBadge": "expired",
     "expiresIn": {
+      "0": "never",
       "30": "in 30 days",
       "90": "in 90 days",
-      "365": "in one year",
-      "0": "never"
+      "365": "in one year"
     }
   },
   "invoices": {
@@ -2445,7 +2450,47 @@
     "immediately": "immediately",
     "paused": "paused",
     "noAutomations": "No automations yet.",
-    "emptyCampaignsText": "A campaign is one email to many: to tags or all active members, now or scheduled."
+    "emptyCampaignsText": "A campaign is one email to many: to tags or all active members, now or scheduled.",
+    "templates": {
+      "title": "Templates",
+      "hint": "How ticket, guest-list and waiting-list mails look. One template fits all three; the default applies to every event that doesn't pick its own.",
+      "new": "New template",
+      "empty": "No templates yet",
+      "emptyText": "Without a template roots sends a plain mail with your logo.",
+      "default": "Default",
+      "makeDefault": "Default template for all events",
+      "namePlaceholder": "e.g. Summer look",
+      "placeholderHint": "{message} says what it's about (tickets attached, guest list, seat free), {button} links to the tickets or the seat. {list} and {until} are only filled for guest lists and waiting lists. The ticket PDF is attached automatically.",
+      "test": "Test mail to me",
+      "confirmDelete": "Delete template? Events using it switch to the default template.",
+      "invalid": "Fill in name, subject and text."
+    },
+    "eventMail": {
+      "greeting": "Hello {name},",
+      "sampleEvent": "Summer party",
+      "sampleVenue": "Club house",
+      "ticket": {
+        "title": "Your tickets: {event}",
+        "message": {
+          "one": "Here is your ticket for {event} on {when}. Show the QR code at the entrance – printed or on your phone.",
+          "other": "Here are your {count} tickets for {event} on {when}. Show the QR codes at the entrance – printed or on your phone."
+        },
+        "button": "View tickets"
+      },
+      "guestlist": {
+        "title": "You're on the guest list: {event}",
+        "message": "You're on the guest list “{list}” for {event} on {when}. Your ticket with QR code is attached – show it at the entrance.",
+        "button": "View ticket"
+      },
+      "waitlist": {
+        "title": "A seat is free: {event}",
+        "message": {
+          "one": "A seat for {event} has become free for you. We'll hold it until {until}.",
+          "other": "{count} seats for {event} have become free for you. We'll hold them until {until}."
+        },
+        "button": "Claim your seat"
+      }
+    }
   },
   "editor": {
     "toolbar": "Formatting",
@@ -3798,6 +3843,13 @@
       }
     },
     "values": {
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday",
+      "7": "Sunday",
       "draft": "draft",
       "published": "published",
       "cancelled": "cancelled",
@@ -3810,13 +3862,6 @@
       "invoice": "Invoice",
       "quote": "Quote",
       "cancellation": "Cancellation",
-      "1": "Monday",
-      "2": "Tuesday",
-      "3": "Wednesday",
-      "4": "Thursday",
-      "5": "Friday",
-      "6": "Saturday",
-      "7": "Sunday",
       "reserved": "reserved",
       "valid": "valid",
       "used": "checked in",
@@ -4314,7 +4359,8 @@
     "communication": "Communication",
     "campaigns": "Email campaigns",
     "emailAutomations": "Email automations",
-    "emailLog": "Email log"
+    "emailLog": "Email log",
+    "emailTemplates": "Email templates"
   },
   "projects": {
     "nav": "Projects",

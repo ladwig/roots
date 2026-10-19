@@ -566,7 +566,8 @@
       "rental_contacts": "Personen einer Vergabe",
       "projects": "Projekte",
       "project_links": "Projekt-Verknüpfungen",
-      "comments": "Kommentare"
+      "comments": "Kommentare",
+      "email_templates": "E-Mail-Vorlagen"
     },
     "title": "Aktivität",
     "comment": "Kommentieren",
@@ -1058,7 +1059,11 @@
     "emptyText": "Lege eine Veranstaltung an, verkaufe Tickets oder sammle Anmeldungen und plane Schichten und Gästeliste dazu.",
     "basics": "Titel & Zeit",
     "publicPage": "Öffentliche Seite",
-    "create": "Veranstaltung anlegen"
+    "create": "Veranstaltung anlegen",
+    "emails": "E-Mails",
+    "emailsHint": "Ticket-, Gästelisten- und Wartelisten-Mails dieses Events. Ohne Auswahl: {fallback}.",
+    "emailTemplate": "Vorlage",
+    "builtInMail": "die Standard-Mail von roots"
   },
   "contacts": {
     "nav": "Kontakte",
@@ -1430,10 +1435,10 @@
     "expires": "Läuft ab",
     "expiredBadge": "abgelaufen",
     "expiresIn": {
+      "0": "nie",
       "30": "in 30 Tagen",
       "90": "in 90 Tagen",
-      "365": "in einem Jahr",
-      "0": "nie"
+      "365": "in einem Jahr"
     }
   },
   "invoices": {
@@ -2445,7 +2450,47 @@
     "immediately": "sofort",
     "paused": "pausiert",
     "noAutomations": "Noch keine Automationen.",
-    "emptyCampaignsText": "Eine Kampagne ist eine E-Mail an viele: an Tags oder alle aktiven Mitglieder, sofort oder geplant."
+    "emptyCampaignsText": "Eine Kampagne ist eine E-Mail an viele: an Tags oder alle aktiven Mitglieder, sofort oder geplant.",
+    "templates": {
+      "title": "Vorlagen",
+      "hint": "Wie Ticket-, Gästelisten- und Wartelisten-Mails aussehen. Eine Vorlage passt für alle drei; die Standardvorlage gilt für jedes Event, das keine eigene wählt.",
+      "new": "Neue Vorlage",
+      "empty": "Noch keine Vorlagen",
+      "emptyText": "Ohne Vorlage verschickt roots eine schlichte Mail mit eurem Logo.",
+      "default": "Standard",
+      "makeDefault": "Standardvorlage für alle Events",
+      "namePlaceholder": "z. B. Sommer-Look",
+      "placeholderHint": "{message} sagt, worum es geht (Tickets im Anhang, Gästeliste, Platz frei), {button} verlinkt Tickets bzw. Platz. {list} und {until} sind nur bei Gästeliste bzw. Warteliste gefüllt. Das Ticket-PDF hängt automatisch an.",
+      "test": "Testmail an mich",
+      "confirmDelete": "Vorlage löschen? Events damit nutzen danach die Standardvorlage.",
+      "invalid": "Name, Betreff und Text ausfüllen."
+    },
+    "eventMail": {
+      "greeting": "Hallo {name},",
+      "sampleEvent": "Sommerfest",
+      "sampleVenue": "Vereinsheim",
+      "ticket": {
+        "title": "Deine Tickets: {event}",
+        "message": {
+          "one": "Hier ist dein Ticket für {event} am {when}. Zeig den QR-Code am Einlass – ausgedruckt oder auf dem Handy.",
+          "other": "Hier sind deine {count} Tickets für {event} am {when}. Zeig die QR-Codes am Einlass – ausgedruckt oder auf dem Handy."
+        },
+        "button": "Tickets ansehen"
+      },
+      "guestlist": {
+        "title": "Du stehst auf der Gästeliste: {event}",
+        "message": "Du stehst auf der Gästeliste „{list}“ für {event} am {when}. Dein Ticket mit QR-Code hängt an – zeig es am Einlass.",
+        "button": "Ticket ansehen"
+      },
+      "waitlist": {
+        "title": "Ein Platz ist frei: {event}",
+        "message": {
+          "one": "Bei {event} ist ein Platz für dich frei geworden. Wir halten ihn bis {until} für dich.",
+          "other": "Bei {event} sind {count} Plätze für dich frei geworden. Wir halten sie bis {until} für dich."
+        },
+        "button": "Platz sichern"
+      }
+    }
   },
   "editor": {
     "toolbar": "Formatierung",
@@ -3798,6 +3843,13 @@
       }
     },
     "values": {
+      "1": "Montag",
+      "2": "Dienstag",
+      "3": "Mittwoch",
+      "4": "Donnerstag",
+      "5": "Freitag",
+      "6": "Samstag",
+      "7": "Sonntag",
       "draft": "Entwurf",
       "published": "veröffentlicht",
       "cancelled": "abgesagt/storniert",
@@ -3810,13 +3862,6 @@
       "invoice": "Rechnung",
       "quote": "Angebot",
       "cancellation": "Storno",
-      "1": "Montag",
-      "2": "Dienstag",
-      "3": "Mittwoch",
-      "4": "Donnerstag",
-      "5": "Freitag",
-      "6": "Samstag",
-      "7": "Sonntag",
       "reserved": "reserviert",
       "valid": "gültig",
       "used": "eingecheckt",
@@ -4314,7 +4359,8 @@
     "communication": "Kommunikation",
     "campaigns": "E-Mail-Kampagnen",
     "emailAutomations": "E-Mail-Automationen",
-    "emailLog": "E-Mail-Versand"
+    "emailLog": "E-Mail-Versand",
+    "emailTemplates": "E-Mail-Vorlagen"
   },
   "projects": {
     "nav": "Projekte",

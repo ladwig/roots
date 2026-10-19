@@ -93,6 +93,7 @@ export const NAV: Area[] = [
     children: [
       { href: "/email", label: "nav.campaigns", module: "email", permission: "email.view" },
       { href: "/email/automations", label: "nav.emailAutomations", module: "email", permission: "email.view" },
+      { href: "/email/templates", label: "nav.emailTemplates", module: "email", permission: "email.view" },
       { href: "/email/log", label: "nav.emailLog", module: "email", permission: "email.view" },
       { href: "/forms", label: "forms.nav", module: "forms", permission: "forms.view" },
     ],

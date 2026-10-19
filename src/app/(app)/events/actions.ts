@@ -43,6 +43,8 @@ function readEvent(fd: FormData) {
     venue_address: text(fd, "venue_address")?.slice(0, 500) ?? null,
     description: text(fd, "description")?.slice(0, 20000) ?? null,
     capacity: capRaw ? Number(capRaw) : null,
+    // Only in the form for people who see the email templates; otherwise left as it is.
+    ...(fd.has("email_template") && { email_template_id: /^[0-9a-f-]{36}$/.test(String(fd.get("email_template"))) ? String(fd.get("email_template")) : null }),
   }
   const slug = text(fd, "slug")
   const error = checkEvent(row, slug)

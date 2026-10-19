@@ -23,10 +23,13 @@ export function StatusBadge({ t, status }: { t: T; status: string }) {
 
 export async function EventForm({ t, action, ev, disabled }: { t: T; action: (fd: FormData) => Promise<void>; ev?: Ev; disabled?: boolean }) {
   const ctx = await getContext()
-  const [{ data: locations }, defs] = await Promise.all([
+  const mails = ctx.modules.has("email") && ctx.can("email.view")
+  const [{ data: locations }, defs, { data: templates }] = await Promise.all([
     ctx.supabase.from("locations").select("id, name").eq("org_id", ctx.org.id).order("name"),
     loadFields(ctx.supabase, ctx.org.id, "events"),
+    mails ? ctx.supabase.from("email_templates").select("id, name, is_default").eq("org_id", ctx.org.id).order("name") : Promise.resolve({ data: null }),
   ])
+  const fallback = templates?.find((x) => x.is_default)
   return (
     <form action={action} className="grid gap-6">
       {ev && <input type="hidden" name="id" value={ev.id} />}
@@ -85,6 +88,14 @@ export async function EventForm({ t, action, ev, disabled }: { t: T; action: (fd
             </div>
           </div>
         </FormCard>
+        {mails && !!templates?.length && (
+          <FormCard id="emails" title={t("eventsPage.emails")} description={t("eventsPage.emailsHint", { fallback: fallback?.name ?? t("eventsPage.builtInMail") })}>
+            <div className="grid gap-2">
+              <Label htmlFor="ev-template">{t("eventsPage.emailTemplate")}</Label>
+              <Choice id="ev-template" name="email_template" label={t("eventsPage.emailTemplate")} defaultValue={ev?.email_template_id} options={templates.map((x) => ({ value: x.id, label: x.name }))} />
+            </div>
+          </FormCard>
+        )}
         {!disabled && <SaveBar label={ev ? undefined : t("eventsPage.create")} always={!ev} />}
       </fieldset>
     </form>

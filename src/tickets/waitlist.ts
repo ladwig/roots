@@ -2,13 +2,12 @@
 // so public pages can use it without pulling in the payments ↔ tickets import cycle.
 import { messages } from "@/i18n/config"
 import { createT } from "@/i18n/translate"
-import { sendOrgEmail } from "@/lib/org-email"
+import { sendEventMail } from "@/email/event-mail"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { siteUrl } from "@/lib/url"
 
 const db = () => createAdminClient()
 const tDe = () => createT("de", messages.de)
-const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 const ticketOffer = async (eventId: string) => (await db().rpc("ticket_offer", { p_event: eventId })).data ?? []
 
 /** Minute worker: expire old waiting-list offers, offer free seats in order and email each claim link. */
@@ -16,18 +15,11 @@ export async function offerWaitlist() {
   const { data: offers, error } = await db().rpc("offer_waitlist")
   if (error) throw error
   for (const o of offers ?? []) {
-    const { data: ev } = await db().from("events").select("title, slug, starts_at, orgs(id, slug, name)").eq("id", o.event_id).single()
+    const { data: ev } = await db().from("events").select("slug, orgs(slug)").eq("id", o.event_id).single()
     if (!ev?.orgs) continue
-    const t = tDe()
+    const until = tDe().date(o.offered_until, { dateStyle: "medium", timeStyle: "short" })
     const link = siteUrl(ev.orgs.slug, `/e/${ev.slug}?w=${o.token}`)
-    const until = t.date(o.offered_until, { dateStyle: "medium", timeStyle: "short" })
-    const body = t("waitlist.emailBody", { name: o.name, event: ev.title, count: o.quantity, until })
-    await sendOrgEmail(ev.orgs.id, {
-      to: o.email,
-      subject: t("waitlist.emailSubject", { event: ev.title }),
-      text: `${body}\n\n${t("waitlist.emailLink")}: ${link}\n\n${t("shop.emailFooter", { org: ev.orgs.name })}`,
-      html: `<div style="font:16px/1.5 system-ui,sans-serif"><p>${esc(body)}</p><p><a href="${esc(link)}">${esc(t("waitlist.emailLink"))}</a></p><p style="color:#666;font-size:13px">${esc(t("shop.emailFooter", { org: ev.orgs.name }))}</p></div>`,
-    }).catch((e) => console.error("waitlist email", o.id, e))
+    await sendEventMail("waitlist", o.event_id, { name: o.name, email: o.email, count: o.quantity, link, until }).catch((e) => console.error("waitlist email", o.id, e))
   }
   return offers?.length ?? 0
 }

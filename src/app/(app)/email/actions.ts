@@ -1,6 +1,7 @@
 "use server"
 
 import { parseTags } from "@/app/(app)/contacts/fields"
+import { saveTemplate, testEventMail } from "@/email/event-mail"
 import { AUTOMATION_EVENTS } from "@/email/events"
 import { contactVars, FORMATS, renderMail } from "@/email/render"
 import { queueCampaign, sendProblem, type Audience } from "@/email/server"
@@ -118,4 +119,35 @@ export async function deleteAutomation(fd: FormData) {
   const { ctx, t } = await manager(AUTO)
   const { error } = await ctx.supabase.from("email_automations").delete().eq("id", str(fd, "id", 36)).eq("org_id", ctx.org.id)
   back(AUTO, error ? { error: dbError(t, error) } : { ok: t("email.deleted") })
+}
+
+const TPL = "/email/templates"
+
+export async function saveTemplateAction(fd: FormData) {
+  const { ctx, t } = await manager(TPL)
+  const id = str(fd, "id", 36) || null
+  const row = { name: str(fd, "name", 200), subject: str(fd, "subject", 300), body: String(fd.get("body") ?? "").slice(0, 200000), format: formatOf(fd), is_default: fd.get("is_default") === "on" }
+  const back_ = id ? `${TPL}?edit=${id}` : `${TPL}?new=1`
+  if (!row.name || !row.subject || !row.body.replace(/<[^>]+>/g, "").trim()) back(back_, { error: t("email.templates.invalid") })
+  const { data, error } = await saveTemplate(ctx.supabase, ctx.org.id, id, row)
+  if (error || !data) back(back_, { error: error ? dbError(t, error) : t("errors.not_allowed") })
+  back(`${TPL}?edit=${data.id}`, { ok: t("email.saved") })
+}
+
+export async function testTemplate(fd: FormData) {
+  const { ctx, t } = await manager(TPL)
+  const id = str(fd, "id", 36)
+  const [{ data: x }, { data: org }] = await Promise.all([
+    ctx.supabase.from("email_templates").select("subject, body, format").eq("id", id).eq("org_id", ctx.org.id).maybeSingle(),
+    ctx.supabase.from("orgs").select("name, logo_path").eq("id", ctx.org.id).single(),
+  ])
+  if (!x || !org) back(TPL, { error: t("errors.not_allowed") })
+  const ok = await testEventMail(ctx.org.id, org, x, ctx.email, t("email.testFirstName")).catch(() => false)
+  back(`${TPL}?edit=${id}`, ok ? { ok: t("email.testSent", { email: ctx.email }) } : { error: t("email.noProvider") })
+}
+
+export async function deleteTemplate(fd: FormData) {
+  const { ctx, t } = await manager(TPL)
+  const { error } = await ctx.supabase.from("email_templates").delete().eq("id", str(fd, "id", 36)).eq("org_id", ctx.org.id)
+  back(TPL, error ? { error: dbError(t, error) } : { ok: t("email.deleted") })
 }

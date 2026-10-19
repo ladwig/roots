@@ -29,6 +29,7 @@ export const Event = z.object({
   image_url: z.string().nullable(),
   ticket_names: z.enum(TICKET_NAMES).describe("Ask buyers for a name per ticket"),
   max_tickets_per_order: z.number().int(),
+  email_template_id: uuid.nullable().describe("Email template for this event's ticket, guest-list and waiting-list mails (null = the org's default, else roots' built-in mail). See GET /email/templates"),
   custom: Custom,
   published_at: ts.nullable(),
   deleted_at: ts.nullable().describe("Set while in the trash"),
@@ -36,7 +37,7 @@ export const Event = z.object({
   updated_at: ts,
 })
 export const EVENT_COLS =
-  "id, title, slug, status, starts_at, ends_at, location_id, venue_name, venue_address, description, capacity, image_path, ticket_names, max_tickets_per_order, custom, published_at, deleted_at, created_at, updated_at"
+  "id, title, slug, status, starts_at, ends_at, location_id, venue_name, venue_address, description, capacity, image_path, ticket_names, max_tickets_per_order, email_template_id, custom, published_at, deleted_at, created_at, updated_at"
 const eventOut = <T extends { image_path: string | null }>({ image_path, ...e }: T) => ({ ...e, image_url: imageUrl(image_path) ?? null })
 
 const EventFields = z.object({
@@ -52,6 +53,7 @@ const EventFields = z.object({
   capacity: z.number().int().min(1).nullable(),
   ticket_names: z.enum(TICKET_NAMES),
   max_tickets_per_order: z.number().int().min(1).max(100),
+  email_template_id: uuid.nullable().describe("An email template of the org (GET /email/templates); null = the org's default"),
   custom: Custom.describe("Custom fields of the org for events: { key: value } (validated like in the App; on update merged)"),
 })
 
@@ -90,6 +92,11 @@ async function locationOf(db: Db, orgId: string, id: string | null | undefined) 
   if (!id) return
   const { data } = await db.from("locations").select("id").eq("id", id).eq("org_id", orgId).maybeSingle()
   if (!data) throw new ApiError(422, "invalid_reference", "location_id does not belong to this organisation.")
+}
+async function templateOf(db: Db, orgId: string, id: string | null | undefined) {
+  if (!id) return
+  const { data } = await db.from("email_templates").select("id").eq("id", id).eq("org_id", orgId).maybeSingle()
+  if (!data) throw new ApiError(422, "invalid_reference", "email_template_id does not belong to this organisation.")
 }
 
 // Lineup
@@ -251,7 +258,7 @@ export const endpoints: Endpoint[] = [
       const row = { ...clean(rest), custom: await eventCustom(db, orgId, custom) }
       const err = checkEvent({ ends_at: null, capacity: null, ...row, title: row.title ?? null, starts_at: row.starts_at! }, slug)
       if (err) throw invalid(err)
-      await locationOf(db, orgId, row.location_id)
+      await Promise.all([locationOf(db, orgId, row.location_id), templateOf(db, orgId, row.email_template_id)])
       const res = await insertEvent(db, { ...row, title: row.title!, starts_at: row.starts_at!, org_id: orgId }, slug ?? null)
       if (res.error) throw res.error.code === "23505" ? slugTaken() : dbError(res.error)
       deliverSoon()
@@ -276,7 +283,7 @@ export const endpoints: Endpoint[] = [
       const row = { ...clean(fields), ...(custom && { custom: await eventCustom(db, orgId, { ...(old.custom as Record<string, string>), ...custom }) }) }
       const err = checkEvent({ ...old, ...row, title: row.title === undefined ? old.title : row.title, starts_at: row.starts_at ?? old.starts_at }, body.slug)
       if (err) throw invalid(err)
-      await locationOf(db, orgId, row.location_id)
+      await Promise.all([locationOf(db, orgId, row.location_id), templateOf(db, orgId, row.email_template_id)])
       const { data, error } = await db
         .from("events")
         .update(row as TablesUpdate<"events">)

@@ -1,7 +1,8 @@
 import { z } from "zod"
 import { parseTags } from "@/app/(app)/contacts/fields"
+import { saveTemplate, TEMPLATE_COLS, testEventMail } from "@/email/event-mail"
 import { AUTOMATION_EVENTS } from "@/email/events"
-import { BASE_PLACEHOLDERS, contactVars, FORMATS, renderMail } from "@/email/render"
+import { BASE_PLACEHOLDERS, contactVars, EVENT_PLACEHOLDERS, FORMATS, renderMail } from "@/email/render"
 import { queueCampaign, resolveAudience, sendProblem, type Audience } from "@/email/server"
 import { defaultLocale, messages } from "@/i18n/config"
 import { createT } from "@/i18n/translate"
@@ -84,6 +85,24 @@ const Send = z.object({
 const SEND_COLS = "id, campaign_id, automation_id, contact_id, to_email, status, delivery, delivery_at, send_after, sent_at, error, created_at"
 
 const ok = z.object({ ok: z.literal(true) })
+
+const Template = z.object({
+  id: uuid,
+  name: z.string(),
+  subject: z.string(),
+  body: z.string(),
+  format: Format,
+  is_default: z.boolean().describe("Used by every event that doesn't pick its own template"),
+  created_at: ts,
+  updated_at: ts,
+})
+const TemplateFields = z.object({
+  name: z.string().trim().min(1).max(200),
+  subject: z.string().trim().min(1).max(300).describe("Placeholders allowed, e.g. {title} or {event}"),
+  body: z.string().trim().min(1).max(200000).describe(`Placeholders: ${EVENT_PLACEHOLDERS.map((p) => `{${p}}`).join(" ")}. {message} = what the mail is about (tickets attached / on the guest list / a seat is free), {button} = link button to the tickets or the claim page`),
+  format: Format,
+  is_default: z.boolean().describe("Make it the org's default (takes it from the previous default)"),
+})
 const membersOn = async (db: Db, orgId: string) => (await db.rpc("module_enabled", { p_org: orgId, p_key: "members" })).data === true
 // Normalised like the App's tag picker; the members audience needs the members module.
 async function audienceOf(db: Db, orgId: string, a: z.infer<typeof AudienceSchema>): Promise<Audience> {
@@ -463,6 +482,98 @@ export const endpoints: Endpoint[] = [
       if (query.since) q = q.gt("created_at", query.since)
       const { data } = await q
       return paged(data, query)
+    },
+  }),
+  // Templates for event mails (tickets, guest-list tickets, waiting-list offers)
+  endpoint({
+    method: "GET",
+    path: "/email/templates",
+    permission: "email.view",
+    tag: "Email",
+    summary: "List email templates",
+    description: "Templates for the mails an event sends on its own: tickets, guest-list tickets and waiting-list offers. One template covers all three. An event uses its own (`email_template_id`), else the default, else roots' built-in mail.",
+    response: z.object({ data: z.array(Template) }),
+    async handler({ db, orgId }) {
+      const { data } = await db.from("email_templates").select(TEMPLATE_COLS).eq("org_id", orgId).order("name")
+      return { data: data ?? [] }
+    },
+  }),
+  endpoint({
+    method: "GET",
+    path: "/email/templates/{id}",
+    permission: "email.view",
+    tag: "Email",
+    summary: "Get an email template",
+    response: Template,
+    async handler({ db, orgId, params }) {
+      const { data } = await db.from("email_templates").select(TEMPLATE_COLS).eq("id", params.id).eq("org_id", orgId).maybeSingle()
+      if (!data) throw notFound()
+      return data
+    },
+  }),
+  endpoint({
+    method: "POST",
+    path: "/email/templates",
+    permission: "email.manage",
+    tag: "Email",
+    summary: "Create an email template",
+    body: TemplateFields.partial({ format: true, is_default: true }).strict(),
+    response: Template,
+    status: 201,
+    async handler({ db, orgId, body }) {
+      const { data, error } = await saveTemplate(db, orgId, null, { format: "rich", is_default: false, ...body })
+      if (error || !data) throw dbError(error!)
+      return data
+    },
+  }),
+  endpoint({
+    method: "PATCH",
+    path: "/email/templates/{id}",
+    permission: "email.manage",
+    tag: "Email",
+    summary: "Change an email template",
+    description: "Only the given fields change. Events using it send the new version from now on.",
+    body: TemplateFields.partial().strict(),
+    response: Template,
+    async handler({ db, orgId, params, body }) {
+      const { data, error } = await saveTemplate(db, orgId, params.id, body)
+      if (error) throw dbError(error)
+      if (!data) throw notFound()
+      return data
+    },
+  }),
+  endpoint({
+    method: "POST",
+    path: "/email/templates/{id}/test",
+    permission: "email.manage",
+    tag: "Email",
+    summary: "Send a test of an email template",
+    description: "One ticket mail for a made-up event to the given address (sends an email).",
+    body: z.object({ to: z.email().max(320) }).strict(),
+    response: ok,
+    async handler({ db, orgId, params, body }) {
+      const [{ data: x }, { data: org }] = await Promise.all([
+        db.from("email_templates").select("subject, body, format").eq("id", params.id).eq("org_id", orgId).maybeSingle(),
+        db.from("orgs").select("name, logo_path").eq("id", orgId).single(),
+      ])
+      if (!x || !org) throw notFound()
+      if (!(await testEventMail(orgId, org, x, body.to, t("email.testFirstName")).catch(() => false))) throw new ApiError(409, "no_provider", "No email provider is connected.")
+      return { ok: true as const }
+    },
+  }),
+  endpoint({
+    method: "DELETE",
+    path: "/email/templates/{id}",
+    permission: "email.manage",
+    tag: "Email",
+    summary: "Delete an email template",
+    description: "Events that used it fall back to the default template (or roots' built-in mail).",
+    response: ok,
+    async handler({ db, orgId, params }) {
+      const { data, error } = await db.from("email_templates").delete().eq("id", params.id).eq("org_id", orgId).select("id")
+      if (error) throw dbError(error)
+      if (!data.length) throw notFound()
+      return { ok: true as const }
     },
   }),
 ]

@@ -579,6 +579,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"email_templates": {
+                  Row: {
+                    "body": string,"created_at": string,"created_by": string | null,"format": string,"id": string,"is_default": boolean,"name": string,"org_id": string,"subject": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body": string,"created_at"?: string,"created_by"?: string | null,"format"?: string,"id"?: string,"is_default"?: boolean,"name": string,"org_id": string,"subject": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "body"?: string,"created_at"?: string,"created_by"?: string | null,"format"?: string,"id"?: string,"is_default"?: boolean,"name"?: string,"org_id"?: string,"subject"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "email_templates_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"employee_private": {
                   Row: {
                     "bic": string | null,"birthday": string | null,"city": string | null,"country": string | null,"created_at": string,"created_by": string | null,"emergency_contact": string | null,"employee_id": string,"health_insurance": string | null,"iban": string | null,"id": string,"nationality": string | null,"org_id": string,"postal_code": string | null,"social_security_no": string | null,"street": string | null,"tax_class": string | null,"tax_id": string | null,"updated_at": string,"updated_by": string | null
@@ -749,17 +769,23 @@ isOneToOne: false
                   ]
                 },"events": {
                   Row: {
-                    "capacity": number | null,"created_at": string,"created_by": string | null,"custom": NonNullable<Json>,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"ends_at": string | null,"id": string,"image_path": string | null,"location_id": string | null,"max_tickets_per_order": number,"org_id": string,"published_at": string | null,"slug": string,"starts_at": string,"status": string,"ticket_names": string,"title": string,"updated_at": string,"updated_by": string | null,"venue_address": string | null,"venue_name": string | null
+                    "capacity": number | null,"created_at": string,"created_by": string | null,"custom": NonNullable<Json>,"deleted_at": string | null,"deleted_by": string | null,"description": string | null,"email_template_id": string | null,"ends_at": string | null,"id": string,"image_path": string | null,"location_id": string | null,"max_tickets_per_order": number,"org_id": string,"published_at": string | null,"slug": string,"starts_at": string,"status": string,"ticket_names": string,"title": string,"updated_at": string,"updated_by": string | null,"venue_address": string | null,"venue_name": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "capacity"?: number | null,"created_at"?: string,"created_by"?: string | null,"custom"?: NonNullable<Json>,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"ends_at"?: string | null,"id"?: string,"image_path"?: string | null,"location_id"?: string | null,"max_tickets_per_order"?: number,"org_id": string,"published_at"?: string | null,"slug": string,"starts_at": string,"status"?: string,"ticket_names"?: string,"title": string,"updated_at"?: string,"updated_by"?: string | null,"venue_address"?: string | null,"venue_name"?: string | null
+                    "capacity"?: number | null,"created_at"?: string,"created_by"?: string | null,"custom"?: NonNullable<Json>,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"email_template_id"?: string | null,"ends_at"?: string | null,"id"?: string,"image_path"?: string | null,"location_id"?: string | null,"max_tickets_per_order"?: number,"org_id": string,"published_at"?: string | null,"slug": string,"starts_at": string,"status"?: string,"ticket_names"?: string,"title": string,"updated_at"?: string,"updated_by"?: string | null,"venue_address"?: string | null,"venue_name"?: string | null
                   }
                   Update: {
-                    "capacity"?: number | null,"created_at"?: string,"created_by"?: string | null,"custom"?: NonNullable<Json>,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"ends_at"?: string | null,"id"?: string,"image_path"?: string | null,"location_id"?: string | null,"max_tickets_per_order"?: number,"org_id"?: string,"published_at"?: string | null,"slug"?: string,"starts_at"?: string,"status"?: string,"ticket_names"?: string,"title"?: string,"updated_at"?: string,"updated_by"?: string | null,"venue_address"?: string | null,"venue_name"?: string | null
+                    "capacity"?: number | null,"created_at"?: string,"created_by"?: string | null,"custom"?: NonNullable<Json>,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string | null,"email_template_id"?: string | null,"ends_at"?: string | null,"id"?: string,"image_path"?: string | null,"location_id"?: string | null,"max_tickets_per_order"?: number,"org_id"?: string,"published_at"?: string | null,"slug"?: string,"starts_at"?: string,"status"?: string,"ticket_names"?: string,"title"?: string,"updated_at"?: string,"updated_by"?: string | null,"venue_address"?: string | null,"venue_name"?: string | null
                   }
                   Relationships: [
                     {
+      foreignKeyName: "events_email_template_fk"
+      columns: ["email_template_id","org_id"]
+isOneToOne: false
+      referencedRelation: "email_templates"
+      referencedColumns: ["id","org_id"]
+    },{
       foreignKeyName: "events_location_id_fkey"
       columns: ["location_id"]
 isOneToOne: false

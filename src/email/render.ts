@@ -3,16 +3,23 @@
 // - "rich": HTML from the editor (<RichTextEditor>); styles are inlined so email clients keep them
 // - "html": the org's own pasted HTML (e.g. from Stripo/Mailchimp); kept as is, minus scripts
 // {placeholders} come from the contact and (for automations) the event payload; values are HTML-escaped.
-// Every mail gets the unsubscribe footer and a plain-text version.
+// Every mail gets a footer (with the unsubscribe link for campaigns/automations) and a plain-text version.
+// A value { html, text } is a piece of our own markup (e.g. the {button} of event mails): HTML formats get it as is.
 export type Vars = Record<string, unknown>
+export type Markup = { html: string; text: string }
 export type Format = "text" | "rich" | "html"
 export const FORMATS: Format[] = ["text", "rich", "html"]
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
+const isMarkup = (v: unknown): v is Markup => typeof v === "object" && v != null && typeof (v as Markup).html === "string"
 const value = (vars: Vars, key: string) => (vars[key] == null || typeof vars[key] === "object" ? "" : String(vars[key]))
 
 export function fill(template: string, vars: Vars, escape = false) {
-  return template.replace(/\{([a-z_]+)\}/g, (_, key: string) => (escape ? esc(value(vars, key)) : value(vars, key)))
+  return template.replace(/\{([a-z_]+)\}/g, (_, key: string) => {
+    const v = vars[key]
+    if (isMarkup(v)) return escape ? v.html : v.text
+    return escape ? esc(value(vars, key)) : value(vars, key)
+  })
 }
 
 const INLINE: Record<string, string> = {
@@ -49,11 +56,14 @@ export function htmlToText(html: string) {
     .trim()
 }
 
-export function renderMail(t: { subject: string; body: string; format?: string }, vars: Vars, footer: { org: string; unsubscribeUrl: string; unsubscribeLabel: string }) {
+/** Transactional mails (tickets …) have no unsubscribe link; `logo` (image URL) goes on top of editor/text mails. */
+export function renderMail(t: { subject: string; body: string; format?: string }, vars: Vars, footer: { org: string; unsubscribeUrl?: string; unsubscribeLabel?: string; logo?: string | null }) {
   const subject = fill(t.subject, vars).replace(/\s+/g, " ").trim()
-  const foot = `<p style="margin:28px 0 0;font-size:12px;color:#777">${esc(footer.org)} · <a href="${esc(footer.unsubscribeUrl)}" style="color:#777">${esc(footer.unsubscribeLabel)}</a></p>`
-  const textFoot = `\n\n--\n${footer.org} · ${footer.unsubscribeLabel}: ${footer.unsubscribeUrl}\n`
-  const wrap = (inner: string) => `<div style="font:15px/1.6 system-ui,-apple-system,sans-serif;color:#1a1a1a;max-width:600px">${inner}${foot}</div>`
+  const unsub = footer.unsubscribeUrl && footer.unsubscribeLabel
+  const foot = `<p style="margin:28px 0 0;font-size:12px;color:#777">${esc(footer.org)}${unsub ? ` · <a href="${esc(footer.unsubscribeUrl!)}" style="color:#777">${esc(footer.unsubscribeLabel!)}</a>` : ""}</p>`
+  const textFoot = `\n\n--\n${footer.org}${unsub ? ` · ${footer.unsubscribeLabel}: ${footer.unsubscribeUrl}` : ""}\n`
+  const logo = footer.logo ? `<img src="${esc(footer.logo)}" alt="${esc(footer.org)}" style="max-height:56px;max-width:200px;margin:0 0 20px">` : ""
+  const wrap = (inner: string) => `<div style="font:15px/1.6 system-ui,-apple-system,sans-serif;color:#1a1a1a;max-width:600px">${logo}${inner}${foot}</div>`
 
   if (t.format === "html") {
     const body = noScripts(fill(t.body, vars, true))
@@ -61,8 +71,9 @@ export function renderMail(t: { subject: string; body: string; format?: string }
     return { subject, html, text: htmlToText(body) + textFoot }
   }
   if (t.format === "rich") {
-    const body = noScripts(fill(t.body, vars, true))
-    return { subject, html: wrap(inlineStyles(body)), text: htmlToText(body) + textFoot }
+    // Styles first, then the values: our own markup ({button}) keeps its own style attribute.
+    const body = noScripts(fill(inlineStyles(t.body), vars, true))
+    return { subject, html: wrap(body), text: htmlToText(body) + textFoot }
   }
   const body = fill(t.body, vars).replace(/\r\n/g, "\n").trim()
   const paragraphs = body.split(/\n{2,}/)
@@ -81,3 +92,16 @@ export const contactVars = (c: { first_name: string | null; last_name: string | 
   org,
 })
 export const BASE_PLACEHOLDERS = ["first_name", "last_name", "name", "email", "org"]
+
+/**
+ * Mails an event sends on its own (tickets, guest-list tickets, waiting-list offers) share one set of placeholders, so
+ * one template fits all three: {message} says what it's about, {button} links to the tickets / the claim page.
+ * {list} (guest list) and {until} (offer held until) are empty where they don't apply.
+ */
+export const EVENT_MAIL_KINDS = ["ticket", "guestlist", "waitlist"] as const
+export type EventMailKind = (typeof EVENT_MAIL_KINDS)[number]
+export const EVENT_PLACEHOLDERS = ["name", "email", "org", "event", "when", "venue", "count", "list", "until", "title", "message", "button", "link"]
+export const button = (url: string, label: string): Markup => ({
+  html: `<a href="${esc(url)}" style="display:inline-block;background:#15803d;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600">${esc(label)}</a>`,
+  text: `${label}: ${url}`,
+})

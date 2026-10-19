@@ -2,7 +2,7 @@
 import QRCode from "qrcode"
 import { messages } from "@/i18n/config"
 import { createT, type T } from "@/i18n/translate"
-import { sendOrgEmail } from "@/lib/org-email"
+import { sendEventMail } from "@/email/event-mail"
 import { siteUrl } from "@/lib/url"
 import { ticketsPdf, type PdfTicket } from "./pdf"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -113,10 +113,10 @@ export async function issueTickets(order: PaidOrder) {
 // ponytail: emails/PDF in German until orgs pick a language for their public pages.
 const tDe = () => createT("de", messages.de)
 
-async function pdfTicketsFor(orderId: string, t: T): Promise<{ list: PdfTicket[]; org: { id: string; slug: string; name: string } } | null> {
+async function pdfTicketsFor(orderId: string, t: T): Promise<{ list: PdfTicket[]; org: { id: string; slug: string; name: string }; eventId: string } | null> {
   const { data: rows } = await db()
     .from("tickets")
-    .select("code, holder_name, status, ticket_types(name), ticket_tiers(name), events(title, starts_at, venue_name, venue_address), orgs(id, slug, name)")
+    .select("code, holder_name, status, event_id, ticket_types(name), ticket_tiers(name), events(title, starts_at, venue_name, venue_address), orgs(id, slug, name)")
     .eq("order_id", orderId)
     .in("status", ["valid", "used"])
     .order("created_at")
@@ -124,6 +124,7 @@ async function pdfTicketsFor(orderId: string, t: T): Promise<{ list: PdfTicket[]
   const org = rows[0].orgs
   return {
     org,
+    eventId: rows[0].event_id,
     list: rows.map((k) => ({
       code: k.code,
       event: k.events?.title ?? "",
@@ -142,26 +143,26 @@ export async function orderPdf(orderId: string, t: T) {
   return data ? ticketsPdf(data.list) : null
 }
 
-const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 
 export async function emailTickets(orderId: string) {
   const t = tDe()
-  const { data: order } = await db().from("pay_orders").select("id, customer_email, customer_name, metadata").eq("id", orderId).single()
-  const token = (order?.metadata as Record<string, unknown>)?.ticket_token
+  const { data: order } = await db().from("pay_orders").select("id, customer_email, customer_name, source_module, metadata").eq("id", orderId).single()
+  const meta = (order?.metadata ?? {}) as Record<string, unknown>
   const data = await pdfTicketsFor(orderId, t)
-  if (!order?.customer_email || typeof token !== "string" || !data) return false
-  const link = siteUrl(data.org.slug, `/t/${orderId}?k=${token}`)
-  const ev = data.list[0].event
-  const subject = t("shop.emailSubject", { event: ev })
-  const intro = t("shop.emailIntro", { name: order.customer_name ?? "", count: data.list.length, event: ev, when: data.list[0].when })
-  const pdf = await ticketsPdf(data.list)
-  return sendOrgEmail(data.org.id, {
-    to: order.customer_email,
-    subject,
-    text: `${intro}\n\n${t("shop.emailLink")}: ${link}\n\n${t("shop.emailFooter", { org: data.org.name })}`,
-    html: `<div style="font:16px/1.5 system-ui,sans-serif"><p>${esc(intro)}</p><p><a href="${esc(link)}">${esc(t("shop.emailLink"))}</a></p><p style="color:#666;font-size:13px">${esc(t("shop.emailFooter", { org: data.org.name }))}</p></div>`,
-    attachments: [{ filename: "tickets.pdf", content: pdf }],
-  })
+  if (!order?.customer_email || typeof meta.ticket_token !== "string" || !data) return false
+  const guest = order.source_module === "guestlists"
+  return sendEventMail(
+    guest ? "guestlist" : "ticket",
+    data.eventId,
+    {
+      name: order.customer_name ?? "",
+      email: order.customer_email,
+      count: data.list.length,
+      link: siteUrl(data.org.slug, `/t/${orderId}?k=${meta.ticket_token}`),
+      list: guest && typeof meta.list === "string" ? meta.list : undefined,
+    },
+    [{ filename: "tickets.pdf", content: await ticketsPdf(data.list) }],
+  )
 }
 
 /** Fully refunded: tickets can't be used any more. */

@@ -726,6 +726,28 @@ begin
   select count(*) into n from public.email_sends where org_id = org_a;       assert n = 0, 'B sees sends of A';
   reset role;
 
+  -- Email templates: one default per org, events can only use their own org's template, B sees nothing
+  declare v_tpl uuid; v_ev uuid;
+  begin
+    perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    insert into public.email_templates (org_id, name, subject, body, is_default) values (org_a, 'Look', '{title}', '<p>{message}</p>', true) returning id into v_tpl;
+    begin
+      insert into public.email_templates (org_id, name, subject, body, is_default) values (org_a, 'Zweite', 'x', 'x', true);
+      assert false, 'only one default template per org';
+    exception when unique_violation then null; end;
+    reset role;
+    insert into public.events (org_id, title, slug, starts_at) values (org_b, 'B-Fest', 'b-fest', now()) returning id into v_ev;
+    begin
+      update public.events set email_template_id = v_tpl where id = v_ev;
+      assert false, 'an event must not use another org''s template';
+    exception when foreign_key_violation then null; end;
+    perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.email_templates where org_id = org_a;  assert n = 0, 'B sees templates of A';
+    reset role;
+  end;
+
   -- Files: A (owner) registers files in A only, with paths under its own folder; B sees nothing
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   set local role authenticated;
