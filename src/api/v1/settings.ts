@@ -9,6 +9,8 @@ import { refreshPublicFromApi } from "@/lib/public-cache"
 import { createField, inviteMember, updateField, type SetupFail } from "@/settings/server"
 import { deliverSoon } from "@/events/worker"
 import { checkDomain, connectDomain, orgDomain, removeDomain } from "@/domains/server"
+import { BLOCK_TYPES, DEFAULT_BLOCKS, readBlocks } from "@/site/blocks"
+import { saveSite } from "@/site/server"
 import { ApiError, dbError, endpoint, notFound, uuid, type Endpoint } from "../core"
 import { ts, type Db } from "./shared"
 
@@ -87,6 +89,12 @@ async function team(db: Db, orgId: string) {
   }
 }
 
+const Site = z.object({
+  tagline: z.string().nullable(),
+  blocks: z.array(z.record(z.string(), z.unknown())),
+  imprint: z.string().nullable(),
+  privacy: z.string().nullable(),
+})
 const Domain = z.object({
   id: uuid,
   domain: z.string(),
@@ -350,6 +358,45 @@ export const endpoints: Endpoint[] = [
     async handler({ orgId }) {
       if (!(await removeDomain(orgId).catch(() => { throw domainError("domains.failed") }))) throw notFound()
       return { ok: true as const }
+    },
+  }),
+  // The public start page
+  endpoint({
+    method: "GET",
+    path: "/site",
+    permission: "org.settings.manage",
+    tag: "Settings",
+    summary: "Get the public start page",
+    description: "Tagline, blocks (in order, `on` = shown) and the Impressum / Datenschutz texts. Without a saved page the start page shows the upcoming events (returned as the default blocks).",
+    response: Site,
+    async handler({ db, orgId }) {
+      const { data } = await db.from("org_sites").select("tagline, blocks, imprint, privacy").eq("org_id", orgId).maybeSingle()
+      return { tagline: data?.tagline ?? null, blocks: data ? readBlocks(data.blocks) : DEFAULT_BLOCKS, imprint: data?.imprint ?? null, privacy: data?.privacy ?? null }
+    },
+  }),
+  endpoint({
+    method: "PUT",
+    path: "/site",
+    permission: "org.settings.manage",
+    tag: "Settings",
+    summary: "Change the public start page",
+    description:
+      "Only the given fields change; `blocks` replaces the whole list (order = page order). Block types: hero {title, text, button_label, button_href}, text {title, text (Markdown)}, links {title, items [{label, href}]}, events {title, limit} (events module), event {event_id} (one event highlighted), form {form_slug} (a published form), portal {title, text} (members module), wiki {title} (public wiki pages). Every block: {id?, type, on}. Links: https://…, mailto:, tel: or a path on the site like /e/<slug>. Invalid blocks are dropped. Goes live at once.",
+    body: z
+      .object({
+        tagline: z.string().max(300).nullable(),
+        blocks: z.array(z.object({ type: z.enum(BLOCK_TYPES.map((b) => b.type) as [string, ...string[]]) }).passthrough()).max(30),
+        imprint: z.string().max(20000).nullable().describe("Markdown; required for German clubs and companies"),
+        privacy: z.string().max(60000).nullable().describe("Markdown"),
+      })
+      .partial()
+      .strict(),
+    response: Site,
+    async handler({ db, orgId, body }) {
+      const { data, error } = await saveSite(db, orgId, body)
+      if (error) throw dbError(error)
+      refreshPublicFromApi(orgId)
+      return { tagline: data.tagline, blocks: readBlocks(data.blocks), imprint: data.imprint, privacy: data.privacy }
     },
   }),
 ]

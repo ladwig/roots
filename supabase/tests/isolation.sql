@@ -727,6 +727,24 @@ begin
   select count(*) into n from public.email_sends where org_id = org_a;       assert n = 0, 'B sees sends of A';
   reset role;
 
+  -- Website: the org edits its own; others don't see it; anonymous visitors only through public_site()
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  insert into public.org_sites (org_id, tagline, blocks) values (org_a, 'Hallo', '[{"type":"text","text":"Hi"}]');
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.org_sites where org_id = org_a;           assert n = 0, 'B sees the website of A';
+  reset role;
+  perform set_config('request.jwt.claims', '{}', true);
+  set local role anon;
+  begin
+    perform 1 from public.org_sites limit 1;
+    assert false, 'anon must not read org_sites directly';
+  exception when insufficient_privilege then null; end;
+  assert (public.public_site(org_a) ->> 'tagline') = 'Hallo', 'public_site shows the tagline';
+  reset role;
+
   -- Prices: platform admins only (an org owner neither sees its price nor the billing usage)
   insert into public.org_prices (org_id, starts_on, base_cents) values (org_a, date_trunc('month', now())::date, 1000);
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);

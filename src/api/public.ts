@@ -12,7 +12,8 @@ import { addViaLink } from "@/guestlists/server"
 import { getT } from "@/i18n/server"
 import type { T } from "@/i18n/translate"
 import { imageUrl } from "@/lib/images"
-import { cachedEvent, cachedForm, cachedOrg } from "@/lib/public-cache"
+import { cachedEvent, cachedForm, cachedOrg, cachedSite } from "@/lib/public-cache"
+import { blockAvailable, DEFAULT_BLOCKS, readBlocks } from "@/site/blocks"
 import { createPublicClient } from "@/lib/supabase/server"
 import { siteUrl } from "@/lib/url"
 import { reconcileOrder } from "@/payments/server"
@@ -146,6 +147,26 @@ export const publicEndpoints: PublicEndpoint[] = [
     maxAge: 60,
     async handler({ org }) {
       return { slug: org.slug, name: org.name, logo_url: org.logo_path ? imageUrl(org.logo_path) : null, url: siteUrl(org.slug, "", org.site_domain) }
+    },
+  }),
+  endpoint({
+    method: "GET",
+    path: "/{org}/site",
+    tag: "Organisation",
+    summary: "The start page",
+    description:
+      "What the hosted start page shows, for your own website: tagline, the visible blocks in order (hero, text = Markdown, links, events, event, form, portal, wiki; fetch the events/forms they name with the other endpoints) and the Impressum / Datenschutz texts (Markdown).",
+    response: z.object({
+      tagline: z.string().nullable(),
+      blocks: z.array(z.record(z.string(), z.unknown())),
+      imprint: z.string().nullable(),
+      privacy: z.string().nullable(),
+    }),
+    maxAge: 60,
+    async handler({ org }) {
+      const site = await cachedSite(org.id)
+      const blocks = (site?.saved ? readBlocks(site.blocks) : DEFAULT_BLOCKS).filter((b) => b.on && blockAvailable(b.type, site?.modules ?? []))
+      return { tagline: site?.tagline ?? null, blocks, imprint: site?.imprint ?? null, privacy: site?.privacy ?? null }
     },
   }),
   endpoint({

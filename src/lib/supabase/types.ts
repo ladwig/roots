@@ -1395,6 +1395,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"org_sites": {
+                  Row: {
+                    "blocks": NonNullable<Json>,"created_at": string,"created_by": string | null,"id": string,"imprint": string | null,"org_id": string,"privacy": string | null,"tagline": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "blocks"?: NonNullable<Json>,"created_at"?: string,"created_by"?: string | null,"id"?: string,"imprint"?: string | null,"org_id": string,"privacy"?: string | null,"tagline"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "blocks"?: NonNullable<Json>,"created_at"?: string,"created_by"?: string | null,"id"?: string,"imprint"?: string | null,"org_id"?: string,"privacy"?: string | null,"tagline"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "org_sites_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: true
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"orgs": {
                   Row: {
                     "allow_ai": boolean,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"id": string,"logo_path": string | null,"name": string,"settings": NonNullable<Json>,"site_domain": string | null,"slug": string,"updated_at": string,"updated_by": string | null
@@ -2612,6 +2632,9 @@ isOneToOne: false
                            },
 "public_form":
 { Args: { "p_org": string,"p_slug": string }; Returns: Json
+                           },
+"public_site":
+{ Args: { "p_org": string }; Returns: Json
                            },
 "purge_deleted":
 { Args: Record<PropertyKey, never>; Returns: number

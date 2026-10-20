@@ -46,3 +46,20 @@ export async function cachedForm(orgId: string, slug: string) {
   const { data } = await createPublicClient().rpc("public_form", { p_org: orgId, p_slug: slug })
   return data
 }
+
+/** The org's start page (blocks, tagline, legal texts) + its modules and published forms. */
+export async function cachedSite(orgId: string) {
+  "use cache"
+  cacheLife("minutes")
+  cacheTag(publicTag(orgId))
+  const { data } = await createPublicClient().rpc("public_site", { p_org: orgId })
+  return data as {
+    tagline: string | null
+    blocks: unknown
+    imprint: string | null
+    privacy: string | null
+    saved: boolean
+    modules: string[]
+    forms: { slug: string; title: string; intro: string | null }[]
+  } | null
+}
