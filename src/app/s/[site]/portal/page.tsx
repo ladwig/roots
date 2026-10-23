@@ -27,7 +27,7 @@ export default async function Portal({ params, searchParams }: PageProps<"/s/[si
   const me = await getPortalContact(s.org.id)
   const body = () => <PortalBody site={site} sp={sp} org={s.org} me={me} />
   return (
-    <main className={`mx-auto grid gap-6 px-4 ${me ? "max-w-2xl py-8" : "max-w-md py-16"}`}>
+    <main className={`site-portal mx-auto grid gap-6 px-4 ${me ? "max-w-2xl py-8" : "max-w-md py-16"}`}>
       {!me && (
         <header className="grid gap-1">
           <p className="text-sm text-muted-foreground">{s.org.name}</p>

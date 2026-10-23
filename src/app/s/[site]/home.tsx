@@ -35,16 +35,21 @@ export async function SiteHome({ slug, org, db, tagline, blocks: all, modules, f
   const path = (href: string) => (href.startsWith("/") ? sitePath(slug, href) : href)
 
   return (
-    <main className="mx-auto grid max-w-2xl gap-10 px-4 py-12">
-      <header className="flex items-center gap-3">
-        <Picture path={org.logo_path} name={org.name} size="lg" square />
+    <main className="site-home mx-auto grid max-w-2xl gap-10 px-4 py-12">
+      <header className="site-brand flex items-center gap-3">
+        <span className="site-logo">
+          <Picture path={org.logo_path} name={org.name} size="lg" square />
+        </span>
         <div className="grid gap-0.5">
-          <h1 className="font-heading text-2xl font-semibold">{org.name}</h1>
-          {tagline && <p className="text-muted-foreground">{tagline}</p>}
+          <h1 className="site-title font-heading text-2xl font-semibold">{org.name}</h1>
+          {tagline && <p className="site-tagline text-muted-foreground">{tagline}</p>}
         </div>
       </header>
       {blocks.map((b) => (
-        <BlockView key={b.id} b={b} t={t} slug={slug} path={path} upcoming={(upcoming.data ?? []) as Ev[]} picked={(picked.data ?? []) as Ev[]} forms={forms} wiki={wiki} />
+        // CSS hooks for own styles: .site-block and .site-block-<type> (hero, text, links, events, event, form, portal, wiki).
+        <div key={b.id} className={`site-block site-block-${b.type} grid`}>
+        <BlockView b={b} t={t} slug={slug} path={path} upcoming={(upcoming.data ?? []) as Ev[]} picked={(picked.data ?? []) as Ev[]} forms={forms} wiki={wiki} />
+        </div>
       ))}
     </main>
   )
@@ -93,9 +98,9 @@ function BlockView({ b, t, slug, path, upcoming, picked, forms, wiki }: { b: Blo
         <section className="grid gap-3">
           {heading(t("site.upcoming"))}
           {list.length ? (
-            <ul className="grid divide-y rounded-lg border">
+            <ul className="site-events grid divide-y rounded-lg border">
               {list.map((e) => (
-                <li key={e.id}>
+                <li key={e.id} className="site-event">
                   <EventLink e={e} t={t} slug={slug} />
                 </li>
               ))}

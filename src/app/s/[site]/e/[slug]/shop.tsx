@@ -26,7 +26,7 @@ export async function TicketShop({ site, slug, eventId, max, code, waitlist }: {
   const soldOut = !claim && types.filter((ty) => !ty.hidden).every((ty) => ty.remaining === 0)
   let anyOnSale = false
   return (
-    <section aria-labelledby="tickets" className="grid scroll-mt-20 gap-4 rounded-xl border p-4">
+    <section aria-labelledby="tickets" className="site-tickets grid scroll-mt-20 gap-4 rounded-xl border p-4">
       <h2 id="tickets" className="font-heading text-xl font-semibold">
         {free ? t("shop.signupTitle") : t("shop.title")}
       </h2>

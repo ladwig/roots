@@ -24,7 +24,7 @@ export default async function PublicEvent({ params, searchParams }: PageProps<"/
   const sameDay = e.ends_at && new Date(e.ends_at).getTime() - new Date(e.starts_at).getTime() < 86_400_000
 
   return (
-    <main className="mx-auto grid max-w-2xl gap-6 px-4 py-12">
+    <main className="site-event-page mx-auto grid max-w-2xl gap-6 px-4 py-12">
       <Link href={sitePath(site)} className="text-sm text-muted-foreground underline-offset-4 hover:underline">
         ← {s.org.name} · {t("site.back")}
       </Link>
@@ -34,7 +34,7 @@ export default async function PublicEvent({ params, searchParams }: PageProps<"/
       )}
       <header className="grid gap-2">
         {e.status === "cancelled" && <Badge variant="destructive">{t("site.cancelled")}</Badge>}
-        <h1 className="font-heading text-3xl font-semibold">{e.title}</h1>
+        <h1 className="site-event-title font-heading text-3xl font-semibold">{e.title}</h1>
         <p className="text-muted-foreground">
           {t.date(e.starts_at, { dateStyle: "full", timeStyle: "short" })}
           {e.ends_at &&

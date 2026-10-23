@@ -3,15 +3,15 @@ import { Notice } from "@/components/notice"
 import { FormCard, PageHeader } from "@/components/page"
 import { AutoSave } from "@/app/(app)/website/autosave"
 import { Label } from "@/components/ui/label"
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param, siteUrl } from "@/lib/url"
 import { loadSite } from "@/site/server"
-import { FONTS, RADII } from "@/site/theme"
+import { RADII } from "@/site/theme"
 import { saveWebsiteDraft } from "../actions"
 import { ColorField } from "../color-field"
+import { FontField } from "../font-field"
 import { Preview, PublishBar } from "../publish-bar"
 
 // Website › Marke: the look of all public pages (start page, events, shop, checkout, forms, portal).
@@ -21,16 +21,6 @@ export default async function BrandPage({ searchParams }: PageProps<"/website/br
   const sp = await searchParams
   const site = await loadSite(ctx.supabase, ctx.org.id)
   const th = site.draft.theme
-  const fontSelect = (name: string, value?: string) => (
-    <NativeSelect id={name} name={name} defaultValue={value ?? ""} className="w-full">
-      <NativeSelectOption value="">{t("website.brand.defaultFont")}</NativeSelectOption>
-      {FONTS.map((f) => (
-        <NativeSelectOption key={f.key} value={f.key}>
-          {f.family}
-        </NativeSelectOption>
-      ))}
-    </NativeSelect>
-  )
   return (
     <>
       <PageHeader area="website" title={t("website.brand.nav")} description={t("website.brand.intro")} />
@@ -50,16 +40,10 @@ export default async function BrandPage({ searchParams }: PageProps<"/website/br
               <ColorField name="theme.accent" label={t("website.brand.accent")} defaultValue={th.accent} />
             </div>
           </FormCard>
-          <FormCard title={t("website.brand.type")}>
+          <FormCard title={t("website.brand.type")} description={t("website.brand.fontsNote")}>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="theme.font_heading">{t("website.brand.fontHeading")}</Label>
-                {fontSelect("theme.font_heading", th.font_heading)}
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="theme.font_body">{t("website.brand.fontBody")}</Label>
-                {fontSelect("theme.font_body", th.font_body)}
-              </div>
+              <FontField name="theme.font_heading" label={t("website.brand.fontHeading")} defaultValue={th.font_heading} sample={t("website.brand.sampleHeading")} />
+              <FontField name="theme.font_body" label={t("website.brand.fontBody")} defaultValue={th.font_body} sample={t("website.brand.sampleBody")} />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="theme.radius">{t("website.brand.radius")}</Label>

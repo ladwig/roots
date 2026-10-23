@@ -5215,7 +5215,10 @@
         "round": "Rund"
       },
       "css": "Erweitert: eigenes CSS",
-      "cssHint": "Für alle öffentlichen Seiten, z. B. Hintergrundbild oder Abstände. Klassen: .site-theme (alles), .site-header, .site-footer. JavaScript ist nicht möglich."
+      "cssHint": "Für alle öffentlichen Seiten, z. B. Hintergrundbild, Abstände, Größen. Feste Klassen: .site-theme (alles), .site-header, .site-footer, .site-home, .site-brand, .site-logo, .site-title, .site-tagline, .site-block (+ .site-block-hero / -text / -links / -events / -event / -form / -portal / -wiki), .site-events, .site-event, .site-event-page, .site-event-title, .site-tickets, .site-portal, .site-page (eigenes HTML). JavaScript ist nicht möglich.",
+      "sampleHeading": "Sommerfest 2026",
+      "sampleBody": "Tickets gibt es ab 12 € – wir freuen uns auf euch.",
+      "fontsNote": "Überschriften und Fließtext getrennt: wer überall dieselbe Schrift will, wählt sie in beiden Feldern."
     },
     "pages": {
       "nav": "Seiten",

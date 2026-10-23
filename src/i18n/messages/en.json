@@ -5215,7 +5215,10 @@
         "round": "Round"
       },
       "css": "Advanced: own CSS",
-      "cssHint": "For all public pages, e.g. a background image or spacing. Classes: .site-theme (everything), .site-header, .site-footer. JavaScript isn't possible."
+      "cssHint": "For all public pages, e.g. a background image, spacing, sizes. Fixed classes: .site-theme (everything), .site-header, .site-footer, .site-home, .site-brand, .site-logo, .site-title, .site-tagline, .site-block (+ .site-block-hero / -text / -links / -events / -event / -form / -portal / -wiki), .site-events, .site-event, .site-event-page, .site-event-title, .site-tickets, .site-portal, .site-page (own HTML). JavaScript isn't possible.",
+      "sampleHeading": "Summer party 2026",
+      "sampleBody": "Tickets from €12 – we're looking forward to seeing you.",
+      "fontsNote": "Headings and body text are separate: for one font everywhere, pick it in both fields."
     },
     "pages": {
       "nav": "Pages",
