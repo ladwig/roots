@@ -969,7 +969,9 @@
     "notOpen": "Diese Bestellung kann nicht mehr bezahlt werden.",
     "invalidOrder": "Die Bestellung ist ungültig.",
     "notRefundable": "Diese Bestellung kann nicht erstattet werden.",
-    "invalidRefund": "Ungültiger Betrag für die Erstattung."
+    "invalidRefund": "Ungültiger Betrag für die Erstattung.",
+    "refundLeft": "Leer lassen = alles Erstattbare: {amount}.",
+    "feeKept": "Die Servicegebühr ({amount}) wird nicht erstattet."
   },
   "checkout": {
     "title": "Bestellung",

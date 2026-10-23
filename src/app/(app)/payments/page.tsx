@@ -130,6 +130,8 @@ async function OrderSheet({ t, orderId, canRefund, error, ok }: { t: T; orderId:
   if (!order) return null
   const refunds = order.pay_payments.flatMap((p) => p.pay_refunds)
   const refundable = canRefund && ["paid", "partially_refunded"].includes(order.status)
+  const keptFee = Number((order.metadata as Record<string, unknown> | null)?.service_fee) || 0 // not refunded
+  const left = order.amount_total - keptFee - refunds.filter((r) => r.status !== "failed").reduce((s, r) => s + r.amount, 0)
 
   return (
     <UrlSheet params={["edit"]} title={`${t("payments.order")} · ${t.money(order.amount_total, order.currency)}`} description={order.customer_email ?? undefined}>
@@ -201,6 +203,10 @@ async function OrderSheet({ t, orderId, canRefund, error, ok }: { t: T; orderId:
           <div className="grid gap-2">
             <Label htmlFor="refund-amount">{t("payments.refundAmount")}</Label>
             <TypedInput kind="money" id="refund-amount" name="amount" />
+            <p className="text-xs text-muted-foreground">
+              {t("payments.refundLeft", { amount: t.money(left, order.currency) })}
+              {keptFee > 0 && ` ${t("payments.feeKept", { amount: t.money(keptFee, order.currency) })}`}
+            </p>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="refund-reason">{t("payments.refundReason")}</Label>

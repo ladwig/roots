@@ -57,7 +57,7 @@ export async function buyTickets(b: BuyInput) {
     currency: [...currencies][0],
     customerEmail: b.email,
     customerName: b.name,
-    metadata: { ticket_token: token, ...(b.code ? { code: b.code.toUpperCase() } : {}) },
+    metadata: { ticket_token: token, ...(b.code ? { code: b.code.toUpperCase() } : {}), ...(fee ? { service_fee: fee } : {}) },
     items: fee ? [...lines, { description: createT("de", messages.de)("shop.serviceFee"), quantity: 1, unitAmount: fee }] : lines,
   })
   const { data: reserved, error } = await db().rpc("reserve_tickets", {

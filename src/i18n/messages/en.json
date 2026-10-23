@@ -969,7 +969,9 @@
     "notOpen": "This order can no longer be paid.",
     "invalidOrder": "The order is invalid.",
     "notRefundable": "This order can't be refunded.",
-    "invalidRefund": "Invalid refund amount."
+    "invalidRefund": "Invalid refund amount.",
+    "refundLeft": "Leave empty = everything refundable: {amount}.",
+    "feeKept": "The service fee ({amount}) isn't refunded."
   },
   "checkout": {
     "title": "Order",

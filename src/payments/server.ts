@@ -212,12 +212,13 @@ export const markExpired = (provider: string, providerRef: string) => closePayme
 export async function markRefunded(provider: string, providerPaymentRef: string, amountRefunded: number) {
   const { data: payment } = await db()
     .from("pay_payments")
-    .select("order_id, amount")
+    .select("order_id, amount, pay_orders(metadata)")
     .eq("provider", provider)
     .eq("provider_payment_ref", providerPaymentRef)
     .maybeSingle()
   if (!payment) return
-  const full = amountRefunded >= payment.amount
+  // Everything but the service fee back = fully refunded (the fee isn't refunded, see refundOrder).
+  const full = amountRefunded >= payment.amount - keptFee(payment.pay_orders?.metadata)
   const { data: changed } = await db()
     .from("pay_orders")
     .update({ status: full ? "refunded" : "partially_refunded" })
@@ -233,16 +234,20 @@ export async function markRefunded(provider: string, providerPaymentRef: string,
 }
 
 /** Refunds (part of) a paid order. Caller checks payments.refund. Amount defaults to what's left. */
+/** The service fee of an order (stored by buyTickets), which refunds don't include. */
+const keptFee = (metadata: unknown) => Math.max(0, Math.round(Number((metadata as Record<string, unknown> | null)?.service_fee) || 0))
+
 export async function refundOrder(orderId: string, amount?: number, reason?: string) {
   const { data: payment } = await db()
     .from("pay_payments")
-    .select("id, org_id, provider, provider_payment_ref, amount, pay_refunds(amount, status)")
+    .select("id, org_id, provider, provider_payment_ref, amount, pay_refunds(amount, status), pay_orders(metadata)")
     .eq("order_id", orderId)
     .eq("status", "succeeded")
     .maybeSingle()
   if (!payment?.provider_payment_ref) throw new Error("payments.notRefundable")
   const refunded = payment.pay_refunds.filter((r) => r.status !== "failed").reduce((s, r) => s + r.amount, 0)
-  const left = payment.amount - refunded
+  // The service fee (payment costs passed on) stays with the org: refunds cover the tickets only.
+  const left = payment.amount - keptFee(payment.pay_orders?.metadata) - refunded
   const value = amount ?? left
   if (!Number.isInteger(value) || value <= 0 || value > left) throw new Error("payments.invalidRefund")
 
