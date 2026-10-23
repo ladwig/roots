@@ -18,7 +18,6 @@ type Setup = Awaited<ReturnType<typeof sproutSetup>>
 type Chat = { id: string; messages: UIMessage[]; title: string; starred: boolean; saved: boolean; prompt?: string }
 const fresh = (): Chat => ({ id: crypto.randomUUID(), messages: [], title: "", starred: false, saved: false })
 const MODEL_KEY = "sprout_model"
-const CHAT_KEY = "sprout_chat"
 const store = (k: string, v: string | null) => {
   try {
     if (v) localStorage.setItem(k, v)
@@ -38,8 +37,10 @@ const readModel = () => {
  * layout, so it stays open and keeps its conversation while the person moves between pages. Setup (models of the
  * person's keys, recent chats) loads when the panel opens.
  */
-export function SproutPanel() {
+export function SproutPanel({ orgId }: { orgId: string }) {
   const t = useT()
+  // The chat that was open, per org: switching orgs never continues another org's chat.
+  const CHAT_KEY = `sprout_chat:${orgId}`
   const { open, wide, setOpen, setWide } = useSprout()
   const [setup, setSetup] = useState<Setup | null>(null)
   const [chat, setChat] = useState<Chat>(fresh)
@@ -60,7 +61,7 @@ export function SproutPanel() {
         const c = await loadChat(last)
         if (c) setChat({ id: c.id, messages: c.messages, title: c.title, starred: c.starred, saved: true })
       })
-  }, [open, setup, refresh])
+  }, [open, setup, refresh, CHAT_KEY])
   // A question from elsewhere (home page): open the panel, new chat, send it there.
   useEffect(() => {
     const on = (e: Event) => {
@@ -70,7 +71,7 @@ export function SproutPanel() {
     }
     window.addEventListener("sprout:ask", on)
     return () => window.removeEventListener("sprout:ask", on)
-  }, [setOpen])
+  }, [setOpen, CHAT_KEY])
   // Keys added or removed elsewhere (profile page) → reload the models.
   useEffect(() => {
     const on = () => refresh()

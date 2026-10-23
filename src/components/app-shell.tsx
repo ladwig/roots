@@ -14,6 +14,7 @@ export async function AppShell({
   me,
   title,
   search,
+  orgId,
   children,
 }: {
   header: React.ReactNode
@@ -21,6 +22,7 @@ export async function AppShell({
   me: Me
   title: string
   search?: boolean // ⌘K search over the active org (App only); also turns on Sprout, the assistant panel
+  orgId?: string // the active org: Sprout starts fresh (setup, chat) when it changes
   children: React.ReactNode
 }) {
   // Open/collapsed is remembered in the sidebar_state cookie (set by the shadcn sidebar).
@@ -43,7 +45,7 @@ export async function AppShell({
           <ConfirmHost />
         </main>
       </SidebarInset>
-      {search && <SproutPanel />}
+      {search && <SproutPanel key={orgId} orgId={orgId ?? ""} />}
     </SidebarProvider>
     </SproutProvider>
   )
