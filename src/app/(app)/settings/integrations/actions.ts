@@ -31,9 +31,11 @@ export async function connectIntegration(provider: string, formData: FormData) {
   if ("from_email" in config && !/^[^@\s<>]+@[^@\s<>]+\.[a-z]{2,}$/i.test(String(config.from_email))) back(retry, { error: t("integrations.senderInvalid") })
 
   // Check the credentials before storing them. Leaving the secret empty keeps the stored one.
-  if (hasSecret && integration.test) {
+  // Editing without a new key: check with the stored one (e.g. a changed Resend segment).
+  const testSecret = hasSecret ? secret : ((await getSecret(ctx.org.id, provider)) as Secret | null)
+  if (testSecret && integration.test) {
     try {
-      config = { ...config, ...((await integration.test(secret, config)) ?? {}) }
+      config = { ...config, ...((await integration.test(testSecret, config)) ?? {}) }
     } catch (e) {
       const key = e instanceof Error ? e.message : ""
       back(retry, { error: t.has(key) ? t.dynamic(key) : t("integrations.credentialsFailed") })
