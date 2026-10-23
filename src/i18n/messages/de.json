@@ -5191,7 +5191,7 @@
     "published": "Veröffentlicht.",
     "discarded": "Änderungen verworfen.",
     "preview": "Vorschau",
-    "previewHint": "Vorschau des Entwurfs (Startseite). Nach dem Speichern aktualisiert.",
+    "previewHint": "Vorschau des Entwurfs – aktualisiert sich beim Bearbeiten.",
     "brand": {
       "nav": "Marke",
       "intro": "So sehen alle eure öffentlichen Seiten aus: Startseite, Eventseiten, Ticketshop, Kasse, Formulare, Mitgliederbereich.",
@@ -5308,7 +5308,8 @@
       "fields": "{{event.title}}, {{event.date}}, {{event.time}}, {{event.end}}, {{event.venue}}, {{event.address}}, {{event.image}}, {{event.description}}, {{#event.cancelled}}…{{/event.cancelled}}; feste Bausteine: {{tickets}}, {{timetable}}; {{org.name}}, {{org.url}}.",
       "noEvent": "Für die Vorschau braucht es ein kommendes veröffentlichtes Event.",
       "standardPreview": "Standard-Eventseite – ansehen über ein Event auf eurer Seite.",
-      "shopHere": "Hier steht der Ticketshop."
+      "shopHere": "Hier steht der Ticketshop.",
+      "useStandard": "Standard-Eventseite verwenden"
     },
     "portal": {
       "intro": "Oben im Mitgliederbereich, wenn jemand angemeldet ist: z. B. Begrüßung, Neuigkeiten, Links. Darunter folgen die Bereiche eurer Module (Mitgliedschaft, Tickets, Kurse …) – jeweils nur für die, die es betrifft.",
@@ -5316,6 +5317,12 @@
       "hint": "HTML + <style>; {{person.first_name}} ist der Vorname der angemeldeten Person. Leer = kein Willkommensbereich. Skripte werden entfernt.",
       "fields": "{{person.first_name}}, {{person.name}}, {{org.name}}, {{org.url}}.",
       "tabsHere": "Hier folgen die Bereiche des Mitgliederbereichs (Karte, Mitgliedschaft, Tickets, Kurse …)."
+    },
+    "autosave": {
+      "idle": "Änderungen werden automatisch als Entwurf gespeichert.",
+      "saving": "Speichert…",
+      "saved": "Entwurf gespeichert – Vorschau aktualisiert.",
+      "error": "Speichern fehlgeschlagen – bitte prüfen."
     }
   }
 }

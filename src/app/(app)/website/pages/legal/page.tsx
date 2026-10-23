@@ -1,6 +1,6 @@
 import { Notice } from "@/components/notice"
 import { FormCard, PageHeader } from "@/components/page"
-import { SaveBar } from "@/components/save-bar"
+import { AutoSave } from "@/app/(app)/website/autosave"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { getT } from "@/i18n/server"
@@ -34,7 +34,7 @@ export default async function LegalPage({ searchParams }: PageProps<"/website/pa
           <Label htmlFor="privacy" className="sr-only">{t("site.privacy")}</Label>
           <Textarea id="privacy" name="privacy" rows={12} maxLength={60000} defaultValue={site.draft.privacy ?? ""} placeholder={t("site.privacyPlaceholder")} />
         </FormCard>
-        <SaveBar label={t("website.saveDraft")} />
+          <AutoSave />
       </form>
     </>
   )

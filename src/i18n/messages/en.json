@@ -5191,7 +5191,7 @@
     "published": "Published.",
     "discarded": "Changes discarded.",
     "preview": "Preview",
-    "previewHint": "Preview of the draft (start page). Updates after saving.",
+    "previewHint": "Preview of the draft – updates while you edit.",
     "brand": {
       "nav": "Brand",
       "intro": "How all your public pages look: start page, event pages, ticket shop, checkout, forms, member area.",
@@ -5308,7 +5308,8 @@
       "fields": "{{event.title}}, {{event.date}}, {{event.time}}, {{event.end}}, {{event.venue}}, {{event.address}}, {{event.image}}, {{event.description}}, {{#event.cancelled}}…{{/event.cancelled}}; fixed blocks: {{tickets}}, {{timetable}}; {{org.name}}, {{org.url}}.",
       "noEvent": "The preview needs an upcoming published event.",
       "standardPreview": "Standard event page – view it via an event on your site.",
-      "shopHere": "The ticket shop goes here."
+      "shopHere": "The ticket shop goes here.",
+      "useStandard": "Use the standard event page"
     },
     "portal": {
       "intro": "At the top of the member area when someone is signed in: e.g. greeting, news, links. Below come your modules' sections (membership, tickets, courses …) – each only for those it concerns.",
@@ -5316,6 +5317,12 @@
       "hint": "HTML + <style>; {{person.first_name}} is the signed-in person's first name. Empty = no welcome area. Scripts are removed.",
       "fields": "{{person.first_name}}, {{person.name}}, {{org.name}}, {{org.url}}.",
       "tabsHere": "The member area's sections follow here (card, membership, tickets, courses …)."
+    },
+    "autosave": {
+      "idle": "Changes are saved as a draft automatically.",
+      "saving": "Saving…",
+      "saved": "Draft saved – preview updated.",
+      "error": "Saving failed – please check."
     }
   }
 }

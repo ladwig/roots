@@ -1,6 +1,6 @@
 import { Notice } from "@/components/notice"
 import { FormCard, PageHeader } from "@/components/page"
-import { SaveBar } from "@/components/save-bar"
+import { AutoSave } from "@/app/(app)/website/autosave"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
@@ -65,7 +65,7 @@ export default async function StartPage({ searchParams }: PageProps<"/website/pa
             />
           </FormCard>
           )}
-          <SaveBar label={t("website.saveDraft")} />
+          <AutoSave />
         </form>
         <Preview t={t} version={site.version} />
       </div>

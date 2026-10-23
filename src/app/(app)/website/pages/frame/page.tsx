@@ -1,6 +1,6 @@
 import { Notice } from "@/components/notice"
 import { FormCard, PageHeader } from "@/components/page"
-import { SaveBar } from "@/components/save-bar"
+import { AutoSave } from "@/app/(app)/website/autosave"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { getT } from "@/i18n/server"
@@ -34,7 +34,7 @@ export default async function FramePage({ searchParams }: PageProps<"/website/pa
             {field("header_html", t("website.frame.header"), '<nav class="nav">\n  <a href="/">Start</a>\n  <a href="/e/sommerfest">Sommerfest</a>\n  <a href="https://instagram.com/…" target="_blank">Instagram</a>\n</nav>')}
             {field("footer_html", t("website.frame.footer"), '<div class="sponsors">\n  <img src="https://…/logo.png" alt="Sponsor">\n</div>')}
           </FormCard>
-          <SaveBar label={t("website.saveDraft")} />
+          <AutoSave />
         </form>
         <Preview t={t} version={site.version} />
       </div>

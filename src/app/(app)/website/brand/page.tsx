@@ -1,7 +1,7 @@
 import { Choice } from "@/components/choice"
 import { Notice } from "@/components/notice"
 import { FormCard, PageHeader } from "@/components/page"
-import { SaveBar } from "@/components/save-bar"
+import { AutoSave } from "@/app/(app)/website/autosave"
 import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
@@ -73,7 +73,7 @@ export default async function BrandPage({ searchParams }: PageProps<"/website/br
               <Textarea name="css" defaultValue={site.draft.css ?? ""} rows={10} maxLength={50000} spellCheck={false} className="font-mono text-xs" aria-label={t("website.brand.css")} placeholder={".site-header { padding: 1rem }\nh1 { letter-spacing: -0.02em }"} />
             </div>
           </details>
-          <SaveBar label={t("website.saveDraft")} />
+          <AutoSave />
         </form>
         <Preview t={t} version={site.version} />
       </div>

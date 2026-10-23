@@ -1,6 +1,7 @@
 import { Notice } from "@/components/notice"
+import { SubmitButton } from "@/components/submit-button"
 import { FormCard, PageHeader } from "@/components/page"
-import { SaveBar } from "@/components/save-bar"
+import { AutoSave } from "@/app/(app)/website/autosave"
 import { Segments } from "@/components/segments"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
@@ -39,11 +40,18 @@ export default async function EventTemplatePage({ searchParams }: PageProps<"/we
             </FormCard>
           ) : (
             <FormCard title={t("website.event.standard")} description={t("website.event.standardHint")}>
-              {/* Saving here switches back to the standard page. */}
-              <input type="hidden" name="event_html" value="" />
+              {site.draft.event_html && (
+                // Switching back is a deliberate step (the own template stays in the history only until then).
+                <>
+                  <input type="hidden" name="event_html" value="" />
+                  <SubmitButton variant="outline" size="sm" className="justify-self-start">
+                    {t("website.event.useStandard")}
+                  </SubmitButton>
+                </>
+              )}
             </FormCard>
           )}
-          <SaveBar label={t("website.saveDraft")} always={!own && !!site.draft.event_html} />
+          <AutoSave />
         </form>
         <Preview t={t} version={site.version} path="?page=event" />
       </div>

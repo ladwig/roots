@@ -1,6 +1,6 @@
 import { Notice } from "@/components/notice"
 import { FormCard, PageHeader } from "@/components/page"
-import { SaveBar } from "@/components/save-bar"
+import { AutoSave } from "@/app/(app)/website/autosave"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param, siteUrl } from "@/lib/url"
@@ -27,7 +27,7 @@ export default async function PortalPage({ searchParams }: PageProps<"/website/p
           <FormCard title={t("website.portal.welcome")} description={t("website.portal.hint")}>
             <HtmlEditor name="portal_html" kind="portal" rows={14} defaultValue={site.draft.portal_html ?? ""} />
           </FormCard>
-          <SaveBar label={t("website.saveDraft")} />
+          <AutoSave />
         </form>
         <Preview t={t} version={site.version} path="?page=portal" />
       </div>

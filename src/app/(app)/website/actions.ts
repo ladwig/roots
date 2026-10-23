@@ -12,22 +12,38 @@ const here = (fd: FormData) => {
   return /^\/website(\/[a-z/-]*)?$/.test(b) ? b : "/website"
 }
 
-/** Saves the fields this form has into the draft (blocks come as JSON, theme as theme.<key>). Not public yet. */
-export async function saveWebsiteDraft(fd: FormData) {
-  const ctx = await requirePerm("org.site.manage")
-  const t = await getT()
+// The fields a Website form has (blocks come as JSON, theme as theme.<key>); null = unreadable.
+function readForm(fd: FormData) {
   const input: Record<string, unknown> = {}
   for (const k of CONTENT_KEYS) if (fd.has(k)) input[k] = String(fd.get(k) ?? "")
   if (fd.has("blocks")) {
     try {
       input.blocks = JSON.parse(String(fd.get("blocks")))
     } catch {
-      back(here(fd), { error: t("errors.invalid_input") })
+      return null
     }
   }
   if (fd.has("theme.mode")) input.theme = Object.fromEntries([...fd.entries()].filter(([k]) => k.startsWith("theme.")).map(([k, v]) => [k.slice(6), String(v)]))
+  return input
+}
+
+/** Saves the fields this form has into the draft. Not public yet. */
+export async function saveWebsiteDraft(fd: FormData) {
+  const ctx = await requirePerm("org.site.manage")
+  const t = await getT()
+  const input = readForm(fd)
+  if (!input) back(here(fd), { error: t("errors.invalid_input") })
   const { error } = await saveDraft(ctx.supabase, ctx.org.id, input)
   back(here(fd), error ? { error: dbError(t, error) } : { ok: t("website.draftSaved") })
+}
+
+/** The same while typing (<AutoSave>): no redirect, just whether it worked. */
+export async function autosaveWebsiteDraft(fd: FormData) {
+  const ctx = await requirePerm("org.site.manage")
+  const input = readForm(fd)
+  if (!input) return { ok: false }
+  const { error } = await saveDraft(ctx.supabase, ctx.org.id, input)
+  return { ok: !error }
 }
 
 export async function publishWebsite(fd: FormData) {
