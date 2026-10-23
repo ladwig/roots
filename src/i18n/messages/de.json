@@ -936,8 +936,8 @@
   "payments": {
     "nav": "Zahlungen",
     "title": "Zahlungen",
-    "notConnected": "Verbinde Stripe, um Zahlungen anzunehmen.",
-    "notReady": "Stripe ist verbunden, aber die Einrichtung ist noch nicht abgeschlossen.",
+    "notConnected": "Verbinde einen Zahlungsanbieter (Stripe oder SumUp), um Zahlungen anzunehmen.",
+    "notReady": "Ein Zahlungsanbieter ist verbunden, aber noch nicht bereit für Zahlungen (Einrichtung nicht abgeschlossen oder fehlende Berechtigung).",
     "toIntegrations": "Zu den Integrationen",
     "date": "Datum",
     "customer": "Kunde",

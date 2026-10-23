@@ -39,10 +39,13 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/payment
     .range(...pageRange(page))
   if (q) query = query.or(`customer_email.ilike.%${q}%,customer_name.ilike.%${q}%`)
   if (status && STATUSES.includes(status)) query = query.eq("status", status)
-  const [{ data }, { data: stripeRow }] = await Promise.all([
+  const [{ data }, { data: providers }] = await Promise.all([
     query,
-    ctx.supabase.from("org_integrations").select("status").eq("org_id", ctx.org.id).eq("provider", "stripe").maybeSingle(),
+    ctx.supabase.from("org_integrations").select("provider, status, config").eq("org_id", ctx.org.id).in("provider", ["stripe", "sumup"]),
   ])
+  // Any payment provider that can take payments (SumUp needs the payments right too); else a hint.
+  const ready = (providers ?? []).some((p) => p.status === "connected" && (p.provider !== "sumup" || (p.config as Record<string, unknown>)?.can_take_payments))
+  const pending = (providers ?? []).some((p) => p.status === "pending" || (p.provider === "sumup" && p.status === "connected"))
   const rows = data?.slice(0, PAGE_SIZE) ?? []
   const canSeeIntegrations = ctx.can("org.integrations.manage")
 
@@ -62,9 +65,9 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/payment
         }
       />
 
-      {canSeeIntegrations && stripeRow?.status !== "connected" && (
+      {canSeeIntegrations && !ready && (
         <p className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-muted px-3 py-2 text-sm">
-          {stripeRow?.status === "pending" ? t("payments.notReady") : t("payments.notConnected")}
+          {pending ? t("payments.notReady") : t("payments.notConnected")}
           <Link href="/settings/integrations" className="font-medium underline underline-offset-4">
             {t("payments.toIntegrations")}
           </Link>

@@ -936,8 +936,8 @@
   "payments": {
     "nav": "Payments",
     "title": "Payments",
-    "notConnected": "Connect Stripe to take payments.",
-    "notReady": "Stripe is connected, but setup isn't finished yet.",
+    "notConnected": "Connect a payment provider (Stripe or SumUp) to take payments.",
+    "notReady": "A payment provider is connected but not ready for payments yet (setup not finished or missing permission).",
     "toIntegrations": "Go to integrations",
     "date": "Date",
     "customer": "Customer",
