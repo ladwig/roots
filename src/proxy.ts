@@ -39,10 +39,12 @@ const ownHost = (host: string) => host === ROOT || host.endsWith(`.${ROOT}`) || 
 export async function proxy(request: NextRequest) {
   const host = (request.headers.get("host") ?? "").toLowerCase()
   // Which org's public site this request is for (getLocale() uses it for the org's language). Never trusted from outside.
-  const site = (slug: string | null) => {
+  const site = (slug: string | null, preview = false) => {
     const h = new Headers(request.headers)
     h.delete("x-roots-site")
+    h.delete("x-roots-preview")
     if (slug) h.set("x-roots-site", slug)
+    if (preview) h.set("x-roots-preview", "1") // the Website preview: the draft's language
     return { request: { headers: h } }
   }
   if (!ownHost(host)) {
@@ -82,7 +84,7 @@ export async function proxy(request: NextRequest) {
   // "/app/…" on any host → the App route without the prefix.
   const appPath = pathname === "/app" || pathname.startsWith("/app/") ? pathname.slice(4) || "/" : pathname
   // Public pages under /s/<slug> on this host carry their org (language); App requests never do.
-  const pageSite = () => site(/^\/s\/([a-z0-9-]+)(\/|$)/.exec(appPath)?.[1] ?? null)
+  const pageSite = () => site(/^\/s\/([a-z0-9-]+)(\/|$)/.exec(appPath)?.[1] ?? null, appPath === "/site-preview")
   const pass = () => (appPath === pathname ? NextResponse.next(pageSite()) : NextResponse.rewrite(new URL(`${appPath}${search}`, request.url), pageSite()))
 
   // App surface: refresh the Supabase session cookie. Auth checks live in pages/actions, not here.
