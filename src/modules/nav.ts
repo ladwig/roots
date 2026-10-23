@@ -8,6 +8,7 @@ import {
   CalendarClockIcon,
   CalendarDaysIcon,
   ContactIcon,
+  GlobeIcon,
   GraduationCapIcon,
   IdCardIcon,
   KanbanSquareIcon,
@@ -121,9 +122,20 @@ export const NAV: Area[] = [
   },
   { key: "wiki", label: "wiki.nav", icon: BookOpenIcon, children: [{ href: "/wiki", label: "wiki.nav", module: "wiki", permission: "wiki.view" }] },
   { key: "reports", label: "reports.nav", icon: BarChart3Icon, children: [{ href: "/reports", label: "reports.nav", module: "reports", permission: "reports.view" }] },
+  {
+    key: "website",
+    label: "website.nav",
+    icon: GlobeIcon,
+    children: [
+      { href: "/website", label: "nav.overview", module: "org", permission: "org.site.manage" },
+      { href: "/website/brand", label: "website.brand.nav", module: "org", permission: "org.site.manage" },
+      { href: "/website/pages", label: "website.pages.nav", module: "org", permission: "org.site.manage" },
+      { href: "/website/domain", label: "website.domain.nav", module: "org", permission: "org.site.manage" },
+    ],
+  },
 ]
 
 /** The areas this person sees: visible children only, areas without any dropped. */
 export function visibleNav(on: (module: string) => boolean, can: (perm: string) => boolean) {
-  return NAV.map((a) => ({ ...a, children: a.children.filter((c) => [c.module].flat().some(on) && [c.permission].flat().some(can)) })).filter((a) => a.children.length)
+  return NAV.map((a) => ({ ...a, children: a.children.filter((c) => [c.module].flat().some((m) => m === "org" || on(m)) && [c.permission].flat().some(can)) })) // "org" = core, always on.filter((a) => a.children.length)
 }

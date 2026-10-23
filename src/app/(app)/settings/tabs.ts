@@ -8,8 +8,6 @@ export const SETTINGS_TABS: { key: string; permission?: string }[] = [
   { key: "areas" },
   { key: "fields" },
   { key: "locations" },
-  { key: "website", permission: "org.settings.manage" },
-  { key: "domain", permission: "org.settings.manage" },
   { key: "integrations", permission: "org.integrations.manage" },
   { key: "api", permission: "org.integrations.manage" },
 ]

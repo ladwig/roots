@@ -1,22 +1,79 @@
-// The org's public start page: saving (App + API, same validation) and the default Impressum text.
+// The org's public website settings: start page, brand, header/footer, legal texts. Editing writes a draft (the whole
+// site as one object); publishing copies it live. Same functions for the App and the API, same validation.
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "@/lib/supabase/types"
-import { readBlocks, type Block } from "./blocks"
+import { DEFAULT_BLOCKS, readBlocks, type Block } from "./blocks"
+import { cleanCss, cleanHtml } from "./html"
+import { readTheme, type Theme } from "./theme"
 
-export type SiteInput = { tagline?: string | null; blocks?: unknown; imprint?: string | null; privacy?: string | null }
-export const SITE_COLS = "tagline, blocks, imprint, privacy, updated_at"
-const text = (v: string | null | undefined, max: number) => (v == null ? undefined : v.trim().slice(0, max) || null)
+type Db = SupabaseClient<Database>
+export type SiteContent = {
+  tagline: string | null
+  blocks: Block[]
+  theme: Theme
+  css: string | null
+  header_html: string | null
+  footer_html: string | null
+  imprint: string | null
+  privacy: string | null
+}
+export const CONTENT_KEYS = ["tagline", "blocks", "theme", "css", "header_html", "footer_html", "imprint", "privacy"] as const
+const COLS = `${CONTENT_KEYS.join(", ")}, draft, published_at, updated_at`
 
-/** Saves the given parts (others stay). Blocks are cleaned by readBlocks(). */
-export async function saveSite(db: SupabaseClient<Database>, orgId: string, input: SiteInput) {
-  const row = {
-    org_id: orgId,
-    ...(input.tagline !== undefined && { tagline: text(input.tagline, 300) }),
-    ...(input.blocks !== undefined && { blocks: readBlocks(input.blocks) as never }),
-    ...(input.imprint !== undefined && { imprint: text(input.imprint, 20000) }),
-    ...(input.privacy !== undefined && { privacy: text(input.privacy, 60000) }),
-  }
-  return db.from("org_sites").upsert(row, { onConflict: "org_id" }).select(SITE_COLS).single()
+const text = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) || null : null)
+/** Unknown input → clean content (HTML through the allowlist, CSS cleaned, blocks and theme validated). */
+export function readContent(input: Record<string, unknown>): Partial<SiteContent> {
+  const out: Partial<SiteContent> = {}
+  if ("tagline" in input) out.tagline = text(input.tagline, 300)
+  if ("blocks" in input) out.blocks = readBlocks(input.blocks)
+  if ("theme" in input) out.theme = readTheme(input.theme)
+  if ("css" in input) out.css = text(typeof input.css === "string" ? cleanCss(input.css) : null, 50000)
+  if ("header_html" in input) out.header_html = text(typeof input.header_html === "string" ? cleanHtml(input.header_html) : null, 50000)
+  if ("footer_html" in input) out.footer_html = text(typeof input.footer_html === "string" ? cleanHtml(input.footer_html) : null, 50000)
+  if ("imprint" in input) out.imprint = text(input.imprint, 20000)
+  if ("privacy" in input) out.privacy = text(input.privacy, 60000)
+  return out
+}
+
+const fromRow = (r: Record<string, unknown> | null): SiteContent => ({
+  tagline: (r?.tagline as string) ?? null,
+  blocks: r ? readBlocks(r.blocks) : DEFAULT_BLOCKS,
+  theme: readTheme(r?.theme),
+  css: (r?.css as string) ?? null,
+  header_html: (r?.header_html as string) ?? null,
+  footer_html: (r?.footer_html as string) ?? null,
+  imprint: (r?.imprint as string) ?? null,
+  privacy: (r?.privacy as string) ?? null,
+})
+
+/** Live and draft content (draft = live when nothing is pending). */
+export async function loadSite(db: Db, orgId: string) {
+  const { data } = await db.from("org_sites").select(COLS).eq("org_id", orgId).maybeSingle()
+  const row = data as Record<string, unknown> | null
+  const live = fromRow(row)
+  const draft = row?.draft ? { ...live, ...fromRow({ ...live, ...(row.draft as object) }) } : live
+  return { live, draft, pending: !!row?.draft, publishedAt: (row?.published_at as string) ?? null, version: String(row?.updated_at ?? "0"), exists: !!row }
+}
+
+/** Changes the draft (only the given parts). Nothing is public until publishSite(). */
+export async function saveDraft(db: Db, orgId: string, input: Record<string, unknown>) {
+  const { draft } = await loadSite(db, orgId)
+  const next = { ...draft, ...readContent(input) }
+  return db.from("org_sites").upsert({ org_id: orgId, draft: next as never }, { onConflict: "org_id" }).select("org_id").single()
+}
+
+/** The draft goes live. */
+export async function publishSite(db: Db, orgId: string) {
+  const { draft } = await loadSite(db, orgId)
+  return db
+    .from("org_sites")
+    .upsert({ org_id: orgId, ...(draft as never as object), draft: null, published_at: new Date().toISOString() } as never, { onConflict: "org_id" })
+    .select("org_id")
+    .single()
+}
+
+export async function discardDraft(db: Db, orgId: string) {
+  return db.from("org_sites").update({ draft: null }).eq("org_id", orgId)
 }
 
 /** A starting Impressum from the invoice settings (Rechnungen → Einstellungen), for the org to check and complete. */
@@ -36,4 +93,4 @@ export function imprintDraft(b: { legal_name?: string | null; street?: string | 
   return lines.filter((l) => l !== undefined && l !== null).join("  \n").replace(/(  \n){3,}/g, "\n\n")
 }
 
-export type { Block }
+export type { Block, Theme }

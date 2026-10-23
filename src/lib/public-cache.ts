@@ -59,6 +59,10 @@ export async function cachedSite(orgId: string) {
     imprint: string | null
     privacy: string | null
     saved: boolean
+    theme: unknown
+    css: string | null
+    header_html: string | null
+    footer_html: string | null
     modules: string[]
     forms: { slug: string; title: string; intro: string | null }[]
   } | null

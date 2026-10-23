@@ -459,7 +459,8 @@
     "projects.view": "View projects",
     "projects.manage": "Edit tasks",
     "rentals.view": "View rentals",
-    "rentals.manage": "Manage rentals"
+    "rentals.manage": "Manage rentals",
+    "org.site.manage": "Edit the website"
   },
   "integrations": {
     "connect": "Connect",
@@ -5140,5 +5141,84 @@
     "taken": "This domain is already connected to another organisation.",
     "takenElsewhere": "This domain is registered in another Vercel project. Remove it there first.",
     "failed": "That didn't work. Please try again in a moment."
+  },
+  "website": {
+    "nav": "Website",
+    "intro": "Your public pages: start page, events and tickets, forms, member area – look and content.",
+    "address": "Address",
+    "publishedAt": "Last published: {when}",
+    "checklist": "Checklist",
+    "check": {
+      "logo": "Logo uploaded",
+      "brand": "Colours & fonts set",
+      "start": "Start page designed",
+      "imprint": "Imprint filled in",
+      "privacy": "Privacy policy filled in",
+      "domain": "Own domain connected"
+    },
+    "pending": "Unpublished changes – only visible in the preview.",
+    "upToDate": "Everything is published.",
+    "openLive": "View live",
+    "discard": "Discard",
+    "confirmDiscard": "Discard all unpublished changes?",
+    "publish": "Publish",
+    "saveDraft": "Save draft",
+    "draftSaved": "Draft saved – not public yet.",
+    "published": "Published.",
+    "discarded": "Changes discarded.",
+    "preview": "Preview",
+    "previewHint": "Preview of the draft (start page). Updates after saving.",
+    "brand": {
+      "nav": "Brand",
+      "intro": "How all your public pages look: start page, event pages, ticket shop, checkout, forms, member area.",
+      "colors": "Colours",
+      "colorsHint": "Empty = roots' default. Text on buttons switches to black or white automatically so it stays readable.",
+      "mode": "Base",
+      "light": "Light",
+      "dark": "Dark",
+      "background": "Background",
+      "text": "Text",
+      "accent": "Accent (buttons, links)",
+      "defaultColor": "Default",
+      "type": "Type & shape",
+      "fontHeading": "Headings",
+      "fontBody": "Body text",
+      "defaultFont": "Default (roots)",
+      "radius": "Corners",
+      "radii": {
+        "square": "Square",
+        "soft": "Slightly round",
+        "round": "Round"
+      },
+      "css": "Advanced: own CSS",
+      "cssHint": "For all public pages, e.g. a background image or spacing. Classes: .site-theme (everything), .site-header, .site-footer. JavaScript isn't possible."
+    },
+    "pages": {
+      "nav": "Pages",
+      "intro": "What you design yourselves on your public pages.",
+      "start": "Start page",
+      "frame": "Header & footer",
+      "legal": "Imprint & privacy",
+      "blocks": {
+        "one": "{count} block",
+        "other": "{count} blocks"
+      },
+      "standard": "Default (events)",
+      "custom": "own HTML",
+      "empty": "empty",
+      "filled": "filled in",
+      "missing": "missing",
+      "later": "Coming: event pages and the member area as templates with fixed blocks (tickets, lineup …)."
+    },
+    "frame": {
+      "intro": "Shown above and below every public page – e.g. navigation, social links, sponsors.",
+      "html": "HTML",
+      "hint": "Own HTML with classes and style attributes; style it under Brand → own CSS. Links: https://…, mailto:, tel: or a page like /e/summer-party. Images over https only. Scripts, forms and iframes are removed.",
+      "header": "Header",
+      "footer": "Footer"
+    },
+    "domain": {
+      "nav": "Domain"
+    }
   }
 }

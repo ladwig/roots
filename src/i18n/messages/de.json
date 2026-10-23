@@ -459,7 +459,8 @@
     "projects.view": "Projekte ansehen",
     "projects.manage": "Aufgaben bearbeiten",
     "rentals.view": "Vermietung ansehen",
-    "rentals.manage": "Vermietung bearbeiten"
+    "rentals.manage": "Vermietung bearbeiten",
+    "org.site.manage": "Website bearbeiten"
   },
   "integrations": {
     "connect": "Verbinden",
@@ -5140,5 +5141,84 @@
     "taken": "Diese Domain ist schon mit einer anderen Organisation verbunden.",
     "takenElsewhere": "Diese Domain ist bei einem anderen Vercel-Projekt eingetragen. Entfernt sie dort zuerst.",
     "failed": "Das hat nicht geklappt. Versucht es gleich noch einmal."
+  },
+  "website": {
+    "nav": "Website",
+    "intro": "Eure öffentlichen Seiten: Startseite, Events und Tickets, Formulare, Mitgliederbereich – Aussehen und Inhalte.",
+    "address": "Adresse",
+    "publishedAt": "Zuletzt veröffentlicht: {when}",
+    "checklist": "Checkliste",
+    "check": {
+      "logo": "Logo hochgeladen",
+      "brand": "Farben & Schrift festgelegt",
+      "start": "Startseite gestaltet",
+      "imprint": "Impressum ausgefüllt",
+      "privacy": "Datenschutzerklärung ausgefüllt",
+      "domain": "Eigene Domain verbunden"
+    },
+    "pending": "Unveröffentlichte Änderungen – nur in der Vorschau sichtbar.",
+    "upToDate": "Alles veröffentlicht.",
+    "openLive": "Live ansehen",
+    "discard": "Verwerfen",
+    "confirmDiscard": "Alle unveröffentlichten Änderungen verwerfen?",
+    "publish": "Veröffentlichen",
+    "saveDraft": "Entwurf speichern",
+    "draftSaved": "Entwurf gespeichert – noch nicht öffentlich.",
+    "published": "Veröffentlicht.",
+    "discarded": "Änderungen verworfen.",
+    "preview": "Vorschau",
+    "previewHint": "Vorschau des Entwurfs (Startseite). Nach dem Speichern aktualisiert.",
+    "brand": {
+      "nav": "Marke",
+      "intro": "So sehen alle eure öffentlichen Seiten aus: Startseite, Eventseiten, Ticketshop, Kasse, Formulare, Mitgliederbereich.",
+      "colors": "Farben",
+      "colorsHint": "Leer = roots-Standard. Die Schrift auf Buttons wird automatisch schwarz oder weiß, damit sie lesbar bleibt.",
+      "mode": "Grundton",
+      "light": "Hell",
+      "dark": "Dunkel",
+      "background": "Hintergrund",
+      "text": "Text",
+      "accent": "Akzent (Buttons, Links)",
+      "defaultColor": "Standard",
+      "type": "Schrift & Form",
+      "fontHeading": "Überschriften",
+      "fontBody": "Fließtext",
+      "defaultFont": "Standard (roots)",
+      "radius": "Ecken",
+      "radii": {
+        "square": "Eckig",
+        "soft": "Leicht rund",
+        "round": "Rund"
+      },
+      "css": "Erweitert: eigenes CSS",
+      "cssHint": "Für alle öffentlichen Seiten, z. B. Hintergrundbild oder Abstände. Klassen: .site-theme (alles), .site-header, .site-footer. JavaScript ist nicht möglich."
+    },
+    "pages": {
+      "nav": "Seiten",
+      "intro": "Was ihr auf euren öffentlichen Seiten selbst gestaltet.",
+      "start": "Startseite",
+      "frame": "Kopf- & Fußzeile",
+      "legal": "Impressum & Datenschutz",
+      "blocks": {
+        "one": "{count} Baustein",
+        "other": "{count} Bausteine"
+      },
+      "standard": "Standard (Events)",
+      "custom": "eigenes HTML",
+      "empty": "leer",
+      "filled": "ausgefüllt",
+      "missing": "fehlt",
+      "later": "Bald auch: Eventseiten und Mitgliederbereich als eigene Vorlagen mit festen Bausteinen (Tickets, Lineup …)."
+    },
+    "frame": {
+      "intro": "Erscheint über und unter jeder öffentlichen Seite – z. B. Navigation, Social-Links, Sponsoren.",
+      "html": "HTML",
+      "hint": "Eigenes HTML mit Klassen und style-Attributen; gestalten über Marke → eigenes CSS. Links: https://…, mailto:, tel: oder eine Seite wie /e/sommerfest. Bilder nur über https. Skripte, Formulare und iframes werden entfernt.",
+      "header": "Kopfzeile",
+      "footer": "Fußzeile"
+    },
+    "domain": {
+      "nav": "Domain"
+    }
   }
 }

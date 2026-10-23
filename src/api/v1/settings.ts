@@ -9,8 +9,9 @@ import { refreshPublicFromApi } from "@/lib/public-cache"
 import { createField, inviteMember, updateField, type SetupFail } from "@/settings/server"
 import { deliverSoon } from "@/events/worker"
 import { checkDomain, connectDomain, orgDomain, removeDomain } from "@/domains/server"
-import { BLOCK_TYPES, DEFAULT_BLOCKS, readBlocks } from "@/site/blocks"
-import { saveSite } from "@/site/server"
+import { BLOCK_TYPES } from "@/site/blocks"
+import { discardDraft, loadSite, publishSite, saveDraft } from "@/site/server"
+import { FONTS, RADII } from "@/site/theme"
 import { ApiError, dbError, endpoint, notFound, uuid, type Endpoint } from "../core"
 import { ts, type Db } from "./shared"
 
@@ -89,9 +90,13 @@ async function team(db: Db, orgId: string) {
   }
 }
 
-const Site = z.object({
+const SiteContent = z.object({
   tagline: z.string().nullable(),
   blocks: z.array(z.record(z.string(), z.unknown())),
+  theme: z.record(z.string(), z.string()),
+  css: z.string().nullable(),
+  header_html: z.string().nullable(),
+  footer_html: z.string().nullable(),
   imprint: z.string().nullable(),
   privacy: z.string().nullable(),
 })
@@ -307,7 +312,7 @@ export const endpoints: Endpoint[] = [
   endpoint({
     method: "GET",
     path: "/domain",
-    permission: "org.settings.manage",
+    permission: "org.site.manage",
     tag: "Settings",
     summary: "Get the own domain",
     description: "The org's own domain for its public pages, whether it's live, and the DNS records to enter at the domain provider. null = none connected.",
@@ -317,7 +322,7 @@ export const endpoints: Endpoint[] = [
   endpoint({
     method: "PUT",
     path: "/domain",
-    permission: "org.settings.manage",
+    permission: "org.site.manage",
     tag: "Settings",
     summary: "Connect an own domain",
     description:
@@ -335,7 +340,7 @@ export const endpoints: Endpoint[] = [
   endpoint({
     method: "POST",
     path: "/domain/check",
-    permission: "org.settings.manage",
+    permission: "org.site.manage",
     tag: "Settings",
     summary: "Check the own domain now",
     description: "Asks the host whether the DNS records are in place and the certificate is issued; `status` becomes active then.",
@@ -350,7 +355,7 @@ export const endpoints: Endpoint[] = [
   endpoint({
     method: "DELETE",
     path: "/domain",
-    permission: "org.settings.manage",
+    permission: "org.site.manage",
     tag: "Settings",
     summary: "Remove the own domain",
     description: "The public pages are then only reachable at the roots address.",
@@ -360,43 +365,87 @@ export const endpoints: Endpoint[] = [
       return { ok: true as const }
     },
   }),
-  // The public start page
+  // The public website: start page, brand, header/footer, legal texts. Changes are a draft until published.
   endpoint({
     method: "GET",
     path: "/site",
-    permission: "org.settings.manage",
-    tag: "Settings",
-    summary: "Get the public start page",
-    description: "Tagline, blocks (in order, `on` = shown) and the Impressum / Datenschutz texts. Without a saved page the start page shows the upcoming events (returned as the default blocks).",
-    response: Site,
+    permission: "org.site.manage",
+    tag: "Website",
+    summary: "Get the website (live + draft)",
+    description: "`live` = what visitors see, `draft` = the edited version (same as live when nothing is pending).",
+    response: z.object({ live: SiteContent, draft: SiteContent, pending: z.boolean(), published_at: ts.nullable() }),
     async handler({ db, orgId }) {
-      const { data } = await db.from("org_sites").select("tagline, blocks, imprint, privacy").eq("org_id", orgId).maybeSingle()
-      return { tagline: data?.tagline ?? null, blocks: data ? readBlocks(data.blocks) : DEFAULT_BLOCKS, imprint: data?.imprint ?? null, privacy: data?.privacy ?? null }
+      const s = await loadSite(db, orgId)
+      return { live: s.live, draft: s.draft, pending: s.pending, published_at: s.publishedAt }
     },
   }),
   endpoint({
     method: "PUT",
     path: "/site",
-    permission: "org.settings.manage",
-    tag: "Settings",
-    summary: "Change the public start page",
+    permission: "org.site.manage",
+    tag: "Website",
+    summary: "Change the website draft",
     description:
-      "Only the given fields change; `blocks` replaces the whole list (order = page order). Block types: hero {title, text, button_label, button_href}, text {title, text (Markdown)}, links {title, items [{label, href}]}, events {title, limit} (events module), event {event_id} (one event highlighted), form {form_slug} (a published form), portal {title, text} (members module), wiki {title} (public wiki pages). Every block: {id?, type, on}. Links: https://…, mailto:, tel: or a path on the site like /e/<slug>. Invalid blocks are dropped. Goes live at once.",
+      "Only the given fields change, in the draft; nothing is public until POST /site/publish. `blocks` replaces the start page's list (order = page order). Block types: hero {title, text, button_label, button_href}, text {title, text (Markdown)}, links {title, items [{label, href}]}, events {title, limit} (events module), event {event_id}, form {form_slug}, portal {title, text} (members module), wiki {title}. Every block: {id?, type, on}. `theme` = the look of ALL public pages (mode light|dark, background/text/accent as #rrggbb, font_body/font_heading, radius). `css` = own CSS for all public pages. `header_html`/`footer_html` = HTML above/below every public page. HTML and CSS are cleaned: no scripts, event handlers, forms or iframes; links http(s)/mailto/tel or a site path like /e/<slug>; images https only.",
     body: z
       .object({
         tagline: z.string().max(300).nullable(),
         blocks: z.array(z.object({ type: z.enum(BLOCK_TYPES.map((b) => b.type) as [string, ...string[]]) }).passthrough()).max(30),
+        theme: z
+          .object({
+            mode: z.enum(["light", "dark"]),
+            background: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+            text: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+            accent: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+            font_body: z.enum(FONTS.map((f) => f.key) as [string, ...string[]]),
+            font_heading: z.enum(FONTS.map((f) => f.key) as [string, ...string[]]),
+            radius: z.enum(Object.keys(RADII) as [string, ...string[]]),
+          })
+          .partial()
+          .strict()
+          .describe("Replaces the whole theme; leave a key out for roots' default"),
+        css: z.string().max(50000).nullable(),
+        header_html: z.string().max(50000).nullable(),
+        footer_html: z.string().max(50000).nullable(),
         imprint: z.string().max(20000).nullable().describe("Markdown; required for German clubs and companies"),
         privacy: z.string().max(60000).nullable().describe("Markdown"),
       })
       .partial()
       .strict(),
-    response: Site,
+    response: z.object({ draft: SiteContent, pending: z.boolean() }),
     async handler({ db, orgId, body }) {
-      const { data, error } = await saveSite(db, orgId, body)
+      const { error } = await saveDraft(db, orgId, body)
+      if (error) throw dbError(error)
+      const s = await loadSite(db, orgId)
+      return { draft: s.draft, pending: s.pending }
+    },
+  }),
+  endpoint({
+    method: "POST",
+    path: "/site/publish",
+    permission: "org.site.manage",
+    tag: "Website",
+    summary: "Publish the website draft",
+    description: "The draft becomes what visitors see on all public pages.",
+    response: z.object({ ok: z.literal(true) }),
+    async handler({ db, orgId }) {
+      const { error } = await publishSite(db, orgId)
       if (error) throw dbError(error)
       refreshPublicFromApi(orgId)
-      return { tagline: data.tagline, blocks: readBlocks(data.blocks), imprint: data.imprint, privacy: data.privacy }
+      return { ok: true as const }
+    },
+  }),
+  endpoint({
+    method: "DELETE",
+    path: "/site/draft",
+    permission: "org.site.manage",
+    tag: "Website",
+    summary: "Discard the website draft",
+    description: "Back to what's live.",
+    response: z.object({ ok: z.literal(true) }),
+    async handler({ db, orgId }) {
+      await discardDraft(db, orgId)
+      return { ok: true as const }
     },
   }),
 ]

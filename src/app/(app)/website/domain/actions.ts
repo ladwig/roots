@@ -6,10 +6,10 @@ import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { back } from "@/lib/url"
 
-const PATH = "/settings/domain"
+const PATH = "/website/domain"
 
 export async function connectDomainAction(fd: FormData) {
-  const ctx = await requirePerm("org.settings.manage")
+  const ctx = await requirePerm("org.site.manage")
   const t = await getT()
   try {
     await connectDomain(ctx.org.id, String(fd.get("domain") ?? ""))
@@ -21,14 +21,14 @@ export async function connectDomainAction(fd: FormData) {
 
 /** "Jetzt prüfen" and the page's automatic check: the current status. */
 export async function checkDomainAction() {
-  const ctx = await requirePerm("org.settings.manage")
+  const ctx = await requirePerm("org.site.manage")
   const row = await checkDomain(ctx.org.id)
   if (row?.status === "active") deliverSoon()
   return row?.status ?? null
 }
 
 export async function removeDomainAction() {
-  const ctx = await requirePerm("org.settings.manage")
+  const ctx = await requirePerm("org.site.manage")
   const t = await getT()
   try {
     await removeDomain(ctx.org.id)
