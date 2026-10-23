@@ -35,7 +35,7 @@ export function Preview({ t, version, path = "" }: { t: T; version: string; path
   return (
     <div className="grid content-start gap-2 lg:sticky lg:top-4">
       <p className="text-xs text-muted-foreground">{t("website.previewHint")}</p>
-      <iframe key={version} src={`/site-preview${path}?v=${encodeURIComponent(version)}`} title={t("website.preview")} className="h-[75vh] w-full rounded-lg border bg-background" />
+      <iframe key={version} src={`/site-preview${path ? `${path}&` : "?"}v=${encodeURIComponent(version)}`} title={t("website.preview")} className="h-[75vh] w-full rounded-lg border bg-background" />
     </div>
   )
 }

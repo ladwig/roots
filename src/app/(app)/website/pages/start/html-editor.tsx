@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useT } from "@/i18n/client"
 
 // Click-to-insert snippets for the start page template (same placeholders as src/site/template.ts).
-const SNIPPETS: { key: string; code: string }[] = [
+const START: { key: string; code: string }[] = [
   { key: "name", code: "{{org.name}}" },
   { key: "tagline", code: "{{org.tagline}}" },
   { key: "logo", code: '<img src="{{org.logo}}" alt="{{org.name}}">' },
@@ -18,8 +18,20 @@ const SNIPPETS: { key: string; code: string }[] = [
 ]
 
 
-/** The template field with the placeholder list; clicking a placeholder inserts its snippet at the cursor. */
-export function HtmlEditor({ defaultValue }: { defaultValue: string }) {
+// Event page template: the event's data and roots' fixed blocks.
+const EVENT: { key: string; code: string }[] = [
+  { key: "eventTitle", code: "<h1>{{event.title}}</h1>" },
+  { key: "eventWhen", code: "<p>{{event.date}} · {{event.time}}{{#event.venue}} · {{event.venue}}{{/event.venue}}</p>" },
+  { key: "eventImage", code: '{{#event.image}}<img src="{{event.image}}" alt="">{{/event.image}}' },
+  { key: "eventAbout", code: '{{#event.description}}<p style="white-space:pre-line">{{event.description}}</p>{{/event.description}}' },
+  { key: "tickets", code: "{{tickets}}" },
+  { key: "timetable", code: "{{timetable}}" },
+  { key: "back", code: '<a href="{{org.url}}">← {{org.name}}</a>' },
+]
+
+/** A template field with its placeholder list; clicking a placeholder inserts its snippet at the cursor. */
+export function HtmlEditor({ name = "home_html", kind = "start", defaultValue }: { name?: string; kind?: "start" | "event"; defaultValue: string }) {
+  const SNIPPETS = kind === "event" ? EVENT : START
   const t = useT()
   const ref = useRef<HTMLTextAreaElement>(null)
   const insert = (code: string) => {
@@ -31,7 +43,7 @@ export function HtmlEditor({ defaultValue }: { defaultValue: string }) {
   }
   return (
     <div className="grid gap-3">
-      <Textarea ref={ref} name="home_html" defaultValue={defaultValue} rows={22} maxLength={100000} spellCheck={false} className="font-mono text-xs" aria-label={t("website.html.label")} />
+      <Textarea ref={ref} name={name} defaultValue={defaultValue} rows={22} maxLength={100000} spellCheck={false} className="font-mono text-xs" aria-label={t("website.html.label")} />
       <div className="grid gap-2">
         <p className="text-xs font-medium text-muted-foreground">{t("website.html.insert")}</p>
         <div className="flex flex-wrap gap-1.5">
@@ -41,7 +53,7 @@ export function HtmlEditor({ defaultValue }: { defaultValue: string }) {
             </Button>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground">{t("website.html.fields")}</p>
+        <p className="text-xs text-muted-foreground">{kind === "event" ? t("website.event.fields") : t("website.html.fields")}</p>
       </div>
     </div>
   )

@@ -97,3 +97,53 @@ export const STARTER = `<style>
     {{^events}}<p>Gerade keine Events geplant.</p>{{/events}}
   </section>
 </div>`
+
+/** Fixed blocks of the event page template: roots' own components, placed where the template says. */
+export const EVENT_SLOTS = ["tickets", "timetable"] as const
+export type EventSlot = (typeof EVENT_SLOTS)[number]
+const marker = (slot: string) => `[[roots-slot:${slot}]]`
+/** Slot values for renderTemplate(): text markers that survive escaping and cleaning. */
+export const slotMarkers = () => Object.fromEntries(EVENT_SLOTS.map((s) => [s, marker(s)]))
+
+/**
+ * Rendered + cleaned template → the same HTML with <roots-slot name="…"> elements where roots' blocks go (first use of
+ * each). Required slots missing from the template are added at the end, so e.g. ticket sales can't disappear.
+ * (Added after cleaning: org HTML can't produce these elements itself.)
+ */
+export function placeSlots(html: string, required: EventSlot[] = []) {
+  const seen = new Set<string>()
+  const out = html.replace(/\[\[roots-slot:([a-z]+)\]\]/g, (_, slot: string) => {
+    if (!(EVENT_SLOTS as readonly string[]).includes(slot) || seen.has(slot)) return ""
+    seen.add(slot)
+    return `<roots-slot name="${slot}"></roots-slot>`
+  })
+  return out + required.filter((r) => !seen.has(r)).map((r) => `<roots-slot name="${r}"></roots-slot>`).join("")
+}
+
+export const EVENT_PLACEHOLDERS: { key: string; note: string }[] = [
+  { key: "event.title · event.date · event.time · event.end · event.venue · event.address", note: "event" },
+  { key: "event.image · event.description · event.cancelled", note: "eventMore" },
+  { key: "tickets", note: "tickets" },
+  { key: "timetable", note: "timetable" },
+  { key: "org.name · org.logo · org.url", note: "org" },
+]
+
+export const EVENT_STARTER = `<style>
+  .event-page { max-width: 760px; margin: 0 auto; padding: 32px 20px 56px; display: grid; gap: 28px; }
+  .event-hero img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: var(--radius); }
+  .event-hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.05; margin: 16px 0 8px; }
+  .event-meta { opacity: .75; }
+  .event-about { white-space: pre-line; }
+</style>
+<article class="event-page">
+  <p><a href="{{org.url}}">← {{org.name}}</a></p>
+  <header class="event-hero">
+    {{#event.image}}<img src="{{event.image}}" alt="">{{/event.image}}
+    <h1>{{event.title}}</h1>
+    <p class="event-meta">{{event.date}} · {{event.time}}{{#event.venue}} · {{event.venue}}{{/event.venue}}</p>
+    {{#event.cancelled}}<p><strong>Abgesagt</strong></p>{{/event.cancelled}}
+  </header>
+  {{#event.description}}<p class="event-about">{{event.description}}</p>{{/event.description}}
+  {{timetable}}
+  {{tickets}}
+</article>`

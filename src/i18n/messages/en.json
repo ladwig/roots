@@ -5208,7 +5208,9 @@
       "empty": "empty",
       "filled": "filled in",
       "missing": "missing",
-      "later": "Coming: event pages and the member area as templates with fixed blocks (tickets, lineup …)."
+      "later": "Coming: the member area as a template with fixed blocks.",
+      "event": "Event page",
+      "standardPage": "Standard"
     },
     "frame": {
       "intro": "Shown above and below every public page – e.g. navigation, social links, sponsors.",
@@ -5237,7 +5239,14 @@
         "next": "Next event",
         "forms": "Forms",
         "portal": "Member area",
-        "wiki": "Knowledge"
+        "wiki": "Knowledge",
+        "eventTitle": "Title",
+        "eventWhen": "Date & venue",
+        "eventImage": "Image",
+        "eventAbout": "Description",
+        "tickets": "Tickets",
+        "timetable": "Programme",
+        "back": "Back link"
       },
       "vars": {
         "name": "Name",
@@ -5251,8 +5260,25 @@
         "form": "One form by its address (slug)",
         "portal": "Member area (when active)",
         "wiki": "Public knowledge pages (list)",
-        "legal": "Links to imprint / privacy"
+        "legal": "Links to imprint / privacy",
+        "event": "The event's data",
+        "eventMore": "Image, description, cancelled?",
+        "tickets": "Fixed block: ticket shop (added if missing)",
+        "timetable": "Fixed block: programme/timetable",
+        "org": "Your organisation"
       }
+    },
+    "event": {
+      "intro": "One template for all event pages. Your design around it – tickets, programme and prices are roots' fixed blocks.",
+      "standard": "Standard",
+      "own": "Own template",
+      "standardHint": "roots' event pages in your brand's look. Saving switches back to standard.",
+      "title": "Event page template",
+      "hint": "HTML + <style> with each event's data. {{tickets}} puts the ticket shop in (prices, service fee, waiting list) – if it's missing, roots adds it at the bottom. {{timetable}} = programme. Scripts are removed.",
+      "fields": "{{event.title}}, {{event.date}}, {{event.time}}, {{event.end}}, {{event.venue}}, {{event.address}}, {{event.image}}, {{event.description}}, {{#event.cancelled}}…{{/event.cancelled}}; fixed blocks: {{tickets}}, {{timetable}}; {{org.name}}, {{org.url}}.",
+      "noEvent": "The preview needs an upcoming published event.",
+      "standardPreview": "Standard event page – view it via an event on your site.",
+      "shopHere": "The ticket shop goes here."
     }
   }
 }

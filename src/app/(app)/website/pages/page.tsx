@@ -17,6 +17,7 @@ export default async function PagesList({ searchParams }: PageProps<"/website/pa
   const d = site.draft
   const rows = [
     { href: "/website/pages/start", title: t("website.pages.start"), state: site.exists ? t("website.pages.blocks", { count: d.blocks.filter((b) => b.on).length }) : t("website.pages.standard") },
+    { href: "/website/pages/event", title: t("website.pages.event"), state: d.event_html ? t("website.pages.custom") : t("website.pages.standardPage") },
     { href: "/website/pages/frame", title: t("website.pages.frame"), state: d.header_html || d.footer_html ? t("website.pages.custom") : t("website.pages.empty") },
     { href: "/website/pages/legal", title: t("website.pages.legal"), state: d.imprint && d.privacy ? t("website.pages.filled") : t("website.pages.missing") },
   ]

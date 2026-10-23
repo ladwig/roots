@@ -63,7 +63,8 @@ Then:
 2. Brand for ALL public pages: PUT /site { theme: { mode, background, text, accent (#rrggbb), font_heading, font_body, radius } } – keep text readable on the background.
 3. Header/footer if wanted: PUT /site { header_html, footer_html } (navigation, social links, sponsor logos; https images only).
 4. Start page: either blocks (PUT /site { home_mode: "blocks", blocks: [...] }) or own HTML: read GET /site/template-help first, then PUT /site { home_mode: "html", home_html } with <style> and placeholders ({{#events}}…{{/events}}, {{next.url}} …) so it stays current. Use the theme variables (var(--primary) …).
-5. Everything above is a draft. Tell the person to look at the preview under Website in the App (link app_url /website/pages/start) and only on their OK publish with POST /site/publish (roots_danger: it goes live).`,
+5. Event pages (optional): one template for all events – PUT /site { event_html } with {{event.title}}, {{event.date}} …, and the fixed blocks {{tickets}} and {{timetable}} where they should sit (see event_placeholders / event_starter in GET /site/template-help).
+6. Everything above is a draft. Tell the person to look at the preview under Website in the App (link app_url /website/pages/start) and only on their OK publish with POST /site/publish (roots_danger: it goes live).`,
   },
 ]
 

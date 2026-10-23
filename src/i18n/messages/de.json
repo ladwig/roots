@@ -5208,7 +5208,9 @@
       "empty": "leer",
       "filled": "ausgefüllt",
       "missing": "fehlt",
-      "later": "Bald auch: Eventseiten und Mitgliederbereich als eigene Vorlagen mit festen Bausteinen (Tickets, Lineup …)."
+      "later": "Bald auch: der Mitgliederbereich als Vorlage mit festen Bausteinen.",
+      "event": "Eventseite",
+      "standardPage": "Standard"
     },
     "frame": {
       "intro": "Erscheint über und unter jeder öffentlichen Seite – z. B. Navigation, Social-Links, Sponsoren.",
@@ -5237,7 +5239,14 @@
         "next": "Nächstes Event",
         "forms": "Formulare",
         "portal": "Mitgliederbereich",
-        "wiki": "Wissen"
+        "wiki": "Wissen",
+        "eventTitle": "Titel",
+        "eventWhen": "Datum & Ort",
+        "eventImage": "Bild",
+        "eventAbout": "Beschreibung",
+        "tickets": "Tickets",
+        "timetable": "Programm",
+        "back": "Zurück-Link"
       },
       "vars": {
         "name": "Name",
@@ -5251,8 +5260,25 @@
         "form": "Ein Formular über seine Adresse",
         "portal": "Mitgliederbereich (wenn aktiv)",
         "wiki": "Öffentliche Wissensseiten (Liste)",
-        "legal": "Links zu Impressum / Datenschutz"
+        "legal": "Links zu Impressum / Datenschutz",
+        "event": "Daten des Events",
+        "eventMore": "Bild, Beschreibung, abgesagt?",
+        "tickets": "Fester Baustein: Ticketshop (wird ergänzt, wenn er fehlt)",
+        "timetable": "Fester Baustein: Programm/Timetable",
+        "org": "Euer Verein"
       }
+    },
+    "event": {
+      "intro": "Eine Vorlage für alle Eventseiten. Eure Gestaltung drumherum – Tickets, Programm und Preise liefert roots als feste Bausteine.",
+      "standard": "Standard",
+      "own": "Eigene Vorlage",
+      "standardHint": "Die Eventseiten von roots im Look eurer Marke. Speichern stellt auf Standard zurück.",
+      "title": "Vorlage für Eventseiten",
+      "hint": "HTML + <style> mit den Daten des jeweiligen Events. {{tickets}} setzt den Ticketshop ein (Preise, Servicegebühr, Warteliste) – fehlt er, hängt roots ihn unten an. {{timetable}} = Programm. Skripte werden entfernt.",
+      "fields": "{{event.title}}, {{event.date}}, {{event.time}}, {{event.end}}, {{event.venue}}, {{event.address}}, {{event.image}}, {{event.description}}, {{#event.cancelled}}…{{/event.cancelled}}; feste Bausteine: {{tickets}}, {{timetable}}; {{org.name}}, {{org.url}}.",
+      "noEvent": "Für die Vorschau braucht es ein kommendes veröffentlichtes Event.",
+      "standardPreview": "Standard-Eventseite – ansehen über ein Event auf eurer Seite.",
+      "shopHere": "Hier steht der Ticketshop."
     }
   }
 }
