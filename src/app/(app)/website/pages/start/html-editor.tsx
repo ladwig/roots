@@ -29,9 +29,17 @@ const EVENT: { key: string; code: string }[] = [
   { key: "back", code: '<a href="{{org.url}}">← {{org.name}}</a>' },
 ]
 
+// Member area welcome: the signed-in person and some typical blocks.
+const PORTAL: { key: string; code: string }[] = [
+  { key: "greeting", code: "<h2>Hallo {{person.first_name}}!</h2>" },
+  { key: "news", code: '<section class="news">\n  <h3>Neuigkeiten</h3>\n  <p>…</p>\n</section>' },
+  { key: "links", code: '<p><a href="https://chat.whatsapp.com/…">WhatsApp-Gruppe</a> · <a href="mailto:info@…">Kontakt</a></p>' },
+  { key: "orgName", code: "{{org.name}}" },
+]
+
 /** A template field with its placeholder list; clicking a placeholder inserts its snippet at the cursor. */
-export function HtmlEditor({ name = "home_html", kind = "start", defaultValue }: { name?: string; kind?: "start" | "event"; defaultValue: string }) {
-  const SNIPPETS = kind === "event" ? EVENT : START
+export function HtmlEditor({ name = "home_html", kind = "start", defaultValue, rows = 22 }: { name?: string; kind?: "start" | "event" | "portal"; defaultValue: string; rows?: number }) {
+  const SNIPPETS = kind === "event" ? EVENT : kind === "portal" ? PORTAL : START
   const t = useT()
   const ref = useRef<HTMLTextAreaElement>(null)
   const insert = (code: string) => {
@@ -43,7 +51,7 @@ export function HtmlEditor({ name = "home_html", kind = "start", defaultValue }:
   }
   return (
     <div className="grid gap-3">
-      <Textarea ref={ref} name={name} defaultValue={defaultValue} rows={22} maxLength={100000} spellCheck={false} className="font-mono text-xs" aria-label={t("website.html.label")} />
+      <Textarea ref={ref} name={name} defaultValue={defaultValue} rows={rows} maxLength={100000} spellCheck={false} className="font-mono text-xs" aria-label={t("website.html.label")} />
       <div className="grid gap-2">
         <p className="text-xs font-medium text-muted-foreground">{t("website.html.insert")}</p>
         <div className="flex flex-wrap gap-1.5">
@@ -53,7 +61,7 @@ export function HtmlEditor({ name = "home_html", kind = "start", defaultValue }:
             </Button>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground">{kind === "event" ? t("website.event.fields") : t("website.html.fields")}</p>
+        <p className="text-xs text-muted-foreground">{kind === "event" ? t("website.event.fields") : kind === "portal" ? t("website.portal.fields") : t("website.html.fields")}</p>
       </div>
     </div>
   )

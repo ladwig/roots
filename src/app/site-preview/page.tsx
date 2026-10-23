@@ -7,6 +7,8 @@ import { getT } from "@/i18n/server"
 import { TemplatedEvent } from "@/app/s/[site]/e/[slug]/event-view"
 import { createPublicClient } from "@/lib/supabase/server"
 import { loadSite } from "@/site/server"
+import { cleanPage } from "@/site/html"
+import { renderTemplate } from "@/site/template"
 
 // The draft of the start page with brand, header and footer, exactly as the public page renders it – for the preview
 // next to the editors in Website. Outside the App shell (own page in an iframe); website editors only.
@@ -14,7 +16,22 @@ export default async function SitePreview({ searchParams }: PageProps<"/site-pre
   const ctx = await requirePerm("org.site.manage")
   const [{ draft }, live, t] = await Promise.all([loadSite(ctx.supabase, ctx.org.id), cachedSite(ctx.org.id), getT()])
   if (!live) notFound()
-  if ((await searchParams).page === "event") {
+  const page = (await searchParams).page
+  if (page === "portal") {
+    // The welcome area as a signed-in member would see it (example name), above where the portal tabs follow.
+    return (
+      <SiteFrame slug={ctx.org.slug} content={draft}>
+        <main className="mx-auto grid max-w-2xl gap-6 px-4 py-8">
+          <h1 className="font-heading text-xl font-semibold">{t("portal.hello", { name: "Erika" })}</h1>
+          {draft.portal_html && (
+            <div className="site-portal-welcome" dangerouslySetInnerHTML={{ __html: cleanPage(renderTemplate(draft.portal_html, { person: { first_name: "Erika", name: "Erika Muster" }, org: { name: ctx.org.name, url: "/" } })) }} />
+          )}
+          <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">{t("website.portal.tabsHere")}</p>
+        </main>
+      </SiteFrame>
+    )
+  }
+  if (page === "event") {
     // The next upcoming public event in the draft's event template (or a note when there's none / no template).
     const db = createPublicClient()
     const { data: next } = await db.from("events").select("slug").eq("org_id", ctx.org.id).gte("starts_at", new Date().toISOString()).order("starts_at").limit(1).maybeSingle()

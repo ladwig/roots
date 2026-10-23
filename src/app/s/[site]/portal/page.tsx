@@ -1,12 +1,15 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { connection } from "next/server"
-import { BookOpenIcon, HouseIcon, IdCardIcon, LogOutIcon, QrCodeIcon, ReceiptIcon, UserIcon } from "lucide-react"
+import { BookOpenIcon, GraduationCapIcon, HouseIcon, IdCardIcon, LogOutIcon, QrCodeIcon, ReceiptIcon, TicketIcon, UserIcon } from "lucide-react"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { getT } from "@/i18n/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { param } from "@/lib/url"
+import { param, sitePath } from "@/lib/url"
+import { cachedSite } from "@/lib/public-cache"
+import { cleanPage } from "@/site/html"
+import { renderTemplate } from "@/site/template"
 import { PORTAL_SECTIONS } from "@/portal/sections"
 import { getPortalContact } from "@/portal/session"
 import { PortalLoginForm } from "@/portal/login-form"
@@ -60,7 +63,8 @@ async function PortalBody({
         )}
       </div>
     )
-  const { data: mods } = await createAdminClient().from("org_modules").select("module_key").eq("org_id", org.id)
+  const [{ data: mods }, siteData] = await Promise.all([createAdminClient().from("org_modules").select("module_key").eq("org_id", org.id), cachedSite(org.id)])
+  const welcome = siteData?.portal_html
   const enabled = new Set(mods?.map((m) => m.module_key))
   const on = PORTAL_SECTIONS.filter((x) => enabled.has(x.module))
   const shown = await Promise.all(on.map((x) => (x.show ? x.show(org.id, me.contact.id) : true)))
@@ -82,6 +86,15 @@ async function PortalBody({
         </form>
       </header>
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
+      {welcome && (
+        // The org's own welcome area (Website → Seiten → Mitgliederbereich), with the signed-in person's name.
+        <div
+          className="site-portal-welcome"
+          dangerouslySetInnerHTML={{
+            __html: cleanPage(renderTemplate(welcome, { person: { first_name: me.contact.first_name ?? "", name: [me.contact.first_name, me.contact.last_name].filter(Boolean).join(" ") }, org: { name: org.name, url: sitePath(site, "/") } })),
+          }}
+        />
+      )}
       {sections.map(({ module, Section }) => (
         <Section key={module} orgId={org.id} orgName={org.name} site={site} contact={me.contact} tab={tab} />
       ))}
@@ -112,6 +125,6 @@ async function PortalBody({
   )
 }
 
-const ICONS = { card: QrCodeIcon, member: IdCardIcon, dues: ReceiptIcon, user: UserIcon, book: BookOpenIcon, home: HouseIcon }
+const ICONS = { card: QrCodeIcon, member: IdCardIcon, dues: ReceiptIcon, user: UserIcon, book: BookOpenIcon, home: HouseIcon, ticket: TicketIcon, course: GraduationCapIcon }
 
 export const instant = false

@@ -12,7 +12,7 @@ import { checkDomain, connectDomain, orgDomain, removeDomain } from "@/domains/s
 import { BLOCK_TYPES } from "@/site/blocks"
 import { discardDraft, loadSite, publishSite, saveDraft } from "@/site/server"
 import { FONTS, RADII } from "@/site/theme"
-import { EVENT_PLACEHOLDERS, EVENT_STARTER, START_PLACEHOLDERS, STARTER } from "@/site/template"
+import { EVENT_PLACEHOLDERS, EVENT_STARTER, PORTAL_PLACEHOLDERS, START_PLACEHOLDERS, STARTER } from "@/site/template"
 import { ApiError, dbError, endpoint, notFound, uuid, type Endpoint } from "../core"
 import { ts, type Db } from "./shared"
 
@@ -103,6 +103,7 @@ const SiteContent = z.object({
   home_mode: z.enum(["blocks", "html"]),
   home_html: z.string().nullable(),
   event_html: z.string().nullable(),
+  portal_html: z.string().nullable(),
 })
 const Domain = z.object({
   id: uuid,
@@ -415,6 +416,7 @@ export const endpoints: Endpoint[] = [
         privacy: z.string().max(60000).nullable().describe("Markdown"),
         home_mode: z.enum(["blocks", "html"]).describe("Start page from `blocks` or from the own HTML template `home_html`"),
         home_html: z.string().max(100000).nullable().describe("Start page template: HTML + <style>, placeholders as described in GET /site/template-help"),
+        portal_html: z.string().max(50000).nullable().describe("Welcome area at the top of the signed-in member area: HTML + <style> with {{person.first_name}}, {{person.name}}, {{org.name}}"),
         event_html: z.string().max(100000).nullable().describe("Template for ALL event pages (null = standard): HTML + <style> with {{event.*}} and the fixed blocks {{tickets}} / {{timetable}}, see GET /site/template-help"),
       })
       .partial()
@@ -437,6 +439,7 @@ export const endpoints: Endpoint[] = [
     response: z.object({
       placeholders: z.array(z.object({ key: z.string(), meaning: z.string() })).describe("Start page (home_html)"),
       event_placeholders: z.array(z.object({ key: z.string(), meaning: z.string() })).describe("Event page template (event_html)"),
+      portal_placeholders: z.array(z.object({ key: z.string(), meaning: z.string() })).describe("Member area welcome (portal_html)"),
       rules: z.array(z.string()),
       theme_variables: z.array(z.string()),
       starter: z.string(),
@@ -445,6 +448,7 @@ export const endpoints: Endpoint[] = [
     async handler() {
       return {
         placeholders: START_PLACEHOLDERS.map((p) => ({ key: p.key, meaning: en.dynamic(`website.html.vars.${p.note}`) })),
+        portal_placeholders: PORTAL_PLACEHOLDERS.map((p) => ({ key: p.key, meaning: en.dynamic(`website.html.vars.${p.note}`) })),
         event_placeholders: EVENT_PLACEHOLDERS.map((p) => ({ key: p.key, meaning: en.dynamic(`website.html.vars.${p.note}`) })),
         rules: [
           "{{a.b}} inserts a value (escaped). {{#list}}…{{/list}} repeats per item (inside, {{title}} etc. are the item's), and shows a block when a value is there. {{^list}}…{{/list}} shows when it's empty/missing.",

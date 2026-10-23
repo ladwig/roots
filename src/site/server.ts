@@ -19,8 +19,9 @@ export type SiteContent = {
   home_mode: "blocks" | "html"
   home_html: string | null
   event_html: string | null
+  portal_html: string | null
 }
-export const CONTENT_KEYS = ["tagline", "blocks", "theme", "css", "header_html", "footer_html", "imprint", "privacy", "home_mode", "home_html", "event_html"] as const
+export const CONTENT_KEYS = ["tagline", "blocks", "theme", "css", "header_html", "footer_html", "imprint", "privacy", "home_mode", "home_html", "event_html", "portal_html"] as const
 const COLS = `${CONTENT_KEYS.join(", ")}, draft, published_at, updated_at`
 
 const text = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) || null : null)
@@ -36,6 +37,7 @@ export function readContent(input: Record<string, unknown>): Partial<SiteContent
   if ("imprint" in input) out.imprint = text(input.imprint, 20000)
   if ("privacy" in input) out.privacy = text(input.privacy, 60000)
   if ("home_mode" in input) out.home_mode = input.home_mode === "html" ? "html" : "blocks"
+  if ("portal_html" in input) out.portal_html = text(typeof input.portal_html === "string" ? cleanPage(input.portal_html) : null, 50000)
   if ("event_html" in input) out.event_html = text(typeof input.event_html === "string" ? cleanPage(input.event_html) : null, 100000)
   if ("home_html" in input) out.home_html = text(typeof input.home_html === "string" ? cleanPage(input.home_html) : null, 100000)
   return out
@@ -53,6 +55,7 @@ const fromRow = (r: Record<string, unknown> | null): SiteContent => ({
   home_mode: r?.home_mode === "html" ? "html" : "blocks",
   home_html: (r?.home_html as string) ?? null,
   event_html: (r?.event_html as string) ?? null,
+  portal_html: (r?.portal_html as string) ?? null,
 })
 
 /** Live and draft content (draft = live when nothing is pending). */

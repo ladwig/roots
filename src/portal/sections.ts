@@ -4,6 +4,8 @@ import type { ComponentType } from "react"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { MembersSection } from "./sections/members"
 import { hasRentals, RentalsSection } from "./sections/rentals"
+import { CoursesSection, hasCourses } from "./sections/courses"
+import { hasTickets, TicketsSection } from "./sections/tickets"
 import { WikiSection } from "./sections/wiki"
 
 export type PortalContact = { id: string; first_name: string | null; last_name: string | null; email: string | null; phone: string | null; street: string | null; postal_code: string | null; city: string | null }
@@ -15,7 +17,7 @@ export type SectionProps = { orgId: string; orgName: string; site: string; conta
 export const PORTAL_SECTIONS: {
   module: string
   Section: ComponentType<SectionProps>
-  tabs: { key: string; label: string; icon: "card" | "member" | "dues" | "user" | "book" | "home" }[]
+  tabs: { key: string; label: string; icon: "card" | "member" | "dues" | "user" | "book" | "home" | "ticket" | "course" }[]
   show?: (orgId: string, contactId: string) => Promise<boolean>
 }[] = [
   {
@@ -32,6 +34,8 @@ export const PORTAL_SECTIONS: {
       return (count ?? 0) > 0
     },
   },
+  { module: "tickets", Section: TicketsSection, tabs: [{ key: "tickets", label: "portal.tabs.tickets", icon: "ticket" }], show: hasTickets },
+  { module: "courses", Section: CoursesSection, tabs: [{ key: "courses", label: "portal.tabs.courses", icon: "course" }], show: hasCourses },
   { module: "rentals", Section: RentalsSection, tabs: [{ key: "rental", label: "portal.tabs.rental", icon: "home" }], show: hasRentals },
   { module: "wiki", Section: WikiSection, tabs: [{ key: "wiki", label: "portal.tabs.wiki", icon: "book" }] },
 ]

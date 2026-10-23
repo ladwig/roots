@@ -147,3 +147,9 @@ export const EVENT_STARTER = `<style>
   {{timetable}}
   {{tickets}}
 </article>`
+
+/** Member area welcome HTML: who's signed in and the org. */
+export const PORTAL_PLACEHOLDERS: { key: string; note: string }[] = [
+  { key: "person.first_name · person.name", note: "person" },
+  { key: "org.name · org.url", note: "org" },
+]

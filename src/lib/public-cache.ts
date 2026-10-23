@@ -66,6 +66,7 @@ export async function cachedSite(orgId: string) {
     home_mode: "blocks" | "html"
     home_html: string | null
     event_html: string | null
+    portal_html: string | null
     modules: string[]
     forms: { slug: string; title: string; intro: string | null }[]
   } | null

@@ -2746,9 +2746,33 @@
       "dues": "Dues",
       "data": "My details",
       "wiki": "Info",
-      "rental": "My rental"
+      "rental": "My rental",
+      "tickets": "Tickets",
+      "courses": "Courses"
     },
-    "noCard": "There is no member card for you yet."
+    "noCard": "There is no member card for you yet.",
+    "tickets": {
+      "none": "No tickets yet.",
+      "count": {
+        "one": "{count} ticket",
+        "other": "{count} tickets"
+      },
+      "refunded": {
+        "one": "{count} refunded",
+        "other": "{count} refunded"
+      },
+      "open": "Open tickets"
+    },
+    "courses": {
+      "none": "You're not in any course.",
+      "waiting": "Waiting list",
+      "with": "with {name}",
+      "more": {
+        "one": "… and {count} more date",
+        "other": "… and {count} more dates"
+      },
+      "noDates": "No upcoming dates."
+    }
   },
   "tags": {
     "remove": "Remove {tag}",
@@ -5210,7 +5234,8 @@
       "missing": "missing",
       "later": "Coming: the member area as a template with fixed blocks.",
       "event": "Event page",
-      "standardPage": "Standard"
+      "standardPage": "Standard",
+      "portal": "Member area"
     },
     "frame": {
       "intro": "Shown above and below every public page – e.g. navigation, social links, sponsors.",
@@ -5246,7 +5271,11 @@
         "eventAbout": "Description",
         "tickets": "Tickets",
         "timetable": "Programme",
-        "back": "Back link"
+        "back": "Back link",
+        "greeting": "Greeting",
+        "news": "News",
+        "links": "Links",
+        "orgName": "Org name"
       },
       "vars": {
         "name": "Name",
@@ -5265,7 +5294,8 @@
         "eventMore": "Image, description, cancelled?",
         "tickets": "Fixed block: ticket shop (added if missing)",
         "timetable": "Fixed block: programme/timetable",
-        "org": "Your organisation"
+        "org": "Your organisation",
+        "person": "Signed-in person"
       }
     },
     "event": {
@@ -5279,6 +5309,13 @@
       "noEvent": "The preview needs an upcoming published event.",
       "standardPreview": "Standard event page – view it via an event on your site.",
       "shopHere": "The ticket shop goes here."
+    },
+    "portal": {
+      "intro": "At the top of the member area when someone is signed in: e.g. greeting, news, links. Below come your modules' sections (membership, tickets, courses …) – each only for those it concerns.",
+      "welcome": "Welcome area",
+      "hint": "HTML + <style>; {{person.first_name}} is the signed-in person's first name. Empty = no welcome area. Scripts are removed.",
+      "fields": "{{person.first_name}}, {{person.name}}, {{org.name}}, {{org.url}}.",
+      "tabsHere": "The member area's sections follow here (card, membership, tickets, courses …)."
     }
   }
 }

@@ -2746,9 +2746,33 @@
       "dues": "Beiträge",
       "data": "Meine Daten",
       "wiki": "Infos",
-      "rental": "Meine Miete"
+      "rental": "Meine Miete",
+      "tickets": "Tickets",
+      "courses": "Kurse"
     },
-    "noCard": "Für dich gibt es noch keine Mitgliedskarte."
+    "noCard": "Für dich gibt es noch keine Mitgliedskarte.",
+    "tickets": {
+      "none": "Noch keine Tickets.",
+      "count": {
+        "one": "{count} Ticket",
+        "other": "{count} Tickets"
+      },
+      "refunded": {
+        "one": "{count} erstattet",
+        "other": "{count} erstattet"
+      },
+      "open": "Tickets öffnen"
+    },
+    "courses": {
+      "none": "Du bist in keinem Kurs.",
+      "waiting": "Warteliste",
+      "with": "mit {name}",
+      "more": {
+        "one": "… und {count} weiterer Termin",
+        "other": "… und {count} weitere Termine"
+      },
+      "noDates": "Keine kommenden Termine."
+    }
   },
   "tags": {
     "remove": "{tag} entfernen",
@@ -5210,7 +5234,8 @@
       "missing": "fehlt",
       "later": "Bald auch: der Mitgliederbereich als Vorlage mit festen Bausteinen.",
       "event": "Eventseite",
-      "standardPage": "Standard"
+      "standardPage": "Standard",
+      "portal": "Mitgliederbereich"
     },
     "frame": {
       "intro": "Erscheint über und unter jeder öffentlichen Seite – z. B. Navigation, Social-Links, Sponsoren.",
@@ -5246,7 +5271,11 @@
         "eventAbout": "Beschreibung",
         "tickets": "Tickets",
         "timetable": "Programm",
-        "back": "Zurück-Link"
+        "back": "Zurück-Link",
+        "greeting": "Begrüßung",
+        "news": "Neuigkeiten",
+        "links": "Links",
+        "orgName": "Vereinsname"
       },
       "vars": {
         "name": "Name",
@@ -5265,7 +5294,8 @@
         "eventMore": "Bild, Beschreibung, abgesagt?",
         "tickets": "Fester Baustein: Ticketshop (wird ergänzt, wenn er fehlt)",
         "timetable": "Fester Baustein: Programm/Timetable",
-        "org": "Euer Verein"
+        "org": "Euer Verein",
+        "person": "Angemeldete Person"
       }
     },
     "event": {
@@ -5279,6 +5309,13 @@
       "noEvent": "Für die Vorschau braucht es ein kommendes veröffentlichtes Event.",
       "standardPreview": "Standard-Eventseite – ansehen über ein Event auf eurer Seite.",
       "shopHere": "Hier steht der Ticketshop."
+    },
+    "portal": {
+      "intro": "Oben im Mitgliederbereich, wenn jemand angemeldet ist: z. B. Begrüßung, Neuigkeiten, Links. Darunter folgen die Bereiche eurer Module (Mitgliedschaft, Tickets, Kurse …) – jeweils nur für die, die es betrifft.",
+      "welcome": "Willkommensbereich",
+      "hint": "HTML + <style>; {{person.first_name}} ist der Vorname der angemeldeten Person. Leer = kein Willkommensbereich. Skripte werden entfernt.",
+      "fields": "{{person.first_name}}, {{person.name}}, {{org.name}}, {{org.url}}.",
+      "tabsHere": "Hier folgen die Bereiche des Mitgliederbereichs (Karte, Mitgliedschaft, Tickets, Kurse …)."
     }
   }
 }
