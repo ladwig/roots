@@ -563,7 +563,19 @@
       "invalidKey": "Brevo hat diesen API-Schlüssel abgelehnt.",
       "setup": "Konto auf brevo.com anlegen (kostenlos bis 300 E-Mails am Tag).\nUnter „Absender, Domains & IPs“ → „Domains“ eure Domain hinzufügen und Brevos Anweisungen folgen (DNS-Einträge beim Domain-Anbieter eintragen).\nUnter „Absender“ eine Adresse dieser Domain anlegen – keine Gmail-, GMX- oder iCloud-Adresse.\nUnter „SMTP & API“ einen API-Schlüssel erstellen – mit eingeschränkten Rechten reichen: Konto lesen, Webhooks lesen/schreiben (für den Zustellstatus) und Transaktions-E-Mails senden – und hier mit dem Absender einfügen."
     },
-    "setupTitle": "So richtet ihr {name} ein"
+    "setupTitle": "So richtet ihr {name} ein",
+    "costs": {
+      "title": "Zahlungskosten an Käufer weitergeben",
+      "passOn": "Servicegebühr auf jede bezahlte Online-Bestellung (Tickets) aufschlagen",
+      "percent": "Prozent",
+      "fixed": "Fix je Bestellung",
+      "invalid": "Bitte gültige Werte eintragen (Prozent unter 50, fix höchstens 100 €).",
+      "saved": "Gespeichert.",
+      "hint": {
+        "stripe": "Stripe nimmt meist 1,5 % + 0,25 € für EU-Karten (Premium- und Nicht-EU-Karten kosten mehr). Tragt ein, was in eurem Vertrag steht. Die Gebühr wird so berechnet, dass euch der volle Ticketpreis bleibt, und vor dem Kauf angezeigt. Rechtlich: als Servicegebühr für jede Zahlungsart, nicht als Kartenaufschlag (§ 270a BGB).",
+        "sumup": "SumUp nimmt für Online-Zahlungen meist rund 2,5 % – prüft euren Vertrag. Die Gebühr wird so berechnet, dass euch der volle Ticketpreis bleibt, und vor dem Kauf angezeigt. Rechtlich: als Servicegebühr für jede Zahlungsart, nicht als Kartenaufschlag (§ 270a BGB)."
+      }
+    }
   },
   "activity": {
     "filter": "Nach Bereich filtern",
@@ -1556,7 +1568,10 @@
     "signup": "Verbindlich anmelden",
     "seatN": "Platz {n}",
     "signupHint": "Deine Anmeldung mit QR-Code für den Einlass bekommst du direkt auf der nächsten Seite und per E-Mail.",
-    "unavailable": "Der Ticketverkauf ist gerade nicht möglich. Bitte versuche es später noch einmal oder melde dich beim Veranstalter."
+    "unavailable": "Der Ticketverkauf ist gerade nicht möglich. Bitte versuche es später noch einmal oder melde dich beim Veranstalter.",
+    "serviceFee": "Servicegebühr",
+    "serviceFeeHint": "zzgl. Servicegebühr {rate} je Bestellung",
+    "subtotal": "Tickets"
   },
   "api": {
     "intro": "Mit API-Schlüsseln greifen eigene Tools, Skripte oder Apps auf die Daten deiner Organisation zu. Jeder Schlüssel darf nur, was du ankreuzt, und lässt sich jederzeit widerrufen.",

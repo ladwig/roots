@@ -9,7 +9,10 @@ import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param } from "@/lib/url"
 import { getIntegration, integrations } from "@/integrations/registry"
-import { checkStripe, connectIntegration, disconnectIntegration } from "./actions"
+import { checkStripe, connectIntegration, disconnectIntegration, savePaymentCosts } from "./actions"
+import { DEFAULT_COSTS } from "@/payments/fees"
+import { TypedInput } from "@/components/typed-input"
+import { formatMoney } from "@/lib/inputs"
 import { NotificationsSection } from "../notifications/section"
 import { SubmitButton } from "@/components/submit-button"
 
@@ -73,6 +76,44 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
                       (row.config as Record<string, unknown>)?.livemode === false &&
                       ` · ${t("integrations.stripe.testMode")}`}
                   </p>
+                )}
+                {(i.key === "stripe" || i.key === "sumup") && row?.status === "connected" && (
+                  // Payment costs → buyers: a service fee on every paid order (not a card surcharge, see src/payments/fees.ts).
+                  <details className="rounded-lg border p-3 text-sm" open={!!(row.config as Record<string, unknown>)?.pass_fees}>
+                    <summary className="cursor-pointer font-medium">{t("integrations.costs.title")}</summary>
+                    <form action={savePaymentCosts.bind(null, i.key)} className="mt-3 grid gap-3">
+                      <label className="flex items-center gap-2">
+                        <input type="checkbox" name="pass_fees" defaultChecked={!!(row.config as Record<string, unknown>)?.pass_fees} className="size-4 accent-primary" />
+                        {t("integrations.costs.passOn")}
+                      </label>
+                      <div className="flex flex-wrap items-end gap-3">
+                        <div className="grid gap-1">
+                          <Label htmlFor={`fp-${i.key}`}>{t("integrations.costs.percent")}</Label>
+                          <Input
+                            id={`fp-${i.key}`}
+                            name="fee_percent"
+                            inputMode="decimal"
+                            className="w-24 tabular-nums"
+                            defaultValue={String((row.config as Record<string, unknown>)?.fee_percent ?? DEFAULT_COSTS[i.key].percent).replace(".", ",")}
+                          />
+                        </div>
+                        <div className="grid gap-1">
+                          <Label htmlFor={`ff-${i.key}`}>{t("integrations.costs.fixed")}</Label>
+                          <TypedInput
+                            kind="money"
+                            id={`ff-${i.key}`}
+                            name="fee_fixed"
+                            className="w-28"
+                            defaultValue={formatMoney(Number((row.config as Record<string, unknown>)?.fee_fixed_cents ?? DEFAULT_COSTS[i.key].fixedCents))}
+                          />
+                        </div>
+                        <SubmitButton size="sm" variant="outline">
+                          {t("common.save")}
+                        </SubmitButton>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{t.dynamic(`integrations.costs.hint.${i.key}`)}</p>
+                    </form>
+                  </details>
                 )}
                 {i.key === "telegram" && row && (
                   <p className="text-xs text-muted-foreground">

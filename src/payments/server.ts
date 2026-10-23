@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { APP_URL } from "@/lib/url"
 import { currentPrice } from "@/billing/server"
 import { salesFee } from "@/billing/pricing"
+import { readPassOn } from "./fees"
 import { fulfilment, type PaidOrder } from "./fulfilment"
 import type { PaymentProvider } from "./provider"
 import { stripeProvider } from "./providers/stripe"
@@ -13,6 +14,13 @@ const providers: PaymentProvider[] = [stripeProvider, sumupProvider] // first re
 const db = () => createAdminClient()
 const CHECKOUT_MINUTES = 30 // Stripe allows 30 min – 24 h
 const CLAIM_MINUTES = 5 // a fulfilment claim older than this died with its process
+
+/** The service fee setting of the org's connected payment provider (null = buyers pay no fee). No provider calls. */
+export async function passOnFor(orgId: string) {
+  const { data } = await db().from("org_integrations").select("provider, config").eq("org_id", orgId).eq("status", "connected").in("provider", providers.map((p) => p.key))
+  const row = providers.map((p) => data?.find((r) => r.provider === p.key)).find(Boolean) // same order as providerFor
+  return row ? readPassOn(row.provider, row.config as Record<string, unknown>) : null
+}
 
 /** The org's connected, ready payment provider, or null. */
 export async function providerFor(orgId: string) {

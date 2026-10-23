@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
 import { param, sitePath } from "@/lib/url"
+import { serviceFee } from "@/payments/fees"
+import { passOnFor } from "@/payments/server"
 import { getSite } from "../../../data"
 import { buy } from "./actions"
 import { SubmitButton } from "@/components/submit-button"
@@ -26,7 +28,10 @@ export default async function Checkout({ params, searchParams }: PageProps<"/s/[
   const t = await getT()
   const code = param(sp, "code")?.trim().toUpperCase().slice(0, 40) || null
   const waitlist = param(sp, "w")?.trim().slice(0, 64) || null
-  const { data: offer } = await s.db.rpc("ticket_offer", { p_event: ev.id, p_code: code ?? undefined, p_waitlist: waitlist ?? undefined })
+  const [{ data: offer }, passOn] = await Promise.all([
+    s.db.rpc("ticket_offer", { p_event: ev.id, p_code: code ?? undefined, p_waitlist: waitlist ?? undefined }),
+    passOnFor(s.org.id),
+  ])
   const types = offer?.map((o) => ({ id: o.type_id, name: o.tier_name ? `${o.name} · ${o.tier_name}` : o.name, price: o.final_price, currency: o.currency }))
   // One entry per ticket, from ?t_<typeId>=<qty>
   const picked = (types ?? []).flatMap((ty) => {
@@ -34,7 +39,9 @@ export default async function Checkout({ params, searchParams }: PageProps<"/s/[
     return Array.from({ length: n }, () => ty)
   })
   const back = sitePath(site, `/e/${slug}`)
-  const total = picked.reduce((sum, ty) => sum + ty.price, 0)
+  const subtotal = picked.reduce((sum, ty) => sum + ty.price, 0)
+  const fee = serviceFee(subtotal, passOn) // same as buyTickets() adds to the order
+  const total = subtotal + fee
   const free = picked.length > 0 && total === 0 // free event → "Anmeldung" wording
 
   return (
@@ -80,6 +87,18 @@ export default async function Checkout({ params, searchParams }: PageProps<"/s/[
               </li>
             ))}
           </ol>
+          {fee > 0 && (
+            <div className="grid gap-1 text-sm text-muted-foreground">
+              <p className="flex justify-between">
+                <span>{t("shop.subtotal")}</span>
+                <span>{t.money(subtotal, picked[0].currency)}</span>
+              </p>
+              <p className="flex justify-between">
+                <span>{t("shop.serviceFee")}</span>
+                <span>{t.money(fee, picked[0].currency)}</span>
+              </p>
+            </div>
+          )}
           <p className="flex justify-between font-medium">
             <span>{t("shop.total")}</span>
             <span>{total === 0 ? t("shop.free") : t.money(total, picked[0].currency)}</span>

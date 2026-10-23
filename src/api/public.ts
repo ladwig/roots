@@ -16,7 +16,7 @@ import { cachedEvent, cachedForm, cachedOrg, cachedSite } from "@/lib/public-cac
 import { blockAvailable, DEFAULT_BLOCKS, readBlocks } from "@/site/blocks"
 import { createPublicClient } from "@/lib/supabase/server"
 import { siteUrl } from "@/lib/url"
-import { reconcileOrder } from "@/payments/server"
+import { passOnFor, reconcileOrder } from "@/payments/server"
 import { sendLoginLink } from "@/portal/login"
 import { buyTickets, ticketsForBuyer } from "@/tickets/server"
 import { joinWaitlist, waitlistClaim } from "@/tickets/waitlist"
@@ -218,13 +218,18 @@ export const publicEndpoints: PublicEndpoint[] = [
       sold_out: z.boolean(),
       code_valid: z.boolean().nullable().describe("null = no code sent"),
       waitlist_claim: z.object({ quantity: z.number().int(), offered_until: ts }).nullable(),
+      service_fee: z
+        .object({ percent: z.number(), fixed_cents: z.number().int() })
+        .nullable()
+        .describe("Service fee on every paid order (the org passes payment costs on): fee = ceil((subtotal + fixed_cents) / (1 − percent/100)) − subtotal. Show it before buying; null = none"),
     }),
     async handler({ org, params, query }) {
       const e = await publishedEvent(org, params.slug)
-      if (e.status !== "published") return { types: [], free: false, sold_out: false, code_valid: null, waitlist_claim: null }
-      const [{ data: offer }, claim] = await Promise.all([
+      if (e.status !== "published") return { types: [], free: false, sold_out: false, code_valid: null, waitlist_claim: null, service_fee: null }
+      const [{ data: offer }, claim, fee] = await Promise.all([
         createPublicClient().rpc("ticket_offer", { p_event: e.id, p_code: query.code || undefined, p_waitlist: query.waitlist || undefined }),
         waitlistClaim(e.id, query.waitlist ?? null),
+        passOnFor(org.id),
       ])
       const now = new Date().toISOString()
       const types = (offer ?? []).map((o) => ({
@@ -247,6 +252,7 @@ export const publicEndpoints: PublicEndpoint[] = [
         sold_out: !claim && types.length > 0 && (offer ?? []).filter((o) => !o.hidden).every((o) => o.remaining === 0),
         code_valid: query.code ? types.some((x) => x.code_applies) : null,
         waitlist_claim: claim ? { quantity: claim.quantity, offered_until: claim.offered_until! } : null,
+        service_fee: fee ? { percent: fee.percent, fixed_cents: fee.fixedCents } : null,
       }
     },
   }),

@@ -563,7 +563,19 @@
       "invalidKey": "Brevo rejected this API key.",
       "setup": "Create an account at brevo.com (free up to 300 emails a day).\nUnder “Senders, Domains & IPs” → “Domains”, add your domain and follow Brevo's instructions (add the DNS records at your domain provider).\nUnder “Senders”, add an address on that domain – no Gmail, GMX or iCloud address.\nUnder “SMTP & API”, create an API key – with restricted rights these are enough: Account read, Webhooks read/write (for delivery status) and sending transactional emails – and paste it here with the sender."
     },
-    "setupTitle": "How to set up {name}"
+    "setupTitle": "How to set up {name}",
+    "costs": {
+      "title": "Pass payment costs on to buyers",
+      "passOn": "Add a service fee to every paid online order (tickets)",
+      "percent": "Percent",
+      "fixed": "Fixed per order",
+      "invalid": "Please enter valid values (percent below 50, fixed at most €100).",
+      "saved": "Saved.",
+      "hint": {
+        "stripe": "Stripe usually takes 1.5% + €0.25 for EU cards (premium and non-EU cards cost more). Enter what your contract says. The fee is calculated so you keep the full ticket price, and shown before buying. Legally: a service fee for every payment method, not a card surcharge (§ 270a BGB).",
+        "sumup": "SumUp usually takes around 2.5% for online payments – check your contract. The fee is calculated so you keep the full ticket price, and shown before buying. Legally: a service fee for every payment method, not a card surcharge (§ 270a BGB)."
+      }
+    }
   },
   "activity": {
     "filter": "Filter by area",
@@ -1556,7 +1568,10 @@
     "signup": "Register now",
     "seatN": "Spot {n}",
     "signupHint": "You get your registration with a QR code for entry on the next page and by email.",
-    "unavailable": "Ticket sales aren't possible right now. Please try again later or contact the organiser."
+    "unavailable": "Ticket sales aren't possible right now. Please try again later or contact the organiser.",
+    "serviceFee": "Service fee",
+    "serviceFeeHint": "plus a service fee of {rate} per order",
+    "subtotal": "Tickets"
   },
   "api": {
     "intro": "API keys let your own tools, scripts or apps access your organisation's data. Each key can only do what you tick and can be revoked any time.",

@@ -7,6 +7,8 @@ import { back } from "@/lib/url"
 import { getIntegration, type Config, type Secret } from "@/integrations/registry"
 import { getSecret } from "@/integrations/server"
 import { stripeAccountReady } from "@/integrations/stripe"
+import { moneyCents } from "@/lib/inputs"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 const PATH = "/settings/integrations"
 
@@ -83,4 +85,21 @@ export async function checkStripe() {
   const { error } = await ctx.supabase.rpc("save_integration", { p_org: ctx.org.id, p_provider: "stripe", p_config: config as never, p_status: ready ? "connected" : "pending" })
   if (error) back(PATH, { error: dbError(t, error) })
   back(PATH, ready ? { ok: t("integrations.connected", { name: "Stripe" }) } : { error: t("integrations.pendingHint", { name: "Stripe" }) })
+}
+
+/** Pass payment costs on to buyers as a service fee (Stripe/SumUp card): on/off, percent, fixed cents. */
+export async function savePaymentCosts(provider: string, formData: FormData) {
+  const ctx = await getContext()
+  const t = await getT()
+  if (!ctx.can("org.integrations.manage") || !["stripe", "sumup"].includes(provider)) back(PATH, { error: t("errors.not_allowed") })
+  const percent = Number(String(formData.get("fee_percent") ?? "").replace(",", ".") || 0)
+  const fixed = String(formData.get("fee_fixed") ?? "").trim()
+  const fixedCents = fixed ? moneyCents(fixed) : 0
+  if (!(percent >= 0 && percent < 50) || fixedCents === null || fixedCents > 10000) back(PATH, { error: t("integrations.costs.invalid") })
+  const db = createAdminClient() // config only (no secret); permission checked above
+  const { data: row } = await db.from("org_integrations").select("config").eq("org_id", ctx.org.id).eq("provider", provider).maybeSingle()
+  if (!row) back(PATH, { error: t("errors.not_allowed") })
+  const config = { ...(row.config as Record<string, unknown>), pass_fees: formData.get("pass_fees") === "on", fee_percent: Math.round(percent * 100) / 100, fee_fixed_cents: fixedCents }
+  const { error } = await db.from("org_integrations").update({ config: config as never }).eq("org_id", ctx.org.id).eq("provider", provider)
+  back(PATH, error ? { error: dbError(t, error) } : { ok: t("integrations.costs.saved") })
 }

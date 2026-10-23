@@ -6,7 +6,8 @@ import { sendEventMail } from "@/email/event-mail"
 import { siteUrl } from "@/lib/url"
 import { ticketsPdf, type PdfTicket } from "./pdf"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { createOrder, startCheckout } from "@/payments/server"
+import { serviceFee } from "@/payments/fees"
+import { createOrder, passOnFor, startCheckout } from "@/payments/server"
 import type { PaidOrder } from "@/payments/fulfilment"
 
 const db = () => createAdminClient()
@@ -46,6 +47,9 @@ export async function buyTickets(b: BuyInput) {
     const o = offer.get(typeId)!
     return { description: [event?.title, o.name, o.tier_name].filter(Boolean).join(" · ").slice(0, 200), quantity, unitAmount: o.final_price, sourceId: typeId }
   })
+  // Payment costs passed on (Settings → Integrations): one service fee line on the order, shown before buying.
+  const subtotal = lines.reduce((s, l) => s + l.quantity * l.unitAmount, 0)
+  const fee = serviceFee(subtotal, await passOnFor(b.orgId))
   const orderId = await createOrder({
     orgId: b.orgId,
     sourceModule: "tickets",
@@ -54,7 +58,7 @@ export async function buyTickets(b: BuyInput) {
     customerEmail: b.email,
     customerName: b.name,
     metadata: { ticket_token: token, ...(b.code ? { code: b.code.toUpperCase() } : {}) },
-    items: lines,
+    items: fee ? [...lines, { description: createT("de", messages.de)("shop.serviceFee"), quantity: 1, unitAmount: fee }] : lines,
   })
   const { data: reserved, error } = await db().rpc("reserve_tickets", {
     p_order: orderId,
@@ -65,7 +69,7 @@ export async function buyTickets(b: BuyInput) {
     p_waitlist: b.waitlist ?? undefined,
   })
   // The tier or code changed between showing and reserving: don't charge a different price silently.
-  const expected = lines.reduce((s, l) => s + l.quantity * l.unitAmount, 0)
+  const expected = subtotal
   const actual = reserved?.reduce((s, k) => s + (k.price ?? 0), 0)
   if (error || actual !== expected) {
     await db().from("pay_orders").update({ status: "cancelled" }).eq("id", orderId)
