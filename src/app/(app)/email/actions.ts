@@ -139,7 +139,7 @@ export async function testTemplate(fd: FormData) {
   const id = str(fd, "id", 36)
   const [{ data: x }, { data: org }] = await Promise.all([
     ctx.supabase.from("email_templates").select("subject, body, format").eq("id", id).eq("org_id", ctx.org.id).maybeSingle(),
-    ctx.supabase.from("orgs").select("name, logo_path").eq("id", ctx.org.id).single(),
+    ctx.supabase.from("orgs").select("name, slug, logo_path, site_domain").eq("id", ctx.org.id).single(),
   ])
   if (!x || !org) back(TPL, { error: t("errors.not_allowed") })
   const ok = await testEventMail(ctx.org.id, org, x, ctx.email, t("email.testFirstName")).catch(() => false)

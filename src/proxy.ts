@@ -3,9 +3,9 @@ import { NextResponse, type NextRequest } from "next/server"
 
 const ROOT = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "localhost:3000"
 // App paths reachable without signing in.
-const PUBLIC_PATHS = ["/.well-known", "/login", "/forgot", "/auth", "/invite", "/api/webhooks", "/api/integrations", "/api/cron", "/api/v1", "/api/mcp", "/api/public", "/api/docs", "/api/unsubscribe", "/api/upload", "/upload", "/checkout", "/s", "/u", "/site", "/style"]
+const PUBLIC_PATHS = ["/i", "/.well-known", "/login", "/forgot", "/auth", "/invite", "/api/webhooks", "/api/integrations", "/api/cron", "/api/v1", "/api/mcp", "/api/public", "/api/docs", "/api/unsubscribe", "/api/upload", "/upload", "/checkout", "/s", "/u", "/site", "/style"]
 // On the bare domain these stay at the root; every other App path lives under /app there.
-const ROOT_PATHS = ["/.well-known", "/oauth", "/upload", "/login", "/forgot", "/auth", "/invite", "/api", "/checkout", "/s", "/u", "/site", "/style"]
+const ROOT_PATHS = ["/i", "/.well-known", "/oauth", "/upload", "/login", "/forgot", "/auth", "/invite", "/api", "/checkout", "/s", "/u", "/site", "/style"]
 const SITE_PAGES = ["/product", "/imprint", "/privacy"]
 const under = (pathname: string, list: string[]) => list.some((p) => pathname === p || pathname.startsWith(`${p}/`))
 
@@ -42,7 +42,7 @@ export async function proxy(request: NextRequest) {
     const slug = await siteForHost(host.replace(/:\d+$/, ""))
     if (!slug) return new NextResponse("This domain isn't connected to a site.", { status: 404 })
     const { pathname } = request.nextUrl
-    if (pathname.startsWith("/api/") || pathname.startsWith("/_next/")) return NextResponse.next()
+    if (pathname.startsWith("/api/") || pathname.startsWith("/_next/") || pathname.startsWith("/i/")) return NextResponse.next()
     // Links on public pages carry /s/<slug>/… (path mode): clean addresses on the own domain.
     // ponytail: one redirect per such click; make sitePath host-aware if it matters.
     if (pathname === `/s/${slug}` || pathname.startsWith(`/s/${slug}/`)) {
@@ -57,6 +57,7 @@ export async function proxy(request: NextRequest) {
   }
   const sub = host.endsWith(`.${ROOT}`) ? host.slice(0, -ROOT.length - 1) : null
   if (sub && sub !== "app") {
+    if (request.nextUrl.pathname.startsWith("/i/")) return NextResponse.next() // images (see src/app/i)
     // Already the internal route (redirect target of a public Server Action, see siteActionPath).
     if (request.nextUrl.pathname === `/s/${sub}` || request.nextUrl.pathname.startsWith(`/s/${sub}/`)) return NextResponse.next()
     const url = request.nextUrl.clone()

@@ -574,7 +574,7 @@ export const endpoints: Endpoint[] = [
     async handler({ db, orgId, params, body }) {
       const [{ data: x }, { data: org }] = await Promise.all([
         db.from("email_templates").select("subject, body, format").eq("id", params.id).eq("org_id", orgId).maybeSingle(),
-        db.from("orgs").select("name, logo_path").eq("id", orgId).single(),
+        db.from("orgs").select("name, slug, logo_path, site_domain").eq("id", orgId).single(),
       ])
       if (!x || !org) throw notFound()
       if (!(await testEventMail(orgId, org, x, body.to, t("email.testFirstName")).catch(() => false))) throw new ApiError(409, "no_provider", "No email provider is connected.")

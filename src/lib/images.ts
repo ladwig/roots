@@ -8,6 +8,10 @@ export const MAX_IMAGE_BYTES = 2 * 1024 * 1024
 export const imageUrl = (path?: string | null) =>
   path ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/images/${path}` : undefined
 
+/** The same image under our own domain (/i/…), on the org's live own domain if it has one: for emails. */
+export const imageUrlOn = (path: string | null | undefined, domain?: string | null) =>
+  path ? `${domain ? `https://${domain}` : (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "")}/i/${path}` : undefined
+
 // Uploads under <folder>/ with a random name, removes the previous file. Returns the new path or an error code.
 // ponytail: no resizing; images are shown small. Add a transform (Supabase image transforms or sharp) if pages get heavy.
 export async function replaceImage(supabase: SupabaseClient, folder: string, file: unknown, previous?: string | null) {
