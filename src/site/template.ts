@@ -123,6 +123,7 @@ export function placeSlots(html: string, required: EventSlot[] = []) {
 export const EVENT_PLACEHOLDERS: { key: string; note: string }[] = [
   { key: "event.title · event.date · event.time · event.end · event.venue · event.address", note: "event" },
   { key: "event.image · event.description · event.cancelled", note: "eventMore" },
+  { key: "#event.links … /event.links (label · url)", note: "eventLinks" },
   { key: "tickets", note: "tickets" },
   { key: "timetable", note: "timetable" },
   { key: "org.name · org.logo · org.url", note: "org" },

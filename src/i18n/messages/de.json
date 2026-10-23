@@ -1236,7 +1236,11 @@
     "emails": "E-Mails",
     "emailsHint": "Ticket-, Gästelisten- und Wartelisten-Mails dieses Events. Ohne Auswahl: {fallback}.",
     "emailTemplate": "Vorlage",
-    "builtInMail": "die Standard-Mail von roots"
+    "builtInMail": "die Standard-Mail von roots",
+    "links": "Links",
+    "linksHint": "Bis zu 3 Links mit Titel, z. B. Telegram-Gruppe, Instagram, Resident Advisor – als Buttons auf der Eventseite.",
+    "linkTitle": "Titel",
+    "linkUrl": "Link (https://…)"
   },
   "contacts": {
     "nav": "Kontakte",
@@ -1525,7 +1529,8 @@
     "membersIn": {
       "one": "{count} Mitglied eingelassen",
       "other": "{count} Mitglieder eingelassen"
-    }
+    },
+    "shopSettings": "Shop-Einstellungen"
   },
   "shop": {
     "title": "Tickets",
@@ -1585,7 +1590,9 @@
     "unavailable": "Der Ticketverkauf ist gerade nicht möglich. Bitte versuche es später noch einmal oder melde dich beim Veranstalter.",
     "serviceFee": "Servicegebühr",
     "serviceFeeHint": "zzgl. Servicegebühr {rate} je Bestellung",
-    "subtotal": "Tickets"
+    "subtotal": "Tickets",
+    "successTitle": "Zahlung erfolgreich!",
+    "successText": "Deine Tickets findest du hier und in deinem E-Mail-Postfach – zusammen mit allen Infos zur Anfahrt."
   },
   "api": {
     "intro": "Mit API-Schlüsseln greifen eigene Tools, Skripte oder Apps auf die Daten deiner Organisation zu. Jeder Schlüssel darf nur, was du ankreuzt, und lässt sich jederzeit widerrufen.",
@@ -5218,7 +5225,12 @@
       "cssHint": "Für alle öffentlichen Seiten, z. B. Hintergrundbild, Abstände, Größen. Feste Klassen: .site-theme (alles), .site-header, .site-footer, .site-home, .site-brand, .site-logo, .site-title, .site-tagline, .site-block (+ .site-block-hero / -text / -links / -events / -event / -form / -portal / -wiki), .site-events, .site-event, .site-event-page, .site-event-title, .site-tickets, .site-portal, .site-page (eigenes HTML). JavaScript ist nicht möglich.",
       "sampleHeading": "Sommerfest 2026",
       "sampleBody": "Tickets gibt es ab 12 € – wir freuen uns auf euch.",
-      "fontsNote": "Überschriften und Fließtext getrennt: wer überall dieselbe Schrift will, wählt sie in beiden Feldern."
+      "fontsNote": "Überschriften und Fließtext getrennt: wer überall dieselbe Schrift will, wählt sie in beiden Feldern.",
+      "language": "Sprache",
+      "languageHint": "Sprache aller öffentlichen Seiten (Shop, Kasse, Tickets, Formulare, Mitgliederbereich) und der E-Mails an Käufer und Gäste. „Browser“ = wie das Gerät des Besuchers eingestellt ist (E-Mails dann Deutsch).",
+      "languages": {
+        "auto": "Browser"
+      }
     },
     "pages": {
       "nav": "Seiten",
@@ -5278,7 +5290,8 @@
         "greeting": "Begrüßung",
         "news": "Neuigkeiten",
         "links": "Links",
-        "orgName": "Vereinsname"
+        "orgName": "Vereinsname",
+        "eventLinks": "Links des Events"
       },
       "vars": {
         "name": "Name",
@@ -5298,7 +5311,8 @@
         "tickets": "Fester Baustein: Ticketshop (wird ergänzt, wenn er fehlt)",
         "timetable": "Fester Baustein: Programm/Timetable",
         "org": "Euer Verein",
-        "person": "Angemeldete Person"
+        "person": "Angemeldete Person",
+        "eventLinks": "Die Links des Events (bis zu 3): {{label}}, {{url}}"
       }
     },
     "event": {
@@ -5308,7 +5322,7 @@
       "standardHint": "Die Eventseiten von roots im Look eurer Marke. Speichern stellt auf Standard zurück.",
       "title": "Vorlage für Eventseiten",
       "hint": "HTML + <style> mit den Daten des jeweiligen Events. {{tickets}} setzt den Ticketshop ein (Preise, Servicegebühr, Warteliste) – fehlt er, hängt roots ihn unten an. {{timetable}} = Programm. Skripte werden entfernt.",
-      "fields": "{{event.title}}, {{event.date}}, {{event.time}}, {{event.end}}, {{event.venue}}, {{event.address}}, {{event.image}}, {{event.description}}, {{#event.cancelled}}…{{/event.cancelled}}; feste Bausteine: {{tickets}}, {{timetable}}; {{org.name}}, {{org.url}}.",
+      "fields": "{{event.title}}, {{event.date}}, {{event.time}}, {{event.end}}, {{event.venue}}, {{event.address}}, {{event.image}}, {{event.description}}, {{#event.links}}{{label}} {{url}}{{/event.links}}, {{#event.cancelled}}…{{/event.cancelled}}; feste Bausteine: {{tickets}}, {{timetable}}; {{org.name}}, {{org.url}}.",
       "noEvent": "Für die Vorschau braucht es ein kommendes veröffentlichtes Event.",
       "standardPreview": "Standard-Eventseite – ansehen über ein Event auf eurer Seite.",
       "shopHere": "Hier steht der Ticketshop.",

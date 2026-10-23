@@ -32,7 +32,7 @@ export async function cachedEvent(orgId: string, slug: string) {
   cacheTag(publicTag(orgId))
   const { data } = await createPublicClient()
     .from("events")
-    .select("id, slug, title, status, starts_at, ends_at, venue_name, venue_address, description, image_path, max_tickets_per_order")
+    .select("id, slug, title, status, starts_at, ends_at, venue_name, venue_address, description, image_path, max_tickets_per_order, links")
     .eq("org_id", orgId)
     .eq("slug", slug)
     .maybeSingle()

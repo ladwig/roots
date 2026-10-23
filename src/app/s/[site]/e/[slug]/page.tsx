@@ -2,6 +2,8 @@ import Link from "next/link"
 import { param, sitePath } from "@/lib/url"
 import { notFound } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { readEventLinks } from "@/site/blocks"
 import { getT } from "@/i18n/server"
 import { imageUrl } from "@/lib/images"
 import { cachedEvent, cachedSite } from "@/lib/public-cache"
@@ -48,6 +50,15 @@ export default async function PublicEvent({ params, searchParams }: PageProps<"/
         )}
       </header>
       {e.description && <p className="whitespace-pre-line">{e.description}</p>}
+      {readEventLinks(e.links).length > 0 && (
+        <div className="site-event-links flex flex-wrap gap-2">
+          {readEventLinks(e.links).map((l) => (
+            <Button key={l.url} variant="outline" render={<a href={l.url} target="_blank" rel="noopener noreferrer" />} nativeButton={false}>
+              {l.label}
+            </Button>
+          ))}
+        </div>
+      )}
       <Timetable eventId={e.id} />
       {shop()}
     </main>

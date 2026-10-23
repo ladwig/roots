@@ -1,13 +1,11 @@
 // Waiting list (event capacity reached): join, claim links, the worker's offers. Own module without payment imports,
 // so public pages can use it without pulling in the payments ↔ tickets import cycle.
-import { messages } from "@/i18n/config"
-import { createT } from "@/i18n/translate"
+import { orgT } from "@/i18n/server"
 import { sendEventMail } from "@/email/event-mail"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { siteUrl } from "@/lib/url"
 
 const db = () => createAdminClient()
-const tDe = () => createT("de", messages.de)
 const ticketOffer = async (eventId: string) => (await db().rpc("ticket_offer", { p_event: eventId })).data ?? []
 
 /** Minute worker: expire old waiting-list offers, offer free seats in order and email each claim link. */
@@ -15,9 +13,9 @@ export async function offerWaitlist() {
   const { data: offers, error } = await db().rpc("offer_waitlist")
   if (error) throw error
   for (const o of offers ?? []) {
-    const { data: ev } = await db().from("events").select("slug, orgs(slug, site_domain)").eq("id", o.event_id).single()
+    const { data: ev } = await db().from("events").select("slug, org_id, orgs(slug, site_domain)").eq("id", o.event_id).single()
     if (!ev?.orgs) continue
-    const until = tDe().date(o.offered_until, { dateStyle: "medium", timeStyle: "short" })
+    const until = (await orgT(ev.org_id)).date(o.offered_until, { dateStyle: "medium", timeStyle: "short" })
     const link = siteUrl(ev.orgs.slug, `/e/${ev.slug}?w=${o.token}`, ev.orgs.site_domain)
     await sendEventMail("waitlist", o.event_id, { name: o.name, email: o.email, count: o.quantity, link, until }).catch((e) => console.error("waitlist email", o.id, e))
   }

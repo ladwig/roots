@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { blockAvailable, readBlocks, safeHref } from "./blocks.ts"
+import { blockAvailable, readBlocks, readEventLinks, safeHref } from "./blocks.ts"
 
 test("safeHref: web, mail, phone and site paths only", () => {
   assert.equal(safeHref("https://qs1.studio/x"), "https://qs1.studio/x")
@@ -34,4 +34,12 @@ test("blockAvailable: module blocks need their module", () => {
   assert.equal(blockAvailable("text", []), true)
   assert.equal(blockAvailable("events", ["crm"]), false)
   assert.equal(blockAvailable("events", ["events"]), true)
+})
+
+test("readEventLinks: max 3, http(s) only, needs a title", () => {
+  assert.deepEqual(readEventLinks([{ label: " Telegram ", url: "https://t.me/+x" }, { label: "bad", url: "javascript:x" }, { label: "", url: "https://a.de" }, { label: "IG", url: "https://ig.com/c" }, { label: "RA", url: "https://ra.co/e" }, { label: "4", url: "https://x.de" }]), [
+    { label: "Telegram", url: "https://t.me/+x" },
+    { label: "IG", url: "https://ig.com/c" },
+    { label: "RA", url: "https://ra.co/e" },
+  ])
 })

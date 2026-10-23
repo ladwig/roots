@@ -174,6 +174,30 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
         />
       </section>
 
+      {canManage && (
+        <form action={saveTicketSettings} id="shop-settings" className="grid gap-4 rounded-lg border p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+          <input type="hidden" name="event" value={ev.id} />
+          <h2 className="font-medium sm:col-span-3">{t("tickets.shopSettings")}</h2>
+          <div className="grid gap-2">
+            <Label htmlFor="t-names">{t("tickets.names")}</Label>
+            <NativeSelect id="t-names" name="ticket_names" defaultValue={ev.ticket_names} className="w-full">
+              {(["off", "optional", "required"] as const).map((n) => (
+                <NativeSelectOption key={n} value={n}>
+                  {t.dynamic(`tickets.namesMode.${n}`)}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="t-max">{t("tickets.maxPerOrder")}</Label>
+            <Input id="t-max" name="max_tickets_per_order" type="number" min={1} max={100} defaultValue={ev.max_tickets_per_order} />
+          </div>
+          <SubmitButton variant="outline">
+            {t("common.save")}
+          </SubmitButton>
+        </form>
+      )}
+
       <section className="grid gap-3" aria-labelledby="codes">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 id="codes" className="font-medium">
@@ -221,28 +245,6 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
         />
       </section>
 
-      {canManage && (
-        <form action={saveTicketSettings} className="grid gap-4 rounded-lg border p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-          <input type="hidden" name="event" value={ev.id} />
-          <div className="grid gap-2">
-            <Label htmlFor="t-names">{t("tickets.names")}</Label>
-            <NativeSelect id="t-names" name="ticket_names" defaultValue={ev.ticket_names} className="w-full">
-              {(["off", "optional", "required"] as const).map((n) => (
-                <NativeSelectOption key={n} value={n}>
-                  {t.dynamic(`tickets.namesMode.${n}`)}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="t-max">{t("tickets.maxPerOrder")}</Label>
-            <Input id="t-max" name="max_tickets_per_order" type="number" min={1} max={100} defaultValue={ev.max_tickets_per_order} />
-          </div>
-          <SubmitButton variant="outline">
-            {t("common.save")}
-          </SubmitButton>
-        </form>
-      )}
 
       <FormCard id="sold" title={t("tickets.soldTickets")}>
         <div className="flex flex-wrap items-center gap-3">

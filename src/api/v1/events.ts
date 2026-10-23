@@ -29,6 +29,7 @@ export const Event = z.object({
   image_url: z.string().nullable(),
   ticket_names: z.enum(TICKET_NAMES).describe("Ask buyers for a name per ticket"),
   max_tickets_per_order: z.number().int(),
+  links: z.array(z.object({ label: z.string(), url: z.string() })).describe("The event's own links (max 3), shown as buttons on its page"),
   email_template_id: uuid.nullable().describe("Email template for this event's ticket, guest-list and waiting-list mails (null = the org's default, else roots' built-in mail). See GET /email/templates"),
   custom: Custom,
   published_at: ts.nullable(),
@@ -37,7 +38,7 @@ export const Event = z.object({
   updated_at: ts,
 })
 export const EVENT_COLS =
-  "id, title, slug, status, starts_at, ends_at, location_id, venue_name, venue_address, description, capacity, image_path, ticket_names, max_tickets_per_order, email_template_id, custom, published_at, deleted_at, created_at, updated_at"
+  "id, title, slug, status, starts_at, ends_at, location_id, venue_name, venue_address, description, capacity, image_path, ticket_names, max_tickets_per_order, links, email_template_id, custom, published_at, deleted_at, created_at, updated_at"
 const eventOut = <T extends { image_path: string | null }>({ image_path, ...e }: T) => ({ ...e, image_url: imageUrl(image_path) ?? null })
 
 const EventFields = z.object({
@@ -54,6 +55,7 @@ const EventFields = z.object({
   ticket_names: z.enum(TICKET_NAMES),
   max_tickets_per_order: z.number().int().min(1).max(100),
   email_template_id: uuid.nullable().describe("An email template of the org (GET /email/templates); null = the org's default"),
+  links: z.array(z.object({ label: z.string().trim().min(1).max(60), url: z.url({ protocol: /^https?$/ }).max(500) })).max(3).describe("Up to 3 links (title + https URL), e.g. Telegram group; replaces the list"),
   custom: Custom.describe("Custom fields of the org for events: { key: value } (validated like in the App; on update merged)"),
 })
 

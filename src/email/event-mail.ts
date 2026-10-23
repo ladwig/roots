@@ -2,8 +2,8 @@
 // org's default template (both only with the email module on), else roots' built-in mail. Placeholders + the button
 // come from src/email/render.ts (EVENT_PLACEHOLDERS), texts from email.eventMail.*.
 import type { SupabaseClient } from "@supabase/supabase-js"
-import { messages } from "@/i18n/config"
-import { createT, type T } from "@/i18n/translate"
+import { orgT } from "@/i18n/server"
+import type { T } from "@/i18n/translate"
 import { imageUrlOn } from "@/lib/images"
 import { siteUrl } from "@/lib/url"
 import { sendOrgEmail, type OrgEmail } from "@/lib/org-email"
@@ -15,8 +15,6 @@ type Template = { subject: string; body: string; format: string }
 type Case = { name: string; email: string; count: number; link: string; list?: string; until?: string }
 type Ev = { title: string; starts_at: string; venue_name: string | null; venue_address: string | null }
 
-// ponytail: German for now, like the other mails to buyers; the org's language later.
-const tDe = () => createT("de", messages.de)
 
 /** roots' built-in mail; also the starting point of a new template. */
 export const builtInTemplate = (t: T): Template => ({
@@ -48,7 +46,6 @@ export function renderEventMail(t: T, template: Template | null, vars: Vars, org
 
 /** Sends one event mail in the org's name. False = no email provider (callers must not depend on it). */
 export async function sendEventMail(kind: EventMailKind, eventId: string, c: Case, attachments?: OrgEmail["attachments"]) {
-  const t = tDe()
   const { data: ev } = await createAdminClient()
     .from("events")
     .select("org_id, title, starts_at, venue_name, venue_address, own:email_templates!events_email_template_fk(subject, body, format), orgs(name, slug, logo_path, site_domain, org_modules(module_key), email_templates(subject, body, format))")
@@ -57,6 +54,7 @@ export async function sendEventMail(kind: EventMailKind, eventId: string, c: Cas
     .eq("orgs.email_templates.is_default", true)
     .single()
   if (!ev?.orgs) return false
+  const t = await orgT(ev.org_id) // the org's public language (Website › Marke)
   const emailOn = ev.orgs.org_modules.length > 0
   const template = emailOn ? (ev.own ?? ev.orgs.email_templates[0] ?? null) : null
   const mail = renderEventMail(t, template, eventMailVars(t, kind, ev, ev.orgs.name, c), ev.orgs)
@@ -79,7 +77,7 @@ export async function saveTemplate(db: SupabaseClient<Database>, orgId: string, 
 
 /** A test of a template to one address: a ticket mail for a made-up event in a week. */
 export async function testEventMail(orgId: string, org: MailOrg, template: Template, to: string, name: string) {
-  const t = tDe()
+  const t = await orgT(orgId)
   const ev = { title: t("email.eventMail.sampleEvent"), starts_at: new Date(Date.now() + 7 * 86_400_000).toISOString(), venue_name: t("email.eventMail.sampleVenue"), venue_address: null }
   const mail = renderEventMail(t, template, eventMailVars(t, "ticket", ev, org.name, { name, email: to, count: 2, link: siteUrl(org.slug, "", org.site_domain) }), org)
   return sendOrgEmail(orgId, { to, ...mail, subject: `[Test] ${mail.subject}` })

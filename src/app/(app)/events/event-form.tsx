@@ -79,6 +79,18 @@ export async function EventForm({ t, action, ev, disabled }: { t: T; action: (fd
           <CustomFieldInputs defs={defs} values={ev?.custom as CustomValues | undefined} idPrefix="ev-custom" />
         </FormCard>
 
+        <FormCard id="links" title={t("eventsPage.links")} description={t("eventsPage.linksHint")}>
+          {[0, 1, 2].map((i) => {
+            const l = (ev?.links as { label: string; url: string }[] | undefined)?.[i]
+            return (
+              <div key={i} className="grid gap-2 sm:grid-cols-[12rem_1fr]">
+                <Input name={`link_label_${i}`} defaultValue={l?.label ?? ""} maxLength={60} placeholder={i === 0 ? "Telegram" : t("eventsPage.linkTitle")} aria-label={t("eventsPage.linkTitle")} />
+                <Input name={`link_url_${i}`} defaultValue={l?.url ?? ""} maxLength={500} inputMode="url" placeholder="https://…" aria-label={t("eventsPage.linkUrl")} />
+              </div>
+            )
+          })}
+        </FormCard>
+
         <FormCard id="page" title={t("eventsPage.publicPage")}>
           <div className="grid gap-2">
             <Label htmlFor="ev-slug">{t("eventsPage.slug")}</Label>

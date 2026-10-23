@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { DownloadIcon } from "lucide-react"
+import { CircleCheckIcon, DownloadIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getT } from "@/i18n/server"
@@ -25,7 +25,15 @@ export default async function BuyerTickets({ params, searchParams }: PageProps<"
   const qrs = await Promise.all(valid.map((k) => qrSvg(k.code)))
 
   return (
-    <main className="mx-auto grid max-w-xl gap-6 px-4 py-12">
+    <main className="site-ticket-page mx-auto grid max-w-xl gap-6 px-4 py-12">
+      {param(sp, "paid") && data.order.status === "paid" && (
+        // Coming straight from the payment: the "it worked" moment before the tickets.
+        <div className="site-success grid justify-items-center gap-2 rounded-xl border bg-muted/50 px-4 py-6 text-center">
+          <CircleCheckIcon className="size-12 text-primary" aria-hidden />
+          <p className="font-heading text-xl font-semibold">{t("shop.successTitle")}</p>
+          <p className="text-sm text-muted-foreground">{t("shop.successText")}</p>
+        </div>
+      )}
       <h1 className="font-heading text-2xl font-semibold">{t("shop.yourTickets")}</h1>
       {data.order.status !== "paid" ? (
         <p className="rounded-lg border bg-muted px-3 py-2 text-sm">

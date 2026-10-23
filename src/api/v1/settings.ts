@@ -398,6 +398,7 @@ export const endpoints: Endpoint[] = [
         blocks: z.array(z.object({ type: z.enum(BLOCK_TYPES.map((b) => b.type) as [string, ...string[]]) }).passthrough()).max(30),
         theme: z
           .object({
+            locale: z.enum(["auto", "de", "en"]).describe("Language of the public pages and buyer emails (auto = visitor's browser)"),
             mode: z.enum(["light", "dark"]),
             background: z.string().regex(/^#[0-9a-fA-F]{6}$/),
             text: z.string().regex(/^#[0-9a-fA-F]{6}$/),

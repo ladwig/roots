@@ -13,7 +13,7 @@ import { getT } from "@/i18n/server"
 import type { T } from "@/i18n/translate"
 import { imageUrl } from "@/lib/images"
 import { cachedEvent, cachedForm, cachedOrg, cachedSite } from "@/lib/public-cache"
-import { blockAvailable, DEFAULT_BLOCKS, readBlocks } from "@/site/blocks"
+import { blockAvailable, DEFAULT_BLOCKS, readBlocks, readEventLinks } from "@/site/blocks"
 import { createPublicClient } from "@/lib/supabase/server"
 import { siteUrl } from "@/lib/url"
 import { passOnFor, reconcileOrder } from "@/payments/server"
@@ -63,6 +63,7 @@ const Event = z.object({
   image_url: z.string().nullable(),
   max_tickets_per_order: z.number().int(),
   url: z.string().describe("Hosted event page"),
+  links: z.array(z.object({ label: z.string(), url: z.string() })).describe("The event's own links (max 3)"),
 })
 const Offer = z.object({
   type_id: uuid,
@@ -90,6 +91,7 @@ const eventOut = (org: Org, e: NonNullable<Awaited<ReturnType<typeof cachedEvent
   description: e.description,
   image_url: e.image_path ? imageUrl(e.image_path) : null,
   max_tickets_per_order: e.max_tickets_per_order,
+  links: readEventLinks(e.links),
   url: siteUrl(org.slug, `/e/${e.slug}`, org.site_domain),
 })
 async function publishedEvent(org: Org, slug: string) {
@@ -181,7 +183,7 @@ export const publicEndpoints: PublicEndpoint[] = [
       const now = new Date().toISOString()
       const { data } = await createPublicClient()
         .from("events")
-        .select("id, slug, title, status, starts_at, ends_at, venue_name, venue_address, image_path, max_tickets_per_order")
+        .select("id, slug, title, status, starts_at, ends_at, venue_name, venue_address, image_path, max_tickets_per_order, links")
         .eq("org_id", org.id)
         .or(`ends_at.gte.${now},and(ends_at.is.null,starts_at.gte.${now})`)
         .order("starts_at")

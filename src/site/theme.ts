@@ -16,6 +16,7 @@ export const FONTS = [
 export const RADII = { square: "0rem", soft: "0.5rem", round: "1rem" } as const
 
 export type Theme = {
+  locale?: "auto" | "de" | "en" // language of the public pages + buyer emails; auto = the visitor's browser
   mode?: "light" | "dark"
   background?: string // #rrggbb
   text?: string
@@ -33,6 +34,7 @@ const font = (v: unknown) => (FONTS.some((f) => f.key === v) ? (v as string) : u
 export function readTheme(input: unknown): Theme {
   const t = (input ?? {}) as Record<string, unknown>
   const out: Theme = {
+    locale: t.locale === "de" || t.locale === "en" ? t.locale : undefined,
     mode: t.mode === "dark" ? "dark" : t.mode === "light" ? "light" : undefined,
     background: hex(t.background),
     text: hex(t.text),

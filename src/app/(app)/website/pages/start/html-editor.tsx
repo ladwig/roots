@@ -24,6 +24,7 @@ const EVENT: { key: string; code: string }[] = [
   { key: "eventWhen", code: "<p>{{event.date}} · {{event.time}}{{#event.venue}} · {{event.venue}}{{/event.venue}}</p>" },
   { key: "eventImage", code: '{{#event.image}}<img src="{{event.image}}" alt="">{{/event.image}}' },
   { key: "eventAbout", code: '{{#event.description}}<p style="white-space:pre-line">{{event.description}}</p>{{/event.description}}' },
+  { key: "eventLinks", code: '{{#event.links}}<a class="button" href="{{url}}" target="_blank">{{label}}</a>{{/event.links}}' },
   { key: "tickets", code: "{{tickets}}" },
   { key: "timetable", code: "{{timetable}}" },
   { key: "back", code: '<a href="{{org.url}}">← {{org.name}}</a>' },

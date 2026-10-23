@@ -78,3 +78,15 @@ export function readBlocks(input: unknown): Block[] {
     return [Object.fromEntries(Object.entries(block).filter(([, v]) => v !== undefined)) as Block]
   })
 }
+
+/** An event's own links (max 3, title + http(s) URL), e.g. Telegram group, Instagram. Invalid rows are dropped. */
+export function readEventLinks(input: unknown): { label: string; url: string }[] {
+  if (!Array.isArray(input)) return []
+  return input
+    .flatMap((i) => {
+      const label = str((i as Record<string, unknown>)?.label, 60)
+      const url = str((i as Record<string, unknown>)?.url, 500)
+      return label && url && /^https?:\/\/[^\s]+$/i.test(url) ? [{ label, url }] : []
+    })
+    .slice(0, 3)
+}

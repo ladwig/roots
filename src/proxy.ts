@@ -38,6 +38,13 @@ const ownHost = (host: string) => host === ROOT || host.endsWith(`.${ROOT}`) || 
 
 export async function proxy(request: NextRequest) {
   const host = (request.headers.get("host") ?? "").toLowerCase()
+  // Which org's public site this request is for (getLocale() uses it for the org's language). Never trusted from outside.
+  const site = (slug: string | null) => {
+    const h = new Headers(request.headers)
+    h.delete("x-roots-site")
+    if (slug) h.set("x-roots-site", slug)
+    return { request: { headers: h } }
+  }
   if (!ownHost(host)) {
     const slug = await siteForHost(host.replace(/:\d+$/, ""))
     if (!slug) return new NextResponse("This domain isn't connected to a site.", { status: 404 })
@@ -46,23 +53,23 @@ export async function proxy(request: NextRequest) {
     // Links on public pages carry /s/<slug>/… (path mode): clean addresses on the own domain.
     // ponytail: one redirect per such click; make sitePath host-aware if it matters.
     if (pathname === `/s/${slug}` || pathname.startsWith(`/s/${slug}/`)) {
-      if (request.method !== "GET") return NextResponse.next()
+      if (request.method !== "GET") return NextResponse.next(site(slug))
       const url = request.nextUrl.clone()
       url.pathname = pathname.slice(`/s/${slug}`.length) || "/"
       return NextResponse.redirect(url, 308)
     }
     const url = request.nextUrl.clone()
     url.pathname = `/s/${slug}${pathname === "/" ? "" : pathname}`
-    return NextResponse.rewrite(url)
+    return NextResponse.rewrite(url, site(slug))
   }
   const sub = host.endsWith(`.${ROOT}`) ? host.slice(0, -ROOT.length - 1) : null
   if (sub && sub !== "app") {
     if (request.nextUrl.pathname.startsWith("/i/")) return NextResponse.next() // images (see src/app/i)
     // Already the internal route (redirect target of a public Server Action, see siteActionPath).
-    if (request.nextUrl.pathname === `/s/${sub}` || request.nextUrl.pathname.startsWith(`/s/${sub}/`)) return NextResponse.next()
+    if (request.nextUrl.pathname === `/s/${sub}` || request.nextUrl.pathname.startsWith(`/s/${sub}/`)) return NextResponse.next(site(sub))
     const url = request.nextUrl.clone()
     url.pathname = `/s/${sub}${url.pathname === "/" ? "" : url.pathname}`
-    return NextResponse.rewrite(url)
+    return NextResponse.rewrite(url, site(sub))
   }
   const { pathname, search } = request.nextUrl
   if (!sub) {
@@ -74,7 +81,9 @@ export async function proxy(request: NextRequest) {
   }
   // "/app/…" on any host → the App route without the prefix.
   const appPath = pathname === "/app" || pathname.startsWith("/app/") ? pathname.slice(4) || "/" : pathname
-  const pass = () => (appPath === pathname ? NextResponse.next({ request }) : NextResponse.rewrite(new URL(`${appPath}${search}`, request.url), { request }))
+  // Public pages under /s/<slug> on this host carry their org (language); App requests never do.
+  const pageSite = () => site(/^\/s\/([a-z0-9-]+)(\/|$)/.exec(appPath)?.[1] ?? null)
+  const pass = () => (appPath === pathname ? NextResponse.next(pageSite()) : NextResponse.rewrite(new URL(`${appPath}${search}`, request.url), pageSite()))
 
   // App surface: refresh the Supabase session cookie. Auth checks live in pages/actions, not here.
   let response = pass()

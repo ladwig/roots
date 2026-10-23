@@ -148,7 +148,7 @@ Soft-delete side effects to handle every time:
 - Keys built at runtime (module/permission names): `t.dynamic(`modules.${key}.name`)`.
 - Module texts: `modules.<key>.name/description`, permission labels: `permissions.<perm>`, integration texts: `integrations.<key>.*`.
 - Database functions raise short codes (`raise exception 'last_owner'`) → add `errors.<code>` to both files; show them with `dbError(t, error)`. Supabase auth errors: `authError(t, error)`.
-- Language = `locale` cookie → browser language → German. Public pages will later use the org's language.
+- Language = `locale` cookie → browser language → German. Public pages: the org's language if it set one (Website › Marke, `theme.locale`; the proxy marks public requests with `x-roots-site`, `getLocale()` reads it); mails to buyers/guests use `orgT(orgId)`.
 - Adding a language: add a JSON file and the code to `locales` in `src/i18n/config.ts`.
 - `npm test` runs `*.test.mjs` files (node --test).
 

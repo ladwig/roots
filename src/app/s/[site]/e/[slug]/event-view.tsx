@@ -3,6 +3,7 @@ import { getT } from "@/i18n/server"
 import { cachedEvent } from "@/lib/public-cache"
 import { createPublicClient } from "@/lib/supabase/server"
 import { sitePath } from "@/lib/url"
+import { readEventLinks } from "@/site/blocks"
 import { cleanPage } from "@/site/html"
 import { placeSlots, renderTemplate, slotMarkers } from "@/site/template"
 
@@ -25,6 +26,7 @@ export async function TemplatedEvent({ site, org, e, template, shop, t }: { site
       image: e.image_path ? `/i/${e.image_path}` : "",
       description: e.description ?? "",
       cancelled: e.status === "cancelled",
+      links: readEventLinks(e.links),
     },
     org: { name: org.name, logo: org.logo_path ? `/i/${org.logo_path}` : "", url: sitePath(site, "/") },
     ...slotMarkers(),

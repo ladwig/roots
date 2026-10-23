@@ -29,6 +29,20 @@ export default async function BrandPage({ searchParams }: PageProps<"/website/br
       <div className="grid gap-6 lg:grid-cols-2">
         <form action={saveWebsiteDraft} className="grid content-start gap-6">
           <input type="hidden" name="back" value="/website/brand" />
+          <FormCard title={t("website.brand.language")} description={t("website.brand.languageHint")}>
+            <Choice
+              id="theme.locale"
+              name="theme.locale"
+              required
+              label={t("website.brand.language")}
+              defaultValue={th.locale ?? "auto"}
+              options={[
+                { value: "auto", label: t("website.brand.languages.auto") },
+                { value: "de", label: "Deutsch" },
+                { value: "en", label: "English" },
+              ]}
+            />
+          </FormCard>
           <FormCard title={t("website.brand.colors")} description={t("website.brand.colorsHint")}>
             <div className="grid gap-2">
               <Label htmlFor="theme.mode">{t("website.brand.mode")}</Label>

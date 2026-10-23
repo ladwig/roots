@@ -52,7 +52,7 @@ export async function buy(fd: FormData) {
       code,
       waitlist,
       items: items.map((typeId, i) => ({ typeId, holderName: ev.ticket_names === "off" ? null : holders[i] || null })),
-      successUrl: (order, token) => siteUrl(site, `/t/${order}?k=${token}`, s.org.site_domain),
+      successUrl: (order, token) => siteUrl(site, `/t/${order}?k=${token}&paid=1`, s.org.site_domain),
       cancelUrl: siteUrl(site, `/e/${slug}`, s.org.site_domain),
     })
   } catch (e) {

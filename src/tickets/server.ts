@@ -1,8 +1,8 @@
 // Ticketing, server side (service role). Buyers are anonymous: everything here validates its own input.
 import QRCode from "qrcode"
-import { messages } from "@/i18n/config"
-import { createT, type T } from "@/i18n/translate"
+import type { T } from "@/i18n/translate"
 import { sendEventMail } from "@/email/event-mail"
+import { orgT } from "@/i18n/server"
 import { siteUrl } from "@/lib/url"
 import { ticketsPdf, type PdfTicket } from "./pdf"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -58,7 +58,7 @@ export async function buyTickets(b: BuyInput) {
     customerEmail: b.email,
     customerName: b.name,
     metadata: { ticket_token: token, ...(b.code ? { code: b.code.toUpperCase() } : {}), ...(fee ? { service_fee: fee } : {}) },
-    items: fee ? [...lines, { description: createT("de", messages.de)("shop.serviceFee"), quantity: 1, unitAmount: fee }] : lines,
+    items: fee ? [...lines, { description: (await orgT(b.orgId))("shop.serviceFee"), quantity: 1, unitAmount: fee }] : lines,
   })
   const { data: reserved, error } = await db().rpc("reserve_tickets", {
     p_order: orderId,
@@ -115,7 +115,6 @@ export async function issueTickets(order: PaidOrder) {
 }
 
 // ponytail: emails/PDF in German until orgs pick a language for their public pages.
-const tDe = () => createT("de", messages.de)
 
 async function pdfTicketsFor(orderId: string, t: T): Promise<{ list: PdfTicket[]; org: { id: string; slug: string; name: string; site_domain: string | null }; eventId: string } | null> {
   const { data: rows } = await db()
@@ -149,8 +148,9 @@ export async function orderPdf(orderId: string, t: T) {
 
 
 export async function emailTickets(orderId: string) {
-  const t = tDe()
-  const { data: order } = await db().from("pay_orders").select("id, customer_email, customer_name, source_module, metadata").eq("id", orderId).single()
+  const { data: order } = await db().from("pay_orders").select("id, org_id, customer_email, customer_name, source_module, metadata").eq("id", orderId).single()
+  if (!order) return false
+  const t = await orgT(order.org_id) // PDF in the org's public language
   const meta = (order?.metadata ?? {}) as Record<string, unknown>
   const data = await pdfTicketsFor(orderId, t)
   if (!order?.customer_email || typeof meta.ticket_token !== "string" || !data) return false
