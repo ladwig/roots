@@ -50,6 +50,8 @@ export default async function PublicEvent({ params, searchParams }: PageProps<"/
         )}
       </header>
       {e.description && <p className="whitespace-pre-line">{e.description}</p>}
+      <Timetable eventId={e.id} />
+      {shop()}
       {readEventLinks(e.links).length > 0 && (
         <div className="site-event-links flex flex-wrap gap-2">
           {readEventLinks(e.links).map((l) => (
@@ -59,8 +61,6 @@ export default async function PublicEvent({ params, searchParams }: PageProps<"/
           ))}
         </div>
       )}
-      <Timetable eventId={e.id} />
-      {shop()}
     </main>
   )
 }
