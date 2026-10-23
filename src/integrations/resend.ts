@@ -15,6 +15,27 @@ const toResend = (m: import("./registry").Mail) => ({
   attachments: m.attachments?.map((a) => ({ filename: a.filename, content: Buffer.from(a.content).toString("base64") })),
 })
 
+/** Tags: letters, digits, _ and - only (Resend and Brevo). */
+export const tagValue = (v: unknown) => String(v).trim().replace(/[^A-Za-z0-9_-]+/g, "-").slice(0, 100)
+
+// Everyone roots emails through an org's Resend account lands in the segment set on the connection (e.g. the org's
+// ticket holders), so the org can reach them with Resend Broadcasts. Create the contact in the segment; if it exists
+// already, add it. ponytail: remembered per instance so a campaign doesn't double its API calls; Resend dedupes anyway.
+const added = new Set<string>()
+async function addToSegment(apiKey: string, segment: string, email: string) {
+  const key = `${segment}:${email.toLowerCase()}`
+  if (added.has(key)) return
+  const api = (path: string, body?: unknown) =>
+    fetch(`https://api.resend.com${path}`, { method: "POST", headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(10_000) })
+  const created = await api("/contacts", { email, segments: [{ id: segment }] })
+  if (!created.ok) {
+    const res = await api(`/contacts/${encodeURIComponent(email)}/segments/${encodeURIComponent(segment)}`)
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${(await res.text()).slice(0, 200)}`)
+  }
+  if (added.size > 50_000) added.clear()
+  added.add(key)
+}
+
 const EVENTS = { "email.delivered": "delivered", "email.delivery_delayed": "delayed", "email.bounced": "bounced", "email.complained": "complained" } as const
 
 /** Resend signs webhooks the Svix way: HMAC-SHA256 over "<id>.<timestamp>.<body>" with the base64 part of whsec_…. */
@@ -37,16 +58,22 @@ export const resend: Integration = {
   name: "Resend",
   fields: [
     { key: "apiKey", secret: true, placeholder: "re_…" },
-    { key: "from", placeholder: "Club Name <tickets@yourclub.de>" },
+    { key: "from_name", placeholder: "Coppi" },
+    { key: "from_email", placeholder: "tickets@coppi.de" },
+    { key: "segment", placeholder: "78261eea-8f8b-4381-83c6-79fa7120f1cf" },
   ],
-  async test(secret) {
+  async test(secret, config) {
     const res = await fetch("https://api.resend.com/domains", {
       headers: { Authorization: `Bearer ${secret.apiKey}` },
     })
     if (!res.ok) throw new Error("integrations.resend.invalidKey")
+    if (config.segment) {
+      const seg = await fetch(`https://api.resend.com/segments/${encodeURIComponent(String(config.segment))}`, { headers: { Authorization: `Bearer ${secret.apiKey}` } })
+      if (!seg.ok) throw new Error("integrations.resend.segmentNotFound")
+    }
   },
   email: {
-    async send(mail, { secret }) {
+    async send(mail, { secret, config }) {
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { authorization: `Bearer ${secret.apiKey}`, "content-type": "application/json" },
@@ -54,6 +81,7 @@ export const resend: Integration = {
         signal: AbortSignal.timeout(15_000),
       })
       if (!res.ok) throw new Error(`Resend: HTTP ${res.status} ${(await res.text()).slice(0, 200)}`)
+      if (config.segment) await addToSegment(secret.apiKey, String(config.segment), mail.to).catch((e) => console.error("resend segment", e))
     },
   },
   // Delivery feedback for the org's own account: register a webhook there (needs a full-access key; a sending-only

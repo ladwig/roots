@@ -23,8 +23,8 @@ const toBrevo = (m: Mail) => ({
   htmlContent: m.html,
   textContent: m.text,
   headers: m.headers,
-  // Brevo tags are plain strings; "send_id:<id>" comes back in the webhook.
-  tags: m.tags && Object.entries(m.tags).map(([k, v]) => `${k}:${v}`),
+  // Brevo tags are plain strings: the source ("coppi-roots") as is, others as "key:value" (send_id comes back in the webhook).
+  tags: m.tags && Object.entries(m.tags).map(([k, v]) => (k === "source" ? v : `${k}:${v}`)),
   attachment: m.attachments?.map((a) => ({ name: a.filename, content: Buffer.from(a.content).toString("base64") })),
 })
 
@@ -55,7 +55,8 @@ export const brevo: Integration = {
   name: "Brevo",
   fields: [
     { key: "apiKey", secret: true, placeholder: "xkeysib-…" },
-    { key: "from", placeholder: "Club Name <tickets@yourclub.de>" },
+    { key: "from_name", placeholder: "Coppi" },
+    { key: "from_email", placeholder: "tickets@coppi.de" },
   ],
   async test(secret) {
     const res = await fetch(`${API}/account`, { headers: { "api-key": secret.apiKey ?? "", accept: "application/json" }, signal: AbortSignal.timeout(10_000) })

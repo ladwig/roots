@@ -506,10 +506,18 @@
       "description": "E-Mails von deiner eigenen Domain senden.",
       "fields": {
         "apiKey": "API-Schlüssel",
-        "from": "Absender"
+        "from_name": "Absendername",
+        "from_email": "Absender-E-Mail",
+        "segment": "Segment-ID (optional)"
       },
       "invalidKey": "Resend hat diesen API-Schlüssel abgelehnt.",
-      "setup": "Konto auf resend.com anlegen (kostenlos bis 3.000 E-Mails im Monat).\nUnter „Domains“ eure Domain hinzufügen und Resends Anweisungen folgen (DNS-Einträge beim Domain-Anbieter eintragen).\nUnter „API Keys“ einen Schlüssel mit „Full access“ erstellen und hier einfügen.\nAbsender = eine Adresse dieser Domain, z. B. Euer Verein <tickets@euerverein.de>."
+      "setup": "Konto auf resend.com anlegen (kostenlos bis 3.000 E-Mails im Monat).\nUnter „Domains“ eure Domain hinzufügen und Resends Anweisungen folgen (DNS-Einträge beim Domain-Anbieter eintragen).\nUnter „API Keys“ einen Schlüssel mit „Full access“ erstellen und hier einfügen.\nAbsendername und eine Adresse dieser Domain eintragen, z. B. Coppi und tickets@coppi.de. Optional: eine Segment-ID, damit alle Empfänger in Resend landen.",
+      "help": {
+        "from_name": "So steht ihr im Postfach, z. B. Coppi.",
+        "from_email": "Eine Adresse eurer in Resend bestätigten Domain, z. B. tickets@coppi.de.",
+        "segment": "Jede Person, der roots über dieses Konto schreibt (Tickets, Gästeliste, Newsletter …), landet als Kontakt in diesem Segment. In Resend: Audience → Segments → Segment öffnen → ID kopieren."
+      },
+      "segmentNotFound": "Dieses Segment gibt es in eurem Resend-Konto nicht (oder der Schlüssel darf es nicht lesen)."
     },
     "continueSetup": "Einrichtung fortsetzen",
     "checkStatus": "Status prüfen",
@@ -554,11 +562,13 @@
       "description": "E-Mails über euer eigenes Brevo-Konto senden (EU-Anbieter, kostenlos bis 300 E-Mails am Tag).",
       "fields": {
         "apiKey": "API-Schlüssel",
-        "from": "Absender"
+        "from_name": "Absendername",
+        "from_email": "Absender-E-Mail"
       },
       "help": {
         "apiKey": "In Brevo: Einstellungen → SMTP & API → API-Schlüssel erstellen.",
-        "from": "Genau die Adresse, die ihr in Brevo als Absender angelegt habt."
+        "from_name": "So steht ihr im Postfach, z. B. Coppi.",
+        "from_email": "Genau die Adresse, die ihr in Brevo als Absender angelegt habt."
       },
       "invalidKey": "Brevo hat diesen API-Schlüssel abgelehnt.",
       "setup": "Konto auf brevo.com anlegen (kostenlos bis 300 E-Mails am Tag).\nUnter „Absender, Domains & IPs“ → „Domains“ eure Domain hinzufügen und Brevos Anweisungen folgen (DNS-Einträge beim Domain-Anbieter eintragen).\nUnter „Absender“ eine Adresse dieser Domain anlegen – keine Gmail-, GMX- oder iCloud-Adresse.\nUnter „SMTP & API“ einen API-Schlüssel erstellen – mit eingeschränkten Rechten reichen: Konto lesen, Webhooks lesen/schreiben (für den Zustellstatus) und Transaktions-E-Mails senden – und hier mit dem Absender einfügen."
@@ -575,7 +585,8 @@
         "stripe": "Stripe nimmt meist 1,5 % + 0,25 € für EU-Karten (Premium- und Nicht-EU-Karten kosten mehr). Tragt ein, was in eurem Vertrag steht. Die Gebühr wird so berechnet, dass euch der volle Ticketpreis bleibt, und vor dem Kauf angezeigt. Rechtlich: als Servicegebühr für jede Zahlungsart, nicht als Kartenaufschlag (§ 270a BGB).",
         "sumup": "SumUp nimmt für Online-Zahlungen meist rund 2,5 % – prüft euren Vertrag. Die Gebühr wird so berechnet, dass euch der volle Ticketpreis bleibt, und vor dem Kauf angezeigt. Rechtlich: als Servicegebühr für jede Zahlungsart, nicht als Kartenaufschlag (§ 270a BGB)."
       }
-    }
+    },
+    "senderInvalid": "Bitte eine gültige Absender-E-Mail eintragen, z. B. tickets@euerverein.de."
   },
   "activity": {
     "filter": "Nach Bereich filtern",

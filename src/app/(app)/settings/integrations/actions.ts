@@ -28,6 +28,7 @@ export async function connectIntegration(provider: string, formData: FormData) {
     } else config[f.key] = value
   }
   const hasSecret = Object.keys(secret).length > 0
+  if ("from_email" in config && !/^[^@\s<>]+@[^@\s<>]+\.[a-z]{2,}$/i.test(String(config.from_email))) back(retry, { error: t("integrations.senderInvalid") })
 
   // Check the credentials before storing them. Leaving the secret empty keeps the stored one.
   if (hasSecret && integration.test) {
@@ -39,6 +40,9 @@ export async function connectIntegration(provider: string, formData: FormData) {
     }
   }
 
+  // Keep what the provider setup stored besides the form fields (webhook id, account details …).
+  const { data: existing } = await ctx.supabase.from("org_integrations").select("config").eq("org_id", ctx.org.id).eq("provider", provider).maybeSingle()
+  config = { ...((existing?.config ?? {}) as Config), ...config }
   const { error } = await ctx.supabase.rpc("save_integration", {
     p_org: ctx.org.id,
     p_provider: provider,

@@ -11,6 +11,7 @@ import { param } from "@/lib/url"
 import { getIntegration, integrations } from "@/integrations/registry"
 import { checkStripe, connectIntegration, disconnectIntegration, savePaymentCosts } from "./actions"
 import { DEFAULT_COSTS } from "@/payments/fees"
+import { sender } from "@/integrations/brevo"
 import { TypedInput } from "@/components/typed-input"
 import { formatMoney } from "@/lib/inputs"
 import { NotificationsSection } from "../notifications/section"
@@ -235,7 +236,7 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
                     data-1p-ignore
                     data-lpignore="true"
                     placeholder={f.secret && current?.secret_id ? t("integrations.secretSaved") : f.placeholder}
-                    defaultValue={f.secret ? undefined : String((current?.config as Record<string, unknown> | undefined)?.[f.key] ?? "")}
+                    defaultValue={f.secret ? undefined : fieldValue(current?.config as Record<string, unknown> | undefined, f.key)}
                     required={f.secret && !current?.secret_id}
                   />
                   {t.has(help) && <p className="text-xs whitespace-pre-line text-muted-foreground">{t.dynamic(help)}</p>}
@@ -248,6 +249,13 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
       )}
     </div>
   )
+}
+
+// Stored value of a connect-dialog field; older connections kept the sender as one "Name <address>" (config.from).
+function fieldValue(config: Record<string, unknown> | undefined, key: string) {
+  if (config?.[key] != null) return String(config[key])
+  const old = typeof config?.from === "string" ? sender(config.from) : null
+  return key === "from_email" ? (old?.email ?? "") : key === "from_name" ? (old?.name ?? "") : ""
 }
 
 // Reads session/URL at request time; no static shell needed yet (see AGENTS.md › Cache Components).

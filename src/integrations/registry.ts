@@ -64,7 +64,7 @@ export type Integration = {
    */
   test?(secret: Secret, config: Config): Promise<void | Config>
   /**
-   * Email provider (Resend today; Postmark, Brevo, SMTP… = one file each). `config.from` is the org's sender.
+   * Email provider (Resend today; Postmark, Brevo, SMTP… = one file each). The sender is `senderOf(config)` (from_name + from_email, src/lib/org-email.ts).
    * Used by sendOrgEmail() for the org's connected provider and with roots' own credentials as the fallback.
    */
   email?: { send(mail: Mail, cred: { config: Config; secret: Secret }): Promise<void> }

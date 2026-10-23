@@ -5,9 +5,17 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { getSecret } from "@/integrations/server"
 import { integrations, type Mail } from "@/integrations/registry"
 import { brevo } from "@/integrations/brevo"
-import { resend } from "@/integrations/resend"
+import { resend, tagValue } from "@/integrations/resend"
 
 export type OrgEmail = Omit<Mail, "from">
+
+/** The sender of an email integration: name + address (two fields), or an older single "Name <address>". */
+export const senderOf = (config: Record<string, unknown>) => {
+  const email = String(config.from_email ?? "").trim()
+  if (!email) return config.from ? String(config.from) : null
+  const name = String(config.from_name ?? "").replace(/[<>"]/g, "").trim()
+  return name ? `${name} <${email}>` : email
+}
 
 // A function, not a constant: integrations → payments → tickets → here is an import cycle.
 const emailProviders = () => integrations.filter((i) => i.email)
@@ -16,15 +24,18 @@ export async function sendOrgEmail(orgId: string, mail: OrgEmail): Promise<boole
   const db = createAdminClient()
   const providers = emailProviders()
   const [{ data: org }, { data: rows }] = await Promise.all([
-    db.from("orgs").select("name").eq("id", orgId).single(),
+    db.from("orgs").select("name, slug").eq("id", orgId).single(),
     db.from("org_integrations").select("provider, config, status").eq("org_id", orgId).in("provider", providers.map((i) => i.key)).eq("status", "connected"),
   ])
+  // Every mail says where it comes from ("coppi-roots"), to filter roots' mails in the provider's log.
+  mail = { ...mail, tags: { source: tagValue(`${org?.slug ?? "org"}-roots`), ...mail.tags } }
   for (const row of rows ?? []) {
     const provider = providers.find((i) => i.key === row.provider)!
     const config = (row.config ?? {}) as Record<string, unknown>
     const secret = await getSecret(orgId, row.provider)
-    if (secret && config.from) {
-      await provider.email!.send({ ...mail, from: String(config.from) }, { config, secret })
+    const from = senderOf(config)
+    if (secret && from) {
+      await provider.email!.send({ ...mail, from }, { config, secret })
       return true
     }
   }
@@ -66,6 +77,6 @@ export async function sendPlatformEmail(mail: OrgEmail, asName?: string | null):
     return false
   }
   if (asName) from = `${asName.replace(/[<>"]/g, "")} <${from.match(/<([^>]+)>/)?.[1] ?? from}>`
-  await p.integration.email!.send({ ...mail, from }, { config: {}, secret: { apiKey: p.apiKey } })
+  await p.integration.email!.send({ ...mail, from, tags: { source: "roots", ...mail.tags } }, { config: {}, secret: { apiKey: p.apiKey } })
   return true
 }
