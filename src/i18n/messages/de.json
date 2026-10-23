@@ -5219,6 +5219,40 @@
     },
     "domain": {
       "nav": "Domain"
+    },
+    "html": {
+      "mode": "Startseite aus",
+      "blocks": "Bausteinen",
+      "own": "eigenem HTML",
+      "title": "Eigenes HTML",
+      "hint": "Euer eigenes Layout mit <style>. Platzhalter füllt roots mit echten Daten (Events, Formulare …) – so bleibt die Seite aktuell. Kopf-, Fußzeile und Marke kommen automatisch dazu. Skripte werden entfernt.",
+      "label": "HTML der Startseite",
+      "insert": "Einfügen:",
+      "fields": "In {{#events}}…{{/events}}: title, date, date_short, time, weekday, day, month, venue, address, image, url, cancelled. {{^events}}…{{/events}} = wenn keine da sind. Farben der Marke: var(--primary), var(--background), var(--foreground), var(--radius).",
+      "snippets": {
+        "name": "Name",
+        "tagline": "Untertitel",
+        "logo": "Logo",
+        "events": "Event-Liste",
+        "next": "Nächstes Event",
+        "forms": "Formulare",
+        "portal": "Mitgliederbereich",
+        "wiki": "Wissen"
+      },
+      "vars": {
+        "name": "Name",
+        "tagline": "Untertitel",
+        "logo": "Logo",
+        "events": "Kommende Events (Liste)",
+        "eventFields": "Felder je Event",
+        "noEvents": "Wenn keine Events geplant sind",
+        "next": "Das nächste Event",
+        "forms": "Veröffentlichte Formulare (Liste)",
+        "form": "Ein Formular über seine Adresse",
+        "portal": "Mitgliederbereich (wenn aktiv)",
+        "wiki": "Öffentliche Wissensseiten (Liste)",
+        "legal": "Links zu Impressum / Datenschutz"
+      }
     }
   }
 }

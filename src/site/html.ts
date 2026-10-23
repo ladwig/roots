@@ -42,3 +42,13 @@ export function cleanCss(css: string) {
     .replace(/expression\s*\(|javascript:|behavior\s*:|-moz-binding/gi, "")
     .slice(0, 50000)
 }
+
+/**
+ * A whole page of org HTML (start page template): <style> blocks are kept (cleaned as CSS), everything else goes
+ * through cleanHtml(). Placeholders ({{…}}) survive, they're plain text to the sanitizer.
+ */
+export function cleanPage(html: string) {
+  const styles: string[] = []
+  const body = html.replace(/<style[^>]*>([\s\S]*?)<\/style\s*>/gi, (_, css: string) => (styles.push(cleanCss(css)), ""))
+  return (styles.length ? `<style>${styles.join("\n")}</style>` : "") + cleanHtml(body)
+}

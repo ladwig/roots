@@ -52,6 +52,19 @@ Then:
 5. Ticket mail (email module): GET /email/templates; if the person wants a special look or text for this event, read GET /email/template-placeholders, write a template (POST /email/templates, show it first) and set PATCH /events/{id} { email_template_id }. Otherwise the org's default is used.
 6. Show a compact summary (date, place, tickets + prices, link) and ask whether to publish; only then PATCH /events/{id} { status: "published" }.`,
   },
+  {
+    name: "website_gestalten",
+    title: "Website gestalten",
+    description: "Designs the org's public pages: brand (colours, fonts) for all pages, header/footer, and the start page from blocks or own HTML with live placeholders – as a draft to check, then published.",
+    args: [{ name: "wish", description: "What it should look like / what should be on it (optional)" }],
+    text: (a) => `Design the public website of this organisation in roots${a.wish ? `: ${a.wish}` : ""}. ${ASK}
+
+1. Read what exists: GET /site (live + draft), GET /events (upcoming, published), GET /forms; ask for the style (colours, mood, fonts – or a reference site / logo colours) and what the start page must show (next event + tickets, membership form, about text, sponsors …).
+2. Brand for ALL public pages: PUT /site { theme: { mode, background, text, accent (#rrggbb), font_heading, font_body, radius } } – keep text readable on the background.
+3. Header/footer if wanted: PUT /site { header_html, footer_html } (navigation, social links, sponsor logos; https images only).
+4. Start page: either blocks (PUT /site { home_mode: "blocks", blocks: [...] }) or own HTML: read GET /site/template-help first, then PUT /site { home_mode: "html", home_html } with <style> and placeholders ({{#events}}…{{/events}}, {{next.url}} …) so it stays current. Use the theme variables (var(--primary) …).
+5. Everything above is a draft. Tell the person to look at the preview under Website in the App (link app_url /website/pages/start) and only on their OK publish with POST /site/publish (roots_danger: it goes live).`,
+  },
 ]
 
 export const promptList = () => PROMPTS.map((p) => ({ name: p.name, title: p.title, description: p.description, arguments: (p.args ?? []).map((x) => ({ ...x, required: false })) }))

@@ -63,6 +63,8 @@ export async function cachedSite(orgId: string) {
     css: string | null
     header_html: string | null
     footer_html: string | null
+    home_mode: "blocks" | "html"
+    home_html: string | null
     modules: string[]
     forms: { slug: string; title: string; intro: string | null }[]
   } | null

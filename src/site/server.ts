@@ -3,7 +3,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "@/lib/supabase/types"
 import { DEFAULT_BLOCKS, readBlocks, type Block } from "./blocks"
-import { cleanCss, cleanHtml } from "./html"
+import { cleanCss, cleanHtml, cleanPage } from "./html"
 import { readTheme, type Theme } from "./theme"
 
 type Db = SupabaseClient<Database>
@@ -16,8 +16,10 @@ export type SiteContent = {
   footer_html: string | null
   imprint: string | null
   privacy: string | null
+  home_mode: "blocks" | "html"
+  home_html: string | null
 }
-export const CONTENT_KEYS = ["tagline", "blocks", "theme", "css", "header_html", "footer_html", "imprint", "privacy"] as const
+export const CONTENT_KEYS = ["tagline", "blocks", "theme", "css", "header_html", "footer_html", "imprint", "privacy", "home_mode", "home_html"] as const
 const COLS = `${CONTENT_KEYS.join(", ")}, draft, published_at, updated_at`
 
 const text = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) || null : null)
@@ -32,6 +34,8 @@ export function readContent(input: Record<string, unknown>): Partial<SiteContent
   if ("footer_html" in input) out.footer_html = text(typeof input.footer_html === "string" ? cleanHtml(input.footer_html) : null, 50000)
   if ("imprint" in input) out.imprint = text(input.imprint, 20000)
   if ("privacy" in input) out.privacy = text(input.privacy, 60000)
+  if ("home_mode" in input) out.home_mode = input.home_mode === "html" ? "html" : "blocks"
+  if ("home_html" in input) out.home_html = text(typeof input.home_html === "string" ? cleanPage(input.home_html) : null, 100000)
   return out
 }
 
@@ -44,6 +48,8 @@ const fromRow = (r: Record<string, unknown> | null): SiteContent => ({
   footer_html: (r?.footer_html as string) ?? null,
   imprint: (r?.imprint as string) ?? null,
   privacy: (r?.privacy as string) ?? null,
+  home_mode: r?.home_mode === "html" ? "html" : "blocks",
+  home_html: (r?.home_html as string) ?? null,
 })
 
 /** Live and draft content (draft = live when nothing is pending). */

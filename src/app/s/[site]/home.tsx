@@ -10,15 +10,18 @@ import { imageUrl } from "@/lib/images"
 import type { Database } from "@/lib/supabase/types"
 import { sitePath } from "@/lib/url"
 import { blockAvailable, type Block } from "@/site/blocks"
+import { cleanPage } from "@/site/html"
+import { renderTemplate } from "@/site/template"
 import { outsideIndex } from "@/wiki/outside"
 
-type Ev = { id: string; title: string; slug: string; status: string; starts_at: string; venue_name: string | null; image_path: string | null }
-const EV_COLS = "id, title, slug, status, starts_at, venue_name, image_path"
+type Ev = { id: string; title: string; slug: string; status: string; starts_at: string; venue_name: string | null; venue_address: string | null; image_path: string | null }
+const EV_COLS = "id, title, slug, status, starts_at, venue_name, venue_address, image_path"
 type Org = { id: string; name: string; logo_path: string | null }
 
 /** The start page from its blocks (public page and the App's preview of the draft). */
-export async function SiteHome({ slug, org, db, tagline, blocks: all, modules, forms }: { slug: string; org: Org; db: SupabaseClient<Database>; tagline: string | null; blocks: Block[]; modules: string[]; forms: { slug: string; title: string; intro: string | null }[] }) {
+export async function SiteHome({ slug, org, db, tagline, blocks: all, modules, forms, home, legal }: { slug: string; org: Org; db: SupabaseClient<Database>; tagline: string | null; blocks: Block[]; modules: string[]; forms: { slug: string; title: string; intro: string | null }[]; home?: { mode: "blocks" | "html"; html: string | null }; legal?: { imprint: boolean; privacy: boolean } }) {
   const t = await getT()
+  if (home?.mode === "html" && home.html) return <HtmlHome slug={slug} org={org} db={db} tagline={tagline} modules={modules} forms={forms} html={home.html} legal={legal} t={t} />
   const blocks = all.filter((b) => b.on && blockAvailable(b.type, modules))
   const now = new Date().toISOString()
   const pinned = blocks.flatMap((b) => (b.type === "event" && b.event_id ? [b.event_id] : []))
@@ -184,4 +187,42 @@ function EventLink({ e, t, slug }: { e: Ev; t: T; slug: string }) {
       </span>
     </Link>
   )
+}
+
+/** The start page from the org's own HTML template, filled with live data (src/site/template.ts), cleaned again. */
+async function HtmlHome({ slug, org, db, tagline, modules, forms, html, legal, t }: { slug: string; org: Org; db: SupabaseClient<Database>; tagline: string | null; modules: string[]; forms: { slug: string; title: string; intro: string | null }[]; html: string; legal?: { imprint: boolean; privacy: boolean }; t: T }) {
+  const on = new Set(modules)
+  const now = new Date().toISOString()
+  const [{ data: evs }, wiki] = await Promise.all([
+    on.has("events") && /\{\{[#^]?\s*(events|next)/.test(html)
+      ? db.from("events").select(EV_COLS).eq("org_id", org.id).or(`ends_at.gte.${now},and(ends_at.is.null,starts_at.gte.${now})`).order("starts_at").limit(50)
+      : Promise.resolve({ data: [] as Ev[] }),
+    on.has("wiki") && html.includes("wiki") ? outsideIndex(org.id, "public") : Promise.resolve([]),
+  ])
+  const events = ((evs ?? []) as Ev[]).map((e) => ({
+    title: e.title,
+    date: t.date(e.starts_at, { dateStyle: "full" }),
+    date_short: t.date(e.starts_at, { dateStyle: "medium" }),
+    time: t.date(e.starts_at, { timeStyle: "short" }),
+    weekday: t.date(e.starts_at, { weekday: "long" }),
+    day: t.date(e.starts_at, { day: "numeric" }),
+    month: t.date(e.starts_at, { month: "short" }),
+    venue: e.venue_name ?? "",
+    address: e.venue_address ?? "",
+    image: e.image_path ? `/i/${e.image_path}` : "",
+    url: sitePath(slug, `/e/${e.slug}`),
+    cancelled: e.status === "cancelled",
+  }))
+  const data = {
+    org: { name: org.name, tagline: tagline ?? "", logo: org.logo_path ? `/i/${org.logo_path}` : "", url: sitePath(slug, "/") },
+    events,
+    next: events[0] ?? null,
+    forms: forms.map((f) => ({ title: f.title, intro: f.intro ?? "", url: sitePath(slug, `/f/${f.slug}`) })),
+    form: Object.fromEntries(forms.map((f) => [f.slug, { title: f.title, url: sitePath(slug, `/f/${f.slug}`) }])),
+    portal: on.has("members") ? { url: sitePath(slug, "/portal") } : null,
+    wiki: wiki.map((p) => ({ title: p.title, url: sitePath(slug, `/wiki/${p.id}`) })),
+    imprint_url: legal?.imprint ? sitePath(slug, "/impressum") : "",
+    privacy_url: legal?.privacy ? sitePath(slug, "/datenschutz") : "",
+  }
+  return <div className="site-page" dangerouslySetInnerHTML={{ __html: cleanPage(renderTemplate(html, data)) }} />
 }

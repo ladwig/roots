@@ -1397,14 +1397,14 @@ isOneToOne: false
                   ]
                 },"org_sites": {
                   Row: {
-                    "blocks": NonNullable<Json>,"created_at": string,"created_by": string | null,"css": string | null,"draft": Json | null,"footer_html": string | null,"header_html": string | null,"id": string,"imprint": string | null,"org_id": string,"privacy": string | null,"published_at": string | null,"tagline": string | null,"theme": NonNullable<Json>,"updated_at": string,"updated_by": string | null
+                    "blocks": NonNullable<Json>,"created_at": string,"created_by": string | null,"css": string | null,"draft": Json | null,"footer_html": string | null,"header_html": string | null,"home_html": string | null,"home_mode": string,"id": string,"imprint": string | null,"org_id": string,"privacy": string | null,"published_at": string | null,"tagline": string | null,"theme": NonNullable<Json>,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "blocks"?: NonNullable<Json>,"created_at"?: string,"created_by"?: string | null,"css"?: string | null,"draft"?: Json | null,"footer_html"?: string | null,"header_html"?: string | null,"id"?: string,"imprint"?: string | null,"org_id": string,"privacy"?: string | null,"published_at"?: string | null,"tagline"?: string | null,"theme"?: NonNullable<Json>,"updated_at"?: string,"updated_by"?: string | null
+                    "blocks"?: NonNullable<Json>,"created_at"?: string,"created_by"?: string | null,"css"?: string | null,"draft"?: Json | null,"footer_html"?: string | null,"header_html"?: string | null,"home_html"?: string | null,"home_mode"?: string,"id"?: string,"imprint"?: string | null,"org_id": string,"privacy"?: string | null,"published_at"?: string | null,"tagline"?: string | null,"theme"?: NonNullable<Json>,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "blocks"?: NonNullable<Json>,"created_at"?: string,"created_by"?: string | null,"css"?: string | null,"draft"?: Json | null,"footer_html"?: string | null,"header_html"?: string | null,"id"?: string,"imprint"?: string | null,"org_id"?: string,"privacy"?: string | null,"published_at"?: string | null,"tagline"?: string | null,"theme"?: NonNullable<Json>,"updated_at"?: string,"updated_by"?: string | null
+                    "blocks"?: NonNullable<Json>,"created_at"?: string,"created_by"?: string | null,"css"?: string | null,"draft"?: Json | null,"footer_html"?: string | null,"header_html"?: string | null,"home_html"?: string | null,"home_mode"?: string,"id"?: string,"imprint"?: string | null,"org_id"?: string,"privacy"?: string | null,"published_at"?: string | null,"tagline"?: string | null,"theme"?: NonNullable<Json>,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {

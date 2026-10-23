@@ -35,6 +35,8 @@ export default async function PublicSite({ params }: PageProps<"/s/[site]">) {
       blocks={site?.saved ? readBlocks(site.blocks) : DEFAULT_BLOCKS}
       modules={site?.modules ?? []}
       forms={site?.forms ?? []}
+      home={{ mode: site?.home_mode ?? "blocks", html: site?.home_html ?? null }}
+      legal={{ imprint: !!site?.imprint, privacy: !!site?.privacy }}
     />
   )
 }

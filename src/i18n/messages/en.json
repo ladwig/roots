@@ -5219,6 +5219,40 @@
     },
     "domain": {
       "nav": "Domain"
+    },
+    "html": {
+      "mode": "Start page from",
+      "blocks": "blocks",
+      "own": "own HTML",
+      "title": "Own HTML",
+      "hint": "Your own layout with <style>. roots fills the placeholders with real data (events, forms …) so the page stays current. Header, footer and brand are added automatically. Scripts are removed.",
+      "label": "Start page HTML",
+      "insert": "Insert:",
+      "fields": "Inside {{#events}}…{{/events}}: title, date, date_short, time, weekday, day, month, venue, address, image, url, cancelled. {{^events}}…{{/events}} = when there are none. Brand colours: var(--primary), var(--background), var(--foreground), var(--radius).",
+      "snippets": {
+        "name": "Name",
+        "tagline": "Tagline",
+        "logo": "Logo",
+        "events": "Event list",
+        "next": "Next event",
+        "forms": "Forms",
+        "portal": "Member area",
+        "wiki": "Knowledge"
+      },
+      "vars": {
+        "name": "Name",
+        "tagline": "Tagline",
+        "logo": "Logo URL",
+        "events": "Upcoming events (list)",
+        "eventFields": "Fields per event",
+        "noEvents": "When no events are planned",
+        "next": "The next event",
+        "forms": "Published forms (list)",
+        "form": "One form by its address (slug)",
+        "portal": "Member area (when active)",
+        "wiki": "Public knowledge pages (list)",
+        "legal": "Links to imprint / privacy"
+      }
     }
   }
 }

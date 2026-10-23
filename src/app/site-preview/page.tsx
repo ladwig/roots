@@ -14,7 +14,7 @@ export default async function SitePreview() {
   if (!live) notFound()
   return (
     <SiteFrame slug={ctx.org.slug} content={draft}>
-      <SiteHome slug={ctx.org.slug} org={ctx.org} db={createPublicClient()} tagline={draft.tagline} blocks={draft.blocks} modules={live.modules} forms={live.forms} />
+      <SiteHome slug={ctx.org.slug} org={ctx.org} db={createPublicClient()} tagline={draft.tagline} blocks={draft.blocks} modules={live.modules} forms={live.forms} home={{ mode: draft.home_mode, html: draft.home_html }} legal={{ imprint: !!draft.imprint, privacy: !!draft.privacy }} />
     </SiteFrame>
   )
 }
