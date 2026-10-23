@@ -11,11 +11,15 @@ export const getLocale = cache(async (): Promise<Locale> => {
   // A public page of an org (the proxy says which): the org's language if it set one (Website › Marke).
   const h = await headers()
   if (h.get("x-roots-preview")) {
-    // Website preview (signed-in editors): the language set in the draft.
-    const [{ getContext }, { loadSite }] = await Promise.all([import("@/lib/context"), import("@/site/server")])
-    const ctx = await getContext()
-    const fixed = (await loadSite(ctx.supabase, ctx.org.id)).draft.theme.locale
-    if (isLocale(fixed)) return fixed
+    // Website preview (signed-in editors): the language set in the draft (RLS: own org only). Not via getContext():
+    // that one needs getT() itself.
+    const orgId = (await cookies()).get("active_org")?.value
+    if (orgId) {
+      const { createClient } = await import("@/lib/supabase/server")
+      const { data } = await (await createClient()).from("org_sites").select("theme, draft").eq("org_id", orgId).maybeSingle()
+      const fixed = ((data?.draft as { theme?: { locale?: string } } | null)?.theme ?? (data?.theme as { locale?: string } | null))?.locale
+      if (isLocale(fixed)) return fixed
+    }
   }
   const site = h.get("x-roots-site")
   if (site) {
