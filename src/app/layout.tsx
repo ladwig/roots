@@ -21,7 +21,8 @@ const geistMono = Geist_Mono({
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
-  return { title: { default: "roots", template: "%s – roots" }, description: t("meta.description") };
+  // roots' icon as metadata (not app/favicon.ico, which would sit on every page): org pages set their own logo.
+  return { title: { default: "roots", template: "%s – roots" }, description: t("meta.description"), icons: { icon: "/favicon.ico" } };
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
