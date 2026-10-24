@@ -3,7 +3,6 @@
 // ponytail: public pages will use the org's language, not the visitor cookie.
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { imageUrl } from "@/lib/images"
 import { cachedSite } from "@/lib/public-cache"
 import { DEFAULT_BLOCKS, readBlocks } from "@/site/blocks"
 import { getSite } from "./data"
@@ -11,14 +10,7 @@ import { SiteHome } from "./home"
 
 export async function generateMetadata({ params }: PageProps<"/s/[site]">): Promise<Metadata> {
   const s = await getSite((await params).site)
-  if (!s) return {}
-  const site = await cachedSite(s.org.id)
-  const image = imageUrl(s.org.logo_path)
-  return {
-    title: { absolute: s.org.name },
-    description: site?.tagline ?? undefined,
-    openGraph: { title: s.org.name, description: site?.tagline ?? undefined, images: image ? [image] : undefined },
-  }
+  return s ? { title: { absolute: s.org.name } } : {} // the rest (description, logo, site name) comes from the layout
 }
 
 export default async function PublicSite({ params }: PageProps<"/s/[site]">) {

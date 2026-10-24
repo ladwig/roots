@@ -64,6 +64,7 @@ const Event = z.object({
   max_tickets_per_order: z.number().int(),
   url: z.string().describe("Hosted event page"),
   links: z.array(z.object({ label: z.string(), url: z.string() })).describe("The event's own links (max 3)"),
+  show_code_field: z.boolean().describe("Show a discount code field (codes work either way)"),
 })
 const Offer = z.object({
   type_id: uuid,
@@ -93,6 +94,7 @@ const eventOut = (org: Org, e: NonNullable<Awaited<ReturnType<typeof cachedEvent
   max_tickets_per_order: e.max_tickets_per_order,
   links: readEventLinks(e.links),
   url: siteUrl(org.slug, `/e/${e.slug}`, org.site_domain),
+  show_code_field: e.show_code_field,
 })
 async function publishedEvent(org: Org, slug: string) {
   const e = await cachedEvent(org.id, slug)
@@ -183,7 +185,7 @@ export const publicEndpoints: PublicEndpoint[] = [
       const now = new Date().toISOString()
       const { data } = await createPublicClient()
         .from("events")
-        .select("id, slug, title, status, starts_at, ends_at, venue_name, venue_address, image_path, max_tickets_per_order, links")
+        .select("id, slug, title, status, starts_at, ends_at, venue_name, venue_address, image_path, max_tickets_per_order, links, show_code_field")
         .eq("org_id", org.id)
         .or(`ends_at.gte.${now},and(ends_at.is.null,starts_at.gte.${now})`)
         .order("starts_at")

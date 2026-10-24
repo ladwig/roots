@@ -1530,7 +1530,9 @@
       "one": "{count} Mitglied eingelassen",
       "other": "{count} Mitglieder eingelassen"
     },
-    "shopSettings": "Shop-Einstellungen"
+    "shopSettings": "Shop-Einstellungen",
+    "showCodeField": "Feld für Rabattcodes im Shop anzeigen",
+    "showCodeFieldHint": "Aus = kein Eingabefeld; Rabatt-Links (…?code=) funktionieren trotzdem."
   },
   "shop": {
     "title": "Tickets",

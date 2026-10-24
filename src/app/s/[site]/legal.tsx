@@ -10,7 +10,7 @@ import { getSite } from "./data"
 // Impressum / Datenschutz of an org (Markdown from Settings → Website); 404 while empty.
 export async function legalMeta(slug: string, which: "imprint" | "privacy"): Promise<Metadata> {
   const [s, t] = await Promise.all([getSite(slug), getT()])
-  return s ? { title: { absolute: `${t(`site.${which}`)} · ${s.org.name}` }, robots: { index: false } } : {}
+  return s ? { title: t(`site.${which}`), robots: { index: false } } : {}
 }
 
 export async function LegalPage({ slug, which }: { slug: string; which: "imprint" | "privacy" }) {

@@ -5,11 +5,29 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { readEventLinks } from "@/site/blocks"
 import { getT } from "@/i18n/server"
-import { imageUrl } from "@/lib/images"
+import type { Metadata } from "next"
+import { imageUrl, imageUrlOn } from "@/lib/images"
 import { cachedEvent, cachedSite } from "@/lib/public-cache"
 import { getSite } from "../../data"
 import { TemplatedEvent, Timetable } from "./event-view"
 import { TicketShop } from "./shop"
+
+// Shared links show the event: title, date + place, its picture (else the org logo), the org as site name.
+export async function generateMetadata({ params }: PageProps<"/s/[site]/e/[slug]">): Promise<Metadata> {
+  const { site, slug } = await params
+  const s = await getSite(site)
+  const e = s && (await cachedEvent(s.org.id, slug))
+  if (!s || !e) return {}
+  const t = await getT()
+  const description = [t.date(e.starts_at, { dateStyle: "full", timeStyle: "short" }), e.venue_name].filter(Boolean).join(" · ")
+  const image = imageUrlOn(e.image_path ?? s.org.logo_path, s.org.site_domain)
+  return {
+    title: e.title,
+    description,
+    openGraph: { type: "website", siteName: s.org.name, title: `${e.title} · ${s.org.name}`, description, images: image ? [image] : undefined },
+    twitter: { card: e.image_path ? "summary_large_image" : "summary", title: e.title, description, images: image ? [image] : undefined },
+  }
+}
 
 export default async function PublicEvent({ params, searchParams }: PageProps<"/s/[site]/e/[slug]">) {
   const { site, slug } = await params
@@ -20,7 +38,7 @@ export default async function PublicEvent({ params, searchParams }: PageProps<"/
   if (!s) notFound()
   const [e, siteData] = await Promise.all([cachedEvent(s.org.id, slug), cachedSite(s.org.id)])
   if (!e) notFound()
-  const shop = () => (e.status === "published" ? <TicketShop site={site} slug={slug} eventId={e.id} max={e.max_tickets_per_order} code={code} waitlist={waitlist} /> : null)
+  const shop = () => (e.status === "published" ? <TicketShop site={site} slug={slug} eventId={e.id} max={e.max_tickets_per_order} code={code} waitlist={waitlist} codeField={e.show_code_field} /> : null)
   const t = await getT()
   if (siteData?.event_html) return <TemplatedEvent site={site} org={s.org} e={e} template={siteData.event_html} shop={shop()} t={t} />
   const sameDay = e.ends_at && new Date(e.ends_at).getTime() - new Date(e.starts_at).getTime() < 86_400_000

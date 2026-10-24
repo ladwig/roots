@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { getT } from "@/i18n/server"
 import { param } from "@/lib/url"
@@ -5,6 +6,14 @@ import { cachedForm } from "@/lib/public-cache"
 import { getSite } from "../../data"
 import type { PublicForm } from "./data"
 import { FormRenderer } from "./form-renderer"
+
+export async function generateMetadata({ params }: PageProps<"/s/[site]/f/[slug]">): Promise<Metadata> {
+  const { site, slug } = await params
+  const s = await getSite(site)
+  const f = s && ((await cachedForm(s.org.id, slug)) as unknown as PublicForm | null)
+  if (!s || !f) return {}
+  return { title: f.title, description: f.intro ?? undefined, openGraph: { type: "website", siteName: s.org.name, title: `${f.title} · ${s.org.name}`, description: f.intro ?? undefined } }
+}
 
 export default async function PublicFormPage({ params, searchParams }: PageProps<"/s/[site]/f/[slug]">) {
   const { site, slug } = await params

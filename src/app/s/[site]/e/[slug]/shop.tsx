@@ -10,7 +10,7 @@ import { joinWaitlistAction } from "./actions"
 
 // Ticket types with quantity fields; a plain GET form to the checkout step (works without JS).
 // Free events say "Anmeldung"; sold out → waiting list; ?w=<token> = a waiting-list offer with held seats.
-export async function TicketShop({ site, slug, eventId, max, code, waitlist }: { site: string; slug: string; eventId: string; max: number; code: string | null; waitlist: string | null }) {
+export async function TicketShop({ site, slug, eventId, max, code, waitlist, codeField = true }: { site: string; slug: string; eventId: string; max: number; code: string | null; waitlist: string | null; codeField?: boolean }) {
   const s = (await getSite(site))!
   const [{ data: offer }, claim, fee] = await Promise.all([
     s.db.rpc("ticket_offer", { p_event: eventId, p_code: code ?? undefined, p_waitlist: waitlist ?? undefined }),
@@ -35,6 +35,8 @@ export async function TicketShop({ site, slug, eventId, max, code, waitlist }: {
           {claim ? t("waitlist.claimBanner", { count: claim.quantity, until: t.date(claim.offered_until!, { dateStyle: "medium", timeStyle: "short" }) }) : t("waitlist.claimExpired")}
         </p>
       )}
+      {/* Off per event (Shop-Einstellungen): no field, but a ?code= link still applies (and shows whether it's valid). */}
+      {codeField ? (
       <form className="flex flex-wrap items-center gap-2">
         <Input name="code" defaultValue={code ?? ""} placeholder={t("shop.codePlaceholder")} aria-label={t("shop.code")} className="w-44 uppercase" />
         <SubmitButton variant="outline" size="sm">
@@ -42,6 +44,9 @@ export async function TicketShop({ site, slug, eventId, max, code, waitlist }: {
         </SubmitButton>
         {code && <span className={codeValid ? "text-sm" : "text-sm text-destructive"}>{codeValid ? t("shop.codeOk") : t("shop.codeInvalid")}</span>}
       </form>
+      ) : (
+        code && <p className={codeValid ? "text-sm" : "text-sm text-destructive"}>{codeValid ? t("shop.codeOk") : t("shop.codeInvalid")}</p>
+      )}
       <form action={sitePath(site, `/e/${slug}/checkout`)} className="grid gap-3">
         {codeValid && <input type="hidden" name="code" value={code!} />}
         {claim && <input type="hidden" name="w" value={waitlist!} />}

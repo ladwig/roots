@@ -52,7 +52,7 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
     await Promise.all([
       ctx.supabase
         .from("events")
-        .select("id, title, slug, status, starts_at, ticket_names, max_tickets_per_order")
+        .select("id, title, slug, status, starts_at, ticket_names, max_tickets_per_order, show_code_field")
         .eq("id", eventId)
         .eq("org_id", ctx.org.id)
         .maybeSingle(),
@@ -192,6 +192,13 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
             <Label htmlFor="t-max">{t("tickets.maxPerOrder")}</Label>
             <Input id="t-max" name="max_tickets_per_order" type="number" min={1} max={100} defaultValue={ev.max_tickets_per_order} />
           </div>
+          <label className="flex items-center gap-2 text-sm sm:col-span-2">
+            <input type="checkbox" name="show_code_field" defaultChecked={ev.show_code_field} className="size-4 accent-primary" />
+            <span>
+              {t("tickets.showCodeField")}
+              <span className="block text-xs text-muted-foreground">{t("tickets.showCodeFieldHint")}</span>
+            </span>
+          </label>
           <SubmitButton variant="outline">
             {t("common.save")}
           </SubmitButton>

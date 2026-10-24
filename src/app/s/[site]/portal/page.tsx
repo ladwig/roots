@@ -16,6 +16,10 @@ import { PortalLoginForm } from "@/portal/login-form"
 import { getSite } from "../data"
 import { logout } from "./actions"
 
+export async function generateMetadata(): Promise<import("next").Metadata> {
+  return { title: (await getT())("portal.title"), robots: { index: false } }
+}
+
 // Customer portal of one org: email → magic link → the sections of the org's enabled modules (members, later tickets…).
 export default async function Portal({ params, searchParams }: PageProps<"/s/[site]/portal">) {
   await connection() // per-person and time-dependent (today's dues, running rentals): never prerendered

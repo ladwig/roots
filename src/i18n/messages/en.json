@@ -1530,7 +1530,9 @@
       "one": "{count} member admitted",
       "other": "{count} members admitted"
     },
-    "shopSettings": "Shop settings"
+    "shopSettings": "Shop settings",
+    "showCodeField": "Show the discount code field in the shop",
+    "showCodeFieldHint": "Off = no input field; discount links (…?code=) still work."
   },
   "shop": {
     "title": "Tickets",
