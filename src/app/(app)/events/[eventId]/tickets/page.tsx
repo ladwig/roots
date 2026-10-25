@@ -69,7 +69,7 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
       ctx.supabase.from("ticket_codes").select("*").eq("event_id", eventId).order("created_at"),
     ])
   if (!ev) notFound()
-  // Shop types vs. the automatic ones (guest lists, members): counted apart, all against the capacity.
+  // Shop types vs. the automatic ones (guest lists, members): counted apart; guest lists sit on top of the capacity.
   const shopTypes = (types ?? []).filter((ty) => !ty.guest_list_id && !ty.for_members)
   const isShop = new Set(shopTypes.map((ty) => ty.id))
   const sold = (typeId?: string) => counts?.filter((c) => (typeId ? c.type_id === typeId : isShop.has(c.type_id))).length ?? 0

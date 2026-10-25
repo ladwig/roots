@@ -1920,7 +1920,7 @@
     },
     "linkNeedsPublished": "The link only opens once the event is published – until then guests see “closed”.",
     "toEvent": "Go to the event",
-    "autoTickets": "Every entry automatically gets a ticket with a QR code (by email if an address is given) and counts against the event's capacity."
+    "autoTickets": "Every entry automatically gets a ticket with a QR code (by email if an address is given) – on top of the event's capacity (guest list doesn't take shop seats)."
   },
   "lineup": {
     "title": "Lineup & timetable",

@@ -1920,7 +1920,7 @@
     },
     "linkNeedsPublished": "Der Link öffnet sich erst, wenn die Veranstaltung veröffentlicht ist – bis dahin sehen Gäste „geschlossen“.",
     "toEvent": "Zur Veranstaltung",
-    "autoTickets": "Jeder Eintrag bekommt automatisch ein Ticket mit QR-Code (per E-Mail, wenn eine Adresse angegeben ist) und zählt zur Kapazität der Veranstaltung."
+    "autoTickets": "Jeder Eintrag bekommt automatisch ein Ticket mit QR-Code (per E-Mail, wenn eine Adresse angegeben ist) – zusätzlich zur Kapazität der Veranstaltung (Gästeliste zählt nicht zu den Shop-Plätzen)."
   },
   "lineup": {
     "title": "Lineup & Timetable",
