@@ -152,12 +152,14 @@ async function payResult(orgId: string, orderId: string, method: DoorMethod): Pr
   return { orderId, status: r.status, qr: r.status === "pending" && r.url ? await qrSvg(r.url) : undefined }
 }
 
-export async function doorSell(eventId: string, rawLines: unknown, method: DoorMethod, buyer: { name?: string; email?: string }): Promise<DoorPay> {
+/** `offline` = a cash sale the device stored without connection (id = its key, at = when it was sold). */
+export async function doorSell(eventId: string, rawLines: unknown, method: DoorMethod, buyer: { name?: string; email?: string }, offline?: { id: string; at: string }): Promise<DoorPay> {
   const ctx = await requirePerm("tickets.scan")
   const lines = readLines(rawLines)
-  if (!lines || !/^[0-9a-f-]{36}$/.test(eventId) || !DOOR_METHODS.includes(method)) return { error: (await getT())("errors.invalid_input") }
+  if (!lines || !/^[0-9a-f-]{36}$/.test(eventId) || !DOOR_METHODS.includes(method) || (offline && !/^[0-9a-f-]{36}$/.test(offline.id))) return { error: (await getT())("errors.invalid_input") }
   try {
-    const { orderId } = await sellAtDoor({ orgId: ctx.org.id, eventId, lines, name: buyer.name, email: buyer.email, soldBy: ctx.userId })
+    const { orderId, existing } = await sellAtDoor({ orgId: ctx.org.id, eventId, lines, name: buyer.name, email: buyer.email, soldBy: ctx.userId, clientId: offline?.id, soldAt: offline?.at })
+    if (existing && (await doorSaleStatus(ctx.org.id, orderId)) === "paid") return { orderId, status: "paid" }
     return await payResult(ctx.org.id, orderId, method).catch(async (e) => ({ orderId, ...(await doorError(e)) }))
   } catch (e) {
     return doorError(e)

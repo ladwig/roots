@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Page, PageHeader } from "@/components/page"
 import { notFound } from "next/navigation"
-import { DataTable, SearchBox } from "@/components/data-table"
+import { SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { Badge } from "@/components/ui/badge"
@@ -12,6 +12,9 @@ import { memberDoor, type MemberAtDoor } from "@/members/door"
 import { guestCheckIn, memberDoorCheckIn, ticketDoorCheckIn } from "./actions"
 import { MemberCard } from "./member-card"
 import { Scanner } from "./scanner"
+import { IdCardIcon, ScanLineIcon, ShoppingCartIcon, TicketIcon, UsersIcon } from "lucide-react"
+
+const TAB_ICONS = { scan: ScanLineIcon, sale: ShoppingCartIcon, tickets: TicketIcon, members: IdCardIcon, guests: UsersIcon } as const
 import { DoorSale } from "./door-sale"
 import { doorOffer, doorSummary } from "@/tickets/door"
 
@@ -51,29 +54,49 @@ export default async function DoorPage({ searchParams }: PageProps<"/scan">) {
     </Link>
   )
 
+  const eventChip = (href: string, active: boolean, label: string) => (
+    <Link
+      key={href}
+      href={href}
+      aria-current={active ? "true" : undefined}
+      className="inline-flex min-h-10 shrink-0 items-center rounded-full border px-4 text-sm whitespace-nowrap text-muted-foreground aria-[current=true]:border-primary aria-[current=true]:bg-primary aria-[current=true]:font-medium aria-[current=true]:text-primary-foreground"
+    >
+      {label}
+    </Link>
+  )
+
   return (
     <Page size="form">
+      <div className="grid gap-4 pb-24 md:pb-0">
       <PageHeader area="events" title={t("tickets.scanTitle")} />
       {!events?.length ? (
         <p className="text-sm text-muted-foreground">{t("tickets.noEventsToScan")}</p>
       ) : (
-        <nav aria-label={t("tickets.pickEvent")} className="flex w-fit max-w-full flex-wrap gap-1 justify-self-end rounded-lg bg-muted p-1">
-          {events.map((e) => chip(`/scan?event=${e.id}&tab=${tab}`, e.id === current?.id, `${e.title} · ${t.date(e.starts_at, { dateStyle: "short" })}`))}
+        <nav aria-label={t("tickets.pickEvent")} className="-mx-1 flex max-w-full gap-1 overflow-x-auto px-1 pb-1">
+          {events.map((e) => eventChip(`/scan?event=${e.id}&tab=${tab}`, e.id === current?.id, `${e.title} · ${t.date(e.starts_at, { dateStyle: "short" })}`))}
         </nav>
       )}
       {current && (
         <>
-          <nav aria-label={t("door.tabs")} className="flex gap-1 border-b pb-2">
-            {tabs.map((x) => (
-              <Link
-                key={x}
-                href={`/scan?event=${current.id}&tab=${x}`}
-                aria-current={x === tab ? "page" : undefined}
-                className="rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted aria-[current=page]:bg-muted aria-[current=page]:font-medium aria-[current=page]:text-foreground"
-              >
-                {t.dynamic(`door.tab.${x}`)}
-              </Link>
-            ))}
+          {/* Door mode: a bottom tab bar on phones (thumb reach), a big segmented bar from md. */}
+          <nav
+            aria-label={t("door.tabs")}
+            className="fixed inset-x-0 bottom-0 z-40 flex border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:static md:gap-1 md:rounded-xl md:border md:bg-muted md:p-1"
+          >
+            {tabs.map((x) => {
+              const Icon = TAB_ICONS[x as keyof typeof TAB_ICONS]
+              return (
+                <Link
+                  key={x}
+                  href={`/scan?event=${current.id}&tab=${x}`}
+                  aria-current={x === tab ? "page" : undefined}
+                  className="flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-xs text-muted-foreground aria-[current=page]:font-medium aria-[current=page]:text-primary md:min-h-11 md:flex-row md:gap-2 md:rounded-lg md:text-sm md:aria-[current=page]:bg-background md:aria-[current=page]:text-foreground md:aria-[current=page]:shadow-sm"
+                >
+                  <Icon className="size-5 md:size-4" />
+                  {t.dynamic(`door.tab.${x}`)}
+                </Link>
+              )
+            })}
           </nav>
           <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
           {tab === "scan" && <Scanner key={current.id} eventId={current.id} />}
@@ -83,6 +106,7 @@ export default async function DoorPage({ searchParams }: PageProps<"/scan">) {
           {tab === "members" && <Members eventId={current.id} q={q} who={param(sp, "who")} sp={sp} />}
         </>
       )}
+      </div>
     </Page>
   )
 }
@@ -126,53 +150,38 @@ async function Guests({
   return (
     <section className="grid gap-3">
       <div className="flex flex-wrap items-center gap-3">
-        <SearchBox q={q} label={t("door.searchGuests")} keep={{ event: eventId, tab: "guests", ...(list ? { list } : {}) }} />
+        <SearchBox size="lg" q={q} label={t("door.searchGuests")} keep={{ event: eventId, tab: "guests", ...(list ? { list } : {}) }} />
         <span className="text-sm text-muted-foreground">{t("door.guestCount", { in: inCount, total: rows.length })}</span>
       </div>
       <nav aria-label={t("door.lists")} className="flex w-fit max-w-full flex-wrap gap-1 justify-self-end rounded-lg bg-muted p-1">
         {chip(withParams(sp, { list: undefined }), !list, t("door.allLists"))}
         {lists?.map((l) => chip(withParams(sp, { list: l.id }), l.id === list, l.name))}
       </nav>
-      <DataTable
-        rows={rows}
-        rowKey={(r) => r.id}
-        empty={t("door.noGuests")}
-        columns={[
-          { header: t("guestlists.guest"), cell: (r) => <span className="font-medium">{r.name}</span> },
-          {
-            header: t("door.list"),
-            cell: (r) => (
-              <span className="text-sm">
-                {r.list.name}
-                {r.list.door_price > 0 && <Badge variant="outline" className="ml-1">{t("guestlists.atDoor", { price: t.money(r.list.door_price) })}</Badge>}
-              </span>
-            ),
-          },
-          {
-            header: "",
-            cell: (r) => (
-              <form action={guestCheckIn} className="flex items-center justify-end gap-2">
-                <input type="hidden" name="event" value={eventId} />
-                <input type="hidden" name="entry" value={r.id} />
-                <input type="hidden" name="name" value={r.name} />
-                <input type="hidden" name="q" value={q ?? ""} />
-                <input type="hidden" name="list" value={list ?? ""} />
-                {r.at ? (
-                  <>
-                    <Badge>{t("door.inSince", { time: t.date(r.at, { timeStyle: "short" }) })}</Badge>
-                    <input type="hidden" name="undo" value="1" />
-                    <SubmitButton size="sm" variant="ghost">
-                      {t("door.undo")}
-                    </SubmitButton>
-                  </>
-                ) : (
-                  <SubmitButton size="sm">{t("door.checkIn")}</SubmitButton>
-                )}
-              </form>
-            ),
-          },
-        ]}
-      />
+      <ul className="grid gap-2">
+        {rows.map((r) => (
+          <DoorRow key={r.id} title={r.name} meta={[r.list.name, r.list.door_price > 0 && t("guestlists.atDoor", { price: t.money(r.list.door_price) })].filter(Boolean).join(" · ")} done={!!r.at}>
+            <form action={guestCheckIn} className="flex items-center gap-2">
+              <input type="hidden" name="event" value={eventId} />
+              <input type="hidden" name="entry" value={r.id} />
+              <input type="hidden" name="name" value={r.name} />
+              <input type="hidden" name="q" value={q ?? ""} />
+              <input type="hidden" name="list" value={list ?? ""} />
+              {r.at ? (
+                <>
+                  <Badge>{t("door.inSince", { time: t.date(r.at, { timeStyle: "short" }) })}</Badge>
+                  <input type="hidden" name="undo" value="1" />
+                  <SubmitButton size="lg" variant="ghost" className="h-11">
+                    {t("door.undo")}
+                  </SubmitButton>
+                </>
+              ) : (
+                <SubmitButton size="lg" className="h-11 px-6">{t("door.checkIn")}</SubmitButton>
+              )}
+            </form>
+          </DoorRow>
+        ))}
+        {!rows.length && <li className="text-sm text-muted-foreground">{t("door.noGuests")}</li>}
+      </ul>
     </section>
   )
 }
@@ -220,31 +229,24 @@ async function Tickets({ eventId, q }: { eventId: string; q?: string }) {
   const { data } = await query
   return (
     <section className="grid gap-3">
-      <SearchBox q={q} label={t("door.searchTickets")} keep={{ event: eventId, tab: "tickets" }} />
-      <DataTable
-        rows={data ?? []}
-        rowKey={(k) => k.id}
-        empty={t("door.noTickets")}
-        columns={[
-          { header: t("tickets.holder"), cell: (k) => <span className="font-medium">{k.holder_name ?? k.pay_orders?.customer_name ?? "–"}</span> },
-          { header: t("tickets.typeName"), cell: (k) => k.ticket_types?.name },
-          { header: t("tickets.code"), cell: (k) => <span className="font-mono text-xs">{k.code}</span> },
-          {
-            header: "",
-            cell: (k) =>
-              k.status === "used" ? (
-                <Badge>{t("door.inSince", { time: k.checked_in_at ? t.date(k.checked_in_at, { timeStyle: "short" }) : "" })}</Badge>
-              ) : (
-                <form action={ticketDoorCheckIn} className="flex justify-end">
-                  <input type="hidden" name="event" value={eventId} />
-                  <input type="hidden" name="code" value={k.code} />
-                  <input type="hidden" name="q" value={q ?? ""} />
-                  <SubmitButton size="sm">{t("door.checkIn")}</SubmitButton>
-                </form>
-              ),
-          },
-        ]}
-      />
+      <SearchBox size="lg" q={q} label={t("door.searchTickets")} keep={{ event: eventId, tab: "tickets" }} />
+      <ul className="grid gap-2">
+        {(data ?? []).map((k) => (
+          <DoorRow key={k.id} title={k.holder_name ?? k.pay_orders?.customer_name ?? "–"} meta={[k.ticket_types?.name, k.code].filter(Boolean).join(" · ")} done={k.status === "used"}>
+            {k.status === "used" ? (
+              <Badge>{t("door.inSince", { time: k.checked_in_at ? t.date(k.checked_in_at, { timeStyle: "short" }) : "" })}</Badge>
+            ) : (
+              <form action={ticketDoorCheckIn}>
+                <input type="hidden" name="event" value={eventId} />
+                <input type="hidden" name="code" value={k.code} />
+                <input type="hidden" name="q" value={q ?? ""} />
+                <SubmitButton size="lg" className="h-11 px-6">{t("door.checkIn")}</SubmitButton>
+              </form>
+            )}
+          </DoorRow>
+        ))}
+        {!data?.length && <li className="text-sm text-muted-foreground">{t("door.noTickets")}</li>}
+      </ul>
     </section>
   )
 }
@@ -260,7 +262,7 @@ async function Members({ eventId, q, who, sp }: { eventId: string; q?: string; w
   ])
   return (
     <section className="grid gap-3">
-      <SearchBox q={q} label={t("door.searchMembers")} keep={{ event: eventId, tab: "members" }} />
+      <SearchBox size="lg" q={q} label={t("door.searchMembers")} keep={{ event: eventId, tab: "members" }} />
       {member && (
         <MemberCard t={t} m={member}>
           <form action={memberDoorCheckIn}>
@@ -278,7 +280,7 @@ async function Members({ eventId, q, who, sp }: { eventId: string; q?: string; w
               <Link
                 href={withParams(sp, { who: m.contact_id })}
                 aria-current={m.contact_id === who ? "true" : undefined}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-muted aria-[current=true]:bg-muted"
+                className="flex min-h-14 flex-wrap items-center justify-between gap-2 rounded-xl border px-4 py-2 hover:bg-muted aria-[current=true]:bg-muted"
               >
                 <span className="font-medium">{m.name}</span>
                 {m.member_no && <span className="text-muted-foreground">{t("membership.numberShort", { number: m.member_no })}</span>}
@@ -293,3 +295,16 @@ async function Members({ eventId, q, who, sp }: { eventId: string; q?: string; w
 }
 
 export const instant = false
+
+// One person at the door: big name, one muted line, the action on the right (wraps below on narrow phones).
+function DoorRow({ title, meta, done, children }: { title: string; meta?: string; done?: boolean; children: React.ReactNode }) {
+  return (
+    <li className={`flex flex-wrap items-center gap-3 rounded-xl border p-3 ${done ? "bg-muted/50" : ""}`}>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-base font-medium">{title}</p>
+        {meta && <p className="truncate text-sm text-muted-foreground">{meta}</p>}
+      </div>
+      {children}
+    </li>
+  )
+}

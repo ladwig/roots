@@ -2059,7 +2059,13 @@
       "total": "Total",
       "noMethods": "No payment method is active at the door for this event (Tickets → Door sales).",
       "summary": "Door sales today",
-      "summaryMeta": "{sales} sales · {tickets} tickets"
+      "summaryMeta": "{sales} sales · {tickets} tickets",
+      "savedOffline": "Saved without connection – sent as soon as the device is online again.",
+      "offline": "Offline – cash only",
+      "queued": {
+        "one": "1 cash sale waiting for a connection",
+        "other": "{count} cash sales waiting for a connection"
+      }
     },
     "settings": {
       "title": "Door sales",

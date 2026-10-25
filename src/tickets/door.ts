@@ -33,10 +33,17 @@ export async function doorOffer(orgId: string, eventId: string) {
   }
 }
 
-export type DoorSale = { orgId: string; eventId: string; lines: DoorLine[]; name?: string | null; email?: string | null; soldBy: string | null }
+export type DoorSale = { orgId: string; eventId: string; lines: DoorLine[]; name?: string | null; email?: string | null; soldBy: string | null; clientId?: string | null; soldAt?: string | null }
 
-/** Creates the order + reserved tickets. Throws message keys. */
-export async function sellAtDoor(s: DoorSale) {
+/**
+ * Creates the order + reserved tickets. Throws message keys. `clientId` (the device's id for an offline cash sale)
+ * makes it idempotent: sending the same sale again returns the first order (`existing`).
+ */
+export async function sellAtDoor(s: DoorSale): Promise<{ orderId: string; total: number; existing?: boolean }> {
+  if (s.clientId) {
+    const { data: dup } = await db().from("pay_orders").select("id, amount_total").eq("org_id", s.orgId).eq("metadata->>client_id", s.clientId).maybeSingle()
+    if (dup) return { orderId: dup.id, total: dup.amount_total, existing: true }
+  }
   const email = s.email?.trim().toLowerCase() || null
   if (email && !EMAIL.test(email)) throw new Error("errors.invalid_input")
   const offer = await doorOffer(s.orgId, s.eventId)
@@ -51,7 +58,7 @@ export async function sellAtDoor(s: DoorSale) {
     currency: offer.types[0]?.currency ?? "eur",
     customerEmail: email ?? undefined,
     customerName: s.name?.trim() || undefined,
-    metadata: { ticket_token: token, door: true, sold_by: s.soldBy },
+    metadata: { ticket_token: token, door: true, sold_by: s.soldBy, ...(s.clientId ? { client_id: s.clientId, sold_at: s.soldAt ?? null } : {}) },
     items: s.lines.map((l) => ({
       description: (l.typeId ? [offer.event.title, types.get(l.typeId)!.name, l.label].filter(Boolean).join(" · ") : l.label).slice(0, 200),
       quantity: l.quantity,

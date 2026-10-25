@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState, useTransition } from "react"
+import { useEffect, useState, useSyncExternalStore, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { BanknoteIcon, CheckCircle2Icon, CreditCardIcon, MinusIcon, PlusIcon, QrCodeIcon, XCircleIcon } from "lucide-react"
+import { BanknoteIcon, CheckCircle2Icon, CloudOffIcon, CreditCardIcon, MinusIcon, PlusIcon, QrCodeIcon, XCircleIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,9 +13,34 @@ import type { DoorLine, DoorMethod } from "@/tickets/door-fields"
 import { doorCancel, doorPay, doorSell, doorStatus, type DoorPay } from "./actions"
 
 type Type = { id: string; name: string; price: number }
-type Phase = { kind: "cart" } | { kind: "cash" } | { kind: "waiting"; orderId: string; method: DoorMethod; qr?: string } | { kind: "done"; tickets: number } | { kind: "failed"; orderId: string; error: string }
+type Phase = { kind: "cart" } | { kind: "cash" } | { kind: "waiting"; orderId: string; method: DoorMethod; qr?: string } | { kind: "done"; tickets: number; offline?: boolean } | { kind: "failed"; orderId: string; error: string }
 
 const ICONS = { cash: BanknoteIcon, qr: QrCodeIcon, terminal: CreditCardIcon }
+
+// Offline: cash sales wait on the device (localStorage) and are sent once there's a connection again; their id makes
+// sending twice harmless. ponytail: the page must stay open to send them (no service worker), like the scanner's queue.
+type Queued = { id: string; at: string; lines: DoorLine[]; buyer: { name: string; email: string } }
+const QKEY = (eventId: string) => `roots-door-sales-${eventId}`
+const loadQueue = (eventId: string): Queued[] => {
+  try {
+    return JSON.parse(localStorage.getItem(QKEY(eventId)) ?? "[]") as Queued[]
+  } catch {
+    return []
+  }
+}
+const saveQueue = (eventId: string, q: Queued[]) => {
+  try {
+    localStorage.setItem(QKEY(eventId), JSON.stringify(q))
+  } catch {}
+}
+const subscribe = (cb: () => void) => {
+  window.addEventListener("online", cb)
+  window.addEventListener("offline", cb)
+  return () => {
+    window.removeEventListener("online", cb)
+    window.removeEventListener("offline", cb)
+  }
+}
 
 // Door sale, made for a phone/tablet at the door: tap ticket types (or a free amount), pick how they pay, done.
 // Cash asks what was given (change); QR shows the online checkout for the buyer's phone; terminal sends the amount
@@ -32,6 +57,8 @@ export function DoorSale({ eventId, types, methods, left, currency }: { eventId:
   const [error, setError] = useState("")
   const [pending, start] = useTransition()
   const [retryId, setRetryId] = useState<string | null>(null) // cash for an order whose card/QR payment didn't work
+  const online = useSyncExternalStore(subscribe, () => navigator.onLine, () => true)
+  const [queued, setQueued] = useState(0)
   const total = lines.reduce((s, l) => s + l.price * l.quantity, 0)
   const tickets = lines.filter((l) => l.typeId).reduce((n, l) => n + l.quantity, 0)
   const money = (c: number) => t.money(c, currency)
@@ -67,10 +94,49 @@ export function DoorSale({ eventId, types, methods, left, currency }: { eventId:
     if (method === "cash") return setPhase({ kind: "cash" }), setRetryId(orderId)
     start(async () => handle(await doorPay(orderId, method), method))
   }
+  const keep = (sale: Queued) => {
+    const q = [...loadQueue(eventId), sale]
+    saveQueue(eventId, q)
+    setQueued(q.length)
+    setPhase({ kind: "done", tickets, offline: true })
+  }
   const payCash = () => {
     setError("")
-    start(async () => handle(retryId ? await doorPay(retryId, "cash") : await doorSell(eventId, lines, "cash", buyer), "cash"))
+    if (retryId) return start(async () => handle(await doorPay(retryId, "cash"), "cash"))
+    const sale: Queued = { id: crypto.randomUUID(), at: new Date().toISOString(), lines, buyer }
+    if (!navigator.onLine) return keep(sale)
+    start(async () => {
+      try {
+        handle(await doorSell(eventId, lines, "cash", buyer, { id: sale.id, at: sale.at }), "cash")
+      } catch {
+        keep(sale) // the request didn't get through (venue Wi-Fi): keep it, the id prevents a double booking
+      }
+    })
   }
+
+  // Send waiting offline cash sales: on load, when back online, every 30 s.
+  useEffect(() => {
+    let running = false
+    const send = async () => {
+      setQueued(loadQueue(eventId).length)
+      if (running || !navigator.onLine) return
+      running = true
+      for (const sale of loadQueue(eventId)) {
+        const r = await doorSell(eventId, sale.lines, "cash", sale.buyer, { id: sale.id, at: sale.at }).catch(() => null)
+        if (!r) break // still no connection
+        if (r.status === "paid") saveQueue(eventId, loadQueue(eventId).filter((x) => x.id !== sale.id))
+      }
+      setQueued(loadQueue(eventId).length)
+      running = false
+    }
+    send()
+    window.addEventListener("online", send)
+    const timer = setInterval(send, 30_000)
+    return () => {
+      window.removeEventListener("online", send)
+      clearInterval(timer)
+    }
+  }, [eventId])
 
   // Card / QR: ask every 2 s until the provider says paid or failed.
   useEffect(() => {
@@ -89,6 +155,7 @@ export function DoorSale({ eventId, types, methods, left, currency }: { eventId:
         <CheckCircle2Icon className="size-16 text-primary" />
         <p className="text-2xl font-semibold">{t("door.sale.paid")}</p>
         {phase.tickets > 0 && <p className="text-muted-foreground">{t("door.sale.letIn", { count: phase.tickets })}</p>}
+        {phase.offline && <p className="text-sm text-muted-foreground">{t("door.sale.savedOffline")}</p>}
         <Button size="lg" className="h-14 w-full max-w-sm text-base" onClick={reset} autoFocus>
           {t("door.sale.next")}
         </Button>
@@ -177,6 +244,16 @@ export function DoorSale({ eventId, types, methods, left, currency }: { eventId:
 
   return (
     <div className="grid gap-4">
+      {(!online || queued > 0) && (
+        <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          {!online && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-destructive/40 px-2 py-0.5 text-destructive">
+              <CloudOffIcon className="size-3.5" /> {t("door.sale.offline")}
+            </span>
+          )}
+          {queued > 0 && t("door.sale.queued", { count: queued })}
+        </p>
+      )}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {types.map((ty) => (
           <button
@@ -294,7 +371,7 @@ export function DoorSale({ eventId, types, methods, left, currency }: { eventId:
               {methods.map((m) => {
                 const Icon = ICONS[m]
                 return (
-                  <Button key={m} size="lg" className="h-14 text-base" variant={m === methods[0] ? "default" : "outline"} disabled={pending} onClick={() => (m === "cash" ? (setRetryId(null), setPhase({ kind: "cash" })) : sell(m))}>
+                  <Button key={m} size="lg" className="h-14 text-base" variant={m === methods[0] ? "default" : "outline"} disabled={pending || (!online && m !== "cash")} onClick={() => (m === "cash" ? (setRetryId(null), setPhase({ kind: "cash" })) : sell(m))}>
                     <Icon /> {pending ? t("door.sale.booking") : t.dynamic(`door.sale.method.${m}`)}
                   </Button>
                 )

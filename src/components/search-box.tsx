@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 
 // List search: results update while typing (short pause), other filters in the URL stay, paging restarts. Still a
 // plain GET form, so Enter works without JavaScript too. `keep` = params to send along on that plain submit.
-export function SearchBox({ q, label, keep }: { q?: string; label: string; keep?: Record<string, string> }) {
+export function SearchBox({ q, label, keep, size }: { q?: string; label: string; keep?: Record<string, string>; size?: "lg" }) {
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
@@ -24,7 +24,7 @@ export function SearchBox({ q, label, keep }: { q?: string; label: string; keep?
   return (
     <form
       role="search"
-      className="w-full sm:max-w-xs"
+      className={size === "lg" ? "w-full" : "w-full sm:max-w-xs"}
       onSubmit={(e) => {
         e.preventDefault()
         go(value)
@@ -37,6 +37,7 @@ export function SearchBox({ q, label, keep }: { q?: string; label: string; keep?
         type="search"
         name="q"
         data-shortcut="search"
+        className={size === "lg" ? "h-12 text-base" : undefined}
         value={value}
         placeholder={label}
         aria-label={label}

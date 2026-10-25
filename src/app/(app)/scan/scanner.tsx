@@ -36,6 +36,18 @@ export function Scanner({ eventId }: { eventId: string }) {
   const t = useT()
   const video = useRef<HTMLVideoElement>(null)
   const [camera, setCamera] = useState(false)
+  // The camera stays on between visits on this device (the door phone): switched on again after load.
+  const toggleCamera = (on: boolean) => {
+    setCamera(on)
+    try {
+      localStorage.setItem("roots-scan-camera", on ? "1" : "")
+    } catch {}
+  }
+  useEffect(() => {
+    try {
+      if (localStorage.getItem("roots-scan-camera")) Promise.resolve().then(() => setCamera(true))
+    } catch {}
+  }, [])
   const [last, setLast] = useState<(ScanResult & { code: string }) | null>(null)
   const [pending, start] = useTransition()
   const busy = useRef(false)
@@ -159,7 +171,7 @@ export function Scanner({ eventId }: { eventId: string }) {
         }
         await new Promise((r) => setTimeout(r, 200))
       }
-    })().catch(() => setCamera(false))
+    })().catch(() => toggleCamera(false))
     return () => {
       stop = true
       stream?.getTracks().forEach((tr) => tr.stop())
@@ -234,10 +246,10 @@ export function Scanner({ eventId }: { eventId: string }) {
         </div>
       )}
       <div className="grid gap-2">
-        <Button type="button" variant={camera ? "outline" : "default"} onClick={() => setCamera((c) => !c)} className="justify-self-start">
+        {camera && <video ref={video} muted playsInline className="aspect-square w-full rounded-xl border bg-muted object-cover sm:max-w-md" />}
+        <Button type="button" size="lg" variant={camera ? "outline" : "default"} onClick={() => toggleCamera(!camera)} className="h-14 w-full text-base sm:max-w-md">
           {camera ? <CameraOffIcon /> : <CameraIcon />} {camera ? t("tickets.cameraOff") : t("tickets.cameraOn")}
         </Button>
-        {camera && <video ref={video} muted playsInline className="aspect-square w-full max-w-sm rounded-xl border bg-muted object-cover" />}
       </div>
       <form
         onSubmit={(e) => {
@@ -248,10 +260,10 @@ export function Scanner({ eventId }: { eventId: string }) {
           if (code) submit(String(code))
           f.reset()
         }}
-        className="flex flex-wrap gap-2"
+        className="flex gap-2 sm:max-w-md"
       >
-        <Input name="code" placeholder={t("tickets.codePlaceholder")} aria-label={t("tickets.code")} autoComplete="off" className="w-48 font-mono uppercase" />
-        <SubmitButton disabled={pending} variant="outline">
+        <Input name="code" placeholder={t("tickets.codePlaceholder")} aria-label={t("tickets.code")} autoComplete="off" className="h-12 min-w-0 flex-1 font-mono text-base uppercase" />
+        <SubmitButton disabled={pending} variant="outline" size="lg" className="h-12">
           {t("tickets.checkIn")}
         </SubmitButton>
       </form>

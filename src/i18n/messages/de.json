@@ -2059,7 +2059,13 @@
       "total": "Summe",
       "noMethods": "Für diese Veranstaltung ist keine Zahlungsart an der Tür aktiv (Tickets → Abendkasse).",
       "summary": "Abendkasse heute",
-      "summaryMeta": "{sales} Verkäufe · {tickets} Tickets"
+      "summaryMeta": "{sales} Verkäufe · {tickets} Tickets",
+      "savedOffline": "Ohne Verbindung gespeichert – wird übertragen, sobald das Gerät wieder online ist.",
+      "offline": "Offline – nur Barzahlung",
+      "queued": {
+        "one": "1 Barverkauf wartet auf Verbindung",
+        "other": "{count} Barverkäufe warten auf Verbindung"
+      }
     },
     "settings": {
       "title": "Abendkasse",
