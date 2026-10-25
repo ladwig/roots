@@ -5,7 +5,7 @@ import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { back } from "@/lib/url"
 import { isMemberCode, memberDoor, memberDoorList, type MemberAtDoor } from "@/members/door"
-import { cancelDoorSale, doorSaleStatus, payAtDoor, sellAtDoor } from "@/tickets/door"
+import { cancelDoorSale, doorSaleStatus, doorStats, payAtDoor, sellAtDoor } from "@/tickets/door"
 import { DOOR_METHODS, readLines, type DoorMethod } from "@/tickets/door-fields"
 import { qrSvg } from "@/tickets/server"
 
@@ -181,4 +181,9 @@ export async function doorStatus(orderId: string) {
 export async function doorCancel(orderId: string) {
   const ctx = await requirePerm("tickets.scan")
   if (/^[0-9a-f-]{36}$/.test(orderId)) await cancelDoorSale(ctx.org.id, orderId).catch(() => null)
+}
+
+export async function doorStatsAction(eventId: string) {
+  const ctx = await requirePerm("tickets.scan")
+  return /^[0-9a-f-]{36}$/.test(eventId) ? doorStats(ctx.org.id, eventId) : null
 }

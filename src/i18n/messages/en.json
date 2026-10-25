@@ -2070,7 +2070,8 @@
       "queued": {
         "one": "1 cash sale waiting for a connection",
         "other": "{count} cash sales waiting for a connection"
-      }
+      },
+      "typeLeft": "{left} left"
     },
     "settings": {
       "title": "Door sales",
@@ -2089,6 +2090,17 @@
       "cashAccount": "Cash book account for cash payments",
       "noCashAccount": "Don't book into the cash book",
       "cashAccountHint": "Every cash sale is booked there as income."
+    },
+    "stats": {
+      "checkedIn": "Checked in",
+      "open": "Still to come",
+      "sellable": "Left to sell",
+      "soldOut": "sold out",
+      "inOfExpected": "checked in / expected",
+      "left": "left",
+      "guests": "Guest list",
+      "members": "Members",
+      "atDoor": "of which door sales"
     }
   },
   "shifts": {

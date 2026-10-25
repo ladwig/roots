@@ -2493,6 +2493,9 @@ isOneToOne: false
 "door_reserve_tickets":
 { Args: { "p_event": string,"p_items": Json,"p_minutes": number,"p_order": string }; Returns: number
                            },
+"door_stats":
+{ Args: { "p_event": string }; Returns: Json
+                           },
 "emit_event":
 { Args: { "p_org": string,"p_payload"?: Json,"p_subject_id"?: string,"p_subject_table"?: string,"p_type": string }; Returns: number
                            },

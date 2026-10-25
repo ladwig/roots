@@ -135,3 +135,32 @@ export async function doorSummary(orgId: string, eventId: string) {
   }
   return { sales: data?.length ?? 0, tickets, total: Object.values(by).reduce((s, x) => s + x.total, 0), byMethod: by }
 }
+
+export type DoorStats = {
+  checkedIn: number
+  expected: number
+  sellable: number | null // null = unlimited
+  rows: { key: string; name: string; kind: "shop" | "guests" | "members"; checkedIn: number; expected: number | null; left: number | null }[]
+  doorIn: number
+  left: Record<string, number | null> // per shop type id
+}
+
+/** The door's stats bar: who's in, who's still expected, what can still be sold (per type, guests, members). */
+export async function doorStats(orgId: string, eventId: string): Promise<DoorStats | null> {
+  const { data: ev } = await db().from("events").select("id").eq("id", eventId).eq("org_id", orgId).maybeSingle()
+  if (!ev) return null
+  const { data } = await db().rpc("door_stats", { p_event: eventId })
+  const s = data as { types: { id: string; name: string; kind: "shop" | "guests" | "members"; expected: number; checked_in: number; left: number | null }[]; permanent_in: number; door_in: number; left: number | null }
+  const shop = s.types.filter((x) => x.kind === "shop")
+  const guests = s.types.filter((x) => x.kind === "guests")
+  const members = s.types.filter((x) => x.kind === "members")
+  const sum = (l: typeof s.types, k: "expected" | "checked_in") => l.reduce((n, x) => n + x[k], 0)
+  const rows: DoorStats["rows"] = shop.map((x) => ({ key: x.id, name: x.name, kind: "shop", checkedIn: x.checked_in, expected: x.expected, left: x.left }))
+  if (guests.length || s.permanent_in) rows.push({ key: "guests", name: "", kind: "guests", checkedIn: sum(guests, "checked_in") + s.permanent_in, expected: sum(guests, "expected") + s.permanent_in, left: null })
+  if (members.length) rows.push({ key: "members", name: "", kind: "members", checkedIn: sum(members, "checked_in"), expected: null, left: null })
+  const checkedIn = rows.reduce((n, r) => n + r.checkedIn, 0)
+  // Members aren't expected in advance: the ones let in count as expected too.
+  const expected = rows.reduce((n, r) => n + (r.expected ?? r.checkedIn), 0)
+  const sellable = s.left !== null ? s.left : shop.length && shop.every((x) => x.left !== null) ? shop.reduce((n, x) => n + (x.left ?? 0), 0) : null
+  return { checkedIn, expected, sellable, rows, doorIn: s.door_in, left: Object.fromEntries(shop.map((x) => [x.id, x.left])) }
+}

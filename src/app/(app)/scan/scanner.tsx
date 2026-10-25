@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import type { MemberAtDoor } from "@/members/door"
 import { admitMember, checkIn, scanList, scanMembers, syncCheckIns, type ScanEntry, type ScanResult } from "./actions"
 import { MemberCard } from "./member-card"
+import { doorChanged } from "./door-stats"
 import { SubmitButton } from "@/components/submit-button"
 
 type Detector = { detect(source: CanvasImageSource): Promise<{ rawValue: string }[]> }
@@ -138,6 +139,7 @@ export function Scanner({ eventId }: { eventId: string }) {
         if (cur.list[clean]?.status === "valid") update({ ...cur, list: { ...cur.list, [clean]: { ...cur.list[clean], status: "used" } } })
       }
       setLast({ ...r, code })
+      if (r.result === "ok") doorChanged(!navigator.onLine)
       navigator.vibrate?.(r.result === "ok" ? 80 : [80, 60, 80])
       busy.current = false
     })
@@ -182,9 +184,6 @@ export function Scanner({ eventId }: { eventId: string }) {
   const tone = last?.result === "ok" ? "border-primary bg-primary/15" : last?.result === "used" ? "border-border bg-muted" : "border-destructive bg-destructive/10"
 
   const count = Object.keys(store.list).length
-  // Who's in, per ticket type (from the device list; member check-ins appear after the next refresh).
-  const inside = Object.values(store.list).filter((e) => e.status === "used")
-  const byType = Object.entries(Object.groupBy(inside, (e) => e.type ?? "–")).map(([type, list]) => `${type} ${list!.length}`)
   // No connection: let in on the device, sync later (conflict if another device let them in meanwhile).
   function admitLocally(contactId: string): MemberAtDoor {
     const cur = load(eventId)
@@ -208,6 +207,7 @@ export function Scanner({ eventId }: { eventId: string }) {
       setLast((l) => l && (r.result === "error" ? { ...l, result: "error", message: r.message, member: undefined } : { ...l, member: r }))
       navigator.vibrate?.(r.result === "ok" ? 80 : [80, 60, 80])
       if (r.result === "ok" && navigator.onLine) refresh()
+      if (r.result === "ok") doorChanged(!navigator.onLine)
     })
   }
   return (
@@ -227,7 +227,6 @@ export function Scanner({ eventId }: { eventId: string }) {
         </Button>
         {syncNote && <span>{syncNote}</span>}
       </div>
-      {inside.length > 0 && <p className="text-sm">{t("door.inside", { count: inside.length })}{byType.length > 1 && ` · ${byType.join(" · ")}`}</p>}
       {last?.member ? (
         <MemberCard t={t} m={last.member}>
           <Button type="button" size="lg" disabled={pending} onClick={() => admit(last.member!.contact_id!)} className="justify-self-start">

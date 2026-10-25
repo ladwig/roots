@@ -2070,7 +2070,8 @@
       "queued": {
         "one": "1 Barverkauf wartet auf Verbindung",
         "other": "{count} Barverkäufe warten auf Verbindung"
-      }
+      },
+      "typeLeft": "noch {left}"
     },
     "settings": {
       "title": "Abendkasse",
@@ -2089,6 +2090,17 @@
       "cashAccount": "Kassenbuch-Konto für Barzahlungen",
       "noCashAccount": "Nicht ins Kassenbuch buchen",
       "cashAccountHint": "Jeder Barverkauf wird dort als Einnahme gebucht."
+    },
+    "stats": {
+      "checkedIn": "Eingelassen",
+      "open": "Offen",
+      "sellable": "Noch verkaufbar",
+      "soldOut": "ausverkauft",
+      "inOfExpected": "eingelassen / erwartet",
+      "left": "noch frei",
+      "guests": "Gästeliste",
+      "members": "Mitglieder",
+      "atDoor": "davon Abendkasse"
     }
   },
   "shifts": {

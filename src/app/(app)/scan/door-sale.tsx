@@ -11,8 +11,9 @@ import { useT } from "@/i18n/client"
 import { formatMoney, moneyCents } from "@/lib/inputs"
 import type { DoorLine, DoorMethod } from "@/tickets/door-fields"
 import { doorCancel, doorPay, doorSell, doorStatus, type DoorPay } from "./actions"
+import { doorChanged } from "./door-stats"
 
-type Type = { id: string; name: string; price: number }
+type Type = { id: string; name: string; price: number; left: number | null }
 type Phase = { kind: "cart" } | { kind: "cash" } | { kind: "waiting"; orderId: string; method: DoorMethod; qr?: string } | { kind: "done"; tickets: number; offline?: boolean } | { kind: "failed"; orderId: string; error: string }
 
 const ICONS = { cash: BanknoteIcon, qr: QrCodeIcon, terminal: CreditCardIcon }
@@ -83,7 +84,10 @@ export function DoorSale({ eventId, types, methods, left, currency }: { eventId:
       else setError(r.error)
       return
     }
-    if (r.status === "paid") setPhase({ kind: "done", tickets })
+    if (r.status === "paid") {
+      setPhase({ kind: "done", tickets })
+      doorChanged()
+    }
     else setPhase({ kind: "waiting", orderId: r.orderId!, method, qr: r.qr })
   }
   const sell = (method: DoorMethod) => {
@@ -143,7 +147,10 @@ export function DoorSale({ eventId, types, methods, left, currency }: { eventId:
     if (phase.kind !== "waiting") return
     const id = setInterval(async () => {
       const s = await doorStatus(phase.orderId).catch(() => null)
-      if (s === "paid") setPhase({ kind: "done", tickets })
+      if (s === "paid") {
+        setPhase({ kind: "done", tickets })
+        doorChanged()
+      }
       else if (s && s !== "open") setPhase({ kind: "failed", orderId: phase.orderId, error: t("door.sale.notPaid") })
     }, 2000)
     return () => clearInterval(id)
@@ -263,7 +270,12 @@ export function DoorSale({ eventId, types, methods, left, currency }: { eventId:
             className="grid min-h-20 content-center gap-1 rounded-xl border bg-card p-3 text-left transition-colors hover:bg-muted active:scale-[0.98]"
           >
             <span className="line-clamp-2 font-medium">{ty.name}</span>
-            <span className="text-sm text-muted-foreground tabular-nums">{money(ty.price)}</span>
+            <span className="text-sm text-muted-foreground tabular-nums">
+              {money(ty.price)}
+              {ty.left !== null && (
+                <span className={ty.left < 10 ? "font-medium text-destructive" : undefined}> · {ty.left === 0 ? t("door.stats.soldOut") : t("door.sale.typeLeft", { left: ty.left })}</span>
+              )}
+            </span>
           </button>
         ))}
         <button

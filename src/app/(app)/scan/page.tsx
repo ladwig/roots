@@ -16,7 +16,8 @@ import { IdCardIcon, ScanLineIcon, ShoppingCartIcon, TicketIcon, UsersIcon } fro
 
 const TAB_ICONS = { scan: ScanLineIcon, sale: ShoppingCartIcon, tickets: TicketIcon, members: IdCardIcon, guests: UsersIcon } as const
 import { DoorSale } from "./door-sale"
-import { doorOffer, doorSummary } from "@/tickets/door"
+import { doorOffer, doorStats, doorSummary } from "@/tickets/door"
+import { DoorStats } from "./door-stats"
 
 // Door: pick the event (today's first), then scan QR codes, check guest lists, or look up tickets by name.
 export default async function DoorPage({ searchParams }: PageProps<"/scan">) {
@@ -38,6 +39,7 @@ export default async function DoorPage({ searchParams }: PageProps<"/scan">) {
     .limit(20)
   const current = events?.find((e) => e.id === param(sp, "event")) ?? events?.find((e) => e.starts_at >= since)
   const canMembers = canScan && ctx.modules.has("members")
+  const stats = current && canScan ? await doorStats(ctx.org.id, current.id) : null
   const tabs = [...(canScan ? ["scan", "sale", "tickets"] : []), ...(canMembers ? ["members"] : []), ...(canGuests ? ["guests"] : [])]
   const tab = tabs.find((x) => x === param(sp, "tab")) ?? tabs[0]
   const q = param(sp, "q")
@@ -98,6 +100,8 @@ export default async function DoorPage({ searchParams }: PageProps<"/scan">) {
               )
             })}
           </nav>
+          {/* Remounts when the server's numbers change (list check-ins re-render the page). */}
+          <DoorStats key={`${current.id}-${stats?.checkedIn}-${stats?.expected}`} eventId={current.id} initial={stats} />
           <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
           {tab === "scan" && <Scanner key={current.id} eventId={current.id} />}
           {tab === "guests" && <Guests eventId={current.id} q={q} list={param(sp, "list")} sp={sp} chip={chip} />}
@@ -190,11 +194,11 @@ async function Guests({
 async function Sale({ eventId }: { eventId: string }) {
   const ctx = await getContext()
   const t = await getT()
-  const [offer, sum] = await Promise.all([doorOffer(ctx.org.id, eventId), doorSummary(ctx.org.id, eventId)])
+  const [offer, sum, stats] = await Promise.all([doorOffer(ctx.org.id, eventId), doorSummary(ctx.org.id, eventId), doorStats(ctx.org.id, eventId)])
   if (!offer) return null
   return (
     <section className="grid gap-6">
-      <DoorSale key={eventId} eventId={eventId} types={offer.types} methods={offer.methods} left={offer.left} currency={offer.types[0]?.currency ?? "eur"} />
+      <DoorSale key={eventId} eventId={eventId} types={offer.types.map((ty) => ({ ...ty, left: stats?.left[ty.id] ?? null }))} methods={offer.methods} left={offer.left} currency={offer.types[0]?.currency ?? "eur"} />
       <div className="grid gap-2 rounded-xl border p-4 text-sm">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h3 className="font-medium">{t("door.sale.summary")}</h3>
