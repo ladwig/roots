@@ -1508,11 +1508,11 @@
       "none": "Kein Rabatt (nur freischalten)"
     },
     "codeValueLabel": "Wert (% oder €)",
-    "maxUses": "Max. Tickets",
+    "maxUses": "Max. Tickets über diesen Code",
     "validFrom": "Gültig ab",
     "validUntil": "Gültig bis",
     "codeTypes": "Gilt für",
-    "codeTypesHint": "Nichts ausgewählt = alle sichtbaren Ticketarten. Versteckte Arten werden nur durch Auswahl freigeschaltet.",
+    "codeTypesHint": "Nichts ausgewählt = alle sichtbaren Ticketarten. Versteckte Arten gibt es nur mit einem Code, der sie hier auswählt; wie viele es davon gibt, steht im Kontingent der Ticketart.",
     "codeActive": "Aktiv",
     "codeFormat": "Code: 3–40 Zeichen, Buchstaben, Zahlen und Bindestriche.",
     "codeValue": "Bitte einen gültigen Rabatt angeben (1–100 % oder einen Betrag).",
@@ -1550,7 +1550,9 @@
     "showCodeField": "Feld für Rabattcodes im Shop anzeigen",
     "showCodeFieldHint": "Aus = kein Eingabefeld; Rabatt-Links (…?code=) funktionieren trotzdem.",
     "unlockedBy": "Freigeschaltet durch",
-    "noUnlockCode": "Noch kein Code schaltet diese Ticketart frei – so kann sie niemand kaufen."
+    "noUnlockCode": "Noch kein Code schaltet diese Ticketart frei – so kann sie niemand kaufen.",
+    "maxUsesHint": "Leer = nur das Kontingent der Ticketart zählt. Sinnvoll für Rabatte (z. B. 20 % für die ersten 30).",
+    "allVisibleTypes": "alle sichtbaren"
   },
   "shop": {
     "title": "Tickets",

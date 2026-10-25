@@ -238,6 +238,10 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
                 c.kind === "percent" ? `−${c.value} %` : c.kind === "amount" ? `−${t.money(c.value, "eur")}` : t("tickets.unlockOnly"),
             },
             {
+              header: t("tickets.codeTypes"),
+              cell: (c) => (c.type_ids.length ? (types ?? []).filter((ty) => c.type_ids.includes(ty.id)).map((ty) => ty.name).join(", ") : t("tickets.allVisibleTypes")),
+            },
+            {
               header: t("tickets.uses"),
               cell: (c) => `${used("code_id", c.id)}${c.max_uses ? ` / ${c.max_uses}` : ""}`,
               className: "tabular-nums",
@@ -505,6 +509,7 @@ function CodeForm({ t, eventId, c, types }: { t: T; eventId: string; c?: Code; t
         <div className="grid gap-2">
           <Label htmlFor="c-max">{t("tickets.maxUses")}</Label>
           <Input id="c-max" name="max_uses" type="number" min={1} defaultValue={c?.max_uses ?? ""} placeholder="∞" />
+          <p className="text-xs text-muted-foreground">{t("tickets.maxUsesHint")}</p>
         </div>
         <div className="grid gap-2">
           <Label htmlFor="c-from">{t("tickets.validFrom")}</Label>

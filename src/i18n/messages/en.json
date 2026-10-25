@@ -1508,11 +1508,11 @@
       "none": "No discount (unlock only)"
     },
     "codeValueLabel": "Value (% or €)",
-    "maxUses": "Max. tickets",
+    "maxUses": "Max. tickets via this code",
     "validFrom": "Valid from",
     "validUntil": "Valid until",
     "codeTypes": "Applies to",
-    "codeTypesHint": "Nothing selected = all visible ticket types. Hidden types are only unlocked when selected.",
+    "codeTypesHint": "Nothing selected = all visible ticket types. Hidden types are only sold with a code that selects them here; how many exist is the ticket type's quota.",
     "codeActive": "Active",
     "codeFormat": "Code: 3–40 characters, letters, digits and dashes.",
     "codeValue": "Please enter a valid discount (1–100 % or an amount).",
@@ -1550,7 +1550,9 @@
     "showCodeField": "Show the discount code field in the shop",
     "showCodeFieldHint": "Off = no input field; discount links (…?code=) still work.",
     "unlockedBy": "Unlocked by",
-    "noUnlockCode": "No code unlocks this ticket type yet – nobody can buy it."
+    "noUnlockCode": "No code unlocks this ticket type yet – nobody can buy it.",
+    "maxUsesHint": "Empty = only the ticket type's quota counts. Useful for discounts (e.g. 20 % for the first 30).",
+    "allVisibleTypes": "all visible"
   },
   "shop": {
     "title": "Tickets",
