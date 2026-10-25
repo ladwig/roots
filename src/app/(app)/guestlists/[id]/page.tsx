@@ -39,7 +39,12 @@ export default async function GuestListPage({ params, searchParams }: PageProps<
   return (
     <Page>
       <PageHeader
-        crumbs={[{ href: `/guestlists${list.event_id ? `?event=${list.event_id}` : ""}`, label: t("guestlists.title") }, { label: list.name }]}
+        crumbs={
+          // Event lists live in the event's Gästelisten tab; permanent lists (every event) in the overview.
+          list.events
+            ? [{ href: "/events", label: t("eventsPage.nav") }, { href: `/events/${list.events.id}/guestlists`, label: list.events.title }, { label: list.name }]
+            : [{ href: "/guestlists", label: t("guestlists.title") }, { label: list.name }]
+        }
         title={list.name}
         meta={
           <>

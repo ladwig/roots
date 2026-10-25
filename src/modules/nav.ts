@@ -48,7 +48,6 @@ export const NAV: Area[] = [
     icon: CalendarDaysIcon,
     children: [
       { href: "/events", label: "nav.overview", module: "events", permission: "events.view" },
-      { href: "/guestlists", label: "guestlists.nav", module: "guestlists", permission: "guestlists.view" },
       { href: "/scan", label: "tickets.scanNav", module: ["tickets", "guestlists"], permission: ["tickets.scan", "guestlists.checkin"] },
     ],
   },

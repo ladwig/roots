@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useSyncExternalStore, useTransition } from "react"
+import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { BanknoteIcon, CheckCircle2Icon, CloudOffIcon, CreditCardIcon, MinusIcon, PlusIcon, QrCodeIcon, XCircleIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -109,6 +109,11 @@ export function DoorSale({ eventId, types, methods, provider, left, currency }: 
     setQueued(q.length)
     setPhase({ kind: "done", tickets, offline: true })
   }
+  const cancel = (orderId: string) => {
+    waitingFor.current = null
+    setPhase({ kind: "cart" }) // back to the cart (it keeps its lines) right away
+    start(async () => void (await doorCancel(orderId)))
+  }
   const payCash = () => {
     setError("")
     if (retryId) return start(async () => handle(await doorPay(retryId, "cash"), "cash"))
@@ -148,17 +153,24 @@ export function DoorSale({ eventId, types, methods, provider, left, currency }: 
   }, [eventId])
 
   // Card / QR: ask every 2 s until the provider says paid or failed.
+  // The order being waited for; a status answer for any other (cancelled meanwhile) is ignored.
+  const waitingFor = useRef<string | null>(null)
   useEffect(() => {
     if (phase.kind !== "waiting") return
+    waitingFor.current = phase.orderId
     const id = setInterval(async () => {
       const s = await doorStatus(phase.orderId).catch(() => null)
+      if (waitingFor.current !== phase.orderId) return
       if (s === "paid") {
         setPhase({ kind: "done", tickets })
         doorChanged()
       }
       else if (s && s !== "open") setPhase({ kind: "failed", orderId: phase.orderId, error: t("door.sale.notPaid") })
     }, 2000)
-    return () => clearInterval(id)
+    return () => {
+      clearInterval(id)
+      waitingFor.current = null
+    }
   }, [phase, tickets, t])
 
   if (phase.kind === "done")
@@ -196,7 +208,7 @@ export function DoorSale({ eventId, types, methods, provider, left, currency }: 
               <BanknoteIcon /> {t("door.sale.switchCash")}
             </Button>
           )}
-          <Button variant="ghost" size="lg" className="h-12" disabled={pending} onClick={() => start(async () => (await doorCancel(phase.orderId), setPhase({ kind: "cart" })))}>
+          <Button variant="ghost" size="lg" className="h-12" disabled={pending} onClick={() => cancel(phase.orderId)}>
             {t("door.sale.cancel")}
           </Button>
         </div>
@@ -217,7 +229,7 @@ export function DoorSale({ eventId, types, methods, provider, left, currency }: 
               </Button>
             )
           })}
-          <Button variant="ghost" size="lg" className="h-12" disabled={pending} onClick={() => start(async () => (await doorCancel(phase.orderId), setPhase({ kind: "cart" })))}>
+          <Button variant="ghost" size="lg" className="h-12" disabled={pending} onClick={() => cancel(phase.orderId)}>
             {t("door.sale.cancel")}
           </Button>
         </div>
