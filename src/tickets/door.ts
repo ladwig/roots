@@ -141,6 +141,7 @@ export type DoorStats = {
   checkedIn: number
   expected: number
   sellable: number | null // null = unlimited
+  capacity: boolean // the event has a capacity (then it's the door's limit, type quotas are the online shop's)
   rows: { key: string; name: string; kind: "shop" | "guests" | "members"; checkedIn: number; expected: number | null; left: number | null }[]
   doorIn: number
   left: Record<string, number | null> // per shop type id
@@ -162,8 +163,9 @@ export async function doorStats(orgId: string, eventId: string): Promise<DoorSta
   const checkedIn = rows.reduce((n, r) => n + r.checkedIn, 0)
   // Members aren't expected in advance: the ones let in count as expected too.
   const expected = rows.reduce((n, r) => n + (r.expected ?? r.checkedIn), 0)
-  // The smaller of the event's seats left and what all ticket types still allow (each only if limited).
+  // At the door type quotas don't bind (the door sells any type), only the event's capacity: seats left there.
+  // Without a capacity, what all ticket types still allow (if every one is limited).
   const byTypes = shop.length && shop.every((x) => x.left !== null) ? shop.reduce((n, x) => n + (x.left ?? 0), 0) : null
-  const sellable = s.left === null ? byTypes : byTypes === null ? s.left : Math.min(s.left, byTypes)
-  return { checkedIn, expected, sellable, rows, doorIn: s.door_in, left: Object.fromEntries(shop.map((x) => [x.id, x.left])) }
+  const sellable = s.left ?? byTypes
+  return { checkedIn, expected, sellable, capacity: s.left !== null, rows, doorIn: s.door_in, left: Object.fromEntries(shop.map((x) => [x.id, x.left])) }
 }

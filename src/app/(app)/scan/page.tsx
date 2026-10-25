@@ -197,7 +197,7 @@ async function Sale({ eventId }: { eventId: string }) {
   if (!offer) return null
   return (
     <section className="grid gap-6">
-      <DoorSale key={eventId} eventId={eventId} types={offer.types.map((ty) => ({ ...ty, left: stats?.left[ty.id] ?? null }))} methods={offer.methods} provider={offer.provider} left={offer.left} currency={offer.types[0]?.currency ?? "eur"} />
+      <DoorSale key={eventId} eventId={eventId} types={offer.types.map((ty) => ({ ...ty, left: stats?.capacity ? null : (stats?.left[ty.id] ?? null) }))} methods={offer.methods} provider={offer.provider} left={offer.left} currency={offer.types[0]?.currency ?? "eur"} />
       <div className="grid gap-2 rounded-xl border p-4 text-sm">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h3 className="font-medium">{t("door.sale.summary")}</h3>

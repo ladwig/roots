@@ -58,7 +58,7 @@ export function DoorStats({ eventId, initial }: { eventId: string; initial: Stat
             <tr className="text-xs text-muted-foreground">
               <th className="px-3 py-2 text-left font-normal" />
               <th className="px-3 py-2 text-right font-normal">{t("door.stats.inOfExpected")}</th>
-              <th className="px-3 py-2 text-right font-normal">{t("door.stats.left")}</th>
+              <th className="px-3 py-2 text-right font-normal">{s.capacity ? t("door.stats.leftOnline") : t("door.stats.left")}</th>
             </tr>
           </thead>
           <tbody>

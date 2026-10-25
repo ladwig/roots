@@ -2103,7 +2103,8 @@
       "left": "left",
       "guests": "Guest list",
       "members": "Members",
-      "atDoor": "of which door sales"
+      "atDoor": "of which door sales",
+      "leftOnline": "left online"
     }
   },
   "shifts": {

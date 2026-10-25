@@ -2103,7 +2103,8 @@
       "left": "noch frei",
       "guests": "Gästeliste",
       "members": "Mitglieder",
-      "atDoor": "davon Abendkasse"
+      "atDoor": "davon Abendkasse",
+      "leftOnline": "online noch frei"
     }
   },
   "shifts": {
