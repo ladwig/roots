@@ -11,6 +11,16 @@ import { stripeProvider } from "./providers/stripe"
 import { sumupProvider } from "./providers/sumup"
 
 const providers: PaymentProvider[] = [stripeProvider, sumupProvider] // first ready one wins
+// Cash taken in person (src/payments/pos.ts): never a checkout; a refund = money handed back, recorded as done.
+const cashProvider: PaymentProvider = {
+  key: "cash",
+  ready: async () => true,
+  createCheckout: async () => {
+    throw new Error("payments.notReady")
+  },
+  refund: async ({ providerPaymentRef, idempotencyKey }) => ({ providerRef: `cash_${providerPaymentRef}_${idempotencyKey}`, status: "succeeded" }),
+}
+export const providerByKey = (key: string) => [...providers, cashProvider].find((p) => p.key === key)
 const db = () => createAdminClient()
 const CHECKOUT_MINUTES = 30 // Stripe allows 30 min – 24 h
 const CLAIM_MINUTES = 5 // a fulfilment claim older than this died with its process
@@ -129,10 +139,11 @@ export async function reconcileOrder(orderId: string) {
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle()
-  const provider = pay && providers.find((p) => p.key === pay.provider)
+  const provider = pay && providerByKey(pay.provider)
   if (!pay || !provider?.checkoutStatus) return
   const r = await provider.checkoutStatus({ orgId: pay.org_id, providerRef: pay.provider_ref })
   if (r.paid) await markPaid(pay.provider, pay.provider_ref, r.providerPaymentRef)
+  else if (r.failed) await markFailed(pay.provider, pay.provider_ref)
 }
 
 /** Payment confirmed by the provider (webhook). Safe to call repeatedly. */
@@ -251,7 +262,7 @@ export async function refundOrder(orderId: string, amount?: number, reason?: str
   const value = amount ?? left
   if (!Number.isInteger(value) || value <= 0 || value > left) throw new Error("payments.invalidRefund")
 
-  const provider = providers.find((p) => p.key === payment.provider)!
+  const provider = providerByKey(payment.provider)!
   const result = await provider.refund({
     orgId: payment.org_id,
     providerPaymentRef: payment.provider_payment_ref,

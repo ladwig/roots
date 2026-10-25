@@ -557,6 +557,21 @@
       "via": {
         "oauth": "Verbunden über SumUp-Login",
         "key": "Verbunden per API-Schlüssel"
+      },
+      "readers": {
+        "title": "Kartenterminals",
+        "failed": "SumUp hat nicht geantwortet.",
+        "remove": "Entfernen",
+        "confirmRemove": "Terminal entkoppeln?",
+        "code": "Kopplungscode",
+        "name": "Name",
+        "namePlaceholder": "z. B. Tür",
+        "pair": "Koppeln",
+        "hint": "Am SumUp Solo: abmelden → Verbindungen → API → Verbinden. Der Code gilt 5 Minuten.",
+        "badCode": "Der Code hat 8–9 Zeichen; Name nicht vergessen.",
+        "pairFailed": "Koppeln hat nicht geklappt – Code abgelaufen oder falsch?",
+        "paired": "{name} ist gekoppelt.",
+        "removed": "Terminal entfernt. Am Gerät noch unter Verbindungen → API trennen."
       }
     },
     "brevo": {
@@ -983,7 +998,8 @@
     "notRefundable": "Diese Bestellung kann nicht erstattet werden.",
     "invalidRefund": "Ungültiger Betrag für die Erstattung.",
     "refundLeft": "Leer lassen = alles Erstattbare: {amount}.",
-    "feeKept": "Die Servicegebühr ({amount}) wird nicht erstattet."
+    "feeKept": "Die Servicegebühr ({amount}) wird nicht erstattet.",
+    "noTerminal": "Kein Kartenterminal eingerichtet."
   },
   "checkout": {
     "title": "Bestellung",
@@ -1957,7 +1973,8 @@
       "scan": "Scannen",
       "guests": "Gäste",
       "tickets": "Tickets",
-      "members": "Mitglieder"
+      "members": "Mitglieder",
+      "sale": "Verkauf"
     },
     "searchGuests": "Name suchen…",
     "searchTickets": "Name oder Code suchen…",
@@ -1999,6 +2016,68 @@
       "admit": "Einlassen",
       "admitting": "Einlassen …",
       "noneFound": "Kein Mitglied gefunden."
+    },
+    "sale": {
+      "cashEntry": "Abendkasse: {event}",
+      "failed": "Verkauf hat nicht geklappt.",
+      "notPaid": "Nicht bezahlt (abgebrochen oder abgelehnt).",
+      "paid": "Bezahlt",
+      "letIn": {
+        "one": "1 Ticket eingelassen",
+        "other": "{count} Tickets eingelassen"
+      },
+      "next": "Nächster Verkauf",
+      "scanToPay": "Mit dem Handy scannen und bezahlen",
+      "onTerminal": "Bitte am Kartenterminal bezahlen",
+      "waiting": "Warte auf Zahlung…",
+      "switchCash": "Doch bar",
+      "cancel": "Verkauf abbrechen",
+      "method": {
+        "cash": "Bar",
+        "qr": "QR-Code",
+        "terminal": "Kartenterminal"
+      },
+      "given": "Gegeben",
+      "change": "Rückgeld: {amount}",
+      "booking": "Bucht…",
+      "cashReceived": "Bar erhalten",
+      "freeAmount": "Freier Betrag",
+      "what": "Wofür",
+      "whatPlaceholder": "z. B. Getränk",
+      "amount": "Betrag",
+      "add": "Hinzufügen",
+      "price": "Preis",
+      "editPrice": "Preis ändern",
+      "less": "Weniger",
+      "more": "Mehr",
+      "buyer": "Name / E-Mail (optional)",
+      "name": "Name",
+      "email": "E-Mail",
+      "buyerHint": "Mit E-Mail bekommt die Person ihre Tickets und wird als Kontakt angelegt.",
+      "overCapacity": "Über der Kapazität (noch {left} frei) – Verkauf ist trotzdem möglich.",
+      "seatsLeft": "Noch {left} Plätze frei",
+      "total": "Summe",
+      "noMethods": "Für diese Veranstaltung ist keine Zahlungsart an der Tür aktiv (Tickets → Abendkasse).",
+      "summary": "Abendkasse heute",
+      "summaryMeta": "{sales} Verkäufe · {tickets} Tickets"
+    },
+    "settings": {
+      "title": "Abendkasse",
+      "description": "Verkauf an der Tür (Einlass → Verkauf): Tickets zu jedem Preis und freie Beträge. Verkaufte Tickets gelten sofort als eingelassen.",
+      "methods": "Zahlungsarten",
+      "unavailable": {
+        "cash": "",
+        "qr": "Braucht eine verbundene Zahlungsintegration (Stripe oder SumUp).",
+        "terminal": "Braucht SumUp mit einem gekoppelten Kartenterminal (Solo)."
+      },
+      "reader": "Kartenterminal",
+      "readersFailed": "Terminals konnten nicht geladen werden.",
+      "noReader": "Kein Terminal",
+      "pairFirst": "Noch kein Terminal gekoppelt.",
+      "toIntegrations": "Zu den Integrationen",
+      "cashAccount": "Kassenbuch-Konto für Barzahlungen",
+      "noCashAccount": "Nicht ins Kassenbuch buchen",
+      "cashAccountHint": "Jeder Barverkauf wird dort als Einnahme gebucht."
     }
   },
   "shifts": {

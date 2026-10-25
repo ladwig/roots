@@ -557,6 +557,21 @@
       "via": {
         "oauth": "Connected via SumUp login",
         "key": "Connected with API key"
+      },
+      "readers": {
+        "title": "Card terminals",
+        "failed": "SumUp didn't answer.",
+        "remove": "Remove",
+        "confirmRemove": "Unpair this terminal?",
+        "code": "Pairing code",
+        "name": "Name",
+        "namePlaceholder": "e.g. Door",
+        "pair": "Pair",
+        "hint": "On the SumUp Solo: log out → Connections → API → Connect. The code is valid for 5 minutes.",
+        "badCode": "The code has 8–9 characters; don't forget the name.",
+        "pairFailed": "Pairing didn't work – code expired or wrong?",
+        "paired": "{name} is paired.",
+        "removed": "Terminal removed. Also disconnect it on the device under Connections → API."
       }
     },
     "brevo": {
@@ -983,7 +998,8 @@
     "notRefundable": "This order can't be refunded.",
     "invalidRefund": "Invalid refund amount.",
     "refundLeft": "Leave empty = everything refundable: {amount}.",
-    "feeKept": "The service fee ({amount}) isn't refunded."
+    "feeKept": "The service fee ({amount}) isn't refunded.",
+    "noTerminal": "No card terminal set up."
   },
   "checkout": {
     "title": "Order",
@@ -1957,7 +1973,8 @@
       "scan": "Scan",
       "guests": "Guests",
       "tickets": "Tickets",
-      "members": "Members"
+      "members": "Members",
+      "sale": "Sell"
     },
     "searchGuests": "Search name…",
     "searchTickets": "Search name or code…",
@@ -1999,6 +2016,68 @@
       "admit": "Let in",
       "admitting": "Letting in …",
       "noneFound": "No member found."
+    },
+    "sale": {
+      "cashEntry": "Door sales: {event}",
+      "failed": "The sale didn't work.",
+      "notPaid": "Not paid (cancelled or declined).",
+      "paid": "Paid",
+      "letIn": {
+        "one": "1 ticket let in",
+        "other": "{count} tickets let in"
+      },
+      "next": "Next sale",
+      "scanToPay": "Scan with your phone and pay",
+      "onTerminal": "Please pay on the card terminal",
+      "waiting": "Waiting for payment…",
+      "switchCash": "Cash instead",
+      "cancel": "Cancel sale",
+      "method": {
+        "cash": "Cash",
+        "qr": "QR code",
+        "terminal": "Card terminal"
+      },
+      "given": "Given",
+      "change": "Change: {amount}",
+      "booking": "Booking…",
+      "cashReceived": "Cash received",
+      "freeAmount": "Custom amount",
+      "what": "For",
+      "whatPlaceholder": "e.g. drink",
+      "amount": "Amount",
+      "add": "Add",
+      "price": "Price",
+      "editPrice": "Change price",
+      "less": "Less",
+      "more": "More",
+      "buyer": "Name / email (optional)",
+      "name": "Name",
+      "email": "Email",
+      "buyerHint": "With an email the person gets their tickets and becomes a contact.",
+      "overCapacity": "Over capacity ({left} left) – you can still sell.",
+      "seatsLeft": "{left} seats left",
+      "total": "Total",
+      "noMethods": "No payment method is active at the door for this event (Tickets → Door sales).",
+      "summary": "Door sales today",
+      "summaryMeta": "{sales} sales · {tickets} tickets"
+    },
+    "settings": {
+      "title": "Door sales",
+      "description": "Selling at the door (Door → Sell): tickets at any price and custom amounts. Tickets sold count as let in right away.",
+      "methods": "Payment methods",
+      "unavailable": {
+        "cash": "",
+        "qr": "Needs a connected payment integration (Stripe or SumUp).",
+        "terminal": "Needs SumUp with a paired card terminal (Solo)."
+      },
+      "reader": "Card terminal",
+      "readersFailed": "Couldn't load the terminals.",
+      "noReader": "No terminal",
+      "pairFirst": "No terminal paired yet.",
+      "toIntegrations": "Go to integrations",
+      "cashAccount": "Cash book account for cash payments",
+      "noCashAccount": "Don't book into the cash book",
+      "cashAccountHint": "Every cash sale is booked there as income."
     }
   },
   "shifts": {

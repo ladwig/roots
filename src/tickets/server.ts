@@ -110,6 +110,11 @@ export async function issueTickets(order: PaidOrder) {
     .select("id")
   if (error) throw error
   if (!changed?.length) return // already issued: don't mail again
+  const meta = (order.metadata ?? {}) as Record<string, unknown>
+  if (meta.door) {
+    // Sold at the door: the buyer is standing there, so the tickets are let in right away.
+    await db().from("tickets").update({ status: "used", checked_in_at: new Date().toISOString(), checked_in_by: typeof meta.sold_by === "string" ? meta.sold_by : null }).eq("order_id", order.id).eq("status", "valid")
+  }
   // Email with link + PDF. Never fails the payment: tickets are valid either way (the buyer page has them too).
   await emailTickets(order.id).catch((e) => console.error("ticket email", order.id, e))
 }

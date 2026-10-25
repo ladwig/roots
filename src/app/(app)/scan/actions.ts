@@ -5,6 +5,9 @@ import { dbError } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { back } from "@/lib/url"
 import { isMemberCode, memberDoor, memberDoorList, type MemberAtDoor } from "@/members/door"
+import { cancelDoorSale, doorSaleStatus, payAtDoor, sellAtDoor } from "@/tickets/door"
+import { DOOR_METHODS, readLines, type DoorMethod } from "@/tickets/door-fields"
+import { qrSvg } from "@/tickets/server"
 
 export type ScanResult = { result: "ok" | "used" | "invalid" | "error"; holder?: string | null; type?: string | null; at?: string | null; message?: string; member?: MemberAtDoor }
 
@@ -133,4 +136,47 @@ export async function memberDoorCheckIn(fd: FormData) {
   }
   if (r!.result === "ok") back(here, { ok: t("door.checkedIn", { name: r!.name ?? "" }) })
   back(here, { error: t.dynamic(`door.member.${r!.result}`) })
+}
+
+// Door → Verkauf tab: sell tickets / free amounts and collect them (cash, QR on the buyer's phone, card terminal).
+export type DoorPay = { orderId?: string; status?: "paid" | "pending"; qr?: string; error?: string }
+
+const doorError = async (e: unknown) => {
+  const t = await getT()
+  const key = (e as { message?: string })?.message ?? ""
+  return { error: /^[a-z]+\.[A-Za-z_.]+$/.test(key) ? t.dynamic(key) : t("door.sale.failed") }
+}
+
+async function payResult(orgId: string, orderId: string, method: DoorMethod): Promise<DoorPay> {
+  const r = await payAtDoor(orgId, orderId, method)
+  return { orderId, status: r.status, qr: r.status === "pending" && r.url ? await qrSvg(r.url) : undefined }
+}
+
+export async function doorSell(eventId: string, rawLines: unknown, method: DoorMethod, buyer: { name?: string; email?: string }): Promise<DoorPay> {
+  const ctx = await requirePerm("tickets.scan")
+  const lines = readLines(rawLines)
+  if (!lines || !/^[0-9a-f-]{36}$/.test(eventId) || !DOOR_METHODS.includes(method)) return { error: (await getT())("errors.invalid_input") }
+  try {
+    const { orderId } = await sellAtDoor({ orgId: ctx.org.id, eventId, lines, name: buyer.name, email: buyer.email, soldBy: ctx.userId })
+    return await payResult(ctx.org.id, orderId, method).catch(async (e) => ({ orderId, ...(await doorError(e)) }))
+  } catch (e) {
+    return doorError(e)
+  }
+}
+
+/** Collect again (the card failed, or switch method). */
+export async function doorPay(orderId: string, method: DoorMethod): Promise<DoorPay> {
+  const ctx = await requirePerm("tickets.scan")
+  if (!/^[0-9a-f-]{36}$/.test(orderId) || !DOOR_METHODS.includes(method)) return { error: (await getT())("errors.invalid_input") }
+  return payResult(ctx.org.id, orderId, method).catch(async (e) => ({ orderId, ...(await doorError(e)) }))
+}
+
+export async function doorStatus(orderId: string) {
+  const ctx = await requirePerm("tickets.scan")
+  return /^[0-9a-f-]{36}$/.test(orderId) ? doorSaleStatus(ctx.org.id, orderId) : null
+}
+
+export async function doorCancel(orderId: string) {
+  const ctx = await requirePerm("tickets.scan")
+  if (/^[0-9a-f-]{36}$/.test(orderId)) await cancelDoorSale(ctx.org.id, orderId).catch(() => null)
 }

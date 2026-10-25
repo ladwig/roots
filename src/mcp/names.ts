@@ -28,7 +28,7 @@ export function uniqueNames(names: string[]) {
 
 export type Risk = "read" | "write" | "danger"
 // Calls with effects outside the database (emails), money, or that can't be undone need the confirm step.
-const DANGER = /\/(send|sends|refund|issue|cancel|reminders|sepa-runs|xml|publish|activate|invites)(\/|$)/
+const DANGER = /\/(send|sends|refund|issue|cancel|sales|pay|reminders|sepa-runs|xml|publish|activate|invites)(\/|$)/
 // POSTs that only compute something (check a draft) count as reads.
 const PURE = /\/(validate|preview)$/
 export function riskOf(method: string, path: string): Risk {

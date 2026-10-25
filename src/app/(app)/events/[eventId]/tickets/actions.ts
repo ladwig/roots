@@ -7,6 +7,7 @@ import { fromLocalInput } from "@/lib/time"
 import { back } from "@/lib/url"
 import { checkCode, checkTicketType, checkTier, normalizeCode } from "@/tickets/fields"
 import { parsePrice } from "@/tickets/price"
+import { readDoor } from "@/tickets/door-fields"
 
 async function manager(eventId: string) {
   const ctx = await requirePerm("tickets.manage")
@@ -73,6 +74,20 @@ export async function saveTicketSettings(fd: FormData) {
     .eq("org_id", ctx.org.id)
   if (error || !count) back(here, { error: error ? dbError(t, error) : t("errors.not_allowed") })
   back(here, { ok: t("tickets.saved") })
+}
+
+// Abendkasse settings (events.door): methods, card reader, cash book account (must be the org's).
+export async function saveDoorSettings(fd: FormData) {
+  const eventId = String(fd.get("event") ?? "")
+  const { ctx, t, here } = await manager(eventId)
+  const door = readDoor({ methods: fd.getAll("methods").map(String), reader_id: String(fd.get("reader_id") ?? ""), cash_account_id: String(fd.get("cash_account_id") ?? "") })
+  if (door.cash_account_id) {
+    const { data: acc } = await ctx.supabase.from("cash_accounts").select("id").eq("id", door.cash_account_id).eq("org_id", ctx.org.id).maybeSingle()
+    if (!acc) back(`${here}#door`, { error: t("errors.not_allowed") })
+  }
+  const { error, count } = await ctx.supabase.from("events").update({ door }, { count: "exact" }).eq("id", eventId).eq("org_id", ctx.org.id)
+  if (error || !count) back(`${here}#door`, { error: error ? dbError(t, error) : t("errors.not_allowed") })
+  back(`${here}#door`, { ok: t("tickets.saved") })
 }
 
 // Price tiers of a type (Early Bird → Regular → …). Order = position; the first not sold out/ended is current.

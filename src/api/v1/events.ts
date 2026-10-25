@@ -7,6 +7,7 @@ import { loadFields, readCustomObject } from "@/lib/custom-fields"
 import { imageUrl, removeImage } from "@/lib/images"
 import { refreshPublicFromApi } from "@/lib/public-cache"
 import type { TablesUpdate } from "@/lib/supabase/types"
+import { DOOR_METHODS, readDoor } from "@/tickets/door-fields"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
 import { Custom, putImage, ts, type Db } from "./shared"
 
@@ -31,6 +32,7 @@ export const Event = z.object({
   max_tickets_per_order: z.number().int(),
   links: z.array(z.object({ label: z.string(), url: z.string() })).describe("The event's own links (max 3), shown as buttons on its page"),
   show_code_field: z.boolean().describe("Shop shows the discount code field (?code= links work either way)"),
+  door: z.object({ methods: z.array(z.enum(DOOR_METHODS)), reader_id: z.string().nullable(), cash_account_id: uuid.nullable() }).describe("Door sales (POS): payment methods offered, card reader, cash book account for cash"),
   email_template_id: uuid.nullable().describe("Email template for this event's ticket, guest-list and waiting-list mails (null = the org's default, else roots' built-in mail). See GET /email/templates"),
   custom: Custom,
   published_at: ts.nullable(),
@@ -39,8 +41,8 @@ export const Event = z.object({
   updated_at: ts,
 })
 export const EVENT_COLS =
-  "id, title, slug, status, starts_at, ends_at, location_id, venue_name, venue_address, description, capacity, image_path, ticket_names, max_tickets_per_order, links, show_code_field, email_template_id, custom, published_at, deleted_at, created_at, updated_at"
-const eventOut = <T extends { image_path: string | null }>({ image_path, ...e }: T) => ({ ...e, image_url: imageUrl(image_path) ?? null })
+  "id, title, slug, status, starts_at, ends_at, location_id, venue_name, venue_address, description, capacity, image_path, ticket_names, max_tickets_per_order, links, show_code_field, door, email_template_id, custom, published_at, deleted_at, created_at, updated_at"
+const eventOut = <T extends { image_path: string | null; door: unknown }>({ image_path, ...e }: T) => ({ ...e, door: readDoor(e.door), image_url: imageUrl(image_path) ?? null })
 
 const EventFields = z.object({
   title: z.string().max(200),
@@ -57,9 +59,18 @@ const EventFields = z.object({
   max_tickets_per_order: z.number().int().min(1).max(100),
   email_template_id: uuid.nullable().describe("An email template of the org (GET /email/templates); null = the org's default"),
   show_code_field: z.boolean().describe("Show the discount code field in the shop (default true); ?code= links work either way"),
+  door: z
+    .object({ methods: z.array(z.enum(DOOR_METHODS)).max(3), reader_id: z.string().max(100).nullable().optional(), cash_account_id: uuid.nullable().optional() })
+    .describe("Door sales (POS): methods cash | qr | terminal (default all), the card reader (from the SumUp integration), a cash book account (kind cash) that cash sales are booked into"),
   links: z.array(z.object({ label: z.string().trim().min(1).max(60), url: z.url({ protocol: /^https?$/ }).max(500) })).max(3).describe("Up to 3 links (title + https URL), e.g. Telegram group; replaces the list"),
   custom: Custom.describe("Custom fields of the org for events: { key: value } (validated like in the App; on update merged)"),
 })
+
+async function cashAccountOf(db: Db, orgId: string, id: string | null | undefined) {
+  if (!id) return
+  const { data } = await db.from("cash_accounts").select("id").eq("id", id).eq("org_id", orgId).maybeSingle()
+  if (!data) throw new ApiError(422, "invalid_reference", "door.cash_account_id does not belong to this organisation.")
+}
 
 // Messages for the shared field checks (keys from the App's validators).
 const INVALID: Record<string, [string, string]> = {
@@ -80,7 +91,7 @@ const slugTaken = () => new ApiError(409, "slug_taken", "Another event already u
 // Body → row: strings trimmed ("" = null), times normalised to UTC.
 export const clean = <T extends Record<string, unknown>>(b: T) =>
   Object.fromEntries(
-    Object.entries(b).map(([k, v]) => [k, typeof v === "string" ? (/_(at|start|end|from|until)$/.test(k) ? new Date(v).toISOString() : v.trim() || null) : v]),
+    Object.entries(b).map(([k, v]) => [k, k === "door" ? readDoor(v) : typeof v === "string" ? (/_(at|start|end|from|until)$/.test(k) ? new Date(v).toISOString() : v.trim() || null) : v]),
   ) as { [K in keyof T]: string extends T[K] ? Exclude<T[K], string> | string | null : T[K] }
 
 export async function eventOf(db: Db, orgId: string, id: string) {
@@ -262,7 +273,7 @@ export const endpoints: Endpoint[] = [
       const row = { ...clean(rest), custom: await eventCustom(db, orgId, custom) }
       const err = checkEvent({ ends_at: null, capacity: null, ...row, title: row.title ?? null, starts_at: row.starts_at! }, slug)
       if (err) throw invalid(err)
-      await Promise.all([locationOf(db, orgId, row.location_id), templateOf(db, orgId, row.email_template_id)])
+      await Promise.all([locationOf(db, orgId, row.location_id), templateOf(db, orgId, row.email_template_id), cashAccountOf(db, orgId, body.door?.cash_account_id)])
       const res = await insertEvent(db, { ...row, title: row.title!, starts_at: row.starts_at!, org_id: orgId }, slug ?? null)
       if (res.error) throw res.error.code === "23505" ? slugTaken() : dbError(res.error)
       deliverSoon()
@@ -287,7 +298,7 @@ export const endpoints: Endpoint[] = [
       const row = { ...clean(fields), ...(custom && { custom: await eventCustom(db, orgId, { ...(old.custom as Record<string, string>), ...custom }) }) }
       const err = checkEvent({ ...old, ...row, title: row.title === undefined ? old.title : row.title, starts_at: row.starts_at ?? old.starts_at }, body.slug)
       if (err) throw invalid(err)
-      await Promise.all([locationOf(db, orgId, row.location_id), templateOf(db, orgId, row.email_template_id)])
+      await Promise.all([locationOf(db, orgId, row.location_id), templateOf(db, orgId, row.email_template_id), cashAccountOf(db, orgId, body.door?.cash_account_id)])
       const { data, error } = await db
         .from("events")
         .update(row as TablesUpdate<"events">)

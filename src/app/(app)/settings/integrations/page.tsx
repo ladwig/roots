@@ -9,7 +9,8 @@ import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param } from "@/lib/url"
 import { getIntegration, integrations } from "@/integrations/registry"
-import { checkStripe, connectIntegration, disconnectIntegration, savePaymentCosts } from "./actions"
+import { checkStripe, connectIntegration, disconnectIntegration, pairReader, removeReader, savePaymentCosts } from "./actions"
+import { sumupProvider } from "@/payments/providers/sumup"
 import { DEFAULT_COSTS } from "@/payments/fees"
 import { sender } from "@/integrations/brevo"
 import { TypedInput } from "@/components/typed-input"
@@ -116,6 +117,7 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
                     </form>
                   </details>
                 )}
+                {i.key === "sumup" && row?.status === "connected" && <SumUpReaders orgId={ctx.org.id} />}
                 {i.key === "telegram" && row && (
                   <p className="text-xs text-muted-foreground">
                     {t("integrations.telegram.bot", {
@@ -260,3 +262,51 @@ function fieldValue(config: Record<string, unknown> | undefined, key: string) {
 
 // Reads session/URL at request time; no static shell needed yet (see AGENTS.md › Cache Components).
 export const instant = false
+
+// Card terminals (SumUp Solo via the Cloud API): pair with the code the reader shows, remove. Used by the door.
+async function SumUpReaders({ orgId }: { orgId: string }) {
+  const t = await getT()
+  const readers = await sumupProvider.terminal!.readers(orgId).catch(() => null)
+  return (
+    <details className="rounded-lg border p-3 text-sm" open={!!readers?.length}>
+      <summary className="cursor-pointer font-medium">{t("integrations.sumup.readers.title")}</summary>
+      <div className="mt-3 grid gap-3">
+        {readers === null ? (
+          <p className="text-xs text-destructive">{t("integrations.sumup.readers.failed")}</p>
+        ) : (
+          readers.length > 0 && (
+            <ul className="grid gap-1">
+              {readers.map((r) => (
+                <li key={r.id} className="flex items-center justify-between gap-2 rounded-md border px-2 py-1">
+                  <span>
+                    {r.name} <span className="text-xs text-muted-foreground">{[r.model, r.status].filter(Boolean).join(" · ")}</span>
+                  </span>
+                  <form action={removeReader}>
+                    <input type="hidden" name="reader" value={r.id} />
+                    <SubmitButton size="sm" variant="ghost" data-confirm="integrations.sumup.readers.confirmRemove">
+                      {t("integrations.sumup.readers.remove")}
+                    </SubmitButton>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )
+        )}
+        <form action={pairReader} className="flex flex-wrap items-end gap-2">
+          <div className="grid gap-1">
+            <Label htmlFor="reader-code">{t("integrations.sumup.readers.code")}</Label>
+            <Input id="reader-code" name="code" required minLength={8} maxLength={9} autoComplete="off" className="w-32 font-mono uppercase" />
+          </div>
+          <div className="grid gap-1">
+            <Label htmlFor="reader-name">{t("integrations.sumup.readers.name")}</Label>
+            <Input id="reader-name" name="name" required maxLength={100} placeholder={t("integrations.sumup.readers.namePlaceholder")} className="w-40" />
+          </div>
+          <SubmitButton size="sm" variant="outline">
+            {t("integrations.sumup.readers.pair")}
+          </SubmitButton>
+        </form>
+        <p className="text-xs text-muted-foreground">{t("integrations.sumup.readers.hint")}</p>
+      </div>
+    </details>
+  )
+}

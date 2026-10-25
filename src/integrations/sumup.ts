@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { APP_URL } from "@/lib/url"
 import { markExpired, markFailed, markPaid } from "@/payments/server"
+import { readerTransaction } from "@/payments/providers/sumup"
 import type { Integration } from "./registry"
 import { getSecret } from "./server"
 
@@ -108,12 +109,26 @@ export const sumupIntegration: Integration = {
   webhook: {
     async verify(req, body) {
       const orgId = new URL(req.url).searchParams.get("org") ?? ""
-      const event = JSON.parse(body) as { event_type?: string; id?: string }
-      if (!/^[0-9a-f-]{36}$/.test(orgId) || event.event_type !== "CHECKOUT_STATUS_CHANGED" || !event.id) throw new Error("ignored")
+      const event = JSON.parse(body) as { event_type?: string; id?: string; payload?: { client_transaction_id?: string } }
+      if (!/^[0-9a-f-]{36}$/.test(orgId)) throw new Error("ignored")
+      // Card terminal (Solo): look the transaction up by its client id, never trust the posted status.
+      const ctid = event.event_type === "solo.transaction.updated" ? event.payload?.client_transaction_id : undefined
+      if (ctid) {
+        const tx = await readerTransaction(orgId, ctid)
+        if (!tx || tx.status === "PENDING") throw new Error("ignored")
+        return { externalId: `reader:${ctid}:${tx.status}`, type: tx.status, orgId, payload: { reader: ctid, ...tx } }
+      }
+      if (event.event_type !== "CHECKOUT_STATUS_CHANGED" || !event.id) throw new Error("ignored")
       const checkout = await sumup<SumUpCheckout>(orgId, `/v0.1/checkouts/${encodeURIComponent(event.id)}`)
       return { externalId: `${checkout.id}:${checkout.status}`, type: checkout.status, orgId, payload: checkout }
     },
     async handle({ payload }) {
+      const r = payload as { reader?: string; id: string; status: string }
+      if (r.reader) {
+        if (r.status === "SUCCESSFUL") return markPaid("sumup", `reader:${r.reader}`, r.id)
+        if (r.status === "FAILED" || r.status === "CANCELLED") return markFailed("sumup", `reader:${r.reader}`)
+        return
+      }
       const c = payload as SumUpCheckout
       if (c.status === "PAID") return markPaid("sumup", c.id, c.transaction_id)
       if (c.status === "FAILED") return markFailed("sumup", c.id)

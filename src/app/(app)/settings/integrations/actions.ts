@@ -1,5 +1,6 @@
 "use server"
 
+import { sumupProvider } from "@/payments/providers/sumup"
 import { getT } from "@/i18n/server"
 import { dbError } from "@/i18n/translate"
 import { getContext } from "@/lib/context"
@@ -108,4 +109,35 @@ export async function savePaymentCosts(provider: string, formData: FormData) {
   const config = { ...(row.config as Record<string, unknown>), pass_fees: formData.get("pass_fees") === "on", fee_percent: Math.round(percent * 100) / 100, fee_fixed_cents: fixedCents }
   const { error } = await db.from("org_integrations").update({ config: config as never }).eq("org_id", ctx.org.id).eq("provider", provider)
   back(PATH, error ? { error: dbError(t, error) } : { ok: t("integrations.costs.saved") })
+}
+
+// SumUp card readers (Solo): pair with the code shown on the reader (Connections → API → Connect), or remove.
+export async function pairReader(formData: FormData) {
+  const ctx = await getContext()
+  const t = await getT()
+  if (!ctx.can("org.integrations.manage")) back(PATH, { error: t("errors.not_allowed") })
+  const code = String(formData.get("code") ?? "").trim().toUpperCase()
+  const name = String(formData.get("name") ?? "").trim().slice(0, 100)
+  if (!/^[A-Z0-9]{8,9}$/.test(code) || !name) back(PATH, { error: t("integrations.sumup.readers.badCode") })
+  try {
+    await sumupProvider.terminal!.pair(ctx.org.id, code, name)
+  } catch (e) {
+    console.error("sumup pair", e)
+    back(PATH, { error: t("integrations.sumup.readers.pairFailed") })
+  }
+  back(PATH, { ok: t("integrations.sumup.readers.paired", { name }) })
+}
+
+export async function removeReader(formData: FormData) {
+  const ctx = await getContext()
+  const t = await getT()
+  if (!ctx.can("org.integrations.manage")) back(PATH, { error: t("errors.not_allowed") })
+  const id = String(formData.get("reader") ?? "")
+  if (!/^[A-Za-z0-9_-]{1,100}$/.test(id)) back(PATH, { error: t("errors.invalid_input") })
+  try {
+    await sumupProvider.terminal!.remove(ctx.org.id, id)
+  } catch {
+    back(PATH, { error: t("integrations.sumup.readers.failed") })
+  }
+  back(PATH, { ok: t("integrations.sumup.readers.removed") })
 }

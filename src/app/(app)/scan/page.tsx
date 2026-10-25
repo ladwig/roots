@@ -12,6 +12,8 @@ import { memberDoor, type MemberAtDoor } from "@/members/door"
 import { guestCheckIn, memberDoorCheckIn, ticketDoorCheckIn } from "./actions"
 import { MemberCard } from "./member-card"
 import { Scanner } from "./scanner"
+import { DoorSale } from "./door-sale"
+import { doorOffer, doorSummary } from "@/tickets/door"
 
 // Door: pick the event (today's first), then scan QR codes, check guest lists, or look up tickets by name.
 export default async function DoorPage({ searchParams }: PageProps<"/scan">) {
@@ -33,7 +35,7 @@ export default async function DoorPage({ searchParams }: PageProps<"/scan">) {
     .limit(20)
   const current = events?.find((e) => e.id === param(sp, "event")) ?? events?.find((e) => e.starts_at >= since)
   const canMembers = canScan && ctx.modules.has("members")
-  const tabs = [...(canScan ? ["scan", "tickets"] : []), ...(canMembers ? ["members"] : []), ...(canGuests ? ["guests"] : [])]
+  const tabs = [...(canScan ? ["scan", "sale", "tickets"] : []), ...(canMembers ? ["members"] : []), ...(canGuests ? ["guests"] : [])]
   const tab = tabs.find((x) => x === param(sp, "tab")) ?? tabs[0]
   const q = param(sp, "q")
     ?.replace(/[%,()*]/g, "")
@@ -76,6 +78,7 @@ export default async function DoorPage({ searchParams }: PageProps<"/scan">) {
           <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
           {tab === "scan" && <Scanner key={current.id} eventId={current.id} />}
           {tab === "guests" && <Guests eventId={current.id} q={q} list={param(sp, "list")} sp={sp} chip={chip} />}
+          {tab === "sale" && <Sale eventId={current.id} />}
           {tab === "tickets" && <Tickets eventId={current.id} q={q} />}
           {tab === "members" && <Members eventId={current.id} q={q} who={param(sp, "who")} sp={sp} />}
         </>
@@ -170,6 +173,35 @@ async function Guests({
           },
         ]}
       />
+    </section>
+  )
+}
+
+// Abendkasse: sell tickets / free amounts, then the night's door sales per payment method (for counting the till).
+async function Sale({ eventId }: { eventId: string }) {
+  const ctx = await getContext()
+  const t = await getT()
+  const [offer, sum] = await Promise.all([doorOffer(ctx.org.id, eventId), doorSummary(ctx.org.id, eventId)])
+  if (!offer) return null
+  return (
+    <section className="grid gap-6">
+      <DoorSale key={eventId} eventId={eventId} types={offer.types} methods={offer.methods} left={offer.left} currency={offer.types[0]?.currency ?? "eur"} />
+      <div className="grid gap-2 rounded-xl border p-4 text-sm">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 className="font-medium">{t("door.sale.summary")}</h3>
+          <span className="text-muted-foreground">{t("door.sale.summaryMeta", { sales: sum.sales, tickets: sum.tickets })}</span>
+        </div>
+        {Object.entries(sum.byMethod).map(([m, x]) => (
+          <div key={m} className="flex justify-between gap-2">
+            <span>{t.dynamic(`door.sale.method.${m}`)} · {x.count}</span>
+            <span className="tabular-nums">{t.money(x.total)}</span>
+          </div>
+        ))}
+        <div className="flex justify-between gap-2 border-t pt-2 font-medium">
+          <span>{t("door.sale.total")}</span>
+          <span className="tabular-nums">{t.money(sum.total)}</span>
+        </div>
+      </div>
     </section>
   )
 }

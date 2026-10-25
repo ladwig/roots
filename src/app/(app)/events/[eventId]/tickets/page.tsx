@@ -13,12 +13,14 @@ import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { getT } from "@/i18n/server"
 import type { T } from "@/i18n/translate"
-import { requirePerm } from "@/lib/context"
+import { getContext, requirePerm } from "@/lib/context"
+import { posMethods, posReaders } from "@/payments/pos"
+import { DOOR_METHODS, readDoor } from "@/tickets/door-fields"
 import type { Tables } from "@/lib/supabase/types"
 import { toLocalInput } from "@/lib/time"
 import { pageParam, param, siteUrl, withParams } from "@/lib/url"
 import { priceInput } from "@/tickets/price"
-import { deleteCode, deleteTicketType, deleteTier, removeFromWaitlist, setTicketTypeActive, saveCode, saveTicketSettings, saveTicketType, saveTier } from "./actions"
+import { deleteCode, deleteTicketType, deleteTier, removeFromWaitlist, setTicketTypeActive, saveCode, saveDoorSettings, saveTicketSettings, saveTicketType, saveTier } from "./actions"
 import { SubmitButton } from "@/components/submit-button"
 import { CopyButton } from "@/components/copy-button"
 
@@ -204,6 +206,8 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
           </SubmitButton>
         </form>
       )}
+
+      {canManage && <DoorSettings eventId={ev.id} />}
 
       <section className="grid gap-3" aria-labelledby="codes">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -635,5 +639,82 @@ async function Waitlist({ t, ctx, eventId, canManage }: { t: T; ctx: Awaited<Ret
         ]}
       />
     </section>
+  )
+}
+
+// Abendkasse: which payment methods the door offers for this event, which card terminal, which cash book account.
+async function DoorSettings({ eventId }: { eventId: string }) {
+  const ctx = await getContext()
+  const t = await getT()
+  const cashbook = ctx.modules.has("cashbook")
+  const [{ data: ev }, can, readers, { data: accounts }] = await Promise.all([
+    ctx.supabase.from("events").select("door").eq("id", eventId).eq("org_id", ctx.org.id).maybeSingle(),
+    posMethods(ctx.org.id),
+    posReaders(ctx.org.id).catch(() => null),
+    cashbook ? ctx.supabase.from("cash_accounts").select("id, name").eq("org_id", ctx.org.id).eq("kind", "cash").eq("active", true).order("name") : Promise.resolve({ data: [] }),
+  ])
+  const d = readDoor(ev?.door)
+  return (
+    <form action={saveDoorSettings} id="door" className="grid gap-4 rounded-lg border p-4">
+      <input type="hidden" name="event" value={eventId} />
+      <div>
+        <h2 className="font-medium">{t("door.settings.title")}</h2>
+        <p className="text-sm text-muted-foreground">{t("door.settings.description")}</p>
+      </div>
+      <fieldset className="grid gap-2">
+        <legend className="mb-1 text-sm font-medium">{t("door.settings.methods")}</legend>
+        {DOOR_METHODS.map((m) => (
+          <label key={m} className="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="methods" value={m} defaultChecked={d.methods.includes(m)} disabled={!can[m]} className="size-4 accent-primary" />
+            <span>
+              {t.dynamic(`door.sale.method.${m}`)}
+              {!can[m] && <span className="block text-xs text-muted-foreground">{t.dynamic(`door.settings.unavailable.${m}`)}</span>}
+            </span>
+          </label>
+        ))}
+      </fieldset>
+      {can.terminal && (
+        <div className="grid gap-2">
+          <Label htmlFor="door-reader">{t("door.settings.reader")}</Label>
+          {readers === null ? (
+            <p className="text-sm text-destructive">{t("door.settings.readersFailed")}</p>
+          ) : readers.length ? (
+            <NativeSelect id="door-reader" name="reader_id" defaultValue={d.reader_id ?? ""} className="w-full">
+              <NativeSelectOption value="">{t("door.settings.noReader")}</NativeSelectOption>
+              {readers.map((r) => (
+                <NativeSelectOption key={r.id} value={r.id}>
+                  {r.name}
+                  {r.model ? ` (${r.model})` : ""}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {t("door.settings.pairFirst")}{" "}
+              <Link href="/settings/integrations" className="underline">
+                {t("door.settings.toIntegrations")}
+              </Link>
+            </p>
+          )}
+        </div>
+      )}
+      {cashbook && (
+        <div className="grid gap-2">
+          <Label htmlFor="door-account">{t("door.settings.cashAccount")}</Label>
+          <NativeSelect id="door-account" name="cash_account_id" defaultValue={d.cash_account_id ?? ""} className="w-full">
+            <NativeSelectOption value="">{t("door.settings.noCashAccount")}</NativeSelectOption>
+            {accounts?.map((a) => (
+              <NativeSelectOption key={a.id} value={a.id}>
+                {a.name}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+          <p className="text-xs text-muted-foreground">{t("door.settings.cashAccountHint")}</p>
+        </div>
+      )}
+      <SubmitButton variant="outline" className="justify-self-start">
+        {t("common.save")}
+      </SubmitButton>
+    </form>
   )
 }
