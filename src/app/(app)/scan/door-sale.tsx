@@ -51,7 +51,9 @@ export function DoorSale({ eventId, types, methods, left, currency }: { eventId:
   const router = useRouter()
   const [lines, setLines] = useState<DoorLine[]>([])
   const [phase, setPhase] = useState<Phase>({ kind: "cart" })
-  const [free, setFree] = useState<{ label: string; amount: string } | null>(null)
+  const [free, setFree] = useState<{ amount: string; quantity: number } | null>(null)
+  // A custom amount = tickets of the main (first) type at that price; without types it's a plain amount.
+  const mainType = types[0]
   const [buyer, setBuyer] = useState({ name: "", email: "" })
   const [given, setGiven] = useState("")
   const [editing, setEditing] = useState<number | null>(null)
@@ -280,7 +282,7 @@ export function DoorSale({ eventId, types, methods, left, currency }: { eventId:
         ))}
         <button
           type="button"
-          onClick={() => setFree({ label: "", amount: "" })}
+          onClick={() => setFree({ amount: "", quantity: 1 })}
           className="grid min-h-20 content-center justify-items-start gap-1 rounded-xl border border-dashed p-3 text-left text-muted-foreground transition-colors hover:bg-muted"
         >
           <PlusIcon className="size-4" />
@@ -290,26 +292,34 @@ export function DoorSale({ eventId, types, methods, left, currency }: { eventId:
 
       {free && (
         <form
-          className="grid gap-2 rounded-xl border p-3 sm:grid-cols-[1fr_8rem_auto] sm:items-end"
+          className="flex flex-wrap items-end gap-2 rounded-xl border p-3"
           onSubmit={(e) => {
             e.preventDefault()
             const c = moneyCents(free.amount)
-            if (!free.label.trim() || c === null) return
-            add({ typeId: null, label: free.label.trim(), price: c, quantity: 1 })
+            if (c === null) return
+            add({ typeId: mainType?.id ?? null, label: mainType ? "" : t("door.sale.freeAmount"), price: c, quantity: free.quantity })
             setFree(null)
           }}
         >
           <div className="grid gap-1">
-            <Label htmlFor="door-free-label">{t("door.sale.what")}</Label>
-            <Input id="door-free-label" value={free.label} onChange={(e) => setFree({ ...free, label: e.target.value })} placeholder={t("door.sale.whatPlaceholder")} autoFocus className="h-11" />
+            <Label htmlFor="door-free-amount">{t("door.sale.amount")}</Label>
+            <TypedInput kind="money" id="door-free-amount" value={free.amount} onChange={(e) => setFree({ ...free, amount: e.target.value })} autoFocus className="h-12 w-32 text-lg" />
           </div>
           <div className="grid gap-1">
-            <Label htmlFor="door-free-amount">{t("door.sale.amount")}</Label>
-            <TypedInput kind="money" id="door-free-amount" value={free.amount} onChange={(e) => setFree({ ...free, amount: e.target.value })} className="h-11" />
+            <Label>{t("door.sale.quantity")}</Label>
+            <div className="flex items-center gap-1">
+              <Button type="button" size="icon" variant="outline" className="size-12" aria-label={t("door.sale.less")} onClick={() => setFree({ ...free, quantity: Math.max(1, free.quantity - 1) })}>
+                <MinusIcon />
+              </Button>
+              <span className="w-8 text-center text-lg font-medium tabular-nums">{free.quantity}</span>
+              <Button type="button" size="icon" variant="outline" className="size-12" aria-label={t("door.sale.more")} onClick={() => setFree({ ...free, quantity: Math.min(100, free.quantity + 1) })}>
+                <PlusIcon />
+              </Button>
+            </div>
           </div>
           <div className="flex gap-2">
-            <Button type="submit" className="h-11">{t("door.sale.add")}</Button>
-            <Button type="button" variant="ghost" className="h-11" onClick={() => setFree(null)}>{t("common.cancel")}</Button>
+            <Button type="submit" className="h-12">{t("door.sale.add")}</Button>
+            <Button type="button" variant="ghost" className="h-12" onClick={() => setFree(null)}>{t("common.cancel")}</Button>
           </div>
         </form>
       )}

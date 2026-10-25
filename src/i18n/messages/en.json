@@ -2047,8 +2047,6 @@
       "booking": "Booking…",
       "cashReceived": "Cash received",
       "freeAmount": "Custom amount",
-      "what": "For",
-      "whatPlaceholder": "e.g. drink",
       "amount": "Amount",
       "add": "Add",
       "price": "Price",
@@ -2071,7 +2069,8 @@
         "one": "1 cash sale waiting for a connection",
         "other": "{count} cash sales waiting for a connection"
       },
-      "typeLeft": "{left} left"
+      "typeLeft": "{left} left",
+      "quantity": "Quantity"
     },
     "settings": {
       "title": "Door sales",

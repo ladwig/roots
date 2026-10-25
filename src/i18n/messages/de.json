@@ -2047,8 +2047,6 @@
       "booking": "Bucht…",
       "cashReceived": "Bar erhalten",
       "freeAmount": "Freier Betrag",
-      "what": "Wofür",
-      "whatPlaceholder": "z. B. Getränk",
       "amount": "Betrag",
       "add": "Hinzufügen",
       "price": "Preis",
@@ -2071,7 +2069,8 @@
         "one": "1 Barverkauf wartet auf Verbindung",
         "other": "{count} Barverkäufe warten auf Verbindung"
       },
-      "typeLeft": "noch {left}"
+      "typeLeft": "noch {left}",
+      "quantity": "Anzahl"
     },
     "settings": {
       "title": "Abendkasse",
