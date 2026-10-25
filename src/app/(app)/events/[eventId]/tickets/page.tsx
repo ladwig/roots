@@ -307,6 +307,25 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
         <UrlSheet params={["edit"]} title={editing.name}>
           <Notice error={param(sp, "error")} />
           <TypeForm t={t} eventId={ev.id} ty={editing} />
+          {editing.hidden && (
+            // Hidden types are only sold through codes that name them (Codes & Rabatt-Links below).
+            <section className="grid gap-2 rounded-lg border p-3">
+              <h3 className="font-medium">{t("tickets.unlockedBy")}</h3>
+              {codes?.filter((c) => c.type_ids.includes(editing.id)).map((c) => (
+                <div key={c.id} className="flex flex-wrap items-center gap-2">
+                  <Link href={withParams(sp, { edit: undefined, code: c.id })} scroll={false} className="font-mono text-sm underline underline-offset-4">
+                    {c.code}
+                  </Link>
+                  {!c.active && <Badge variant="outline">{t("tickets.inactive")}</Badge>}
+                  <CopyButton value={`${shopUrl}?code=${encodeURIComponent(c.code)}`} label={t("tickets.copyLink")} />
+                </div>
+              ))}
+              {!codes?.some((c) => c.type_ids.includes(editing.id)) && <p className="text-sm text-destructive">{t("tickets.noUnlockCode")}</p>}
+              <Button render={<Link href={withParams(sp, { edit: undefined, new: "code" })} scroll={false} />} nativeButton={false} size="sm" variant="outline" className="justify-self-start">
+                {t("tickets.newCode")}
+              </Button>
+            </section>
+          )}
           <TierList
             t={t}
             eventId={ev.id}

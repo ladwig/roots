@@ -1548,7 +1548,9 @@
     },
     "shopSettings": "Shop-Einstellungen",
     "showCodeField": "Feld für Rabattcodes im Shop anzeigen",
-    "showCodeFieldHint": "Aus = kein Eingabefeld; Rabatt-Links (…?code=) funktionieren trotzdem."
+    "showCodeFieldHint": "Aus = kein Eingabefeld; Rabatt-Links (…?code=) funktionieren trotzdem.",
+    "unlockedBy": "Freigeschaltet durch",
+    "noUnlockCode": "Noch kein Code schaltet diese Ticketart frei – so kann sie niemand kaufen."
   },
   "shop": {
     "title": "Tickets",
