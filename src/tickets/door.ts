@@ -29,6 +29,7 @@ export async function doorOffer(orgId: string, eventId: string) {
     types: (types ?? []).map((t) => ({ id: t.id, name: t.name, price: now.get(t.id)?.price ?? t.price, currency: t.currency })),
     left: left as number | null, // null = no event capacity
     methods: settings.methods.filter((m) => can[m] && (m !== "terminal" || settings.reader_id)),
+    provider: can.provider, // "stripe" | "sumup": names the QR / terminal buttons
     settings,
   }
 }

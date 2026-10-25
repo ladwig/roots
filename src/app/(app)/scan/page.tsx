@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Page, PageHeader } from "@/components/page"
+import { Page } from "@/components/page"
 import { notFound } from "next/navigation"
 import { SearchBox } from "@/components/data-table"
 import { Notice } from "@/components/notice"
@@ -70,7 +70,6 @@ export default async function DoorPage({ searchParams }: PageProps<"/scan">) {
   return (
     <Page size="form">
       <div className="grid gap-4 pb-24 md:pb-0">
-      <PageHeader area="events" title={t("tickets.scanTitle")} />
       {!events?.length ? (
         <p className="text-sm text-muted-foreground">{t("tickets.noEventsToScan")}</p>
       ) : (
@@ -80,6 +79,8 @@ export default async function DoorPage({ searchParams }: PageProps<"/scan">) {
       )}
       {current && (
         <>
+          {/* Remounts when the server's numbers change (list check-ins re-render the page). */}
+          <DoorStats key={`${current.id}-${stats?.checkedIn}-${stats?.expected}`} eventId={current.id} initial={stats} />
           {/* Door mode: a bottom tab bar on phones (thumb reach), a big segmented bar from md. */}
           <nav
             aria-label={t("door.tabs")}
@@ -100,8 +101,6 @@ export default async function DoorPage({ searchParams }: PageProps<"/scan">) {
               )
             })}
           </nav>
-          {/* Remounts when the server's numbers change (list check-ins re-render the page). */}
-          <DoorStats key={`${current.id}-${stats?.checkedIn}-${stats?.expected}`} eventId={current.id} initial={stats} />
           <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
           {tab === "scan" && <Scanner key={current.id} eventId={current.id} />}
           {tab === "guests" && <Guests eventId={current.id} q={q} list={param(sp, "list")} sp={sp} chip={chip} />}
@@ -198,7 +197,7 @@ async function Sale({ eventId }: { eventId: string }) {
   if (!offer) return null
   return (
     <section className="grid gap-6">
-      <DoorSale key={eventId} eventId={eventId} types={offer.types.map((ty) => ({ ...ty, left: stats?.left[ty.id] ?? null }))} methods={offer.methods} left={offer.left} currency={offer.types[0]?.currency ?? "eur"} />
+      <DoorSale key={eventId} eventId={eventId} types={offer.types.map((ty) => ({ ...ty, left: stats?.left[ty.id] ?? null }))} methods={offer.methods} provider={offer.provider} left={offer.left} currency={offer.types[0]?.currency ?? "eur"} />
       <div className="grid gap-2 rounded-xl border p-4 text-sm">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h3 className="font-medium">{t("door.sale.summary")}</h3>

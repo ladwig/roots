@@ -2039,7 +2039,7 @@
       "cancel": "Cancel sale",
       "method": {
         "cash": "Cash",
-        "qr": "QR code",
+        "qr": "Pay code (QR)",
         "terminal": "Card terminal"
       },
       "given": "Given",
@@ -2070,7 +2070,11 @@
         "other": "{count} cash sales waiting for a connection"
       },
       "typeLeft": "{left} left",
-      "quantity": "Quantity"
+      "quantity": "Quantity",
+      "via": {
+        "qr": "{provider} pay code",
+        "terminal": "{provider} terminal"
+      }
     },
     "settings": {
       "title": "Door sales",

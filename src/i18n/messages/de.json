@@ -2039,7 +2039,7 @@
       "cancel": "Verkauf abbrechen",
       "method": {
         "cash": "Bar",
-        "qr": "QR-Code",
+        "qr": "Bezahlcode (QR)",
         "terminal": "Kartenterminal"
       },
       "given": "Gegeben",
@@ -2070,7 +2070,11 @@
         "other": "{count} Barverkäufe warten auf Verbindung"
       },
       "typeLeft": "noch {left}",
-      "quantity": "Anzahl"
+      "quantity": "Anzahl",
+      "via": {
+        "qr": "{provider}-Bezahlcode",
+        "terminal": "{provider}-Terminal"
+      }
     },
     "settings": {
       "title": "Abendkasse",

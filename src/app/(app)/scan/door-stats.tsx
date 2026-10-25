@@ -42,11 +42,11 @@ export function DoorStats({ eventId, initial }: { eventId: string; initial: Stat
   return (
     <div className="rounded-xl border">
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="grid w-full gap-2 p-3 text-left">
-        <div className="flex items-end gap-4">
-          <Num label={t("door.stats.checkedIn")} value={`${s.checkedIn} / ${s.expected}`} big />
+        <div className="flex items-start gap-4 sm:gap-8">
+          <Num label={t("door.stats.checkedIn")} value={`${s.checkedIn} / ${s.expected}`} />
           <Num label={t("door.stats.open")} value={String(open_)} />
           <Num label={t("door.stats.sellable")} value={s.sellable === null ? "∞" : s.sellable === 0 ? t("door.stats.soldOut") : String(s.sellable)} warn={low} />
-          <ChevronDownIcon className={cn("mb-1 ml-auto size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
+          <ChevronDownIcon className={cn("mt-5 ml-auto size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={t("door.stats.checkedIn")}>
           <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${pct}%` }} />
@@ -88,11 +88,11 @@ export function DoorStats({ eventId, initial }: { eventId: string; initial: Stat
   )
 }
 
-function Num({ label, value, big, warn }: { label: string; value: string; big?: boolean; warn?: boolean }) {
+function Num({ label, value, warn }: { label: string; value: string; warn?: boolean }) {
   return (
     <div className="grid min-w-0">
       <span className="truncate text-xs text-muted-foreground">{label}</span>
-      <span className={cn("font-semibold tabular-nums", big ? "text-2xl" : "text-lg", warn && "text-destructive")}>{value}</span>
+      <span className={cn("text-xl font-semibold tabular-nums sm:text-2xl", warn && "text-destructive")}>{value}</span>
     </div>
   )
 }

@@ -4,7 +4,7 @@ import Link, { useLinkStatus } from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { appRoute } from "@/lib/url"
 import { useState, useTransition } from "react"
-import { CheckIcon, ChevronsUpDownIcon, IdCardIcon, LanguagesIcon, Loader2Icon, LogOutIcon, UserIcon } from "lucide-react"
+import { CheckIcon, ChevronsLeftRightIcon, ChevronsUpDownIcon, IdCardIcon, LanguagesIcon, Loader2Icon, LogOutIcon, UserIcon } from "lucide-react"
 import { openMyMemberArea } from "@/app/(app)/actions"
 import { signOut } from "@/app/login/actions"
 import { CommandSearch } from "@/components/command-search"
@@ -129,7 +129,12 @@ export function AppSidebar({
       <SidebarFooter>
         <UserMenu me={me} />
       </SidebarFooter>
-      <SidebarRail />
+      {/* Open/close on the sidebar's edge (desktop): a <> handle appears on hover. */}
+      <SidebarRail className="group/rail">
+        <span className="pointer-events-none absolute top-1/2 left-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border bg-background text-muted-foreground opacity-0 shadow-sm transition-opacity group-hover/rail:opacity-100">
+          <ChevronsLeftRightIcon className="size-3.5" />
+        </span>
+      </SidebarRail>
     </Sidebar>
   )
 }
@@ -193,5 +198,23 @@ function UserMenu({ me }: { me: Me }) {
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
+  )
+}
+
+// Top bar: where you are (area icon + name › sub-page), from the same nav tree as the sidebar.
+export function PageTitle({ groups, fallback }: { groups: { items: SidebarLink[] }[]; fallback: string }) {
+  const pathname = appRoute(usePathname())
+  const matches = (href: string) => (appRoute(href) === "/" ? pathname === "/" : pathname.startsWith(appRoute(href)))
+  const longest = <T extends { href: string }>(l: T[]) => l.filter((x) => matches(x.href)).sort((a, b) => appRoute(b.href).length - appRoute(a.href).length)[0]
+  const area = longest(groups.flatMap((g) => g.items.flatMap((i) => [i, ...(i.children ?? []).map((c) => ({ ...c, icon: i.icon, parent: i }))])))
+  if (!area) return <span className="truncate text-sm font-medium">{fallback}</span>
+  const parent = "parent" in area ? (area.parent as SidebarLink) : area
+  const sub = "parent" in area && parent.children?.[0]?.href !== area.href ? area.label : null
+  return (
+    <span className="flex min-w-0 items-center gap-2 text-sm font-medium [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground">
+      {parent.icon}
+      <span className="truncate">{parent.label}</span>
+      {sub && <span className="truncate text-muted-foreground">› {sub}</span>}
+    </span>
   )
 }

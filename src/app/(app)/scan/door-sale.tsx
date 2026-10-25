@@ -46,8 +46,11 @@ const subscribe = (cb: () => void) => {
 // Door sale, made for a phone/tablet at the door: tap ticket types (or a free amount), pick how they pay, done.
 // Cash asks what was given (change); QR shows the online checkout for the buyer's phone; terminal sends the amount
 // to the card reader. Both card ways poll until the provider confirms; paid tickets are let in at once.
-export function DoorSale({ eventId, types, methods, left, currency }: { eventId: string; types: Type[]; methods: DoorMethod[]; left: number | null; currency: string }) {
+export function DoorSale({ eventId, types, methods, provider, left, currency }: { eventId: string; types: Type[]; methods: DoorMethod[]; provider: string | null; left: number | null; currency: string }) {
   const t = useT()
+  // "SumUp-Bezahlcode", "Stripe-Bezahlcode", "SumUp-Terminal": staff see which account takes the money.
+  const providerName = provider === "sumup" ? "SumUp" : provider === "stripe" ? "Stripe" : ""
+  const methodLabel = (m: DoorMethod) => (m !== "cash" && providerName ? t.dynamic(`door.sale.via.${m}`, { provider: providerName }) : t.dynamic(`door.sale.method.${m}`))
   const router = useRouter()
   const [lines, setLines] = useState<DoorLine[]>([])
   const [phase, setPhase] = useState<Phase>({ kind: "cart" })
@@ -210,7 +213,7 @@ export function DoorSale({ eventId, types, methods, left, currency }: { eventId:
             const Icon = ICONS[m]
             return (
               <Button key={m} size="lg" variant="outline" className="h-12" disabled={pending} onClick={() => retry(phase.orderId, m)}>
-                <Icon /> {t.dynamic(`door.sale.method.${m}`)}
+                <Icon /> {methodLabel(m)}
               </Button>
             )
           })}
@@ -394,7 +397,7 @@ export function DoorSale({ eventId, types, methods, left, currency }: { eventId:
                 const Icon = ICONS[m]
                 return (
                   <Button key={m} size="lg" className="h-14 text-base" variant={m === methods[0] ? "default" : "outline"} disabled={pending || (!online && m !== "cash")} onClick={() => (m === "cash" ? (setRetryId(null), setPhase({ kind: "cash" })) : sell(m))}>
-                    <Icon /> {pending ? t("door.sale.booking") : t.dynamic(`door.sale.method.${m}`)}
+                    <Icon /> {pending ? t("door.sale.booking") : methodLabel(m)}
                   </Button>
                 )
               })}

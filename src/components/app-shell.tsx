@@ -1,5 +1,5 @@
 import { cookies } from "next/headers"
-import { AppSidebar, type Me, type SidebarLink } from "@/components/app-sidebar"
+import { AppSidebar, PageTitle, type Me, type SidebarLink } from "@/components/app-sidebar"
 import { Shortcuts } from "@/components/shortcuts"
 import { Separator } from "@/components/ui/separator"
 import { ConfirmHost } from "@/components/confirm-submit"
@@ -34,9 +34,10 @@ export async function AppShell({
       <AppSidebar header={header} groups={groups} me={me} search={search} />
       <SidebarInset className="min-w-0">
         <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-1 data-vertical:h-4" />
-          <span className="truncate text-sm font-medium">{title}</span>
+          {/* Phones: the sidebar is a drawer, so the trigger stays; from md the sidebar's edge toggles it. */}
+          <SidebarTrigger className="-ml-1 md:hidden" />
+          <Separator orientation="vertical" className="mr-1 data-vertical:h-4 md:hidden" />
+          <PageTitle groups={groups} fallback={title} />
           {search && <SproutButton />}
         </header>
         <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">

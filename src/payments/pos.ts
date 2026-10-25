@@ -13,7 +13,7 @@ const db = () => createAdminClient()
 /** What the org can take in person right now (cash always; QR = an online provider; terminal = a provider with readers). */
 export async function posMethods(orgId: string) {
   const p = await providerFor(orgId) // one payment provider per org
-  return { cash: true, qr: !!p, terminal: !!p?.terminal }
+  return { cash: true, qr: !!p, terminal: !!p?.terminal, provider: p?.key ?? null }
 }
 
 /** The org's card readers (empty without a terminal-capable provider). */
