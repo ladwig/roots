@@ -135,7 +135,7 @@ export async function saveCode(fd: FormData) {
   const raw = String(fd.get("value") ?? "").trim()
   const value = kind === "percent" ? Number(raw) : kind === "amount" ? parsePrice(raw) : 0
   const maxRaw = String(fd.get("max_uses") ?? "").trim()
-  const max_uses = maxRaw ? Number(maxRaw) : null
+  const max_uses = maxRaw && kind !== "none" ? Number(maxRaw) : null // unlock-only: the ticket type's quota is the limit
   const fromRaw = String(fd.get("valid_from") ?? "").trim()
   const untilRaw = String(fd.get("valid_until") ?? "").trim()
   const valid_from = fromRaw ? fromLocalInput(fromRaw)?.toISOString() : null

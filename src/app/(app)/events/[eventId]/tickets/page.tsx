@@ -23,6 +23,7 @@ import { priceInput } from "@/tickets/price"
 import { deleteCode, deleteTicketType, deleteTier, removeFromWaitlist, setTicketTypeActive, saveCode, saveDoorSettings, saveTicketSettings, saveTicketType, saveTier } from "./actions"
 import { SubmitButton } from "@/components/submit-button"
 import { CopyButton } from "@/components/copy-button"
+import { CodeKindFields } from "./code-kind-fields"
 
 type TicketType = Tables<"ticket_types">
 type Tier = Tables<"ticket_tiers">
@@ -483,34 +484,8 @@ function CodeForm({ t, eventId, c, types }: { t: T; eventId: string; c?: Code; t
           className="font-mono uppercase"
         />
       </div>
+      <CodeKindFields kind={c?.kind ?? "percent"} value={c ? (c.kind === "amount" ? priceInput(c.value) : String(c.value)) : ""} maxUses={c?.max_uses ?? null} />
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="grid gap-2">
-          <Label htmlFor="c-kind">{t("tickets.discount")}</Label>
-          <NativeSelect id="c-kind" name="kind" defaultValue={c?.kind ?? "percent"} className="w-full">
-            {(["percent", "amount", "none"] as const).map((k) => (
-              <NativeSelectOption key={k} value={k}>
-                {t.dynamic(`tickets.kinds.${k}`)}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="c-value">{t("tickets.codeValueLabel")}</Label>
-          <Input
-            id="c-value"
-            name="value"
-            inputMode="decimal"
-            defaultValue={c ? (c.kind === "amount" ? priceInput(c.value) : String(c.value)) : ""}
-            placeholder="20"
-          />
-        </div>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="grid gap-2">
-          <Label htmlFor="c-max">{t("tickets.maxUses")}</Label>
-          <Input id="c-max" name="max_uses" type="number" min={1} defaultValue={c?.max_uses ?? ""} placeholder="∞" />
-          <p className="text-xs text-muted-foreground">{t("tickets.maxUsesHint")}</p>
-        </div>
         <div className="grid gap-2">
           <Label htmlFor="c-from">{t("tickets.validFrom")}</Label>
           <Input

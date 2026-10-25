@@ -72,7 +72,7 @@ const CodeFields = z.object({
   code: z.string().max(60).describe("3–40 characters A–Z, 0–9, hyphens (upper-cased, spaces → hyphens)"),
   kind: z.enum(CODE_KINDS),
   value: z.number().int().min(0).describe("percent: 1–100; amount: cents; none: ignored"),
-  max_uses: z.number().int().min(1).nullable(),
+  max_uses: z.number().int().min(1).nullable().describe("Max. tickets via this code (discounts only; ignored for kind none – the ticket type's quota is the limit there)"),
   valid_from: dt.nullable(),
   valid_until: dt.nullable(),
   type_ids: z.array(uuid).max(100),
@@ -141,7 +141,7 @@ async function typesOf(db: Db, orgId: string, eventId: string, ids: string[] | u
 const codeRow = (body: Partial<z.infer<typeof CodeFields>>) => {
   const row = clean(body)
   if (row.code) row.code = normalizeCode(row.code)
-  if (row.kind === "none") row.value = 0
+  if (row.kind === "none") Object.assign(row, { value: 0, max_uses: null }) // unlock-only: the ticket type's quota is the limit
   return row
 }
 const hasTickets = (code: string, message: string) => new ApiError(409, code, message)

@@ -1551,8 +1551,9 @@
     "showCodeFieldHint": "Aus = kein Eingabefeld; Rabatt-Links (…?code=) funktionieren trotzdem.",
     "unlockedBy": "Freigeschaltet durch",
     "noUnlockCode": "Noch kein Code schaltet diese Ticketart frei – so kann sie niemand kaufen.",
-    "maxUsesHint": "Leer = nur das Kontingent der Ticketart zählt. Sinnvoll für Rabatte (z. B. 20 % für die ersten 30).",
-    "allVisibleTypes": "alle sichtbaren"
+    "maxUsesHint": "Leer = unbegrenzt (bis das Kontingent der Ticketart erreicht ist). Z. B. 30 = nur die ersten 30 bekommen den Rabatt.",
+    "allVisibleTypes": "alle sichtbaren",
+    "unlockLimitHint": "Schaltet nur frei: Wie viele Tickets es gibt, steht im Kontingent der ausgewählten Ticketart."
   },
   "shop": {
     "title": "Tickets",

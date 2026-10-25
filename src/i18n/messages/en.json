@@ -1551,8 +1551,9 @@
     "showCodeFieldHint": "Off = no input field; discount links (…?code=) still work.",
     "unlockedBy": "Unlocked by",
     "noUnlockCode": "No code unlocks this ticket type yet – nobody can buy it.",
-    "maxUsesHint": "Empty = only the ticket type's quota counts. Useful for discounts (e.g. 20 % for the first 30).",
-    "allVisibleTypes": "all visible"
+    "maxUsesHint": "Empty = unlimited (until the ticket type's quota is reached). E.g. 30 = only the first 30 get the discount.",
+    "allVisibleTypes": "all visible",
+    "unlockLimitHint": "Unlocks only: how many tickets exist is the selected ticket type's quota."
   },
   "shop": {
     "title": "Tickets",
