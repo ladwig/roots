@@ -2069,7 +2069,7 @@
         "one": "1 Barverkauf wartet auf Verbindung",
         "other": "{count} Barverkäufe warten auf Verbindung"
       },
-      "typeLeft": "noch {left}",
+      "typeLeft": "noch {left} verfügbar",
       "quantity": "Anzahl",
       "via": {
         "qr": "{provider}-Bezahlcode",

@@ -162,6 +162,8 @@ export async function doorStats(orgId: string, eventId: string): Promise<DoorSta
   const checkedIn = rows.reduce((n, r) => n + r.checkedIn, 0)
   // Members aren't expected in advance: the ones let in count as expected too.
   const expected = rows.reduce((n, r) => n + (r.expected ?? r.checkedIn), 0)
-  const sellable = s.left !== null ? s.left : shop.length && shop.every((x) => x.left !== null) ? shop.reduce((n, x) => n + (x.left ?? 0), 0) : null
+  // The smaller of the event's seats left and what all ticket types still allow (each only if limited).
+  const byTypes = shop.length && shop.every((x) => x.left !== null) ? shop.reduce((n, x) => n + (x.left ?? 0), 0) : null
+  const sellable = s.left === null ? byTypes : byTypes === null ? s.left : Math.min(s.left, byTypes)
   return { checkedIn, expected, sellable, rows, doorIn: s.door_in, left: Object.fromEntries(shop.map((x) => [x.id, x.left])) }
 }

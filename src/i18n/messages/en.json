@@ -2069,7 +2069,7 @@
         "one": "1 cash sale waiting for a connection",
         "other": "{count} cash sales waiting for a connection"
       },
-      "typeLeft": "{left} left",
+      "typeLeft": "{left} available",
       "quantity": "Quantity",
       "via": {
         "qr": "{provider} pay code",
