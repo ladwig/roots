@@ -1576,7 +1576,7 @@
     "total": "Total",
     "name": "Your name",
     "email": "Your email",
-    "emailHint": "You get your tickets right after paying on the next page. Save the link.",
+    "emailHint": "You get your tickets right after paying, on the next page and by email.",
     "pay": "Pay {amount}",
     "getFree": "Get tickets",
     "nameMissing": "Please enter your name.",
@@ -1585,7 +1585,7 @@
     "failed": "That didn't work. Please try again.",
     "yourTickets": "Your tickets",
     "waiting": "Confirming your payment … this page updates automatically.",
-    "keepLink": "Show the QR code at the entrance. Save this page (link) or take a screenshot.",
+    "keepLink": "Show the QR code at the entrance. We also sent the tickets to {email}.",
     "orderStatus": {
       "expired": "The payment wasn't completed. The tickets were released.",
       "failed": "The payment failed.",

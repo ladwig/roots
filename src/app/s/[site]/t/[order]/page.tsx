@@ -42,7 +42,7 @@ export default async function BuyerTickets({ params, searchParams }: PageProps<"
         </p>
       ) : (
         <div className="flex flex-wrap items-center gap-3">
-          <p className="text-sm text-muted-foreground">{t("shop.keepLink")}</p>
+          <p className="text-sm text-muted-foreground">{t("shop.keepLink", { email: data.order.customer_email ?? "" })}</p>
           <Button render={<a href={`${sitePath(site, `/t/${order}/pdf`)}?k=${param(sp, "k")}`} />} nativeButton={false} size="sm" variant="outline">
             <DownloadIcon /> {t("shop.pdf")}
           </Button>

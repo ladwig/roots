@@ -1576,7 +1576,7 @@
     "total": "Gesamt",
     "name": "Dein Name",
     "email": "Deine E-Mail",
-    "emailHint": "Deine Tickets bekommst du direkt nach der Zahlung auf der nächsten Seite. Speichere dir den Link.",
+    "emailHint": "Deine Tickets bekommst du direkt nach der Zahlung auf der nächsten Seite und per E-Mail.",
     "pay": "{amount} bezahlen",
     "getFree": "Tickets holen",
     "nameMissing": "Bitte gib deinen Namen an.",
@@ -1585,7 +1585,7 @@
     "failed": "Das hat nicht geklappt. Bitte versuche es noch einmal.",
     "yourTickets": "Deine Tickets",
     "waiting": "Deine Zahlung wird bestätigt … die Seite aktualisiert sich automatisch.",
-    "keepLink": "Zeig den QR-Code am Einlass vor. Speichere dir diese Seite (Link) oder mach einen Screenshot.",
+    "keepLink": "Zeig den QR-Code am Einlass vor. Wir haben die Tickets auch an {email} geschickt.",
     "orderStatus": {
       "expired": "Die Zahlung wurde nicht abgeschlossen. Die Tickets sind wieder freigegeben.",
       "failed": "Die Zahlung ist fehlgeschlagen.",
