@@ -136,5 +136,5 @@ export const NAV: Area[] = [
 
 /** The areas this person sees: visible children only, areas without any dropped. */
 export function visibleNav(on: (module: string) => boolean, can: (perm: string) => boolean) {
-  return NAV.map((a) => ({ ...a, children: a.children.filter((c) => [c.module].flat().some((m) => m === "org" || on(m)) && [c.permission].flat().some(can)) })) // "org" = core, always on.filter((a) => a.children.length)
+  return NAV.map((a) => ({ ...a, children: a.children.filter((c) => [c.module].flat().some((m) => m === "org" || on(m)) && [c.permission].flat().some(can)) })).filter((a) => a.children.length) // "org" = core, always on; areas with no visible page drop out
 }
