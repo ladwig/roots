@@ -40,6 +40,7 @@ export async function buy(fd: FormData) {
   if (!items.length || items.length > ev.max_tickets_per_order || items.some((i) => !UUID.test(i)))
     back(here, { error: t("shop.tooMany", { max: ev.max_tickets_per_order }) })
   const holders = fd.getAll("holder").map((h) => String(h).trim().slice(0, 200))
+  if (holders.length && !holders[0]) holders[0] = name // ticket 1 defaults to the buyer
   if (ev.ticket_names === "required" && items.some((_, i) => !holders[i])) back(here, { error: t("shop.holderMissing") })
 
   let url: string

@@ -9,6 +9,7 @@ import { serviceFee } from "@/payments/fees"
 import { passOnFor } from "@/payments/server"
 import { getSite } from "../../../data"
 import { buy } from "./actions"
+import { FirstHolder } from "./first-holder"
 import { SubmitButton } from "@/components/submit-button"
 
 // Step 2: who buys + names per ticket (if the event asks), then off to the payment page.
@@ -66,6 +67,17 @@ export default async function Checkout({ params, searchParams }: PageProps<"/s/[
           <input type="hidden" name="slug" value={slug} />
           {code && <input type="hidden" name="code" value={code} />}
           {waitlist && <input type="hidden" name="w" value={waitlist} />}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="buyer-name">{t("shop.name")}</Label>
+              <Input id="buyer-name" name="name" required maxLength={200} autoComplete="name" />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="buyer-email">{t("shop.email")}</Label>
+              <Input id="buyer-email" name="email" type="email" required autoComplete="email" />
+            </div>
+          </div>
+          <FirstHolder />
           <ol className="grid gap-3">
             {picked.map((ty, i) => (
               <li key={i} className="grid gap-2 rounded-lg border p-3">
@@ -81,7 +93,7 @@ export default async function Checkout({ params, searchParams }: PageProps<"/s/[
                     <Label htmlFor={`holder-${i}`}>
                       {t(ev.ticket_names === "required" ? "shop.holder" : "shop.holderOptional")}
                     </Label>
-                    <Input id={`holder-${i}`} name="holder" required={ev.ticket_names === "required"} maxLength={200} autoComplete="off" />
+                    <Input id={`holder-${i}`} name="holder" required={ev.ticket_names === "required" && i > 0} maxLength={200} autoComplete="off" />
                   </div>
                 )}
               </li>
@@ -103,16 +115,6 @@ export default async function Checkout({ params, searchParams }: PageProps<"/s/[
             <span>{t("shop.total")}</span>
             <span>{total === 0 ? t("shop.free") : t.money(total, picked[0].currency)}</span>
           </p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid gap-2">
-              <Label htmlFor="buyer-name">{t("shop.name")}</Label>
-              <Input id="buyer-name" name="name" required maxLength={200} autoComplete="name" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="buyer-email">{t("shop.email")}</Label>
-              <Input id="buyer-email" name="email" type="email" required autoComplete="email" />
-            </div>
-          </div>
           <p className="text-xs text-muted-foreground">{free ? t("shop.signupHint") : t("shop.emailHint")}</p>
           <SubmitButton className="justify-self-start">
             {free ? t("shop.signup") : t("shop.pay", { amount: t.money(total, picked[0].currency) })}
