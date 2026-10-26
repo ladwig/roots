@@ -12,7 +12,8 @@ import { MemberCard } from "./member-card"
 import { doorChanged } from "./door-stats"
 import { SubmitButton } from "@/components/submit-button"
 
-type Detector = { detect(source: CanvasImageSource): Promise<{ rawValue: string }[]> }
+type Pt = { x: number; y: number }
+type Detector = { detect(source: CanvasImageSource): Promise<{ rawValue: string; cornerPoints: Pt[] }[]> }
 
 // Camera QR scanning: native BarcodeDetector (Chrome/Android) or jsQR (Safari/iPhone), plus typing the code.
 // Offline: the ticket list is kept on the device (localStorage); without connection codes are checked against it and
@@ -37,6 +38,7 @@ export function Scanner({ eventId }: { eventId: string }) {
   const t = useT()
   const video = useRef<HTMLVideoElement>(null)
   const [camera, setCamera] = useState(false)
+  const [found, setFound] = useState<{ w: number; h: number; pts: string } | null>(null)
   // The camera stays on between visits on this device (the door phone): switched on again after load.
   const toggleCamera = (on: boolean) => {
     setCamera(on)
@@ -162,13 +164,21 @@ export function Scanner({ eventId }: { eventId: string }) {
       while (!stop) {
         if (v.readyState >= 2) {
           let value: string | undefined
-          if (native) value = (await native.detect(v))[0]?.rawValue
-          else {
+          let corners: Pt[] | undefined
+          if (native) {
+            const hit = (await native.detect(v))[0]
+            value = hit?.rawValue
+            corners = hit?.cornerPoints
+          } else {
             canvas.width = v.videoWidth
             canvas.height = v.videoHeight
             ctx.drawImage(v, 0, 0)
-            value = jsQR!(ctx.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height)?.data
+            const hit = jsQR!(ctx.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height)
+            value = hit?.data
+            if (hit) corners = [hit.location.topLeftCorner, hit.location.topRightCorner, hit.location.bottomRightCorner, hit.location.bottomLeftCorner]
           }
+          // Frame around the code it sees (video pixels; the overlay uses the same size + cropping)
+          setFound(corners?.length ? { w: v.videoWidth, h: v.videoHeight, pts: corners.map((c) => `${c.x},${c.y}`).join(" ") } : null)
           if (value) submit(value)
         }
         await new Promise((r) => setTimeout(r, 200))
@@ -176,6 +186,7 @@ export function Scanner({ eventId }: { eventId: string }) {
     })().catch(() => toggleCamera(false))
     return () => {
       stop = true
+      setFound(null)
       stream?.getTracks().forEach((tr) => tr.stop())
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- submit is stable enough (refs + transition)
@@ -245,7 +256,16 @@ export function Scanner({ eventId }: { eventId: string }) {
         </div>
       )}
       <div className="grid gap-2">
-        {camera && <video ref={video} muted playsInline className="aspect-square w-full rounded-xl border bg-muted object-cover sm:max-w-md" />}
+        {camera && (
+          <div className="relative w-full sm:max-w-md">
+            <video ref={video} muted playsInline className="aspect-square w-full rounded-xl border bg-muted object-cover" />
+            {found && (
+              <svg viewBox={`0 0 ${found.w} ${found.h}`} preserveAspectRatio="xMidYMid slice" className="pointer-events-none absolute inset-0 size-full rounded-xl" aria-hidden>
+                <polygon points={found.pts} className="fill-primary/20 stroke-primary" strokeWidth={Math.max(found.w, found.h) / 100} strokeLinejoin="round" />
+              </svg>
+            )}
+          </div>
+        )}
         <Button type="button" size="lg" variant={camera ? "outline" : "default"} onClick={() => toggleCamera(!camera)} className="h-14 w-full text-base sm:max-w-md">
           {camera ? <CameraOffIcon /> : <CameraIcon />} {camera ? t("tickets.cameraOff") : t("tickets.cameraOn")}
         </Button>
