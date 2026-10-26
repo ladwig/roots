@@ -15,7 +15,9 @@ const isMarkup = (v: unknown): v is Markup => typeof v === "object" && v != null
 const value = (vars: Vars, key: string) => (vars[key] == null || typeof vars[key] === "object" ? "" : String(vars[key]))
 
 export function fill(template: string, vars: Vars, escape = false) {
-  return template.replace(/\{([a-z_]+)\}/g, (_, key: string) => {
+  // {key}, also {{key}} (Mustache habit, as in website templates)
+  return template.replace(/\{\{([a-z_]+)\}\}|\{([a-z_]+)\}/g, (_, k2: string | undefined, k1: string | undefined) => {
+    const key = (k2 ?? k1)!
     const v = vars[key]
     if (isMarkup(v)) return escape ? v.html : v.text
     return escape ? esc(value(vars, key)) : value(vars, key)

@@ -39,3 +39,9 @@ test("event mails: {button} stays our markup (not escaped, own style), text gets
   const own = renderMail({ format: "html", subject: "Hi", body: "<html><body><p>{name}</p></body></html>" }, vars, { org: "TSV" })
   assert.equal(own.html, "<html><body><p>&#60;Ana&#62;</p></body></html>")
 })
+
+test("{{key}} works like {key}", () => {
+  const m = renderMail({ subject: "x", body: '<p><a href="{{link}}">Ticket</a> {name}</p>', format: "rich" }, { link: "https://t.de/1", name: "Ana" }, { org: "TSV" })
+  assert.match(m.html, /href="https:\/\/t.de\/1"/)
+  assert.match(m.html, /Ana/)
+})
