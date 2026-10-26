@@ -223,20 +223,25 @@ async function Tickets({ eventId, q }: { eventId: string; q?: string }) {
   const t = await getT()
   let query = ctx.supabase
     .from("tickets")
-    .select("id, code, holder_name, status, checked_in_at, ticket_types(name), pay_orders(customer_name)")
+    .select("id, code, holder_name, status, checked_in_at, ticket_types(name), pay_orders(customer_name, paid_at)")
     .eq("event_id", eventId)
-    .in("status", ["valid", "used"])
+    .in("status", ["valid", "used", "void"])
     .order("holder_name")
     .limit(200)
   if (q) query = query.or(`holder_name.ilike.%${q}%,code.ilike.%${q}%`)
-  const { data } = await query
+  const { data: all } = await query
+  // Cancelled = void tickets of orders that were paid (refunds), not reservations that simply expired.
+  // ponytail: expired reservations still count toward the 200 limit; filter in SQL if that bites.
+  const data = all?.filter((k) => k.status !== "void" || k.pay_orders?.paid_at)
   return (
     <section className="grid gap-3">
       <SearchBox size="lg" q={q} label={t("door.searchTickets")} keep={{ event: eventId, tab: "tickets" }} />
       <ul className="grid gap-2">
         {(data ?? []).map((k) => (
-          <DoorRow key={k.id} title={k.holder_name ?? k.pay_orders?.customer_name ?? "–"} meta={[k.ticket_types?.name, k.code].filter(Boolean).join(" · ")} done={k.status === "used"}>
-            {k.status === "used" ? (
+          <DoorRow key={k.id} title={k.holder_name ?? k.pay_orders?.customer_name ?? "–"} meta={[k.ticket_types?.name, k.code].filter(Boolean).join(" · ")} done={k.status !== "valid"}>
+            {k.status === "void" ? (
+              <Badge variant="destructive">{t("tickets.statuses.void")}</Badge>
+            ) : k.status === "used" ? (
               <Badge>{t("door.inSince", { time: k.checked_in_at ? t.date(k.checked_in_at, { timeStyle: "short" }) : "" })}</Badge>
             ) : (
               <form action={ticketDoorCheckIn}>
