@@ -2,7 +2,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
 import { sitePath } from "@/lib/url"
-import { passOnFor } from "@/payments/server"
 import { waitlistClaim } from "@/tickets/waitlist"
 import { getSite } from "../../data"
 import { SubmitButton } from "@/components/submit-button"
@@ -12,10 +11,9 @@ import { joinWaitlistAction } from "./actions"
 // Free events say "Anmeldung"; sold out → waiting list; ?w=<token> = a waiting-list offer with held seats.
 export async function TicketShop({ site, slug, eventId, max, code, waitlist, codeField = true }: { site: string; slug: string; eventId: string; max: number; code: string | null; waitlist: string | null; codeField?: boolean }) {
   const s = (await getSite(site))!
-  const [{ data: offer }, claim, fee] = await Promise.all([
+  const [{ data: offer }, claim] = await Promise.all([
     s.db.rpc("ticket_offer", { p_event: eventId, p_code: code ?? undefined, p_waitlist: waitlist ?? undefined }),
     waitlistClaim(eventId, waitlist),
-    passOnFor(s.org.id),
   ])
   const types = offer
   const codeValid = !!code && !!offer?.some((o) => o.code_applies)
@@ -98,11 +96,6 @@ export async function TicketShop({ site, slug, eventId, max, code, waitlist, cod
             )
           })}
         </ul>
-        {anyOnSale && !free && fee && (
-          <p className="text-xs text-muted-foreground">
-            {t("shop.serviceFeeHint", { rate: [fee.percent && `${String(fee.percent).replace(".", ",")} %`, fee.fixedCents && t.money(fee.fixedCents)].filter(Boolean).join(" + ") })}
-          </p>
-        )}
         {anyOnSale && (
           <SubmitButton className="justify-self-start">
             {t("shop.continue")}

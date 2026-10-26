@@ -1612,7 +1612,6 @@
     "signupHint": "Deine Anmeldung mit QR-Code für den Einlass bekommst du direkt auf der nächsten Seite und per E-Mail.",
     "unavailable": "Der Ticketverkauf ist gerade nicht möglich. Bitte versuche es später noch einmal oder melde dich beim Veranstalter.",
     "serviceFee": "Servicegebühr",
-    "serviceFeeHint": "zzgl. Servicegebühr {rate} je Bestellung",
     "subtotal": "Tickets",
     "successTitle": "Zahlung erfolgreich!",
     "successText": "Deine Tickets findest du hier und in deinem E-Mail-Postfach – zusammen mit allen Infos zur Anfahrt."

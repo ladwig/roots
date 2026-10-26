@@ -1612,7 +1612,6 @@
     "signupHint": "You get your registration with a QR code for entry on the next page and by email.",
     "unavailable": "Ticket sales aren't possible right now. Please try again later or contact the organiser.",
     "serviceFee": "Service fee",
-    "serviceFeeHint": "plus a service fee of {rate} per order",
     "subtotal": "Tickets",
     "successTitle": "Your payment was successful!",
     "successText": "You'll find your tickets here and in your email inbox – including directions to the location."
