@@ -7,7 +7,7 @@ import { siteUrl } from "@/lib/url"
 import { ticketsPdf, type PdfTicket } from "./pdf"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { serviceFee } from "@/payments/fees"
-import { createOrder, passOnFor, startCheckout } from "@/payments/server"
+import { createOrder, passOnFor, refundOrder, startCheckout } from "@/payments/server"
 import type { PaidOrder } from "@/payments/fulfilment"
 
 const db = () => createAdminClient()
@@ -178,6 +178,33 @@ export async function emailTickets(orderId: string) {
 export async function voidTickets(order: PaidOrder) {
   const { error } = await db().from("tickets").update({ status: "void" }).eq("order_id", order.id).in("status", ["reserved", "valid"])
   if (error) throw error
+}
+
+/** Cancel one ticket: refund what it cost (if paid and something is left to refund), then void it.
+ *  Returns the refund status, or null when there was no money to give back. Throws message keys. */
+export async function cancelTicket(orgId: string, ticketId: string, reason?: string) {
+  const { data: k } = await db()
+    .from("tickets")
+    .select("id, status, price, type_id, order_id, pay_orders(status, pay_order_items(source_id, unit_amount))")
+    .eq("id", ticketId)
+    .eq("org_id", orgId)
+    .maybeSingle()
+  if (!k) throw new Error("errors.not_found")
+  if (!["valid", "used", "reserved"].includes(k.status)) throw new Error("tickets.notCancellable")
+  const price = k.price ?? k.pay_orders?.pay_order_items.find((i) => i.source_id === k.type_id)?.unit_amount ?? 0
+  let refund: string | null = null
+  if (price > 0 && ["paid", "partially_refunded"].includes(k.pay_orders?.status ?? "")) {
+    try {
+      refund = await refundOrder(k.order_id, price, reason)
+    } catch (e) {
+      // Less left than the ticket's price (earlier partial refunds): give back the rest.
+      if (!(e instanceof Error && e.message === "payments.invalidRefund")) throw e
+      refund = await refundOrder(k.order_id, undefined, reason).catch(() => null)
+    }
+  }
+  const { error } = await db().from("tickets").update({ status: "void" }).eq("id", k.id)
+  if (error) throw error
+  return refund
 }
 
 /** The buyer's tickets, if the token matches the order. */

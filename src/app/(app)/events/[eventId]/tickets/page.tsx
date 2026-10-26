@@ -45,7 +45,7 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
 
   let list = ctx.supabase
     .from("tickets")
-    .select("id, code, holder_name, status, created_at, checked_in_at, ticket_types(name), pay_orders(customer_email, customer_name)")
+    .select("id, code, holder_name, status, created_at, checked_in_at, order_id, ticket_types(name), pay_orders(customer_email, customer_name)")
     .eq("event_id", eventId)
     .order("created_at", { ascending: false })
     .range(...pageRange(page))
@@ -282,6 +282,7 @@ export default async function EventTickets({ params, searchParams }: PageProps<"
           rows={rows}
           rowKey={(k) => k.id}
           empty={t("tickets.noTickets")}
+          rowHref={ctx.can("payments.view") && ctx.modules.has("payments") ? (k) => `/payments?edit=${k.order_id}` : undefined}
           columns={[
             { header: t("tickets.code"), cell: (k) => <span className="font-mono">{k.code}</span> },
             { header: t("tickets.typeName"), cell: (k) => k.ticket_types?.name },

@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { cancelTicket } from "@/tickets/server"
 import { checkCode, checkTicketType, checkTier, CODE_KINDS, MAX_PRICE, normalizeCode } from "@/tickets/fields"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
 import { clean, eventOf, invalid } from "./events"
@@ -415,6 +416,31 @@ export const endpoints: Endpoint[] = [
       const { data } = await db.from("tickets").select(TICKET_COLS).eq("id", params.id).eq("org_id", orgId).maybeSingle()
       if (!data) throw notFound()
       return data
+    },
+  }),
+  endpoint({
+    method: "POST",
+    path: "/tickets/{id}/cancel",
+    permission: "payments.refund",
+    tag: "Tickets",
+    summary: "Cancel one ticket and refund its price",
+    description:
+      "Refunds what this ticket cost through the payment provider (if its order is paid and something is left to refund; the service fee stays), then voids the ticket: its QR code no longer gets in. Other tickets of the order stay valid. `refund` = succeeded / pending / failed, or null when nothing was paid.",
+    body: z.object({ reason: z.string().trim().max(500).optional() }).strict(),
+    response: z.object({ refund: z.enum(["succeeded", "pending", "failed"]).nullable(), ticket: Ticket }),
+    async handler({ db, orgId, params, body }) {
+      let refund: string | null
+      try {
+        refund = await cancelTicket(orgId, params.id, body.reason)
+      } catch (e) {
+        const key = e instanceof Error ? e.message : ""
+        if (key === "errors.not_found") throw notFound()
+        if (key === "tickets.notCancellable") throw new ApiError(422, "not_cancellable", "This ticket is already void or cancelled.")
+        console.error("api cancel ticket", e)
+        throw new ApiError(502, "provider_error", "The payment provider refused the refund.")
+      }
+      const { data } = await db.from("tickets").select(TICKET_COLS).eq("id", params.id).eq("org_id", orgId).single()
+      return { refund: refund as "succeeded" | "pending" | "failed" | null, ticket: data! }
     },
   }),
   endpoint({

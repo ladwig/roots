@@ -986,6 +986,10 @@
     "refund": "Erstatten",
     "refundAmount": "Betrag in Euro (leer = alles)",
     "refundReason": "Grund (optional)",
+    "tickets": "Tickets",
+    "cancelTicket": "Stornieren",
+    "confirmCancelTicket": "Ticket stornieren? Der Ticketpreis wird erstattet und der QR-Code ist ungültig.",
+    "ticketCancelled": "Ticket storniert.",
     "refundPending": "Erstattung angefragt. Stripe bestätigt sie gleich.",
     "refunded": "Erstattet.",
     "testPayment": "Testzahlung",
@@ -1445,6 +1449,7 @@
       "required": "Pflicht"
     },
     "maxPerOrder": "Max. Tickets pro Bestellung",
+    "notCancellable": "Dieses Ticket kann nicht storniert werden.",
     "soldTickets": "Verkaufte Tickets",
     "search": "Code oder Name suchen…",
     "status": "Status",

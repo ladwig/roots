@@ -986,6 +986,10 @@
     "refund": "Refund",
     "refundAmount": "Amount in euros (empty = everything)",
     "refundReason": "Reason (optional)",
+    "tickets": "Tickets",
+    "cancelTicket": "Cancel",
+    "confirmCancelTicket": "Cancel this ticket? Its price is refunded and the QR code stops working.",
+    "ticketCancelled": "Ticket cancelled.",
     "refundPending": "Refund requested. Stripe will confirm it shortly.",
     "refunded": "Refunded.",
     "testPayment": "Test payment",
@@ -1445,6 +1449,7 @@
       "required": "Required"
     },
     "maxPerOrder": "Max. tickets per order",
+    "notCancellable": "This ticket can't be cancelled.",
     "soldTickets": "Sold tickets",
     "search": "Search code or name…",
     "status": "Status",

@@ -15,7 +15,7 @@ import { getT } from "@/i18n/server"
 import type { T } from "@/i18n/translate"
 import { requirePerm } from "@/lib/context"
 import { pageParam, param, withParams } from "@/lib/url"
-import { createTestPayment, refund } from "./actions"
+import { cancelTicketAction, createTestPayment, refund } from "./actions"
 import { SubmitButton } from "@/components/submit-button"
 
 const STATUSES = ["open", "paid", "partially_refunded", "refunded", "failed", "expired"]
@@ -126,7 +126,7 @@ async function OrderSheet({ t, orderId, canRefund, error, ok }: { t: T; orderId:
   const ctx = await requirePerm("payments.view")
   const { data: order } = await ctx.supabase
     .from("pay_orders")
-    .select("*, pay_order_items(*), pay_payments(*, pay_refunds(*))")
+    .select("*, pay_order_items(*), pay_payments(*, pay_refunds(*)), tickets(id, code, holder_name, status, price, ticket_types(name))")
     .eq("id", orderId)
     .eq("org_id", ctx.org.id)
     .maybeSingle()
@@ -143,7 +143,15 @@ async function OrderSheet({ t, orderId, canRefund, error, ok }: { t: T; orderId:
         <dt className="text-muted-foreground">{t("payments.status")}</dt>
         <dd><StatusBadge t={t} status={order.status} /></dd>
         <dt className="text-muted-foreground">{t("payments.what")}</dt>
-        <dd>{t.dynamic(`payments.sources.${order.source_module}`)}</dd>
+        <dd>
+          {order.source_module === "tickets" && order.source_id ? (
+            <Link href={`/events/${order.source_id}/tickets#sold`} className="underline underline-offset-4">
+              {order.pay_order_items[0]?.description.split(" · ")[0] ?? t.dynamic(`payments.sources.${order.source_module}`)}
+            </Link>
+          ) : (
+            t.dynamic(`payments.sources.${order.source_module}`)
+          )}
+        </dd>
         <dt className="text-muted-foreground">{t("payments.date")}</dt>
         <dd>{t.date(order.created_at, { dateStyle: "medium", timeStyle: "short" })}</dd>
         {order.paid_at && (
@@ -171,6 +179,34 @@ async function OrderSheet({ t, orderId, canRefund, error, ok }: { t: T; orderId:
           </li>
         </ul>
       </section>
+
+      {order.tickets.length > 0 && (
+        <section className="grid gap-2">
+          <h3 className="font-medium">{t("payments.tickets")}</h3>
+          <ul className="grid divide-y rounded-lg border text-sm">
+            {order.tickets.map((k) => (
+              <li key={k.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+                <span className="min-w-0">
+                  <span className="font-mono">{k.code}</span> · {k.ticket_types?.name}
+                  {k.holder_name && <span className="text-muted-foreground"> · {k.holder_name}</span>}
+                </span>
+                <span className="flex items-center gap-2">
+                  <Badge variant={k.status === "valid" ? "default" : "outline"}>{t.dynamic(`tickets.statuses.${k.status}`)}</Badge>
+                  {canRefund && ["valid", "used", "reserved"].includes(k.status) && (
+                    <form action={cancelTicketAction}>
+                      <input type="hidden" name="id" value={k.id} />
+                      <input type="hidden" name="order" value={order.id} />
+                      <SubmitButton size="sm" variant="ghost" data-confirm="payments.confirmCancelTicket" className="text-destructive hover:text-destructive">
+                        {t("payments.cancelTicket")}
+                      </SubmitButton>
+                    </form>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {order.pay_payments.length > 0 && (
         <section className="grid gap-2">

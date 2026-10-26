@@ -7,6 +7,7 @@ import { getContext, requirePerm } from "@/lib/context"
 import { back } from "@/lib/url"
 import { createOrder, refundOrder, startCheckout } from "@/payments/server"
 import { moneyCents } from "@/lib/inputs"
+import { cancelTicket } from "@/tickets/server"
 
 const PATH = "/payments"
 const errorText = (t: T, e: unknown) => {
@@ -30,6 +31,21 @@ export async function refund(orderId: string, formData: FormData) {
     back(`${PATH}?edit=${orderId}`, { error: errorText(t, e) })
   }
   back(`${PATH}?edit=${orderId}`, { ok: status === "succeeded" ? t("payments.refunded") : t("payments.refundPending") })
+}
+
+// One ticket of the order: refund its price, then void it (the rest of the order stays valid).
+export async function cancelTicketAction(formData: FormData) {
+  const ctx = await requirePerm("payments.refund")
+  const t = await getT()
+  const orderId = String(formData.get("order") ?? "")
+  const here = `${PATH}?edit=${orderId}`
+  let status: string | null
+  try {
+    status = await cancelTicket(ctx.org.id, String(formData.get("id") ?? ""))
+  } catch (e) {
+    back(here, { error: errorText(t, e) })
+  }
+  back(here, { ok: status === "pending" ? t("payments.refundPending") : t("payments.ticketCancelled") })
 }
 
 // Platform admins only: a real payment of any amount through the org's Stripe account, to test the whole chain.
