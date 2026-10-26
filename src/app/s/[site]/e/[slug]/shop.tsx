@@ -23,6 +23,9 @@ export async function TicketShop({ site, slug, eventId, max, code, waitlist, cod
   const free = types.every((ty) => ty.final_price === 0)
   const soldOut = !claim && types.filter((ty) => !ty.hidden).every((ty) => ty.remaining === 0)
   let anyOnSale = false
+  // One ticket preselected: the type a code link unlocks/discounts, else the first one on sale.
+  const buyable = types.filter((ty) => ty.remaining !== 0 && !(ty.sales_start && new Date(ty.sales_start).getTime() > now) && !(ty.sales_end && new Date(ty.sales_end).getTime() < now))
+  const preset = (buyable.find((ty) => codeValid && ty.code_applies) ?? buyable[0])?.type_id
   return (
     <section aria-labelledby="tickets" className="site-tickets grid scroll-mt-20 gap-4 rounded-xl border p-4">
       <h2 id="tickets" className="font-heading text-xl font-semibold">
@@ -56,7 +59,6 @@ export async function TicketShop({ site, slug, eventId, max, code, waitlist, cod
             const typeSoldOut = remaining === 0
             const discounted = ty.final_price !== ty.price
             const onSale = !notYet && !over && !typeSoldOut
-            const first = onSale && !anyOnSale // the first buyable type starts at 1
             anyOnSale ||= onSale
             return (
               <li key={ty.type_id} className="flex flex-wrap items-center justify-between gap-3">
@@ -88,7 +90,7 @@ export async function TicketShop({ site, slug, eventId, max, code, waitlist, cod
                     name={`t_${ty.type_id}`}
                     min={0}
                     max={Math.min(max, remaining ?? max)}
-                    defaultValue={first ? 1 : 0}
+                    defaultValue={ty.type_id === preset ? 1 : 0}
                     aria-label={t("shop.quantity", { name: ty.name })}
                     className="w-20"
                   />
