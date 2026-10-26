@@ -271,7 +271,7 @@ export const publicEndpoints: PublicEndpoint[] = [
       .object({
         email,
         name,
-        items: z.array(z.object({ type_id: uuid, holder_name: z.string().trim().max(200).optional() }).strict()).min(1).max(100).describe("One entry per ticket"),
+        items: z.array(z.object({ type_id: uuid, holder_name: z.string().trim().max(200).optional() }).strict()).min(1).max(100).describe("One entry per ticket; the first ticket's holder_name defaults to the buyer's name"),
         code: z.string().trim().toUpperCase().max(40).optional(),
         waitlist: z.string().max(64).optional().describe("Waiting-list claim token"),
         success_url: https.optional(),
@@ -285,7 +285,7 @@ export const publicEndpoints: PublicEndpoint[] = [
       const { data: ev } = await createPublicClient().from("events").select("ticket_names").eq("id", e.id).eq("status", "published").maybeSingle()
       if (!ev) throw new ApiError(422, "not_on_sale", t("tickets.notOnSale"))
       if (body.items.length > e.max_tickets_per_order) throw new ApiError(422, "too_many", t("shop.tooMany", { max: e.max_tickets_per_order }))
-      if (ev.ticket_names === "required" && body.items.some((i) => !i.holder_name)) throw new ApiError(422, "holder_missing", t("shop.holderMissing"))
+      if (ev.ticket_names === "required" && body.items.some((i, n) => n > 0 && !i.holder_name)) throw new ApiError(422, "holder_missing", t("shop.holderMissing"))
       let ids = { order: "", token: "" }
       let url: string
       try {
@@ -296,7 +296,7 @@ export const publicEndpoints: PublicEndpoint[] = [
           name: body.name,
           code: body.code || null,
           waitlist: body.waitlist || null,
-          items: body.items.map((i) => ({ typeId: i.type_id, holderName: ev.ticket_names === "off" ? null : i.holder_name || null })),
+          items: body.items.map((i, n) => ({ typeId: i.type_id, holderName: ev.ticket_names === "off" ? null : i.holder_name || (n === 0 ? body.name : null) })),
           successUrl: (order, token) => {
             ids = { order, token }
             return body.success_url ? body.success_url.replaceAll("{ORDER_ID}", order).replaceAll("{TOKEN}", token) : siteUrl(org.slug, `/t/${order}?k=${token}`, org.site_domain)
