@@ -56,6 +56,7 @@ export async function TicketShop({ site, slug, eventId, max, code, waitlist, cod
             const typeSoldOut = remaining === 0
             const discounted = ty.final_price !== ty.price
             const onSale = !notYet && !over && !typeSoldOut
+            const first = onSale && !anyOnSale // the first buyable type starts at 1
             anyOnSale ||= onSale
             return (
               <li key={ty.type_id} className="flex flex-wrap items-center justify-between gap-3">
@@ -87,7 +88,7 @@ export async function TicketShop({ site, slug, eventId, max, code, waitlist, cod
                     name={`t_${ty.type_id}`}
                     min={0}
                     max={Math.min(max, remaining ?? max)}
-                    defaultValue={0}
+                    defaultValue={first ? 1 : 0}
                     aria-label={t("shop.quantity", { name: ty.name })}
                     className="w-20"
                   />
