@@ -9,7 +9,8 @@ import { offerWaitlist } from "@/tickets/waitlist"
 import { fulfilPending } from "@/payments/server"
 import { checkDomains } from "@/domains/server"
 
-// Called every minute (vercel.json cron, or `npm run worker` locally). Protected by CRON_SECRET.
+// Called by pg_cron when worker_due() says something is due, and hourly (or `npm run worker` locally). Protected by CRON_SECRET.
+// New step here = its due condition in public.worker_due(), else it only runs hourly.
 export async function GET(request: Request) {
   if (!process.env.CRON_SECRET || request.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`)
     return new NextResponse("Unauthorized", { status: 401 })

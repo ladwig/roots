@@ -175,7 +175,7 @@ Every view a user can reach must be shareable/bookmarkable and survive reload + 
 ## Deployment
 - Vercel project `roots` (team daniel-ladwigs-projects), Git-connected: every push to `main` deploys production (https://roots-berlin.vercel.app). Functions run in `lhr1` (vercel.json) next to the Supabase database (eu-west-2); keep them together.
 - Env vars live in Vercel (Production + Preview); `NEXT_PUBLIC_*` are baked in at build time, so redeploy after changing them.
-- The worker runs every minute via Supabase pg_cron (`npm run worker:schedule -- <prod-url>`; `CRON_SECRET` must match Vercel's). Vercel's own cron (daily, Hobby limit) is only a fallback.
+- The worker is triggered by Supabase pg_cron (`npm run worker:schedule -- <prod-url>`; `CRON_SECRET` must match Vercel's): every minute the database checks `worker_due()` and only calls the App when something is due, plus once an hour (minute 0) for housekeeping. **A new worker step = add its "due" condition to `worker_due()`** (new migration), or it only runs hourly. Actions that need it now call `deliverSoon()`. Vercel's own cron (daily, Hobby limit) is only a fallback.
 - Org subdomains (`<org>.<root>`) need a real domain with a wildcard; on `*.vercel.app` only the App works.
 - Supabase Auth (Dashboard of the hosted project, not `config.toml`): URL Configuration → Redirect URLs must contain `http://localhost:3000/**` and the production URL `/**`, otherwise email links ignore `next` and land on the Site URL.
 

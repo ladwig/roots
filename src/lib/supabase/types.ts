@@ -2786,6 +2786,9 @@ isOneToOne: false
 "user_has_perm":
 { Args: { "p_org": string,"p_perm": string,"p_user": string }; Returns: boolean
                            },
+"waitlist_due":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
 "wiki_access":
 { Args: { "p_page": string }; Returns: {
               "from_page": string,"role_ids": (string)[],"visibility": string
@@ -2811,6 +2814,12 @@ isOneToOne: false
                            },
 "wiki_readable":
 { Args: { "p_org": string,"p_page": string }; Returns: boolean
+                           },
+"worker_command":
+{ Args: { "p_url": string }; Returns: string
+                           },
+"worker_due":
+{ Args: Record<PropertyKey, never>; Returns: boolean
                            }
           }
           Enums: {
