@@ -120,7 +120,7 @@ async function siteDomain(orgId: string, domain: string | null) {
 }
 
 /**
- * Minute worker: pending domains every 5 minutes until they're live (DNS can take hours); live ones hourly, so links
+ * Minute worker: pending domains every 5 minutes until they're live (DNS can take hours); live ones daily, so links
  * go back to the roots address if the DNS records get removed or broken later.
  */
 export async function checkDomains() {
@@ -129,7 +129,7 @@ export async function checkDomains() {
   const { data } = await db()
     .from("org_domains")
     .select("org_id")
-    .or(`checked_at.is.null,and(status.eq.pending,checked_at.lt.${ago(5)}),and(status.eq.active,checked_at.lt.${ago(60)})`)
+    .or(`checked_at.is.null,and(status.eq.pending,checked_at.lt.${ago(5)}),and(status.eq.active,checked_at.lt.${ago(24 * 60)})`)
     .order("checked_at", { nullsFirst: true })
     .limit(10)
   for (const d of data ?? []) await checkDomain(d.org_id).catch((e) => console.error("domain check", d.org_id, e))
