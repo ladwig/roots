@@ -2,10 +2,10 @@ import { APP_HOME } from "@/lib/url"
 import { FolderIcon, HouseIcon, InboxIcon, SettingsIcon, ShieldIcon } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
 import type { SidebarLink } from "@/components/app-sidebar"
+import { OrgBar } from "@/components/org-bar"
 import { OrgSwitcher } from "@/components/org-switcher"
 import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
-import { SETTINGS_TABS } from "./settings/tabs"
 import { visibleNav } from "@/modules/nav"
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -24,7 +24,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     icon: <a.icon />,
     children: a.children.map((c) => ({ href: c.href, label: t.dynamic(c.label) })),
   }))
-  const settings = SETTINGS_TABS.filter((s) => !s.permission || ctx.can(s.permission)).map((s) => ({ href: `/settings/${s.key}`, label: t.dynamic(`settings.tabs.${s.key}`) }))
+  const links = [
+    ...(ctx.can("org.files.view") ? [{ href: "/files", label: t("files.title"), icon: <FolderIcon /> }] : []),
+    { href: "/settings/profile", label: t("shell.settings"), icon: <SettingsIcon /> },
+  ]
   const groups = [
     {
       items: [
@@ -33,26 +36,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       ],
     },
     ...(moduleLinks.length ? [{ label: t("home.modules"), items: moduleLinks }] : []),
-    {
-      label: t("shell.org"),
-      items: [
-        ...(ctx.can("org.files.view")
-          ? [
-              {
-                href: "/files",
-                label: t("files.title"),
-                icon: <FolderIcon />,
-                children: [
-                  { href: "/files", label: t("nav.overview") },
-                  { href: "/files/templates", label: t("letters.tabs.templates") },
-                ],
-              },
-            ]
-          : []),
-        { href: settings[0]?.href ?? "/settings", label: t("shell.settings"), icon: <SettingsIcon />, children: settings },
-        ...(ctx.isPlatformAdmin ? [{ href: "/admin", label: t("admin.link"), icon: <ShieldIcon /> }] : []),
-      ],
-    },
+    ...(ctx.isPlatformAdmin ? [{ items: [{ href: "/admin", label: t("admin.link"), icon: <ShieldIcon /> }] }] : []),
   ]
 
   return (
@@ -61,6 +45,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       orgId={ctx.org.id}
       header={<OrgSwitcher orgs={ctx.orgs} current={ctx.org} />}
       groups={groups}
+      bar={<OrgBar org={ctx.org} links={links} />}
       me={{ name: me?.full_name || ctx.email, email: ctx.email, avatar: me?.avatar_path ?? null, memberArea: !!myContact }}
       title={ctx.org.name}
     >

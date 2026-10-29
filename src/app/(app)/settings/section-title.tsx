@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import { useT } from "@/i18n/client"
 
-// Heading of the settings: the current section (the sections are sub-items in the sidebar).
+// Heading of the settings: the current section (the sections are in the navigation beside it).
 export function SettingsTitle() {
   const t = useT()
   const key = /\/settings\/([a-z]+)/.exec(usePathname())?.[1]

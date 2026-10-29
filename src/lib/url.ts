@@ -14,6 +14,11 @@ export const param = (sp: SearchParams, key: string) => {
 export const APP_HOME = "/app"
 /** Browser path → App route ("/app/contacts" → "/contacts"), for active-link checks. */
 export const appRoute = (path: string) => (path === "/app" || path.startsWith("/app/") ? path.slice(4) || "/" : path)
+/** Is `path` (a browser path) the App page `href` or below it? Whole segments only: /files matches /files/templates, not /files-x. */
+export const within = (path: string, href: string) => {
+  const r = appRoute(href)
+  return r === "/" ? appRoute(path) === "/" : appRoute(path) === r || appRoute(path).startsWith(r + "/")
+}
 
 export const safeNext = (next: unknown) =>
   typeof next === "string" && next.startsWith("/") && !next.startsWith("//") && next !== "/" ? next : APP_HOME

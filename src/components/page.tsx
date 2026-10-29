@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { PlusIcon, SettingsIcon, type LucideIcon } from "lucide-react"
+import { AreaCrumbs } from "@/components/area-crumbs"
 import { PageCrumbs } from "@/components/page-crumbs"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -20,7 +21,7 @@ export function Page({ size = "list", className, children }: { size?: keyof type
 /**
  * Title row of every page. Right side, always in this order: `settings` (gear → the area's Einstellungen), `actions` (outline buttons, few), `menu` (the ⋯
  * <ActionsMenu> with import, export, trash, delete…), `primary` (the one filled button, "+ New …", key N).
- * `area` shows the area's icon from the nav (same icon as in the sidebar and ⌘K), `crumbs` the way back on record pages.
+ * `area` shows the area's icon from the nav (same icon as in the sidebar and ⌘K), `crumbs` the way back on record pages; with only `area` the crumb is built from the nav (Finanzen › Rechnungen).
  */
 export function PageHeader({
   title,
@@ -52,7 +53,7 @@ export function PageHeader({
   const PrimaryIcon = isLink(primary) ? (primary.icon ?? PlusIcon) : null
   return (
     <header className="grid gap-3">
-      {crumbs && <PageCrumbs items={crumbs} />}
+      {crumbs ? <PageCrumbs items={crumbs} /> : area && <AreaCrumbs area={area} />}
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
         <div className="flex min-w-0 items-start gap-3">
           {Icon && (

@@ -2,7 +2,7 @@
 
 import Link, { useLinkStatus } from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { appRoute } from "@/lib/url"
+import { appRoute, within } from "@/lib/url"
 import { useState, useTransition } from "react"
 import { CheckIcon, ChevronsLeftRightIcon, ChevronsUpDownIcon, IdCardIcon, LanguagesIcon, Loader2Icon, LogOutIcon, UserIcon } from "lucide-react"
 import { openMyMemberArea } from "@/app/(app)/actions"
@@ -65,7 +65,7 @@ export function AppSidebar({
   // The clicked item looks active right away; once the URL changed, the path decides again.
   const [clicked, setClicked] = useState<{ href: string; from: string } | null>(null)
   const target = clicked && clicked.from === pathname ? appRoute(clicked.href) : null
-  const matches = (href: string, path: string) => (appRoute(href) === "/" ? path === "/" : path.startsWith(appRoute(href)))
+  const matches = (href: string, path: string) => within(path, href)
   const isActive = (href: string) => (target ? matches(href, target) : matches(href, pathname))
   const here = target ?? pathname
   // Sub-pages: the most specific match wins (/members/dues over /members); an area is active if one of them is.
@@ -204,7 +204,7 @@ function UserMenu({ me }: { me: Me }) {
 // Top bar: where you are (area icon + name › sub-page), from the same nav tree as the sidebar.
 export function PageTitle({ groups, fallback }: { groups: { items: SidebarLink[] }[]; fallback: string }) {
   const pathname = appRoute(usePathname())
-  const matches = (href: string) => (appRoute(href) === "/" ? pathname === "/" : pathname.startsWith(appRoute(href)))
+  const matches = (href: string) => within(pathname, href)
   const longest = <T extends { href: string }>(l: T[]) => l.filter((x) => matches(x.href)).sort((a, b) => appRoute(b.href).length - appRoute(a.href).length)[0]
   const area = longest(groups.flatMap((g) => g.items.flatMap((i) => [i, ...(i.children ?? []).map((c) => ({ ...c, icon: i.icon, parent: i }))])))
   if (!area) return <span className="truncate text-sm font-medium">{fallback}</span>

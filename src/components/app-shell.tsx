@@ -15,6 +15,7 @@ export async function AppShell({
   title,
   search,
   orgId,
+  bar,
   children,
 }: {
   header: React.ReactNode
@@ -23,6 +24,7 @@ export async function AppShell({
   title: string
   search?: boolean // ⌘K search over the active org (App only); also turns on Sprout, the assistant panel
   orgId?: string // the active org: Sprout starts fresh (setup, chat) when it changes
+  bar?: React.ReactNode // replaces the page title in the top bar (the App shows the org and its Dateien/Einstellungen)
   children: React.ReactNode
 }) {
   // Open/collapsed is remembered in the sidebar_state cookie (set by the shadcn sidebar).
@@ -37,7 +39,7 @@ export async function AppShell({
           {/* Phones: the sidebar is a drawer, so the trigger stays; from md the sidebar's edge toggles it. */}
           <SidebarTrigger className="-ml-1 md:hidden" />
           <Separator orientation="vertical" className="mr-1 data-vertical:h-4 md:hidden" />
-          <PageTitle groups={groups} fallback={title} />
+          {bar ?? <PageTitle groups={groups} fallback={title} />}
           {search && <SproutButton />}
         </header>
         <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">

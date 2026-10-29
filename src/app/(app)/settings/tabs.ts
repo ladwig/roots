@@ -1,4 +1,4 @@
-// Sections of the settings (sub-items in the sidebar).
+// Sections of the settings (navigation beside the page).
 export const SETTINGS_TABS: { key: string; permission?: string }[] = [
   { key: "profile" },
   { key: "general" },
