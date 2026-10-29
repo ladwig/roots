@@ -54,7 +54,7 @@ export function AppSidebar({
   me,
   search,
 }: {
-  header: React.ReactNode
+  header?: React.ReactNode
   groups: { label?: string; items: SidebarLink[] }[]
   me: Me
   search?: boolean

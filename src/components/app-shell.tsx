@@ -18,7 +18,7 @@ export async function AppShell({
   bar,
   children,
 }: {
-  header: React.ReactNode
+  header?: React.ReactNode
   groups: { label?: string; items: SidebarLink[] }[]
   me: Me
   title: string

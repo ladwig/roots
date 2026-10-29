@@ -3,7 +3,6 @@ import { FolderIcon, HouseIcon, InboxIcon, SettingsIcon, ShieldIcon } from "luci
 import { AppShell } from "@/components/app-shell"
 import type { SidebarLink } from "@/components/app-sidebar"
 import { OrgBar } from "@/components/org-bar"
-import { OrgSwitcher } from "@/components/org-switcher"
 import { getT } from "@/i18n/server"
 import { getContext } from "@/lib/context"
 import { visibleNav } from "@/modules/nav"
@@ -43,9 +42,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <AppShell
       search
       orgId={ctx.org.id}
-      header={<OrgSwitcher orgs={ctx.orgs} current={ctx.org} />}
       groups={groups}
-      bar={<OrgBar org={ctx.org} links={links} />}
+      bar={<OrgBar org={ctx.org} orgs={ctx.orgs} links={links} />}
       me={{ name: me?.full_name || ctx.email, email: ctx.email, avatar: me?.avatar_path ?? null, memberArea: !!myContact }}
       title={ctx.org.name}
     >
