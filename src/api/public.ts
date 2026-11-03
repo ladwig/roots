@@ -201,7 +201,7 @@ export const publicEndpoints: PublicEndpoint[] = [
     tag: "Organisation",
     summary: "The start page",
     description:
-      "What the hosted start page shows, for your own website: tagline, the visible blocks in order (hero, text = Markdown, links, events, event, form, portal, wiki; fetch the events/forms they name with the other endpoints) and the Impressum / Datenschutz texts (Markdown).",
+      "What the hosted start page shows, for your own website: tagline, the visible blocks in order (hero, text = Markdown, links, events, event, form, portal, wiki, shop = `limit` products of `category` or all; fetch the events/forms/products they name with the other endpoints) and the Impressum / Datenschutz texts (Markdown).",
     response: z.object({
       tagline: z.string().nullable(),
       blocks: z.array(z.record(z.string(), z.unknown())),

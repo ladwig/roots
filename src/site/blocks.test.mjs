@@ -20,12 +20,14 @@ test("readBlocks: cleans, drops what's invalid, keeps order", () => {
     { type: "event", event_id: "x" },
     { id: "c3", type: "links", items: [{ label: "Insta", href: "https://instagram.com/qs1" }, { label: "bad", href: "ftp://x" }] },
     { id: "d4", type: "form", form_slug: "mitglied-werden", title: "Mitglied werden" },
+    { id: "e5", type: "shop", limit: 0, category: " Vinyl " },
   ])
   assert.deepEqual(out, [
     { id: "a1", type: "hero", on: true, title: "Hallo", button_label: "Tickets" },
     { id: "b2", type: "events", on: false, limit: 50 },
     { id: "c3", type: "links", on: true, items: [{ label: "Insta", href: "https://instagram.com/qs1" }] },
     { id: "d4", type: "form", on: true, title: "Mitglied werden", form_slug: "mitglied-werden" },
+    { id: "e5", type: "shop", on: true, limit: 6, category: "Vinyl" },
   ])
   assert.deepEqual(readBlocks("nope"), [])
 })

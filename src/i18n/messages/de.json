@@ -156,7 +156,8 @@
       "event": "Ein Event hervorheben",
       "form": "Formular",
       "portal": "Mitgliederbereich",
-      "wiki": "Wissen (öffentliche Seiten)"
+      "wiki": "Wissen (öffentliche Seiten)",
+      "shop": "Shop (Produkte)"
     },
     "placeholders": {
       "hero": "Willkommen beim …",
@@ -166,7 +167,8 @@
       "event": "",
       "form": "",
       "portal": "Mitgliederbereich",
-      "wiki": "Wissen"
+      "wiki": "Wissen",
+      "shop": "z. B. Merch"
     },
     "legalTitle": "Impressum & Datenschutz",
     "legalHint": "Pflicht für Vereine und Firmen in Deutschland. Erscheinen unten auf allen öffentlichen Seiten. Das Impressum ist aus euren Rechnungsdaten vorausgefüllt – bitte prüfen. Markdown möglich.",
@@ -179,7 +181,10 @@
     "openForm": "Ausfüllen",
     "portalDefault": "Mitgliederbereich",
     "toPortal": "Anmelden",
-    "wikiDefault": "Wissen"
+    "wikiDefault": "Wissen",
+    "allProducts": "Alle Produkte",
+    "productLimit": "Wie viele Produkte",
+    "productCategory": "Kategorie"
   },
   "shell": {
     "home": "Start",
@@ -5452,7 +5457,8 @@
         "news": "Neuigkeiten",
         "links": "Links",
         "orgName": "Vereinsname",
-        "eventLinks": "Links des Events"
+        "eventLinks": "Links des Events",
+        "products": "Produkte"
       },
       "vars": {
         "name": "Name",
@@ -5473,7 +5479,10 @@
         "timetable": "Fester Baustein: Programm/Timetable",
         "org": "Euer Verein",
         "person": "Angemeldete Person",
-        "eventLinks": "Die Links des Events (bis zu 3): {{label}}, {{url}}"
+        "eventLinks": "Die Links des Events (bis zu 3): {{label}}, {{url}}",
+        "products": "Veröffentlichte Produkte (Liste)",
+        "productFields": "Felder je Produkt",
+        "shop": "Link zum Shop (nur wenn das Shop-Modul an ist)"
       }
     },
     "event": {

@@ -4,12 +4,11 @@ import { notFound } from "next/navigation"
 import { ShoppingBagIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { getT } from "@/i18n/server"
-import { imageUrl } from "@/lib/images"
 import { param, sitePath } from "@/lib/url"
 import { getCart } from "@/shop/cart"
 import type { CatalogProduct } from "@/shop/fields"
-import { priceLabel, soldOut } from "@/shop/view"
 import { getSite } from "../data"
+import { ProductCards } from "./cards"
 
 export async function generateMetadata({ params }: PageProps<"/s/[site]/shop">): Promise<Metadata> {
   const s = await getSite((await params).site)
@@ -68,26 +67,7 @@ export default async function ShopPage({ params, searchParams }: PageProps<"/s/[
       {!shown.length ? (
         <p className="text-muted-foreground">{t("store.empty")}</p>
       ) : (
-        <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-          {shown.map((p) => (
-            <li key={p.id} className="site-product-card">
-              <Link href={sitePath(site, `/shop/${p.slug}`)} className="group grid gap-2">
-                <div className="aspect-square overflow-hidden rounded-xl border bg-muted">
-                  {p.images[0] && (
-                    // eslint-disable-next-line @next/next/no-img-element -- public bucket URL
-                    <img src={imageUrl(p.images[0])} alt="" className="size-full object-cover transition-transform group-hover:scale-105" />
-                  )}
-                </div>
-                <div className="grid gap-0.5">
-                  <p className="font-medium leading-tight">{p.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {soldOut(p) ? t("store.soldOut") : priceLabel(p, t)}
-                  </p>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <ProductCards products={shown} site={site} t={t} />
       )}
     </main>
   )

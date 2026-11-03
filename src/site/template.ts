@@ -63,6 +63,9 @@ export const START_PLACEHOLDERS: { key: string; note: string }[] = [
   { key: "form.<slug>.url", note: "form" },
   { key: "#portal … /portal · portal.url", note: "portal" },
   { key: "#wiki … /wiki", note: "wiki" },
+  { key: "#products … /products", note: "products" },
+  { key: "name · price · image · category · url · sold_out", note: "productFields" },
+  { key: "shop.url", note: "shop" },
   { key: "imprint_url · privacy_url", note: "legal" },
 ]
 

@@ -9,6 +9,7 @@ export const BLOCK_TYPES = [
   { type: "form", module: "forms" },
   { type: "portal", module: "members" },
   { type: "wiki", module: "wiki" },
+  { type: "shop", module: "shop" },
 ] as const
 export type BlockType = (typeof BLOCK_TYPES)[number]["type"]
 
@@ -20,7 +21,8 @@ export type Block = {
   text?: string // hero/portal: a short text; text block: Markdown
   button_label?: string
   button_href?: string
-  limit?: number // events
+  limit?: number // events, shop
+  category?: string // shop: only this category
   event_id?: string // event
   form_slug?: string // form
   items?: { label: string; href: string }[] // links
@@ -57,6 +59,7 @@ export function readBlocks(input: unknown): Block[] {
       if (!block.text) return []
     }
     if (type === "events") block.limit = Math.min(50, Math.max(1, Math.round(Number(b.limit) || 10)))
+    if (type === "shop") Object.assign(block, { limit: Math.min(24, Math.max(1, Math.round(Number(b.limit) || 6))), category: str(b.category, 80) })
     if (type === "event") {
       if (typeof b.event_id !== "string" || !/^[0-9a-f-]{36}$/.test(b.event_id)) return []
       block.event_id = b.event_id

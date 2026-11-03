@@ -17,7 +17,7 @@ type Option = { value: string; label: string }
  * The start page's blocks as a list: add, reorder, show/hide, remove, and each block's few fields. Posts everything as
  * JSON in the hidden "blocks" field (validated again on the server). Changes count as edits for the <SaveBar>.
  */
-export function SiteEditor({ initial, types, events, forms }: { initial: Block[]; types: BlockType[]; events: Option[]; forms: Option[] }) {
+export function SiteEditor({ initial, types, events, forms, categories = [] }: { initial: Block[]; types: BlockType[]; events: Option[]; forms: Option[]; categories?: string[] }) {
   const t = useT()
   const [blocks, setBlocks] = useState(initial)
   const [adding, setAdding] = useState<BlockType>(types[0])
@@ -45,6 +45,7 @@ export function SiteEditor({ initial, types, events, forms }: { initial: Block[]
         type: adding,
         on: true,
         ...(adding === "events" && { limit: 10 }),
+        ...(adding === "shop" && { limit: 6 }),
         ...(adding === "event" && { event_id: events[0]?.value }),
         ...(adding === "form" && { form_slug: forms[0]?.value }),
         ...(adding === "links" && { items: [{ label: "", href: "" }] }),
@@ -107,6 +108,22 @@ export function SiteEditor({ initial, types, events, forms }: { initial: Block[]
               <Field id={id("limit")} label={t("site.limit")}>
                 <Input id={id("limit")} type="number" min={1} max={50} value={b.limit ?? 10} onChange={(e) => update(b.id, { limit: Number(e.target.value) })} className="w-24" />
               </Field>
+            )}
+            {b.type === "shop" && (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field id={id("limit")} label={t("site.productLimit")}>
+                  <Input id={id("limit")} type="number" min={1} max={24} value={b.limit ?? 6} onChange={(e) => update(b.id, { limit: Number(e.target.value) })} className="w-24" />
+                </Field>
+                {(categories.length > 0 || b.category) && (
+                  <Picker
+                    id={id("cat")}
+                    label={t("site.productCategory")}
+                    value={b.category}
+                    options={[{ value: "", label: t("store.allCategories") }, ...[...new Set([...categories, ...(b.category ? [b.category] : [])])].map((c) => ({ value: c, label: c }))]}
+                    onChange={(v) => update(b.id, { category: v || undefined })}
+                  />
+                )}
+              </div>
             )}
             {b.type === "event" && <Picker id={id("ev")} label={t("site.pickEvent")} value={b.event_id} options={events} onChange={(v) => update(b.id, { event_id: v })} />}
             {b.type === "form" && <Picker id={id("form")} label={t("site.pickForm")} value={b.form_slug} options={forms} onChange={(v) => update(b.id, { form_slug: v })} />}

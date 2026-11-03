@@ -156,7 +156,8 @@
       "event": "Feature one event",
       "form": "Form",
       "portal": "Member area",
-      "wiki": "Knowledge (public pages)"
+      "wiki": "Knowledge (public pages)",
+      "shop": "Shop (products)"
     },
     "placeholders": {
       "hero": "Welcome to …",
@@ -166,7 +167,8 @@
       "event": "",
       "form": "",
       "portal": "Member area",
-      "wiki": "Knowledge"
+      "wiki": "Knowledge",
+      "shop": "e.g. Merch"
     },
     "legalTitle": "Imprint & privacy",
     "legalHint": "Required for clubs and companies in Germany. Shown at the bottom of all public pages. The imprint is prefilled from your invoice details – please check it. Markdown works.",
@@ -179,7 +181,10 @@
     "openForm": "Fill in",
     "portalDefault": "Member area",
     "toPortal": "Sign in",
-    "wikiDefault": "Knowledge"
+    "wikiDefault": "Knowledge",
+    "allProducts": "All products",
+    "productLimit": "How many products",
+    "productCategory": "Category"
   },
   "shell": {
     "home": "Home",
@@ -5452,7 +5457,8 @@
         "news": "News",
         "links": "Links",
         "orgName": "Org name",
-        "eventLinks": "Event links"
+        "eventLinks": "Event links",
+        "products": "Products"
       },
       "vars": {
         "name": "Name",
@@ -5473,7 +5479,10 @@
         "timetable": "Fixed block: programme/timetable",
         "org": "Your organisation",
         "person": "Signed-in person",
-        "eventLinks": "The event's links (up to 3): {{label}}, {{url}}"
+        "eventLinks": "The event's links (up to 3): {{label}}, {{url}}",
+        "products": "Published products (list)",
+        "productFields": "Fields per product",
+        "shop": "Link to the shop (only when the shop module is on)"
       }
     },
     "event": {
