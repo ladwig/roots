@@ -147,6 +147,9 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                               <input type="hidden" name="has_active" value="1" />
                               <input type="checkbox" name="active" value="1" defaultChecked={v.active} disabled={!canManage} className="accent-primary" /> {t("store.variantActive")}
                             </label>
+                            <label className="flex items-center gap-1">
+                              <input type="checkbox" name="digital" value="1" defaultChecked={v.digital} disabled={!canManage} className="accent-primary" /> {t("store.variantDigital")}
+                            </label>
                           </span>
                           {canManage && (
                             <span className="flex gap-1">
@@ -171,6 +174,9 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                     <TypedInput kind="money" name="price" placeholder={priceInput(p.price_cents)} aria-label={t("store.price")} />
                     <TypedInput kind="number" name="stock" min={0} placeholder="∞" aria-label={t("store.stock")} />
                     <SubmitButton size="sm">{t("store.addVariant")}</SubmitButton>
+                    <label className="col-span-4 flex items-center gap-1 text-xs text-muted-foreground">
+                      <input type="checkbox" name="digital" value="1" className="accent-primary" /> {t("store.variantDigitalHint")}
+                    </label>
                   </form>
                 )}
               </FormCard>
@@ -209,11 +215,9 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                 {canManage && ctx.can("org.files.manage") && <FileUpload orgId={ctx.org.id} entity="product_audio" entityId={p.id} />}
               </FormCard>
 
-              {p.kind === "digital" && (
-                <FormCard id="downloads" title={t("store.downloads")} description={t("store.downloadsHint")}>
-                  <FileList ctx={ctx} entity="products" entityId={p.id} back={`${here}#downloads`} />
-                </FormCard>
-              )}
+              <FormCard id="downloads" title={t("store.downloads")} description={t("store.downloadsHint")}>
+                <FileList ctx={ctx} entity="products" entityId={p.id} back={`${here}#downloads`} />
+              </FormCard>
             </>
           }
         >

@@ -111,7 +111,7 @@ export async function placeOrder(p: PlaceInput) {
     customerEmail: p.email,
     customerName: p.name,
     items: [
-      ...lines.map((l) => ({ description: l.name.slice(0, 200), quantity: l.quantity, unitAmount: l.unit, sourceId: l.id, metadata: { tax_rate: l.tax_rate, product_id: l.product.id, kind: l.product.kind } })),
+      ...lines.map((l) => ({ description: l.name.slice(0, 200), quantity: l.quantity, unitAmount: l.unit, sourceId: l.id, metadata: { tax_rate: l.tax_rate, product_id: l.product.id, kind: l.digital ? "digital" : "physical" } })),
       ...(rateName ? [{ description: `${t("store.shippingLine")}: ${rateName}`.slice(0, 200), quantity: 1, unitAmount: shipping, metadata: { tax_rate: shipRate, shipping: true } }] : []),
     ],
   })
@@ -331,7 +331,7 @@ const md = (html: string, text: string): Markup => ({ html, text })
 export const orderLink = (o: { order_id: string; token: string; orgs: { slug: string; site_domain: string | null } }) =>
   siteUrl(o.orgs.slug, `/o/${o.order_id}?k=${o.token}`, o.orgs.site_domain)
 
-function mailMessage(kind: MailKind, o: Order, t: T, custom: string | null, bank: { holder: string; iban: string; bic: string | null } | null, pickupText: string | null) {
+function mailMessage(kind: MailKind, o: Order, t: T, custom: string | null, bank: { holder: string; iban: string; bic: string | null } | null, pickupText: string | null, downloads: boolean) {
   const cur = o.pay_orders.currency
   const vars = { number: String(o.number), name: o.name, total: t.money(o.pay_orders.amount_total, cur), org: o.orgs.name }
   const intro = custom?.trim() ? custom.replace(/\{([a-z]+)\}/g, (m, k: string) => (k in vars ? vars[k as keyof typeof vars] : m)) : t.dynamic(`store.mail.${kind}.message`, vars)
@@ -361,7 +361,7 @@ function mailMessage(kind: MailKind, o: Order, t: T, custom: string | null, bank
   if (kind === "confirmation" && unpaid && o.payment === "pickup") parts.push(md(`<p>${esc(t("store.payOnPickupNote"))}</p>`, t("store.payOnPickupNote")))
   if ((kind === "ready" || (kind === "confirmation" && o.delivery === "pickup")) && pickupText) parts.push(md(`<p>${esc(pickupText).replace(/\n/g, "<br>")}</p>`, pickupText))
   if (kind === "shipped" && o.tracking) parts.push(md(`<p>${esc(t("store.trackingLine", { tracking: o.tracking }))}</p>`, t("store.trackingLine", { tracking: o.tracking })))
-  if (o.delivery === "digital" && !unpaid && (kind === "confirmation" || kind === "paid")) parts.push(md(`<p>${esc(t("store.downloadsNote"))}</p>`, t("store.downloadsNote")))
+  if (downloads && (kind === "confirmation" || kind === "paid")) parts.push(md(`<p>${esc(t("store.downloadsNote"))}</p>`, t("store.downloadsNote")))
   return { html: parts.map((p) => p.html).join(""), text: parts.map((p) => p.text).join("\n\n") }
 }
 
@@ -388,7 +388,7 @@ export async function mail(kind: MailKind, orderId: string) {
     number: String(o.number),
     total: t.money(o.pay_orders.amount_total, o.pay_orders.currency),
     title: t.dynamic(`store.mail.${kind}.title`, vars),
-    message: mailMessage(kind, o, t, conf.message ?? null, bank?.iban ? { holder: bank.legal_name ?? o.orgs.name, iban: bank.iban, bic: bank.bic } : null, settings.pickup_text),
+    message: mailMessage(kind, o, t, conf.message ?? null, bank?.iban ? { holder: bank.legal_name ?? o.orgs.name, iban: bank.iban, bic: bank.bic } : null, settings.pickup_text, (await orderFiles(o)).length > 0),
     button: button(link, t("store.mail.button")),
     link,
     // event placeholders a shared template may use stay empty

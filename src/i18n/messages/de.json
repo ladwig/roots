@@ -5744,7 +5744,7 @@
     "deleteVariant": "Variante löschen",
     "confirmDeleteVariant": "Diese Variante löschen? Bestehende Bestellungen bleiben unverändert.",
     "variantDeleted": "Variante gelöscht.",
-    "downloadsHint": "Diese Dateien bekommen Käufer:innen nach der Zahlung auf ihrer Bestellseite.",
+    "downloadsHint": "Diese Dateien bekommen alle Käufer:innen dieses Produkts nach der Zahlung auf ihrer Bestellseite – auch bei Vinyl o. ä. (z. B. Vinyl + Download).",
     "searchOrders": "Name oder Bestellnummer",
     "views": {
       "open": "Offen",
@@ -5819,6 +5819,8 @@
     "trackStream": "im Shop abspielbar",
     "removeTrack": "Titel entfernen",
     "confirmRemoveTrack": "Diesen Titel entfernen? Die Datei landet im Papierkorb.",
-    "trackRemoved": "Titel entfernt."
+    "trackRemoved": "Titel entfernt.",
+    "variantDigital": "digital",
+    "variantDigitalHint": "Digital (nur Download, kein Versand, kein Bestand nötig)"
   }
 }

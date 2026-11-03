@@ -50,7 +50,7 @@ export default async function CartPage({ params, searchParams }: PageProps<"/s/[
   const total = subtotal + shipping
   const payments = delivery ? paymentsFor(settings, delivery, ready) : []
   const problems = lines.some((l) => l.problem) || lines.length !== cart.length
-  const digital = lines.some((l) => l.product.kind === "digital")
+  const digital = lines.some((l) => l.digital)
   const legal = !!(settings.terms || settings.withdrawal)
   const keep = new URLSearchParams([...(delivery ? [["d", delivery]] : []), ...(rate ? [["r", rate.id]] : [])]).toString()
   const link = (d: Delivery, r?: string) => sitePath(site, `/cart?${new URLSearchParams([["d", d], ...(r ? [["r", r]] : [])])}`)

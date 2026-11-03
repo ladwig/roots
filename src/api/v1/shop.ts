@@ -9,7 +9,7 @@ import { putImage, ts, type Db } from "./shared"
 // Shop: products (+ variants, pictures, downloads via /files), orders and their fulfilment, settings. Validation =
 // the App's (src/shop/fields.ts), order steps = src/shop/server.ts (mails, invoices, refunds happen there too).
 const TAG = "Shop"
-const Variant = z.object({ id: uuid, name: z.string(), price_cents: z.number().int().nullable().describe("null = the product's price"), stock: z.number().int().nullable(), active: z.boolean(), position: z.number().int() })
+const Variant = z.object({ id: uuid, name: z.string(), price_cents: z.number().int().nullable().describe("null = the product's price"), stock: z.number().int().nullable(), active: z.boolean(), digital: z.boolean().describe("Download only: no shipping, no stock needed"), position: z.number().int() })
 const Product = z.object({
   id: uuid,
   slug: z.string(),
@@ -28,7 +28,7 @@ const Product = z.object({
   created_at: ts,
   updated_at: ts,
 })
-const PRODUCT_COLS = "id, slug, name, description, kind, status, price_cents, tax_rate, stock, max_per_order, category, video_url, images, created_at, updated_at, product_variants(id, name, price_cents, stock, active, position)"
+const PRODUCT_COLS = "id, slug, name, description, kind, status, price_cents, tax_rate, stock, max_per_order, category, video_url, images, created_at, updated_at, product_variants(id, name, price_cents, stock, active, digital, position)"
 type ProductRow = { images: string[]; tax_rate: number; product_variants: { position: number }[] } & Record<string, unknown>
 const productOut = ({ product_variants, images, ...p }: ProductRow) => ({
   ...p,
@@ -52,7 +52,7 @@ const ProductInput = z
   })
   .partial()
   .strict()
-const VariantInput = z.object({ name: z.string().max(100), price_cents: z.number().int().min(0).max(99_999_999).nullable(), stock: z.number().int().min(0).max(1_000_000).nullable(), active: z.boolean(), position: z.number().int() }).partial().strict()
+const VariantInput = z.object({ name: z.string().max(100), price_cents: z.number().int().min(0).max(99_999_999).nullable(), stock: z.number().int().min(0).max(1_000_000).nullable(), active: z.boolean(), digital: z.boolean(), position: z.number().int() }).partial().strict()
 
 const ShopOrder = z.object({
   id: uuid,
@@ -156,7 +156,7 @@ export const endpoints: Endpoint[] = [
     permission: "shop.manage",
     tag: TAG,
     summary: "Create a product",
-    description: "Starts as a draft unless `status` is `published`. The slug is made from the name when left out. Add pictures with POST /shop/products/{id}/images, sizes/colours as variants, download files (digital products) via /files with entity `products`.",
+    description: "Starts as a draft unless `status` is `published`. The slug is made from the name when left out. Add pictures with POST /shop/products/{id}/images, sizes/colours as variants, download files via /files with entity `products` (every paid buyer of the product gets them, so a vinyl variant can include the download; mark download-only variants `digital`).",
     body: ProductInput.required({ name: true, price_cents: true }),
     response: Product,
     status: 201,
@@ -265,12 +265,12 @@ export const endpoints: Endpoint[] = [
     body: VariantInput,
     response: Variant,
     async handler({ db, orgId, params, body }) {
-      const { data: old } = await db.from("product_variants").select("name, price_cents, stock, active, position").eq("id", params.id).eq("org_id", orgId).maybeSingle()
+      const { data: old } = await db.from("product_variants").select("name, price_cents, stock, active, digital, position").eq("id", params.id).eq("org_id", orgId).maybeSingle()
       if (!old) throw notFound()
       const next = { name: body.name ?? old.name, price_cents: body.price_cents !== undefined ? body.price_cents : old.price_cents, stock: body.stock !== undefined ? body.stock : old.stock, active: body.active ?? old.active, position: body.position ?? old.position }
       const r = readVariant(getter({ ...asForm(next), has_active: "1" }))
       if ("error" in r) throw invalid(r.error)
-      const { data, error } = await db.from("product_variants").update({ ...r.row, position: next.position }).eq("id", params.id).eq("org_id", orgId).select("id, name, price_cents, stock, active, position").single()
+      const { data, error } = await db.from("product_variants").update({ ...r.row, position: next.position }).eq("id", params.id).eq("org_id", orgId).select("id, name, price_cents, stock, active, digital, position").single()
       if (error) throw dbError(error)
       return data
     },

@@ -1078,6 +1078,7 @@ begin
     set local role authenticated;
     insert into public.products (org_id, slug, name, price_cents, status) values (org_a, 'shirt', 'Shirt', 2500, 'published') returning id into v_p;
     insert into public.product_variants (org_id, product_id, name, stock) values (org_a, v_p, 'M', 1) returning id into v_v;
+    insert into public.product_variants (org_id, product_id, name, digital, position) values (org_a, v_p, 'Download', true, 1);
     insert into public.products (org_id, slug, name, status) values (org_a, 'secret', 'Entwurf', 'draft');
     insert into public.shop_settings (org_id, pay_transfer) values (org_a, true);
     reset role;
@@ -1098,6 +1099,8 @@ begin
     v_cat := public.shop_catalog(org_a);
     assert jsonb_array_length(v_cat) = 1, 'the public catalog shows drafts';
     assert (v_cat -> 0 -> 'variants' -> 0 ->> 'left')::int = 0, 'the held shirt still shows as available';
+    assert v_cat -> 0 -> 'variants' -> 1 -> 'left' = 'null'::jsonb, 'unlimited stock shows as a number';
+    assert (v_cat -> 0 -> 'variants' -> 1 ->> 'digital')::boolean, 'the digital variant is not marked digital';
     begin
       select count(*) into n from public.products;
       assert false, 'anon reads the products table';

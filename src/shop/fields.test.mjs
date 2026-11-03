@@ -21,7 +21,7 @@ test("cart cookie: junk dropped, duplicates merged, set/remove", () => {
 })
 
 const catalog = [
-  { id: A, slug: "shirt", name: "Shirt", kind: "physical", price_cents: 2500, tax_rate: 19, images: [], video_url: null, category: null, max_per_order: 5, left: null, variants: [{ id: V, name: "M", price_cents: 2700, left: 1 }] },
+  { id: A, slug: "shirt", name: "Shirt", kind: "physical", price_cents: 2500, tax_rate: 19, images: [], video_url: null, category: null, max_per_order: 5, left: null, variants: [{ id: V, name: "M", price_cents: 2700, left: 1, digital: false }] },
   { id: D, slug: "ebook", name: "E-Book", kind: "digital", price_cents: 900, tax_rate: 7, images: [], video_url: null, category: null, max_per_order: 1, left: null, variants: [] },
 ]
 
@@ -29,7 +29,8 @@ test("pricing: variant price + stock, product with variants can't be bought plai
   const lines = priceCart([{ id: V, q: 2 }, { id: A, q: 1 }, { id: D, q: 2 }], catalog)
   assert.equal(lines.length, 2)
   assert.deepEqual([lines[0].name, lines[0].unit, lines[0].problem], ["Shirt · M", 2700, "sold_out"])
-  assert.deepEqual([lines[1].unit, lines[1].tax_rate, lines[1].problem], [900, 7, "too_many"])
+  assert.deepEqual([lines[1].unit, lines[1].tax_rate, lines[1].problem, lines[1].digital], [900, 7, "too_many", true])
+  assert.equal(lines[0].digital, false)
 })
 
 test("shipping rates + free shipping", () => {
@@ -41,8 +42,8 @@ test("shipping rates + free shipping", () => {
 
 test("delivery + payment options", () => {
   const s = { pay_online: true, pay_transfer: true, pay_on_pickup: true, pickup: true, shipping: true, shipping_rates: [{ name: "Post", cents: 300 }] }
-  assert.deepEqual(deliveriesFor(s, [{ product: { kind: "digital" } }]), ["digital"])
-  assert.deepEqual(deliveriesFor(s, [{ product: { kind: "digital" } }, { product: { kind: "physical" } }]), ["pickup", "shipping"])
+  assert.deepEqual(deliveriesFor(s, [{ digital: true }]), ["digital"])
+  assert.deepEqual(deliveriesFor(s, [{ digital: true }, { digital: false }]), ["pickup", "shipping"])
   assert.deepEqual(paymentsFor(s, "shipping", false), ["transfer"])
   assert.deepEqual(paymentsFor(s, "pickup", true), ["online", "transfer", "pickup"])
 })
@@ -63,5 +64,6 @@ test("product input", async () => {
   assert.deepEqual([r.row.slug, r.row.price_cents, r.row.stock, r.row.tax_rate, r.row.status], ["tour-shirt", 2500, null, 7, "draft"])
   assert.equal(readProduct(get({ name: "x", slug: "agb" })).error, "store.slugInvalid")
   assert.equal(readProduct(get({ name: "x", price: "abc" })).error, "store.priceInvalid")
-  assert.deepEqual(readVariant(get({ name: "XL", price: "", stock: "3" })).row, { name: "XL", price_cents: null, stock: 3, active: true })
+  assert.deepEqual(readVariant(get({ name: "XL", price: "", stock: "3" })).row, { name: "XL", price_cents: null, stock: 3, active: true, digital: false })
+  assert.equal(readVariant(get({ name: "Digital", digital: "1" })).row.digital, true)
 })

@@ -5744,7 +5744,7 @@
     "deleteVariant": "Delete variant",
     "confirmDeleteVariant": "Delete this variant? Existing orders stay as they are.",
     "variantDeleted": "Variant deleted.",
-    "downloadsHint": "Buyers get these files on their order page after paying.",
+    "downloadsHint": "Every buyer of this product gets these files on their order page after paying – physical variants too (e.g. vinyl + download).",
     "searchOrders": "Name or order number",
     "views": {
       "open": "Open",
@@ -5819,6 +5819,8 @@
     "trackStream": "playable in the shop",
     "removeTrack": "Remove track",
     "confirmRemoveTrack": "Remove this track? The file goes to the trash.",
-    "trackRemoved": "Track removed."
+    "trackRemoved": "Track removed.",
+    "variantDigital": "digital",
+    "variantDigitalHint": "Digital (download only, no shipping, no stock needed)"
   }
 }

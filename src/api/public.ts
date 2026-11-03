@@ -116,7 +116,7 @@ const ShopProduct = z.object({
   video_url: z.string().nullable(),
   max_per_order: z.number().int(),
   left: z.number().int().nullable().describe("Products without variants: units left (null = unlimited)"),
-  variants: z.array(z.object({ id: uuid, name: z.string(), price_cents: z.number().int(), left: z.number().int().nullable() })),
+  variants: z.array(z.object({ id: uuid, name: z.string(), price_cents: z.number().int(), left: z.number().int().nullable(), digital: z.boolean().describe("Download only: no shipping, delivered after payment") })),
   url: z.string().describe("Hosted product page"),
 })
 const shopCatalog = async (orgId: string, slug?: string) => ((await createPublicClient().rpc("shop_catalog", { p_org: orgId, p_slug: slug })).data ?? []) as CatalogProduct[]
@@ -481,7 +481,7 @@ export const publicEndpoints: PublicEndpoint[] = [
       const c = conf as Record<string, unknown>
       if ((c.terms || c.withdrawal) && !body.accept_terms) throw keyError(422, "store.termsMissing", t)
       const lines = priceCart(body.items.map((i) => ({ id: i.id, q: i.quantity })), products)
-      if (lines.some((l) => l.product.kind === "digital") && !body.digital_waiver) throw keyError(422, "store.waiverMissing", t)
+      if (lines.some((l) => l.digital) && !body.digital_waiver) throw keyError(422, "store.waiverMissing", t)
       if (body.delivery === "shipping" && !body.address) throw keyError(422, "store.addressMissing", t)
       const order = (id: string, token: string) => siteUrl(org.slug, `/o/${id}?k=${token}`, org.site_domain)
       try {

@@ -84,7 +84,7 @@ export function changeCart(cart: CartLine[], id: string, q: number, mode: "add" 
 }
 
 // The public catalog (shop_catalog()) as the pages and the order logic read it.
-export type CatalogVariant = { id: string; name: string; price_cents: number; left: number | null }
+export type CatalogVariant = { id: string; name: string; price_cents: number; left: number | null; digital: boolean }
 export type CatalogProduct = {
   id: string
   slug: string
@@ -109,6 +109,7 @@ export type PricedLine = {
   quantity: number
   unit: number
   tax_rate: number
+  digital: boolean // download, no shipping (digital product or digital variant)
   problem: "gone" | "sold_out" | "too_many" | null // gone = no longer for sale
 }
 
@@ -120,7 +121,7 @@ export function priceCart(cart: CartLine[], catalog: CatalogProduct[]): PricedLi
       if (!v && (p.id !== l.id || p.variants.length)) continue
       const left = v ? v.left : p.left
       const problem = left !== null && left < l.q ? "sold_out" : l.q > p.max_per_order ? "too_many" : null
-      return [{ id: l.id, product: p, variant: v, name: v ? `${p.name} · ${v.name}` : p.name, quantity: l.q, unit: v ? v.price_cents : p.price_cents, tax_rate: Number(p.tax_rate), problem }]
+      return [{ id: l.id, product: p, variant: v, name: v ? `${p.name} · ${v.name}` : p.name, quantity: l.q, unit: v ? v.price_cents : p.price_cents, tax_rate: Number(p.tax_rate), digital: v ? !!v.digital : p.kind === "digital", problem }]
     }
     return []
   })
@@ -140,8 +141,8 @@ export type ShopSettings = {
 }
 
 /** How this cart can be delivered: only digital → "digital"; anything physical → pickup / shipping as switched on. */
-export function deliveriesFor(s: ShopSettings, lines: { product: { kind: string } }[]): Delivery[] {
-  if (lines.every((l) => l.product.kind === "digital")) return ["digital"]
+export function deliveriesFor(s: ShopSettings, lines: { digital: boolean }[]): Delivery[] {
+  if (lines.every((l) => l.digital)) return ["digital"]
   const out: Delivery[] = []
   if (s.pickup) out.push("pickup")
   if (s.shipping && readShippingRates(s.shipping_rates).length) out.push("shipping")
@@ -212,12 +213,12 @@ export function readProduct(get: (k: string) => string): { row: ProductRow } | {
 }
 
 /** One variant line: name, optional own price ("" = product price), optional stock. */
-export function readVariant(get: (k: string) => string): { row: { name: string; price_cents: number | null; stock: number | null; active: boolean } } | { error: string } {
+export function readVariant(get: (k: string) => string): { row: { name: string; price_cents: number | null; stock: number | null; active: boolean; digital: boolean } } | { error: string } {
   const name = get("name").trim().slice(0, 100)
   if (!name) return { error: "store.nameRequired" }
   const price = get("price").trim() ? moneyCents(get("price")) : null
   if (get("price").trim() && (price === null || price > 99_999_999)) return { error: "store.priceInvalid" }
   const stock = intOrNull(get("stock"))
   if (stock !== null && !(Number.isInteger(stock) && stock >= 0 && stock <= 1_000_000)) return { error: "errors.invalid_input" }
-  return { row: { name, price_cents: price, stock, active: get("has_active") === "1" ? get("active") === "1" : true } }
+  return { row: { name, price_cents: price, stock, active: get("has_active") === "1" ? get("active") === "1" : true, digital: get("digital") === "1" } }
 }
