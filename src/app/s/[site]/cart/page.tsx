@@ -14,6 +14,7 @@ import { getCart } from "@/shop/cart"
 import { deliveriesFor, paymentsFor, priceCart, readShippingRates, shippingCents, subtotalOf, type CatalogProduct, type Delivery, type ShopSettings } from "@/shop/fields"
 import { onlineReady } from "@/shop/server"
 import { getSite } from "../data"
+import { QtyInput } from "./qty"
 import { checkout, restoreCart, updateCart } from "../shop/actions"
 
 export async function generateMetadata({ params }: PageProps<"/s/[site]/cart">): Promise<Metadata> {
@@ -105,10 +106,16 @@ export default async function CartPage({ params, searchParams }: PageProps<"/s/[
                     <input type="hidden" name="site" value={site} />
                     <input type="hidden" name="item" value={l.id} />
                     <input type="hidden" name="keep" value={keep} />
-                    <Input name="q" type="number" min={0} max={l.product.max_per_order} defaultValue={l.quantity} aria-label={t("store.qty")} className="w-16" />
-                    <SubmitButton size="sm" variant="ghost">
-                      {t("store.update")}
-                    </SubmitButton>
+                    <QtyInput
+                      defaultValue={l.quantity}
+                      max={l.product.max_per_order}
+                      label={t("store.qty")}
+                      fallback={
+                        <SubmitButton size="sm" variant="ghost">
+                          {t("store.update")}
+                        </SubmitButton>
+                      }
+                    />
                   </form>
                   <form action={updateCart}>
                     <input type="hidden" name="site" value={site} />
