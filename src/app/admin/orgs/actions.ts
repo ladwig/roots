@@ -60,11 +60,19 @@ export async function addMember(orgId: string, formData: FormData) {
   const { supabase } = await requirePlatformAdmin()
   const t = await getT()
   const retry = `${PATH}?edit=${orgId}`
-  const userId = await findUserId(String(formData.get("email") ?? ""))
-  if (!userId) back(retry, { error: t("admin.orgs.ownerNotFound") })
+  const email = String(formData.get("email") ?? "").trim()
+  const roleId = String(formData.get("role_id"))
+  const userId = await findUserId(email)
+  if (!userId) {
+    // No account yet: invite (they sign up through the link and join with this role).
+    const { data: org } = await supabase.from("orgs").select("name").eq("id", orgId).single()
+    const r = org ? await inviteMember(supabase, { id: orgId, name: org.name }, { email, roleId }, t) : { error: "errors.not_allowed" }
+    if ("error" in r) back(retry, { error: r.error === "db" ? t("admin.orgs.ownerInviteFailed") : t.dynamic(r.error) })
+    back(retry, { ok: t(r.mailFailed ? "admin.orgs.inviteNoMail" : "admin.orgs.invited", { email, link: r.link }) })
+  }
   const { error } = await supabase
     .from("org_members")
-    .insert({ org_id: orgId, user_id: userId, role_id: String(formData.get("role_id")) })
+    .insert({ org_id: orgId, user_id: userId, role_id: roleId })
   if (error) back(retry, { error: error.code === "23505" ? t("admin.orgs.alreadyMember") : dbError(t, error) })
   deliverSoon()
   back(retry, { ok: t("admin.orgs.added") })

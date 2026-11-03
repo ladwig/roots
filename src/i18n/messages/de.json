@@ -822,7 +822,9 @@
       "restored": "Wiederhergestellt.",
       "ownerInvited": "Organisation angelegt. Einladung als Inhaber an {email} geschickt.",
       "ownerInviteNoMail": "Organisation angelegt, aber die Einladung konnte nicht gemailt werden. Link: {link}",
-      "ownerInviteFailed": "Organisation angelegt, aber die Einladung als Inhaber ging nicht. Lade unter Mitglieder ein."
+      "ownerInviteFailed": "Organisation angelegt, aber die Einladung als Inhaber ging nicht. Lade unter Mitglieder ein.",
+      "invited": "Einladung an {email} geschickt.",
+      "inviteNoMail": "Einladung angelegt, aber nicht gemailt. Link: {link}"
     },
     "users": {
       "title": "Benutzer",

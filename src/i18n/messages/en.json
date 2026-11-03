@@ -822,7 +822,9 @@
       "restored": "Restored.",
       "ownerInvited": "Organisation created. Owner invite sent to {email}.",
       "ownerInviteNoMail": "Organisation created, but the invite couldn't be mailed. Link: {link}",
-      "ownerInviteFailed": "Organisation created, but the owner invite failed. Invite them under members."
+      "ownerInviteFailed": "Organisation created, but the owner invite failed. Invite them under members.",
+      "invited": "Invite sent to {email}.",
+      "inviteNoMail": "Invite created but not mailed. Link: {link}"
     },
     "users": {
       "title": "Users",
