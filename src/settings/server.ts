@@ -26,7 +26,7 @@ export async function inviteMember(db: Db, org: { id: string; name: string }, in
   const { error } = await db.from("invites").insert({ org_id: org.id, email, role_id: input.roleId, token_hash })
   if (error) return error.code === "42501" ? { error: "members.cantInviteRole" } : { error: "db", db: error }
   const text = [t("invite.mailIntro", { org: org.name }), "", link, "", t("invite.mailNote")].join("\n")
-  const sent = await sendPlatformEmail({ to: email, subject: t("invite.mailSubject", { org: org.name }), text, html: text.split("\n").map((l) => (l === link ? `<p><a href="${link}">${link}</a></p>` : `<p>${l.replace(/[<>&]/g, "")}</p>`)).join("") }).catch(() => false)
+  const sent = await sendPlatformEmail({ to: email, subject: t("invite.mailSubject", { org: org.name }), text, html: text.split("\n").map((l) => (l === link ? `<p><a href="${link}">${link}</a></p>` : `<p>${l.replace(/[<>&]/g, "")}</p>`)).join("") }).catch((e) => (console.error("invite mail failed:", e instanceof Error ? e.message : e), false))
   return { link, email, mailFailed: !sent }
 }
 
