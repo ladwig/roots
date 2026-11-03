@@ -67,3 +67,9 @@ test("product input", async () => {
   assert.deepEqual(readVariant(get({ name: "XL", price: "", stock: "3" })).row, { name: "XL", price_cents: null, stock: 3, active: true, digital: false })
   assert.equal(readVariant(get({ name: "Digital", digital: "1" })).row.digital, true)
 })
+
+test("shipping countries: EU expands, unknown codes dropped", () => {
+  const [r] = readShippingRates([{ name: "EU", cents: 900, countries: "EU, CH, XX" }])
+  assert.equal(r.countries.length, 28)
+  assert.ok(r.countries.includes("FR") && r.countries.includes("CH") && !r.countries.includes("XX"))
+})

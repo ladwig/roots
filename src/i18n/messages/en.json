@@ -5798,7 +5798,7 @@
     "ratePlaceholder": "e.g. DHL parcel",
     "freeFromLabel": "Free from",
     "countries": "Countries",
-    "ratesHint": "Countries as codes, comma-separated (DE, AT, CH). Clear the name to remove a row.",
+    "ratesHint": "For each shipping rate the countries it delivers to. Clear the name to remove it.",
     "autoInvoice": "Create invoices automatically",
     "autoInvoiceHint": "Online and pickup payments: after payment. Bank transfers: right with the order. Cancellations get a cancellation invoice.",
     "invoicesModuleOff": "Invoices come with the Invoices module.",
@@ -5824,6 +5824,7 @@
     "productTabs": "Product sections",
     "tabProduct": "Product",
     "tabVariants": "Variants ({count})",
-    "tabDigital": "Music & downloads"
+    "tabDigital": "Music & downloads",
+    "allEu": "EU (all 27 countries)"
   }
 }

@@ -5798,7 +5798,7 @@
     "ratePlaceholder": "z. B. DHL Paket",
     "freeFromLabel": "Gratis ab",
     "countries": "Länder",
-    "ratesHint": "Länder als Kürzel, mit Komma getrennt (DE, AT, CH). Zum Entfernen den Namen leeren.",
+    "ratesHint": "Pro Versandart die Länder, in die sie liefert. Zum Entfernen den Namen leeren.",
     "autoInvoice": "Rechnungen automatisch erstellen",
     "autoInvoiceHint": "Bei Online-Zahlung und Abholung nach der Zahlung, bei Überweisung direkt mit der Bestellung. Stornos bekommen eine Stornorechnung.",
     "invoicesModuleOff": "Rechnungen gibt es mit dem Modul Rechnungen.",
@@ -5824,6 +5824,7 @@
     "productTabs": "Produktbereiche",
     "tabProduct": "Produkt",
     "tabVariants": "Varianten ({count})",
-    "tabDigital": "Musik & Downloads"
+    "tabDigital": "Musik & Downloads",
+    "allEu": "EU (alle 27 Länder)"
   }
 }

@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param } from "@/lib/url"
-import { MAIL_KINDS, readShippingRates } from "@/shop/fields"
+import { COUNTRIES, EU, MAIL_KINDS, readShippingRates } from "@/shop/fields"
+import { MultiSelect } from "@/components/multi-select"
 import { onlineReady, shopSettings } from "@/shop/server"
 import { priceInput } from "@/tickets/price"
 import { saveShopSettings } from "../actions"
@@ -29,6 +30,10 @@ export default async function ShopSettingsPage({ searchParams }: PageProps<"/sho
     ctx.modules.has("invoices") ? ctx.supabase.from("org_billing").select("iban").eq("org_id", ctx.org.id).maybeSingle() : Promise.resolve({ data: null }),
   ])
   const rates = readShippingRates(s.shipping_rates)
+  // Country picker: "EU" (all members) first, then every country by its name in the reader's language.
+  const names = new Intl.DisplayNames([t.locale], { type: "region" })
+  const countryOptions = [{ value: "EU", label: t("store.allEu") }, ...COUNTRIES.map((c) => ({ value: c, label: `${names.of(c) ?? c} (${c})` })).sort((a, b) => a.label.localeCompare(b.label, t.locale))]
+  const shown = (cs: string[]) => (EU.every((c) => cs.includes(c)) ? ["EU", ...cs.filter((c) => !EU.includes(c))] : cs)
   const mails = (s.mails ?? {}) as Record<string, { off?: boolean; message?: string }>
   const check = (name: string, on: boolean, label: string, hint?: React.ReactNode) => (
     <label className="flex items-start gap-2 text-sm">
@@ -76,19 +81,20 @@ export default async function ShopSettingsPage({ searchParams }: PageProps<"/sho
           {check("shipping", s.shipping, t("store.deliveries.shipping"), t("store.shippingHint"))}
           <div className="grid gap-2">
             <p className="text-sm font-medium">{t("store.shippingRates")}</p>
-            <div className="hidden grid-cols-[1fr_6rem_6rem_6rem] gap-2 text-xs text-muted-foreground sm:grid">
+            <div className="hidden grid-cols-[1fr_6rem_6rem] gap-2 text-xs text-muted-foreground sm:grid">
               <span>{t("store.rateName")}</span>
               <span>{t("store.price")}</span>
               <span>{t("store.freeFromLabel")}</span>
-              <span>{t("store.countries")}</span>
             </div>
             {[...rates, null, null].map((r, i) => (
-              <div key={r?.id ?? `new-${i}`} className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_6rem_6rem_6rem]">
+              <div key={r?.id ?? `new-${i}`} className="grid grid-cols-2 gap-2 rounded-lg border p-2 sm:grid-cols-[1fr_6rem_6rem]">
                 <input type="hidden" name="rate_id" value={r?.id ?? ""} />
                 <Input name="rate_name" defaultValue={r?.name ?? ""} maxLength={100} placeholder={t("store.ratePlaceholder")} aria-label={t("store.rateName")} className="col-span-2 sm:col-span-1" />
                 <TypedInput kind="money" name="rate_price" defaultValue={r ? priceInput(r.cents) : ""} aria-label={t("store.price")} />
                 <TypedInput kind="money" name="rate_free" defaultValue={r?.free_from ? priceInput(r.free_from) : ""} placeholder="–" aria-label={t("store.freeFromLabel")} />
-                <Input name="rate_countries" defaultValue={r?.countries.join(", ") ?? "DE"} aria-label={t("store.countries")} className="uppercase" />
+                <div className="col-span-2 sm:col-span-3">
+                  <MultiSelect name="rate_countries" joined options={countryOptions} defaultValue={shown(r?.countries ?? ["DE"])} placeholder={t("store.countries")} max={250} />
+                </div>
               </div>
             ))}
             <p className="text-xs text-muted-foreground">{t("store.ratesHint")}</p>
