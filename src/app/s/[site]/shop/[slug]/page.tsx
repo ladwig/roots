@@ -12,6 +12,7 @@ import { cleanHtml } from "@/site/html"
 import { videoEmbed, type CatalogProduct } from "@/shop/fields"
 import { productTracks } from "@/shop/server"
 import { getSite } from "../../data"
+import { Gallery } from "./gallery"
 import { MusicPlayer } from "./player"
 import { addToCart } from "../actions"
 import { priceLabel, soldOut } from "@/shop/view"
@@ -57,18 +58,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
       <Notice error={param(sp, "error")} />
       <div className="grid gap-8 md:grid-cols-2">
         <div className="grid content-start gap-3">
-          {p.images.length > 0 ? (
-            // Swipe through the pictures (scroll snap, no script).
-            <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto rounded-xl">
-              {p.images.map((path, i) => (
-                // eslint-disable-next-line @next/next/no-img-element -- public bucket URL
-                <img key={path} src={imageUrl(path)} alt={i === 0 ? p.name : ""} className="aspect-square w-full shrink-0 snap-center rounded-xl border object-cover" />
-              ))}
-            </div>
-          ) : (
-            <div className="aspect-square rounded-xl border bg-muted" />
-          )}
-          {p.images.length > 1 && <p className="text-center text-xs text-muted-foreground">{t("store.swipe", { count: p.images.length })}</p>}
+          {p.images.length > 0 ? <Gallery images={p.images.map((x) => imageUrl(x)!)} alt={p.name} /> : <div className="aspect-square rounded-xl border bg-muted" />}
         </div>
         <div className="grid content-start gap-4">
           <h1 className="font-heading text-3xl font-semibold">{p.name}</h1>
