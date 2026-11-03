@@ -412,6 +412,10 @@
     "rentals": {
       "name": "Rentals",
       "description": "Rent out or hand out rooms, studios, vehicles and items – with rates, contracts, bookings, keys and occupancy."
+    },
+    "shop": {
+      "name": "Online shop",
+      "description": "Sell merch, books, downloads and more: catalog, product pages, cart, online payment, bank transfer or pickup, shipping, automatic invoices."
     }
   },
   "permissions": {
@@ -459,7 +463,9 @@
     "projects.manage": "Edit tasks",
     "rentals.view": "View rentals",
     "rentals.manage": "Manage rentals",
-    "org.site.manage": "Edit the website"
+    "org.site.manage": "Edit the website",
+    "shop.view": "View shop",
+    "shop.manage": "Edit shop"
   },
   "integrations": {
     "connect": "Connect",
@@ -686,7 +692,11 @@
       "email_templates": "Email templates",
       "org_domains": "Domains",
       "org_prices": "Prices",
-      "org_sites": "Website"
+      "org_sites": "Website",
+      "products": "Products",
+      "product_variants": "Product variants",
+      "shop_orders": "Shop orders",
+      "shop_settings": "Shop settings"
     },
     "title": "Activity",
     "comment": "Comment",
@@ -767,7 +777,8 @@
     "object_busy": "The object is already taken in this period.",
     "object_included": "This object is a fixed part of another one and is only rented along with it.",
     "object_unavailable": "This object isn't available (lost or deleted).",
-    "object_cycle": "An object can't be inside itself."
+    "object_cycle": "An object can't be inside itself.",
+    "not_found": "Not found."
   },
   "admin": {
     "title": "Platform",
@@ -1105,7 +1116,10 @@
       "rental.person_added": "Person added to a rental",
       "rental.notice_received": "Notice received",
       "rental.renewed": "Contract renewed",
-      "domain.connected": "Own domain connected"
+      "domain.connected": "Own domain connected",
+      "shop.order_placed": "Shop order placed",
+      "shop.order_ready": "Shop order ready for pickup",
+      "shop.order_shipped": "Shop order shipped"
     },
     "messages": {
       "member.joined": "👋 New member: {who}",
@@ -1145,7 +1159,10 @@
       "rental.person_added": "🔑 {object}: person added",
       "rental.notice_received": "📝 {object}: notice received",
       "rental.renewed": "🔁 {object}: contract renewed",
-      "domain.connected": "🌐 {domain} is live now"
+      "domain.connected": "🌐 {domain} is live now",
+      "shop.order_placed": "🛍️ Order #{number} from {name}",
+      "shop.order_ready": "🛍️ Order #{number} is ready",
+      "shop.order_shipped": "📦 Order #{number} shipped"
     },
     "hints": {
       "member.joined": "Someone from your team (board, door staff …) accepted an invitation and can sign in to the app. Not for club members.",
@@ -1178,7 +1195,10 @@
       "course.moved_up": "Someone moved up from a course's waiting list.",
       "workflow.notified": "An automation sent a team notification.",
       "task.assigned": "Someone is assigned to a task – they get a notification.",
-      "task.completed": "A task moves into a column that counts as done."
+      "task.completed": "A task moves into a column that counts as done.",
+      "shop.order_placed": "A shop order came in (paid online, or placed with bank transfer / pickup).",
+      "shop.order_ready": "A pickup order was marked as ready.",
+      "shop.order_shipped": "An order was marked as shipped."
     }
   },
   "inbox": {
@@ -1856,7 +1876,10 @@
     "cancelsInvoice": "Cancels invoice",
     "cancels": "Cancels invoice →",
     "cancelled": "Cancellation invoice created.",
-    "pdfDownload": "Download PDF"
+    "pdfDownload": "Download PDF",
+    "grossPricesNote": "All prices incl. VAT.",
+    "shortInvoices": "Allow invoices up to €250 without an address",
+    "shortInvoicesHint": "Small-amount invoice (§ 33 UStDV): up to €250 gross the buyer's address may be missing – e.g. for shop orders picked up in person."
   },
   "guestlists": {
     "nav": "Guest lists",
@@ -3931,7 +3954,10 @@
       "task_status": "Project column",
       "rental_object": "Object (rentals)",
       "rental": "Rental",
-      "project": "Project"
+      "project": "Project",
+      "product": "Product (shop)",
+      "product_variant": "Product variant",
+      "shop_order": "Shop order"
     },
     "fields": {
       "contact": {
@@ -4176,6 +4202,30 @@
         "start_on": "Start",
         "end_on": "End",
         "completed_at": "Completed on"
+      },
+      "product": {
+        "name": "Name",
+        "status": "Status",
+        "kind": "Type",
+        "price_cents": "Price (cents)",
+        "stock": "Quantity",
+        "category": "Category"
+      },
+      "product_variant": {
+        "name": "Name",
+        "price_cents": "Price (cents)",
+        "stock": "Quantity",
+        "active": "For sale"
+      },
+      "shop_order": {
+        "number": "Order number",
+        "status": "Status",
+        "delivery": "Delivery",
+        "payment": "Payment",
+        "name": "Name",
+        "city": "City",
+        "tracking": "Tracking number",
+        "note": "Note"
       }
     },
     "values": {
@@ -5452,5 +5502,309 @@
       "saved": "Draft saved – preview updated.",
       "error": "Saving failed – please check."
     }
+  },
+  "store": {
+    "nav": "Shop",
+    "products": "Products",
+    "orders": "Orders",
+    "shopTitle": "Shop",
+    "cart": "Cart",
+    "categories": "Categories",
+    "allCategories": "All",
+    "empty": "Nothing for sale right now.",
+    "priceFrom": "from {price}",
+    "soldOut": "sold out",
+    "left": {
+      "one": "only {count} left",
+      "other": "only {count} left"
+    },
+    "swipe": "{count} pictures – swipe to browse",
+    "vatShipping": "incl. VAT, plus shipping",
+    "vatDigital": "incl. VAT",
+    "vatIncluded": "All prices incl. VAT",
+    "variant": "Variant",
+    "qty": "Quantity",
+    "addToCart": "Add to cart",
+    "continueShopping": "Continue shopping",
+    "toShop": "Go to the shop",
+    "cartEmpty": "Your cart is empty.",
+    "paymentCancelled": "The payment was cancelled.",
+    "restoreCart": "Restore cart",
+    "update": "Update",
+    "remove": "Remove",
+    "lineProblem": {
+      "sold_out": "No longer available in this quantity.",
+      "too_many": "At most {max} per order.",
+      "gone": "No longer available."
+    },
+    "delivery": "Delivery",
+    "deliveries": {
+      "pickup": "Pickup",
+      "shipping": "Shipping",
+      "digital": "Digital (download)"
+    },
+    "freeFrom": "Free shipping from {amount}",
+    "noDelivery": "No delivery option is available for these items right now.",
+    "subtotal": "Subtotal",
+    "shippingLine": "Shipping",
+    "total": "Total",
+    "free": "free",
+    "name": "Your name",
+    "email": "Your email",
+    "shippingAddress": "Shipping address",
+    "billingAddressOptional": "Add a billing address (optional)",
+    "company": "Company / club (optional)",
+    "street": "Street and number",
+    "postalCode": "Postcode",
+    "city": "City",
+    "country": "Country",
+    "note": "Note (optional)",
+    "payment": "Payment",
+    "payments": {
+      "online": "Pay online",
+      "transfer": "Bank transfer",
+      "pickup": "Pay on pickup"
+    },
+    "paymentHints": {
+      "online": "Card, Apple Pay, Google Pay and more – right after this step.",
+      "transfer": "You'll get the bank details by email. We hold the items for a few days.",
+      "pickup": "Cash or card when you collect your order."
+    },
+    "noPayment": "No payment method is available for this order right now. Please contact the shop.",
+    "acceptTerms": "I accept the terms and have read the cancellation policy:",
+    "terms": "Terms",
+    "withdrawal": "Cancellation policy",
+    "digitalWaiver": "I agree that the download is available right after payment and understand that I thereby lose my right of withdrawal for digital content.",
+    "orderPay": "Order and pay · {amount}",
+    "orderFree": "Order now",
+    "nameMissing": "Please enter your name.",
+    "addressMissing": "Please enter a complete address.",
+    "termsMissing": "Please confirm the terms and the cancellation policy.",
+    "waiverMissing": "Please confirm the note on digital content.",
+    "soldOutError": "An item is no longer available in this quantity.",
+    "cartChanged": "Your cart has changed – please check it again.",
+    "priceChanged": "A price just changed – please check the total.",
+    "deliveryInvalid": "Please choose a delivery option.",
+    "shippingInvalid": "This shipping option doesn't deliver to that country.",
+    "paymentInvalid": "Please choose a payment method.",
+    "unavailable": "Ordering isn't possible right now. Please try again later or contact the shop.",
+    "failed": "That didn't work. Please try again.",
+    "waiting": "Your payment is being confirmed … this page refreshes by itself.",
+    "orderTitle": "Order #{number}",
+    "orderThanks": "Thanks for your order!",
+    "orderMailed": "A confirmation is on its way to {email}.",
+    "orderStatus": {
+      "new": "New",
+      "ready": "Ready for pickup",
+      "shipped": "Shipped",
+      "completed": "Done",
+      "cancelled": "Cancelled"
+    },
+    "paid": "Paid",
+    "unpaid": "Unpaid",
+    "payOnPickupNote": "You pay when you pick it up – cash or card.",
+    "trackingLine": "Tracking: {tracking}",
+    "downloads": "Downloads",
+    "downloadsNote": "Your downloads are behind the button.",
+    "invoiceDownload": "Invoice {number}",
+    "keepOrderLink": "Keep this link – it always shows where your order stands.",
+    "transfer": {
+      "title": "Please transfer by {date}:",
+      "holder": "Account holder: {holder}",
+      "amount": "Amount: {amount}",
+      "reference": "Reference: {reference}",
+      "referenceText": "Order {number}"
+    },
+    "invoiceNote": "Shop order #{number}",
+    "mail": {
+      "button": "View order",
+      "confirmation": {
+        "title": "Your order #{number} at {org}",
+        "message": "Thanks for your order #{number}! Here's an overview."
+      },
+      "paid": {
+        "title": "Payment received: order #{number}",
+        "message": "Your payment for order #{number} has arrived. Thank you!"
+      },
+      "ready": {
+        "title": "Order #{number} is ready for pickup",
+        "message": "Your order #{number} is ready for you."
+      },
+      "shipped": {
+        "title": "Order #{number} is on its way",
+        "message": "Your order #{number} has been shipped."
+      },
+      "cancelled": {
+        "title": "Order #{number} cancelled",
+        "message": "Your order #{number} was cancelled. If you already paid, you'll get the money back."
+      }
+    },
+    "mailKinds": {
+      "confirmation": "Order confirmation",
+      "paid": "Payment received",
+      "ready": "Ready for pickup",
+      "shipped": "Shipped",
+      "cancelled": "Cancelled"
+    },
+    "mailWhen": {
+      "confirmation": "After ordering (paid online: after the payment). With items, bank details for transfers, invoice PDF.",
+      "paid": "When you mark a transfer or cash payment as paid. With invoice.",
+      "ready": "When you mark a pickup order as ready. With the pickup note.",
+      "shipped": "When you mark an order as shipped. With the tracking number, if entered.",
+      "cancelled": "When you cancel an order. With the cancellation invoice."
+    },
+    "mails": "Emails to buyers",
+    "mailsHint": "Which emails go out. Your own text replaces the standard line at the top; placeholders: {number}, {name}, {total}, {org}.",
+    "mailText": "Own text",
+    "mailTemplateHint": "Look: your default template under Communication → Templates (otherwise the roots mail).",
+    "resendMail": "Send again: {kind}",
+    "mailSent": "Email sent.",
+    "mailNotSent": "The email wasn't sent (switched off or no email sending set up).",
+    "product": "Product",
+    "productName": "Name",
+    "productNamePlaceholder": "e.g. Tour shirt 2026",
+    "priceGross": "Price (gross)",
+    "price": "Price",
+    "taxRate": "VAT",
+    "kind": "Type",
+    "kinds": {
+      "physical": "Goods",
+      "digital": "Digital (download)"
+    },
+    "status": "Status",
+    "statuses": {
+      "draft": "Draft",
+      "published": "In the shop",
+      "archived": "Archived"
+    },
+    "stock": "Quantity",
+    "stockHint": "How many can be sold in total. Empty = unlimited. With variants, each variant's quantity counts.",
+    "unlimited": "unlimited",
+    "maxPerOrder": "Max per order",
+    "productPage": "Product page",
+    "description": "Description",
+    "descriptionSet": "Has a description",
+    "category": "Category",
+    "categoryPlaceholder": "e.g. Clothing",
+    "slug": "Address",
+    "slugPlaceholder": "made from the name",
+    "video": "Video",
+    "videoHint": "A YouTube or Vimeo link, or a direct MP4 file.",
+    "createProduct": "Create product",
+    "newProduct": "New product",
+    "nameRequired": "Please enter a name.",
+    "slugInvalid": "The address may only contain lowercase letters, digits and hyphens (not \"agb\" or \"widerruf\").",
+    "slugTaken": "Another product already has this address.",
+    "priceInvalid": "Please enter a valid price.",
+    "videoInvalid": "Please enter an https link to the video.",
+    "saved": "Saved.",
+    "created": "Product created. Now add pictures.",
+    "trashed": "Product moved to the trash.",
+    "restored": "Product restored.",
+    "trash": "Trash",
+    "backToList": "Back to products",
+    "toTrash": "Move to trash",
+    "inTrash": "This product is in the trash.",
+    "restore": "Restore",
+    "search": "Search products",
+    "noMatch": "No products found.",
+    "emptyTitle": "No products yet",
+    "emptyText": "Add your first product – merch, books, downloads … It shows in the shop once its status is \"In the shop\".",
+    "openShop": "View shop",
+    "viewPublic": "View in shop",
+    "images": "Pictures",
+    "imagesHint": "The first picture is the cover. PNG, JPG, WebP or GIF, up to 2 MB.",
+    "addImage": "Add picture",
+    "cover": "Cover",
+    "makeCover": "Make cover",
+    "removeImage": "Remove picture",
+    "tooManyImages": "At most 12 pictures per product.",
+    "variants": "Variants",
+    "variantsHint": "Sizes, colours … each with its own quantity and optionally its own price.",
+    "noVariants": "No variants – the product has one quantity ({left}).",
+    "leftOf": "{left} of {stock} free",
+    "variantName": "Variant",
+    "variantPlaceholder": "e.g. M or Black / L",
+    "variantActive": "for sale",
+    "addVariant": "Add",
+    "deleteVariant": "Delete variant",
+    "confirmDeleteVariant": "Delete this variant? Existing orders stay as they are.",
+    "variantDeleted": "Variant deleted.",
+    "downloadsHint": "Buyers get these files on their order page after paying.",
+    "searchOrders": "Name or order number",
+    "views": {
+      "open": "Open",
+      "done": "Done",
+      "cancelled": "Cancelled",
+      "all": "All"
+    },
+    "noOrders": "No orders found.",
+    "noOpenOrders": "Nothing to do",
+    "noOpenOrdersText": "New orders show up here once they're paid or placed with bank transfer / pickup.",
+    "order": "Order",
+    "items": "Items",
+    "buyer": "Buyer",
+    "toPayment": "Go to payment",
+    "heldUntil": "Items held until {date}",
+    "markTransferReceived": "Transfer received",
+    "markCashReceived": "Paid (cash)",
+    "markedPaid": "Marked as paid.",
+    "invoice": "Invoice",
+    "noInvoiceYet": "No invoice yet.",
+    "openDraft": "Open draft",
+    "issueInvoice": "Create invoice",
+    "invoiceIssued": "Invoice created.",
+    "tracking": "Tracking number (optional)",
+    "trackingPlaceholder": "e.g. DHL 00340434…",
+    "markShipped": "Mark as shipped",
+    "saveTracking": "Save",
+    "markReady": "Ready for pickup",
+    "markPickedUp": "Picked up",
+    "markCompleted": "Done",
+    "reopen": "Reopen",
+    "cancelOrder": "Cancel order",
+    "confirmCancel": "Cancel this order? The items become available again.",
+    "confirmCancelPaid": "Cancel this order and refund the full amount? Its invoice gets cancelled.",
+    "cancelled": "Order cancelled.",
+    "refundPending": "Refund started – the order is cancelled once the payment provider confirms it.",
+    "orderCancelled": "This order is cancelled.",
+    "settingsPage": "Shop page",
+    "shopPageTitle": "Heading",
+    "intro": "Introduction",
+    "onlineReady": "Through your connected payment provider.",
+    "onlineNotReady": "No payment provider connected yet – see Settings → Integrations.",
+    "transferHint": "Bank details from the invoice settings.",
+    "transferNoIban": "Please add an IBAN in the invoice settings.",
+    "transferDays": "Held for (days)",
+    "payOnPickupHint": "Pickup only. Cash or card – via Entry → Sales or \"Paid (cash)\" on the order.",
+    "pickupText": "Pickup: where and when",
+    "pickupTextHint": "Shown in the cart and in the emails.",
+    "shippingHint": "Shipping costs per order; you enter tracking numbers by hand.",
+    "shippingRates": "Shipping options",
+    "rateName": "Name",
+    "ratePlaceholder": "e.g. DHL parcel",
+    "freeFromLabel": "Free from",
+    "countries": "Countries",
+    "ratesHint": "Countries as codes, comma-separated (DE, AT, CH). Clear the name to remove a row.",
+    "autoInvoice": "Create invoices automatically",
+    "autoInvoiceHint": "Online and pickup payments: after payment. Bank transfers: right with the order. Cancellations get a cancellation invoice.",
+    "invoicesModuleOff": "Invoices come with the Invoices module.",
+    "legal": "Legal",
+    "legalHint": "Markdown. If terms or a cancellation policy are filled in, buyers must confirm them before ordering.",
+    "player": "Player",
+    "play": "Play",
+    "pause": "Pause",
+    "seek": "Position in track",
+    "previous": "Previous track",
+    "next": "Next track",
+    "buyersOnly": "after purchase",
+    "tracks": "Music (player)",
+    "tracksHint": "Upload audio files (MP3, M4A, OGG …) – they show as a player on the product page. Number = order. Unticked tracks are listed but don't play (buyers get the music through the downloads).",
+    "trackNumber": "No.",
+    "trackTitle": "Title",
+    "trackStream": "playable in the shop",
+    "removeTrack": "Remove track",
+    "confirmRemoveTrack": "Remove this track? The file goes to the trash.",
+    "trackRemoved": "Track removed."
   }
 }

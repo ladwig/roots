@@ -1,9 +1,11 @@
 // Document totals (German invoices): line net = round(qty × unit price); tax per rate on the summed net of that rate.
+// Gross documents (shop orders, prices_gross): unit prices are gross, the VAT is taken out of each rate's gross sum,
+// so the total is exactly what the buyer paid.
 export type Line = { quantity: number; unit_price: number; tax_rate: number }
 
 export const lineNet = (l: Line) => Math.round(l.quantity * l.unit_price)
 
-export function totals(lines: Line[], smallBusiness: boolean) {
+export function totals(lines: Line[], smallBusiness: boolean, gross = false) {
   const byRate = new Map<number, number>()
   for (const l of lines) {
     const rate = smallBusiness ? 0 : Number(l.tax_rate)
@@ -11,7 +13,10 @@ export function totals(lines: Line[], smallBusiness: boolean) {
   }
   const taxes = [...byRate]
     .sort(([a], [b]) => b - a)
-    .map(([rate, net]) => ({ rate, net, tax: Math.round((net * rate) / 100) }))
+    .map(([rate, sum]) => {
+      const tax = gross ? Math.round((sum * rate) / (100 + rate)) : Math.round((sum * rate) / 100)
+      return { rate, net: gross ? sum - tax : sum, tax }
+    })
   const net = taxes.reduce((s, t) => s + t.net, 0)
   const tax = taxes.reduce((s, t) => s + t.tax, 0)
   return { net, tax, gross: net + tax, taxes: taxes.filter((t) => t.rate > 0) }

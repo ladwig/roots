@@ -11,16 +11,18 @@ import { stripeProvider } from "./providers/stripe"
 import { sumupProvider } from "./providers/sumup"
 
 const providers: PaymentProvider[] = [stripeProvider, sumupProvider] // first ready one wins
-// Cash taken in person (src/payments/pos.ts): never a checkout; a refund = money handed back, recorded as done.
-const cashProvider: PaymentProvider = {
-  key: "cash",
+// Money taken outside a provider: cash in person (src/payments/pos.ts) or a bank transfer (shop). Never a checkout;
+// a refund = money handed / transferred back by the org, recorded as done.
+const manual = (key: "cash" | "transfer"): PaymentProvider => ({
+  key,
   ready: async () => true,
   createCheckout: async () => {
     throw new Error("payments.notReady")
   },
-  refund: async ({ providerPaymentRef, idempotencyKey }) => ({ providerRef: `cash_${providerPaymentRef}_${idempotencyKey}`, status: "succeeded" }),
-}
-export const providerByKey = (key: string) => [...providers, cashProvider].find((p) => p.key === key)
+  refund: async ({ providerPaymentRef, idempotencyKey }) => ({ providerRef: `${key}_${providerPaymentRef}_${idempotencyKey}`, status: "succeeded" }),
+})
+const manualProviders = [manual("cash"), manual("transfer")]
+export const providerByKey = (key: string) => [...providers, ...manualProviders].find((p) => p.key === key)
 const db = () => createAdminClient()
 const CHECKOUT_MINUTES = 30 // Stripe allows 30 min – 24 h
 const CLAIM_MINUTES = 5 // a fulfilment claim older than this died with its process
@@ -54,7 +56,7 @@ export type NewOrder = {
   customerEmail?: string
   customerName?: string
   metadata?: Record<string, unknown>
-  items: { description: string; quantity: number; unitAmount: number; sourceId?: string }[]
+  items: { description: string; quantity: number; unitAmount: number; sourceId?: string; metadata?: Record<string, unknown> }[]
 }
 
 export async function createOrder(o: NewOrder): Promise<string> {
@@ -83,7 +85,7 @@ export async function createOrder(o: NewOrder): Promise<string> {
   if (error) throw error
   const { error: itemsError } = await db()
     .from("pay_order_items")
-    .insert(o.items.map((i) => ({ org_id: o.orgId, order_id: order.id, description: i.description.trim(), quantity: i.quantity, unit_amount: i.unitAmount, source_id: i.sourceId })))
+    .insert(o.items.map((i) => ({ org_id: o.orgId, order_id: order.id, description: i.description.trim(), quantity: i.quantity, unit_amount: i.unitAmount, source_id: i.sourceId, metadata: (i.metadata ?? {}) as never })))
   if (itemsError) throw itemsError
   return order.id
 }
@@ -144,6 +146,18 @@ export async function reconcileOrder(orderId: string) {
   const r = await provider.checkoutStatus({ orgId: pay.org_id, providerRef: pay.provider_ref })
   if (r.paid) await markPaid(pay.provider, pay.provider_ref, r.providerPaymentRef)
   else if (r.failed) await markFailed(pay.provider, pay.provider_ref)
+}
+
+/** Paid outside a provider (cash taken, transfer received): records the payment and fulfils. Caller checks permissions. */
+export async function payManually(orderId: string, method: "cash" | "transfer", metadata?: Record<string, unknown>) {
+  const { data: order } = await db().from("pay_orders").select("org_id, status, amount_total, application_fee, metadata").eq("id", orderId).single()
+  if (!order || !["open", "failed", "expired"].includes(order.status)) throw new Error("payments.notOpen")
+  await db().from("pay_orders").update({ provider: method, metadata: { ...((order.metadata ?? {}) as Record<string, unknown>), ...metadata } as never }).eq("id", orderId)
+  await db().from("pay_payments").upsert(
+    { org_id: order.org_id, order_id: orderId, provider: method, provider_ref: orderId, amount: order.amount_total, application_fee: order.application_fee },
+    { onConflict: "provider,provider_ref", ignoreDuplicates: true }
+  )
+  await markPaid(method, orderId, orderId)
 }
 
 /** Payment confirmed by the provider (webhook). Safe to call repeatedly. */

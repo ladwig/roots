@@ -1070,6 +1070,50 @@ begin
     reset role;
   end;
 
+  -- Shop: stock is held by open orders, the catalog shows published products only, B sees nothing of A
+  insert into public.org_modules (org_id, module_key) values (org_a, 'shop'), (org_a, 'payments') on conflict do nothing;
+  declare v_p uuid; v_v uuid; v_o1 uuid; v_o2 uuid; v_cat jsonb;
+  begin
+    perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    insert into public.products (org_id, slug, name, price_cents, status) values (org_a, 'shirt', 'Shirt', 2500, 'published') returning id into v_p;
+    insert into public.product_variants (org_id, product_id, name, stock) values (org_a, v_p, 'M', 1) returning id into v_v;
+    insert into public.products (org_id, slug, name, status) values (org_a, 'secret', 'Entwurf', 'draft');
+    insert into public.shop_settings (org_id, pay_transfer) values (org_a, true);
+    reset role;
+    insert into public.pay_orders (org_id, source_module, amount_total) values (org_a, 'shop', 2500) returning id into v_o1;
+    insert into public.pay_order_items (org_id, order_id, description, quantity, unit_amount, source_id) values (org_a, v_o1, 'Shirt M', 1, 2500, v_v::text);
+    assert public.shop_check(v_o1), 'the first shirt should fit the stock';
+    insert into public.pay_orders (org_id, source_module, amount_total) values (org_a, 'shop', 2500) returning id into v_o2;
+    insert into public.pay_order_items (org_id, order_id, description, quantity, unit_amount, source_id) values (org_a, v_o2, 'Shirt M', 1, 2500, v_v::text);
+    assert not public.shop_check(v_o2), 'a second order took the last shirt';
+    update public.pay_orders set status = 'cancelled' where id = v_o2;
+    insert into public.shop_orders (org_id, order_id, delivery, payment, name) values (org_a, v_o1, 'pickup', 'transfer', 'Käuferin');
+    select number into n from public.shop_orders where order_id = v_o1;      assert n = 1001, 'shop order numbers start at 1001';
+    begin
+      insert into public.shop_orders (org_id, order_id, delivery, payment, name) values (org_b, v_o2, 'pickup', 'transfer', 'X');
+      assert false, 'a shop order was attached to another org''s payment order';
+    exception when raise_exception then null; end;
+    set local role anon;
+    v_cat := public.shop_catalog(org_a);
+    assert jsonb_array_length(v_cat) = 1, 'the public catalog shows drafts';
+    assert (v_cat -> 0 -> 'variants' -> 0 ->> 'left')::int = 0, 'the held shirt still shows as available';
+    begin
+      select count(*) into n from public.products;
+      assert false, 'anon reads the products table';
+    exception when insufficient_privilege then null; end;
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.products where org_id = org_a;         assert n = 0, 'B sees products of A';
+    select count(*) into n from public.product_variants where org_id = org_a; assert n = 0, 'B sees variants of A';
+    select count(*) into n from public.shop_orders where org_id = org_a;      assert n = 0, 'B sees shop orders of A';
+    select count(*) into n from public.shop_settings where org_id = org_a;    assert n = 0, 'B sees shop settings of A';
+    update public.products set name = 'X' where org_id = org_a;
+    reset role;
+    select count(*) into n from public.products where org_id = org_a and name = 'X'; assert n = 0, 'B changed a product of A';
+  end;
+
   -- MCP connections: a person adds their own (only for orgs they belong to); B doesn't see A's
   declare v_conn uuid;
   begin

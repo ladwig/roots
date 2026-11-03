@@ -412,6 +412,10 @@
     "rentals": {
       "name": "Vermietung",
       "description": "Räume, Studios, Fahrzeuge und Gegenstände vermieten oder ausgeben – mit Tarifen, Mietverträgen, Buchungen, Schlüsseln und Belegung."
+    },
+    "shop": {
+      "name": "Onlineshop",
+      "description": "Merch, Bücher, Downloads und mehr verkaufen: Katalog, Produktseiten, Warenkorb, Online-Zahlung, Überweisung oder Abholung, Versand, automatische Rechnungen."
     }
   },
   "permissions": {
@@ -459,7 +463,9 @@
     "projects.manage": "Aufgaben bearbeiten",
     "rentals.view": "Vermietung ansehen",
     "rentals.manage": "Vermietung bearbeiten",
-    "org.site.manage": "Website bearbeiten"
+    "org.site.manage": "Website bearbeiten",
+    "shop.view": "Shop ansehen",
+    "shop.manage": "Shop bearbeiten"
   },
   "integrations": {
     "connect": "Verbinden",
@@ -686,7 +692,11 @@
       "email_templates": "E-Mail-Vorlagen",
       "org_domains": "Domains",
       "org_prices": "Preise",
-      "org_sites": "Website"
+      "org_sites": "Website",
+      "products": "Produkte",
+      "product_variants": "Produktvarianten",
+      "shop_orders": "Shop-Bestellungen",
+      "shop_settings": "Shop-Einstellungen"
     },
     "title": "Aktivität",
     "comment": "Kommentieren",
@@ -767,7 +777,8 @@
     "object_busy": "Das Objekt ist in diesem Zeitraum schon belegt.",
     "object_included": "Dieses Objekt gehört fest zu einem anderen und wird nur mit ihm vergeben.",
     "object_unavailable": "Dieses Objekt ist nicht verfügbar (verloren oder gelöscht).",
-    "object_cycle": "Ein Objekt kann nicht in sich selbst liegen."
+    "object_cycle": "Ein Objekt kann nicht in sich selbst liegen.",
+    "not_found": "Nicht gefunden."
   },
   "admin": {
     "title": "Plattform",
@@ -1105,7 +1116,10 @@
       "rental.person_added": "Person zu einer Vergabe hinzugefügt",
       "rental.notice_received": "Kündigung eingegangen",
       "rental.renewed": "Vertrag verlängert",
-      "domain.connected": "Eigene Domain verbunden"
+      "domain.connected": "Eigene Domain verbunden",
+      "shop.order_placed": "Shop-Bestellung eingegangen",
+      "shop.order_ready": "Shop-Bestellung abholbereit",
+      "shop.order_shipped": "Shop-Bestellung versendet"
     },
     "messages": {
       "member.joined": "👋 Neues Mitglied: {who}",
@@ -1145,7 +1159,10 @@
       "rental.person_added": "🔑 {object}: Person hinzugefügt",
       "rental.notice_received": "📝 {object}: Kündigung eingegangen",
       "rental.renewed": "🔁 {object}: Vertrag hat sich verlängert",
-      "domain.connected": "🌐 {domain} ist jetzt live"
+      "domain.connected": "🌐 {domain} ist jetzt live",
+      "shop.order_placed": "🛍️ Bestellung #{number} von {name}",
+      "shop.order_ready": "🛍️ Bestellung #{number} liegt bereit",
+      "shop.order_shipped": "📦 Bestellung #{number} versendet"
     },
     "hints": {
       "member.joined": "Jemand aus eurem Team (Vorstand, Einlass …) hat eine Einladung angenommen und kann sich in der App anmelden. Nicht für Vereinsmitglieder.",
@@ -1178,7 +1195,10 @@
       "course.moved_up": "Jemand ist von der Warteliste eines Kurses nachgerückt.",
       "workflow.notified": "Eine Automation hat eine Team-Benachrichtigung geschickt.",
       "task.assigned": "Jemand wird einer Aufgabe zugewiesen – die Person bekommt eine Benachrichtigung.",
-      "task.completed": "Eine Aufgabe landet in einer Spalte, die als erledigt zählt."
+      "task.completed": "Eine Aufgabe landet in einer Spalte, die als erledigt zählt.",
+      "shop.order_placed": "Eine Shop-Bestellung ist eingegangen (online bezahlt, oder per Überweisung / Abholung aufgegeben).",
+      "shop.order_ready": "Eine Abholbestellung wurde als abholbereit markiert.",
+      "shop.order_shipped": "Eine Bestellung wurde als versendet markiert."
     }
   },
   "inbox": {
@@ -1856,7 +1876,10 @@
     "cancelsInvoice": "Storno zu Rechnung",
     "cancels": "Storniert die Rechnung →",
     "cancelled": "Stornorechnung erstellt.",
-    "pdfDownload": "PDF herunterladen"
+    "pdfDownload": "PDF herunterladen",
+    "grossPricesNote": "Alle Preise inkl. MwSt.",
+    "shortInvoices": "Rechnungen bis 250 € ohne Adresse erlauben",
+    "shortInvoicesHint": "Kleinbetragsrechnung (§ 33 UStDV): bis 250 € brutto darf die Anschrift der Käufer:in fehlen – z. B. bei Shop-Bestellungen zur Abholung."
   },
   "guestlists": {
     "nav": "Gästelisten",
@@ -3931,7 +3954,10 @@
       "task_status": "Projektspalte",
       "rental_object": "Objekt (Vermietung)",
       "rental": "Vergabe (Vermietung)",
-      "project": "Projekt"
+      "project": "Projekt",
+      "product": "Produkt (Shop)",
+      "product_variant": "Produktvariante",
+      "shop_order": "Shop-Bestellung"
     },
     "fields": {
       "contact": {
@@ -4176,6 +4202,30 @@
         "start_on": "Start",
         "end_on": "Ende",
         "completed_at": "Abgeschlossen am"
+      },
+      "product": {
+        "name": "Name",
+        "status": "Status",
+        "kind": "Art",
+        "price_cents": "Preis (Cent)",
+        "stock": "Stückzahl",
+        "category": "Kategorie"
+      },
+      "product_variant": {
+        "name": "Name",
+        "price_cents": "Preis (Cent)",
+        "stock": "Stückzahl",
+        "active": "Wird verkauft"
+      },
+      "shop_order": {
+        "number": "Bestellnummer",
+        "status": "Status",
+        "delivery": "Lieferung",
+        "payment": "Bezahlart",
+        "name": "Name",
+        "city": "Ort",
+        "tracking": "Sendungsnummer",
+        "note": "Anmerkung"
       }
     },
     "values": {
@@ -5452,5 +5502,309 @@
       "saved": "Entwurf gespeichert – Vorschau aktualisiert.",
       "error": "Speichern fehlgeschlagen – bitte prüfen."
     }
+  },
+  "store": {
+    "nav": "Shop",
+    "products": "Produkte",
+    "orders": "Bestellungen",
+    "shopTitle": "Shop",
+    "cart": "Warenkorb",
+    "categories": "Kategorien",
+    "allCategories": "Alle",
+    "empty": "Hier gibt es gerade nichts zu kaufen.",
+    "priceFrom": "ab {price}",
+    "soldOut": "ausverkauft",
+    "left": {
+      "one": "nur noch {count} da",
+      "other": "nur noch {count} da"
+    },
+    "swipe": "{count} Bilder – zum Blättern wischen",
+    "vatShipping": "inkl. MwSt., zzgl. Versand",
+    "vatDigital": "inkl. MwSt.",
+    "vatIncluded": "Alle Preise inkl. MwSt.",
+    "variant": "Variante",
+    "qty": "Anzahl",
+    "addToCart": "In den Warenkorb",
+    "continueShopping": "Weiter einkaufen",
+    "toShop": "Zum Shop",
+    "cartEmpty": "Dein Warenkorb ist leer.",
+    "paymentCancelled": "Die Zahlung wurde abgebrochen.",
+    "restoreCart": "Warenkorb wiederherstellen",
+    "update": "Ändern",
+    "remove": "Entfernen",
+    "lineProblem": {
+      "sold_out": "Nicht mehr in dieser Menge verfügbar.",
+      "too_many": "Höchstens {max} pro Bestellung.",
+      "gone": "Nicht mehr erhältlich."
+    },
+    "delivery": "Lieferung",
+    "deliveries": {
+      "pickup": "Abholung",
+      "shipping": "Versand",
+      "digital": "Digital (Download)"
+    },
+    "freeFrom": "Versandkostenfrei ab {amount}",
+    "noDelivery": "Für diese Artikel ist gerade keine Lieferart möglich.",
+    "subtotal": "Zwischensumme",
+    "shippingLine": "Versand",
+    "total": "Gesamt",
+    "free": "kostenlos",
+    "name": "Dein Name",
+    "email": "Deine E-Mail",
+    "shippingAddress": "Lieferadresse",
+    "billingAddressOptional": "Rechnungsadresse angeben (optional)",
+    "company": "Firma / Verein (optional)",
+    "street": "Straße und Hausnummer",
+    "postalCode": "PLZ",
+    "city": "Ort",
+    "country": "Land",
+    "note": "Anmerkung (optional)",
+    "payment": "Bezahlung",
+    "payments": {
+      "online": "Online bezahlen",
+      "transfer": "Überweisung",
+      "pickup": "Bei Abholung bezahlen"
+    },
+    "paymentHints": {
+      "online": "Karte, Apple Pay, Google Pay und weitere – direkt im Anschluss.",
+      "transfer": "Du bekommst die Bankverbindung per E-Mail. Wir reservieren die Artikel ein paar Tage.",
+      "pickup": "Bar oder mit Karte, wenn du deine Bestellung abholst."
+    },
+    "noPayment": "Für diese Bestellung ist gerade keine Bezahlart möglich. Bitte melde dich beim Shop.",
+    "acceptTerms": "Ich akzeptiere die AGB und habe die Widerrufsbelehrung gelesen:",
+    "terms": "AGB",
+    "withdrawal": "Widerrufsbelehrung",
+    "digitalWaiver": "Ich stimme zu, dass der Download sofort nach der Zahlung bereitsteht, und weiß, dass ich damit mein Widerrufsrecht für digitale Inhalte verliere.",
+    "orderPay": "Zahlungspflichtig bestellen · {amount}",
+    "orderFree": "Jetzt bestellen",
+    "nameMissing": "Bitte gib deinen Namen an.",
+    "addressMissing": "Bitte gib eine vollständige Adresse an.",
+    "termsMissing": "Bitte bestätige die AGB und die Widerrufsbelehrung.",
+    "waiverMissing": "Bitte bestätige den Hinweis zu digitalen Inhalten.",
+    "soldOutError": "Ein Artikel ist nicht mehr in dieser Menge verfügbar.",
+    "cartChanged": "Dein Warenkorb hat sich geändert – bitte prüfe ihn noch einmal.",
+    "priceChanged": "Ein Preis hat sich gerade geändert – bitte prüfe den Gesamtbetrag.",
+    "deliveryInvalid": "Bitte wähle eine Lieferart.",
+    "shippingInvalid": "In dieses Land liefern wir mit dieser Versandart leider nicht.",
+    "paymentInvalid": "Bitte wähle eine Bezahlart.",
+    "unavailable": "Bestellen ist gerade nicht möglich. Bitte versuche es später noch einmal oder melde dich beim Shop.",
+    "failed": "Das hat nicht geklappt. Bitte versuche es noch einmal.",
+    "waiting": "Deine Zahlung wird bestätigt … die Seite aktualisiert sich automatisch.",
+    "orderTitle": "Bestellung #{number}",
+    "orderThanks": "Danke für deine Bestellung!",
+    "orderMailed": "Eine Bestätigung ist unterwegs an {email}.",
+    "orderStatus": {
+      "new": "Neu",
+      "ready": "Abholbereit",
+      "shipped": "Versendet",
+      "completed": "Erledigt",
+      "cancelled": "Storniert"
+    },
+    "paid": "Bezahlt",
+    "unpaid": "Unbezahlt",
+    "payOnPickupNote": "Du bezahlst bei der Abholung – bar oder mit Karte.",
+    "trackingLine": "Sendungsverfolgung: {tracking}",
+    "downloads": "Downloads",
+    "downloadsNote": "Deine Downloads findest du über den Button.",
+    "invoiceDownload": "Rechnung {number}",
+    "keepOrderLink": "Heb dir diesen Link auf – hier siehst du jederzeit den Stand deiner Bestellung.",
+    "transfer": {
+      "title": "Bitte überweise bis {date}:",
+      "holder": "Kontoinhaber: {holder}",
+      "amount": "Betrag: {amount}",
+      "reference": "Verwendungszweck: {reference}",
+      "referenceText": "Bestellung {number}"
+    },
+    "invoiceNote": "Shop-Bestellung #{number}",
+    "mail": {
+      "button": "Bestellung ansehen",
+      "confirmation": {
+        "title": "Deine Bestellung #{number} bei {org}",
+        "message": "Danke für deine Bestellung #{number}! Hier ist eine Übersicht."
+      },
+      "paid": {
+        "title": "Zahlung erhalten: Bestellung #{number}",
+        "message": "Deine Zahlung für Bestellung #{number} ist eingegangen. Danke!"
+      },
+      "ready": {
+        "title": "Bestellung #{number} liegt zur Abholung bereit",
+        "message": "Deine Bestellung #{number} liegt für dich bereit."
+      },
+      "shipped": {
+        "title": "Bestellung #{number} ist unterwegs",
+        "message": "Deine Bestellung #{number} ist verschickt."
+      },
+      "cancelled": {
+        "title": "Bestellung #{number} storniert",
+        "message": "Deine Bestellung #{number} wurde storniert. Wenn du schon bezahlt hast, bekommst du den Betrag zurück."
+      }
+    },
+    "mailKinds": {
+      "confirmation": "Bestellbestätigung",
+      "paid": "Zahlung erhalten",
+      "ready": "Abholbereit",
+      "shipped": "Versendet",
+      "cancelled": "Storniert"
+    },
+    "mailWhen": {
+      "confirmation": "Nach der Bestellung (online bezahlt: nach der Zahlung). Mit Artikeln, Bankverbindung bei Überweisung, Rechnung als PDF.",
+      "paid": "Wenn ihr eine Überweisung oder Barzahlung als bezahlt markiert. Mit Rechnung.",
+      "ready": "Wenn ihr eine Abholbestellung als abholbereit markiert. Mit dem Abholhinweis.",
+      "shipped": "Wenn ihr eine Bestellung als versendet markiert. Mit Sendungsnummer, falls eingetragen.",
+      "cancelled": "Wenn ihr eine Bestellung storniert. Mit Stornorechnung."
+    },
+    "mails": "E-Mails an Käufer:innen",
+    "mailsHint": "Welche E-Mails rausgehen. Eigener Text ersetzt den Standardsatz oben in der Mail; Platzhalter: {number}, {name}, {total}, {org}.",
+    "mailText": "Eigener Text",
+    "mailTemplateHint": "Aussehen: eure Standard-Vorlage unter Kommunikation → Vorlagen (sonst die roots-Mail).",
+    "resendMail": "Mail erneut senden: {kind}",
+    "mailSent": "Mail gesendet.",
+    "mailNotSent": "Die Mail wurde nicht gesendet (abgeschaltet oder kein E-Mail-Versand eingerichtet).",
+    "product": "Produkt",
+    "productName": "Name",
+    "productNamePlaceholder": "z. B. Tour-Shirt 2026",
+    "priceGross": "Preis (brutto)",
+    "price": "Preis",
+    "taxRate": "MwSt.",
+    "kind": "Art",
+    "kinds": {
+      "physical": "Ware",
+      "digital": "Digital (Download)"
+    },
+    "status": "Status",
+    "statuses": {
+      "draft": "Entwurf",
+      "published": "Im Shop",
+      "archived": "Archiviert"
+    },
+    "stock": "Stückzahl",
+    "stockHint": "Wie viele insgesamt verkauft werden können. Leer = unbegrenzt. Bei Varianten zählt die Stückzahl der Variante.",
+    "unlimited": "unbegrenzt",
+    "maxPerOrder": "Höchstens pro Bestellung",
+    "productPage": "Produktseite",
+    "description": "Beschreibung",
+    "descriptionSet": "Beschreibung vorhanden",
+    "category": "Kategorie",
+    "categoryPlaceholder": "z. B. Kleidung",
+    "slug": "Adresse",
+    "slugPlaceholder": "wird aus dem Namen erzeugt",
+    "video": "Video",
+    "videoHint": "YouTube- oder Vimeo-Link, oder eine direkte MP4-Datei.",
+    "createProduct": "Produkt anlegen",
+    "newProduct": "Neues Produkt",
+    "nameRequired": "Bitte gib einen Namen an.",
+    "slugInvalid": "Die Adresse darf nur Kleinbuchstaben, Ziffern und Bindestriche enthalten (nicht „agb“ oder „widerruf“).",
+    "slugTaken": "Diese Adresse hat schon ein anderes Produkt.",
+    "priceInvalid": "Bitte gib einen gültigen Preis an.",
+    "videoInvalid": "Bitte gib einen https-Link zum Video an.",
+    "saved": "Gespeichert.",
+    "created": "Produkt angelegt. Jetzt Bilder hinzufügen.",
+    "trashed": "Produkt in den Papierkorb gelegt.",
+    "restored": "Produkt wiederhergestellt.",
+    "trash": "Papierkorb",
+    "backToList": "Zurück zu den Produkten",
+    "toTrash": "In den Papierkorb",
+    "inTrash": "Dieses Produkt liegt im Papierkorb.",
+    "restore": "Wiederherstellen",
+    "search": "Produkte suchen",
+    "noMatch": "Keine Produkte gefunden.",
+    "emptyTitle": "Noch keine Produkte",
+    "emptyText": "Leg dein erstes Produkt an – Merch, Bücher, Downloads … Es erscheint im Shop, sobald es auf „Im Shop“ steht.",
+    "openShop": "Shop ansehen",
+    "viewPublic": "Im Shop ansehen",
+    "images": "Bilder",
+    "imagesHint": "Das erste Bild ist das Titelbild. PNG, JPG, WebP oder GIF, höchstens 2 MB.",
+    "addImage": "Bild hinzufügen",
+    "cover": "Titelbild",
+    "makeCover": "Als Titelbild",
+    "removeImage": "Bild entfernen",
+    "tooManyImages": "Höchstens 12 Bilder pro Produkt.",
+    "variants": "Varianten",
+    "variantsHint": "Größen, Farben … jede mit eigener Stückzahl und optional eigenem Preis.",
+    "noVariants": "Keine Varianten – das Produkt hat eine Stückzahl ({left}).",
+    "leftOf": "{left} von {stock} frei",
+    "variantName": "Variante",
+    "variantPlaceholder": "z. B. M oder Schwarz / L",
+    "variantActive": "verkaufen",
+    "addVariant": "Hinzufügen",
+    "deleteVariant": "Variante löschen",
+    "confirmDeleteVariant": "Diese Variante löschen? Bestehende Bestellungen bleiben unverändert.",
+    "variantDeleted": "Variante gelöscht.",
+    "downloadsHint": "Diese Dateien bekommen Käufer:innen nach der Zahlung auf ihrer Bestellseite.",
+    "searchOrders": "Name oder Bestellnummer",
+    "views": {
+      "open": "Offen",
+      "done": "Erledigt",
+      "cancelled": "Storniert",
+      "all": "Alle"
+    },
+    "noOrders": "Keine Bestellungen gefunden.",
+    "noOpenOrders": "Nichts zu tun",
+    "noOpenOrdersText": "Neue Bestellungen erscheinen hier, sobald sie bezahlt oder per Überweisung / Abholung aufgegeben sind.",
+    "order": "Bestellung",
+    "items": "Artikel",
+    "buyer": "Käufer:in",
+    "toPayment": "Zur Zahlung",
+    "heldUntil": "Artikel reserviert bis {date}",
+    "markTransferReceived": "Überweisung erhalten",
+    "markCashReceived": "Bezahlt (bar)",
+    "markedPaid": "Als bezahlt markiert.",
+    "invoice": "Rechnung",
+    "noInvoiceYet": "Noch keine Rechnung.",
+    "openDraft": "Entwurf öffnen",
+    "issueInvoice": "Rechnung erstellen",
+    "invoiceIssued": "Rechnung erstellt.",
+    "tracking": "Sendungsnummer (optional)",
+    "trackingPlaceholder": "z. B. DHL 00340434…",
+    "markShipped": "Als versendet markieren",
+    "saveTracking": "Speichern",
+    "markReady": "Abholbereit",
+    "markPickedUp": "Abgeholt",
+    "markCompleted": "Erledigt",
+    "reopen": "Wieder öffnen",
+    "cancelOrder": "Bestellung stornieren",
+    "confirmCancel": "Diese Bestellung stornieren? Die Artikel werden wieder frei.",
+    "confirmCancelPaid": "Diese Bestellung stornieren und den vollen Betrag erstatten? Eine Rechnung wird storniert.",
+    "cancelled": "Bestellung storniert.",
+    "refundPending": "Erstattung angestoßen – die Bestellung wird storniert, sobald der Zahlungsanbieter sie bestätigt.",
+    "orderCancelled": "Diese Bestellung ist storniert.",
+    "settingsPage": "Shop-Seite",
+    "shopPageTitle": "Überschrift",
+    "intro": "Einleitung",
+    "onlineReady": "Über euren verbundenen Zahlungsanbieter.",
+    "onlineNotReady": "Noch kein Zahlungsanbieter verbunden – unter Einstellungen → Integrationen.",
+    "transferHint": "Bankverbindung aus den Rechnungseinstellungen.",
+    "transferNoIban": "Bitte hinterlegt eine IBAN in den Rechnungseinstellungen.",
+    "transferDays": "Reserviert für (Tage)",
+    "payOnPickupHint": "Nur bei Abholung. Bar oder mit Karte – über Einlass → Verkauf oder „Bezahlt (bar)“ in der Bestellung.",
+    "pickupText": "Abholung: wo und wann",
+    "pickupTextHint": "Steht im Warenkorb und in den E-Mails.",
+    "shippingHint": "Versandkosten pro Bestellung; Sendungsnummern tragt ihr von Hand ein.",
+    "shippingRates": "Versandarten",
+    "rateName": "Name",
+    "ratePlaceholder": "z. B. DHL Paket",
+    "freeFromLabel": "Gratis ab",
+    "countries": "Länder",
+    "ratesHint": "Länder als Kürzel, mit Komma getrennt (DE, AT, CH). Zum Entfernen den Namen leeren.",
+    "autoInvoice": "Rechnungen automatisch erstellen",
+    "autoInvoiceHint": "Bei Online-Zahlung und Abholung nach der Zahlung, bei Überweisung direkt mit der Bestellung. Stornos bekommen eine Stornorechnung.",
+    "invoicesModuleOff": "Rechnungen gibt es mit dem Modul Rechnungen.",
+    "legal": "Rechtliches",
+    "legalHint": "Markdown. Sind AGB oder Widerrufsbelehrung ausgefüllt, müssen Käufer:innen sie vor dem Bestellen bestätigen.",
+    "player": "Player",
+    "play": "Abspielen",
+    "pause": "Pause",
+    "seek": "Position im Titel",
+    "previous": "Vorheriger Titel",
+    "next": "Nächster Titel",
+    "buyersOnly": "nach dem Kauf",
+    "tracks": "Musik (Player)",
+    "tracksHint": "Audiodateien (MP3, M4A, OGG …) laden – sie erscheinen als Player auf der Produktseite. Nummer = Reihenfolge. Ohne Häkchen steht der Titel in der Liste, spielt aber nicht (die Musik gibt es dann über die Downloads).",
+    "trackNumber": "Nr.",
+    "trackTitle": "Titel",
+    "trackStream": "im Shop abspielbar",
+    "removeTrack": "Titel entfernen",
+    "confirmRemoveTrack": "Diesen Titel entfernen? Die Datei landet im Papierkorb.",
+    "trackRemoved": "Titel entfernt."
   }
 }

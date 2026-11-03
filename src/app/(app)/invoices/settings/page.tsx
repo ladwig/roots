@@ -97,6 +97,13 @@ export default async function InvoiceSettings({ searchParams }: PageProps<"/invo
         </FormCard>
 
         <FormCard id="defaults" title={t("invoices.defaults")}>
+          <label className="flex items-start gap-2 text-sm">
+            <input type="checkbox" name="short_invoices" value="1" defaultChecked={b?.short_invoices ?? true} className="mt-0.5 size-4 accent-primary" />
+            <span>
+              {t("invoices.shortInvoices")}
+              <span className="block text-xs text-muted-foreground">{t("invoices.shortInvoicesHint")}</span>
+            </span>
+          </label>
           <div className="grid gap-4 sm:grid-cols-3">
             {field("payment_days", t("invoices.paymentDays"), String(b?.payment_days ?? 14), { type: "number", min: 0, max: 365, className: "max-w-32" })}
             {field("quote_days", t("invoices.quoteDays"), String(b?.quote_days ?? 30), { type: "number", min: 1, max: 365, className: "max-w-32" })}

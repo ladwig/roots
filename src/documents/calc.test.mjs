@@ -30,3 +30,20 @@ test("Kleinunternehmer: no tax at all", () => {
   const t = totals([{ quantity: 1, unit_price: 10000, tax_rate: 19 }], true)
   assert.deepEqual([t.net, t.tax, t.gross, t.taxes.length], [10000, 0, 10000, 0])
 })
+
+test("gross prices: VAT taken out, total = what was paid", () => {
+  const t = totals(
+    [
+      { quantity: 3, unit_price: 2500, tax_rate: 19 },
+      { quantity: 1, unit_price: 490, tax_rate: 19 },
+      { quantity: 2, unit_price: 1500, tax_rate: 7 },
+    ],
+    false,
+    true,
+  )
+  assert.equal(t.gross, 7990 + 3000)
+  assert.deepEqual(t.taxes, [
+    { rate: 19, net: 6714, tax: 1276 },
+    { rate: 7, net: 2804, tax: 196 },
+  ])
+})

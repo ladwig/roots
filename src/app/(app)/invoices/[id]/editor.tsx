@@ -32,6 +32,7 @@ export type EditorDoc = {
   notes: string | null
   tax_mode: string
   currency: string
+  prices_gross?: boolean
 }
 type Row = { key: number; title: string; description: string; quantity: string; unit: string; unit_price: string; tax_rate: number }
 export type EditorContact = { id: string; name: string; address: string; email: string | null }
@@ -77,7 +78,7 @@ export function DocumentEditor({
       return next
     })
   const add = () => setRows((rs) => [...rs, { key: ++seq, title: "", description: "", quantity: "1", unit: "flat", unit_price: "", tax_rate: small ? 0 : defaultTax }])
-  const sum = totals(rows.map((r) => ({ quantity: num(r.quantity), unit_price: parsePrice(r.unit_price) ?? 0, tax_rate: r.tax_rate })), small)
+  const sum = totals(rows.map((r) => ({ quantity: num(r.quantity), unit_price: parsePrice(r.unit_price) ?? 0, tax_rate: r.tax_rate })), small, !!doc.prices_gross)
   const money = (c: number) => t.money(c, doc.currency)
   const payload = JSON.stringify(
     rows.map((r) => ({ title: r.title, description: r.description, quantity: r.quantity, unit: r.unit, unit_price: r.unit_price, tax_rate: small ? 0 : r.tax_rate })),

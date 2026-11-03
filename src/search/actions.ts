@@ -66,7 +66,7 @@ export async function searchApp(input: string): Promise<SearchGroup[]> {
 
   const none = Promise.resolve({ data: [] as never[] })
   const day = (v: string | null) => (v ? t.date(v, { dateStyle: "medium" }) : undefined)
-  const [contacts, members, events, docs, forms, campaigns, mailTemplates, files, templates, wiki, projects, tasks, objects] = await Promise.all([
+  const [contacts, members, events, docs, forms, campaigns, mailTemplates, files, templates, wiki, projects, tasks, objects, products, shopOrders] = await Promise.all([
     on("crm", "crm.view")
       ? db
           .from("contacts")
@@ -106,6 +106,10 @@ export async function searchApp(input: string): Promise<SearchGroup[]> {
     on("rentals", "rentals.view")
       ? db.from("rental_objects").select("id, name, kind").eq("org_id", org).is("deleted_at", null).or(`name.ilike.${like},description.ilike.${like}`).order("name").limit(PER_GROUP)
       : none,
+    on("shop", "shop.view") ? db.from("products").select("id, name, category").eq("org_id", org).is("deleted_at", null).or(`name.ilike.${like},category.ilike.${like}`).order("name").limit(PER_GROUP) : none,
+    on("shop", "shop.view")
+      ? db.from("shop_orders").select("id, number, name").eq("org_id", org).not("placed_at", "is", null).or(/^\d+$/.test(q.trim()) ? `number.eq.${q.trim()}` : `name.ilike.${like}`).order("placed_at", { ascending: false }).limit(PER_GROUP)
+      : none,
   ])
 
   const person = (c: { first_name: string | null; last_name: string | null; company: string | null } | null) =>
@@ -143,6 +147,8 @@ export async function searchApp(input: string): Promise<SearchGroup[]> {
     { key: "projects", label: t("projects.title"), items: (projects.data ?? []).map((x) => ({ id: x.id, title: x.name, href: `/projects/${x.id}` })) },
     { key: "tasks", label: t("projects.allTasks"), items: (tasks.data ?? []).map((x) => ({ id: x.id, title: x.title, detail: x.due_on ?? undefined, href: `/projects/tasks?task=${x.id}` })) },
     { key: "rentals", label: t("rentals.title"), items: (objects.data ?? []).map((x) => ({ id: x.id, title: x.name, detail: t.has(`rentals.kinds.${x.kind}`) ? t.dynamic(`rentals.kinds.${x.kind}`) : x.kind, href: `/rentals/${x.id}` })) },
+    { key: "products", label: t("store.products"), items: (products.data ?? []).map((x) => ({ id: x.id, title: x.name, detail: x.category ?? undefined, href: `/shop/${x.id}` })) },
+    { key: "shop_orders", label: t("store.orders"), items: (shopOrders.data ?? []).map((x) => ({ id: x.id, title: `#${x.number} · ${x.name}`, href: `/shop/orders/${x.id}` })) },
     { key: "templates", label: t("letters.title"), items: (templates.data ?? []).map((x) => ({ id: x.id, title: x.name, href: `/files/templates/${x.id}` })) },
   ]
   return groups.filter((g) => g.items.length)

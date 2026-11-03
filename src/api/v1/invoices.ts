@@ -148,14 +148,16 @@ const Billing = z.object({
   quote_intro: z.string().nullable(),
   quote_outro: z.string().nullable(),
   template: z.enum(TEMPLATES),
+  short_invoices: z.boolean().describe("Invoices up to 250 € may be issued without the buyer's address (§ 33 UStDV)"),
 })
-const BILLING_COLS = "legal_name, street, postal_code, city, email, phone, website, tax_number, vat_id, tax_mode, register, representatives, bank_name, iban, bic, payment_days, quote_days, invoice_intro, invoice_outro, quote_intro, quote_outro, template"
+const BILLING_COLS = "legal_name, street, postal_code, city, email, phone, website, tax_number, vat_id, tax_mode, register, representatives, bank_name, iban, bic, payment_days, quote_days, invoice_intro, invoice_outro, quote_intro, quote_outro, template, short_invoices"
 const BILLING_DEFAULTS = {
   ...Object.fromEntries(BILLING_COLS.split(", ").map((k) => [k, null])),
   tax_mode: "standard",
   payment_days: 14,
   quote_days: 30,
   template: "classic",
+  short_invoices: true,
 }
 const NumberRange = z.object({
   kind: z.enum(["invoice", "quote", "cancellation"]),
@@ -411,6 +413,7 @@ export const endpoints: Endpoint[] = [
         quote_intro: text(5000),
         quote_outro: text(5000),
         template: z.enum(TEMPLATES),
+        short_invoices: z.boolean(),
       })
       .partial()
       .strict(),

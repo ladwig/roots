@@ -178,6 +178,7 @@ export async function saveBilling(fd: FormData) {
     tax_number: text(fd, "tax_number", 50),
     vat_id: vat,
     tax_mode: fd.get("tax_mode") === "small_business" ? "small_business" : "standard",
+    short_invoices: fd.get("short_invoices") === "1",
     register: text(fd, "register", 200),
     representatives: text(fd, "representatives", 300),
     bank_name: text(fd, "bank_name", 100),
