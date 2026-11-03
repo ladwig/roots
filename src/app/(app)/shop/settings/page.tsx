@@ -32,7 +32,7 @@ export default async function ShopSettingsPage({ searchParams }: PageProps<"/sho
   const rates = readShippingRates(s.shipping_rates)
   // Country picker: "EU" (all members) first, then every country by its name in the reader's language.
   const names = new Intl.DisplayNames([t.locale], { type: "region" })
-  const countryOptions = [{ value: "EU", label: t("store.allEu") }, ...COUNTRIES.map((c) => ({ value: c, label: `${names.of(c) ?? c} (${c})` })).sort((a, b) => a.label.localeCompare(b.label, t.locale))]
+  const countryOptions = [{ value: "EU", label: t("store.allEu") }, ...COUNTRIES.map((c) => ({ value: c, label: names.of(c) ?? c })).sort((a, b) => a.label.localeCompare(b.label, t.locale))]
   const shown = (cs: string[]) => (EU.every((c) => cs.includes(c)) ? ["EU", ...cs.filter((c) => !EU.includes(c))] : cs)
   const mails = (s.mails ?? {}) as Record<string, { off?: boolean; message?: string }>
   const check = (name: string, on: boolean, label: string, hint?: React.ReactNode) => (
