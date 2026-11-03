@@ -800,7 +800,7 @@
       "new": "Neue Organisation",
       "empty": "Keine Organisationen gefunden.",
       "owner": "Inhaber (E-Mail)",
-      "ownerHelp": "Bestehendes Konto. Leer lassen, um selbst Inhaber zu werden.",
+      "ownerHelp": "Leer lassen, um selbst Inhaber zu werden. Ohne Konto bekommt die E-Mail eine Einladung als Inhaber (du bleibst Inhaber, bis du dich danach austrägst).",
       "ownerNotFound": "Es gibt kein Konto mit dieser E-Mail.",
       "created": "Organisation angelegt.",
       "saved": "Gespeichert.",
@@ -819,7 +819,10 @@
       "alsoNeeds": "Wird mit aktiviert: {list}",
       "active": "Aktiv",
       "trashed": "In den Papierkorb verschoben.",
-      "restored": "Wiederhergestellt."
+      "restored": "Wiederhergestellt.",
+      "ownerInvited": "Organisation angelegt. Einladung als Inhaber an {email} geschickt.",
+      "ownerInviteNoMail": "Organisation angelegt, aber die Einladung konnte nicht gemailt werden. Link: {link}",
+      "ownerInviteFailed": "Organisation angelegt, aber die Einladung als Inhaber ging nicht. Lade unter Mitglieder ein."
     },
     "users": {
       "title": "Benutzer",

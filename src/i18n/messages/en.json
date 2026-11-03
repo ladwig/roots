@@ -800,7 +800,7 @@
       "new": "New organisation",
       "empty": "No organisations found.",
       "owner": "Owner (email)",
-      "ownerHelp": "An existing account. Leave empty to become the owner yourself.",
+      "ownerHelp": "Leave empty to become the owner yourself. Without an account the email gets an owner invite (you stay owner until you remove yourself afterwards).",
       "ownerNotFound": "There is no account with this email.",
       "created": "Organisation created.",
       "saved": "Saved.",
@@ -819,7 +819,10 @@
       "alsoNeeds": "Also turns on: {list}",
       "active": "Active",
       "trashed": "Moved to the trash.",
-      "restored": "Restored."
+      "restored": "Restored.",
+      "ownerInvited": "Organisation created. Owner invite sent to {email}.",
+      "ownerInviteNoMail": "Organisation created, but the invite couldn't be mailed. Link: {link}",
+      "ownerInviteFailed": "Organisation created, but the owner invite failed. Invite them under members."
     },
     "users": {
       "title": "Users",
