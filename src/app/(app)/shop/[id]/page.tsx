@@ -18,8 +18,9 @@ import { productImage, restoreProduct, saveTrack, saveVariant, trashProduct } fr
 import { FileUpload } from "@/components/file-upload"
 import { productTracks } from "@/shop/server"
 import { ProductForm } from "../product-form"
+import { Segments } from "@/components/segments"
 
-// One product: details + page text (form), pictures, variants with stock left, downloads for digital products.
+// One product in tabs (?tab=): Produkt (details, page text, pictures) · Varianten (stock left) · Musik & Downloads.
 export default async function ProductPage({ params, searchParams }: PageProps<"/shop/[id]">) {
   const { id } = await params
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound()
@@ -39,6 +40,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   const left = new Map(await Promise.all(items.map(async (i) => [i.id, i.stock === null ? null : (await admin.rpc("shop_left", { p_item: i.id, p_stock: i.stock })).data] as const)))
   const leftLabel = (itemId: string, stock: number | null) => (stock === null ? t("store.unlimited") : t("store.leftOf", { left: Math.max(0, left.get(itemId) ?? 0), stock }))
   const here = `/shop/${id}`
+  const tab = param(sp, "tab") === "variants" ? "variants" : param(sp, "tab") === "digital" ? "digital" : "product"
 
   return (
     <Page size="record">
@@ -83,9 +85,114 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
           )}
         </div>
       ) : (
-        <RecordLayout
-          aside={
-            <>
+        <>
+          <Segments
+            label={t("store.productTabs")}
+            items={[
+              { href: here, label: t("store.tabProduct"), current: tab === "product" },
+              { href: `${here}?tab=variants`, label: t("store.tabVariants", { count: variants?.length ?? 0 }), current: tab === "variants" },
+              { href: `${here}?tab=digital`, label: t("store.tabDigital"), current: tab === "digital" },
+            ]}
+          />
+          {tab === "variants" ? (
+            <div className="grid max-w-3xl gap-6">
+              <FormCard id="variants" title={t("store.variants")} description={t("store.variantsHint")}>
+                {!variants?.length && <p className="text-sm text-muted-foreground">{t("store.noVariants", { left: leftLabel(p.id, p.stock) })}</p>}
+                <ul className="grid gap-2">
+                  {variants?.map((v) => (
+                    <li key={v.id} className="grid gap-2 rounded-lg border p-2">
+                      <form action={saveVariant} className="grid grid-cols-[1fr_6rem_5rem] items-center gap-2">
+                        <input type="hidden" name="id" value={v.id} />
+                        <input type="hidden" name="product_id" value={p.id} />
+                        <Input name="name" defaultValue={v.name} required maxLength={100} aria-label={t("store.variantName")} disabled={!canManage} />
+                        <TypedInput kind="money" name="price" defaultValue={v.price_cents === null ? "" : priceInput(v.price_cents)} placeholder={priceInput(p.price_cents)} aria-label={t("store.price")} disabled={!canManage} />
+                        <TypedInput kind="number" name="stock" min={0} defaultValue={v.stock ?? ""} placeholder="∞" aria-label={t("store.stock")} disabled={!canManage} />
+                        <span className="col-span-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-2">
+                            {leftLabel(v.id, v.stock)}
+                            <label className="flex items-center gap-1">
+                              <input type="hidden" name="has_active" value="1" />
+                              <input type="checkbox" name="active" value="1" defaultChecked={v.active} disabled={!canManage} className="accent-primary" /> {t("store.variantActive")}
+                            </label>
+                            <label className="flex items-center gap-1">
+                              <input type="checkbox" name="digital" value="1" defaultChecked={v.digital} disabled={!canManage} className="accent-primary" /> {t("store.variantDigital")}
+                            </label>
+                          </span>
+                          {canManage && (
+                            <span className="flex gap-1">
+                              <SubmitButton size="sm" variant="outline">
+                                {t("common.save")}
+                              </SubmitButton>
+                              <SubmitButton size="sm" variant="ghost" name="delete" value="1" data-confirm="store.confirmDeleteVariant" aria-label={t("store.deleteVariant")}>
+                                <Trash2Icon />
+                              </SubmitButton>
+                            </span>
+                          )}
+                        </span>
+                      </form>
+                    </li>
+                  ))}
+                </ul>
+                {canManage && (
+                  <form action={saveVariant} className="grid grid-cols-[1fr_6rem_5rem] items-center gap-2 rounded-lg border border-dashed p-2">
+                    <input type="hidden" name="product_id" value={p.id} />
+                    <input type="hidden" name="position" value={variants?.length ?? 0} />
+                    <Input name="name" required maxLength={100} placeholder={t("store.variantPlaceholder")} aria-label={t("store.variantName")} />
+                    <TypedInput kind="money" name="price" placeholder={priceInput(p.price_cents)} aria-label={t("store.price")} />
+                    <TypedInput kind="number" name="stock" min={0} placeholder="∞" aria-label={t("store.stock")} />
+                    <label className="col-span-3 flex items-center gap-1 text-xs text-muted-foreground">
+                      <input type="checkbox" name="digital" value="1" className="accent-primary" /> {t("store.variantDigitalHint")}
+                    </label>
+                    <SubmitButton size="sm" className="col-span-3 justify-self-start">
+                      {t("store.addVariant")}
+                    </SubmitButton>
+                  </form>
+                )}
+              </FormCard>
+
+            </div>
+          ) : tab === "digital" ? (
+            <div className="grid items-start gap-6 lg:grid-cols-2">
+              <FormCard id="tracks" title={t("store.tracks")} description={t("store.tracksHint")}>
+                {tracks.length > 0 && (
+                  <ol className="grid gap-2">
+                    {tracks.map((x, i) => (
+                      <li key={x.id}>
+                        <form action={saveTrack} className="grid grid-cols-[3rem_1fr] items-center gap-2 rounded-lg border p-2">
+                          <input type="hidden" name="id" value={x.id} />
+                          <input type="hidden" name="product_id" value={p.id} />
+                          <Input name="position" type="number" defaultValue={x.position || i + 1} aria-label={t("store.trackNumber")} disabled={!canManage} />
+                          <Input name="title" defaultValue={x.title} maxLength={200} aria-label={t("store.trackTitle")} disabled={!canManage} />
+                          <span className="col-span-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                            <label className="flex items-center gap-1">
+                              <input type="checkbox" name="stream" value="1" defaultChecked={x.stream} disabled={!canManage} className="accent-primary" /> {t("store.trackStream")}
+                            </label>
+                            <span className="truncate">{x.name}</span>
+                            {canManage && (
+                              <span className="flex gap-1">
+                                <SubmitButton size="sm" variant="outline">
+                                  {t("common.save")}
+                                </SubmitButton>
+                                <SubmitButton size="sm" variant="ghost" name="delete" value="1" data-confirm="store.confirmRemoveTrack" aria-label={t("store.removeTrack")}>
+                                  <Trash2Icon />
+                                </SubmitButton>
+                              </span>
+                            )}
+                          </span>
+                        </form>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+                {canManage && ctx.can("org.files.manage") && <FileUpload orgId={ctx.org.id} entity="product_audio" entityId={p.id} />}
+              </FormCard>
+
+              <FormCard id="downloads" title={t("store.downloads")} description={t("store.downloadsHint")}>
+                <FileList ctx={ctx} entity="products" entityId={p.id} back={`${here}?tab=digital`} />
+              </FormCard>
+            </div>
+          ) : (
+            <RecordLayout aside={
               <FormCard id="images" title={t("store.images")} description={t("store.imagesHint")}>
                 {p.images.length > 0 && (
                   <ul className="grid grid-cols-3 gap-2">
@@ -129,100 +236,11 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                 )}
               </FormCard>
 
-              <FormCard id="variants" title={t("store.variants")} description={t("store.variantsHint")}>
-                {!variants?.length && <p className="text-sm text-muted-foreground">{t("store.noVariants", { left: leftLabel(p.id, p.stock) })}</p>}
-                <ul className="grid gap-2">
-                  {variants?.map((v) => (
-                    <li key={v.id} className="grid gap-2 rounded-lg border p-2">
-                      <form action={saveVariant} className="grid grid-cols-[1fr_6rem_5rem] items-center gap-2">
-                        <input type="hidden" name="id" value={v.id} />
-                        <input type="hidden" name="product_id" value={p.id} />
-                        <Input name="name" defaultValue={v.name} required maxLength={100} aria-label={t("store.variantName")} disabled={!canManage} />
-                        <TypedInput kind="money" name="price" defaultValue={v.price_cents === null ? "" : priceInput(v.price_cents)} placeholder={priceInput(p.price_cents)} aria-label={t("store.price")} disabled={!canManage} />
-                        <TypedInput kind="number" name="stock" min={0} defaultValue={v.stock ?? ""} placeholder="∞" aria-label={t("store.stock")} disabled={!canManage} />
-                        <span className="col-span-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-2">
-                            {leftLabel(v.id, v.stock)}
-                            <label className="flex items-center gap-1">
-                              <input type="hidden" name="has_active" value="1" />
-                              <input type="checkbox" name="active" value="1" defaultChecked={v.active} disabled={!canManage} className="accent-primary" /> {t("store.variantActive")}
-                            </label>
-                            <label className="flex items-center gap-1">
-                              <input type="checkbox" name="digital" value="1" defaultChecked={v.digital} disabled={!canManage} className="accent-primary" /> {t("store.variantDigital")}
-                            </label>
-                          </span>
-                          {canManage && (
-                            <span className="flex gap-1">
-                              <SubmitButton size="sm" variant="outline">
-                                {t("common.save")}
-                              </SubmitButton>
-                              <SubmitButton size="sm" variant="ghost" name="delete" value="1" data-confirm="store.confirmDeleteVariant" aria-label={t("store.deleteVariant")}>
-                                <Trash2Icon />
-                              </SubmitButton>
-                            </span>
-                          )}
-                        </span>
-                      </form>
-                    </li>
-                  ))}
-                </ul>
-                {canManage && (
-                  <form action={saveVariant} className="grid grid-cols-[1fr_6rem_5rem_auto] items-center gap-2">
-                    <input type="hidden" name="product_id" value={p.id} />
-                    <input type="hidden" name="position" value={variants?.length ?? 0} />
-                    <Input name="name" required maxLength={100} placeholder={t("store.variantPlaceholder")} aria-label={t("store.variantName")} />
-                    <TypedInput kind="money" name="price" placeholder={priceInput(p.price_cents)} aria-label={t("store.price")} />
-                    <TypedInput kind="number" name="stock" min={0} placeholder="∞" aria-label={t("store.stock")} />
-                    <SubmitButton size="sm">{t("store.addVariant")}</SubmitButton>
-                    <label className="col-span-4 flex items-center gap-1 text-xs text-muted-foreground">
-                      <input type="checkbox" name="digital" value="1" className="accent-primary" /> {t("store.variantDigitalHint")}
-                    </label>
-                  </form>
-                )}
-              </FormCard>
-
-              <FormCard id="tracks" title={t("store.tracks")} description={t("store.tracksHint")}>
-                {tracks.length > 0 && (
-                  <ol className="grid gap-2">
-                    {tracks.map((x, i) => (
-                      <li key={x.id}>
-                        <form action={saveTrack} className="grid grid-cols-[3rem_1fr] items-center gap-2 rounded-lg border p-2">
-                          <input type="hidden" name="id" value={x.id} />
-                          <input type="hidden" name="product_id" value={p.id} />
-                          <Input name="position" type="number" defaultValue={x.position || i + 1} aria-label={t("store.trackNumber")} disabled={!canManage} />
-                          <Input name="title" defaultValue={x.title} maxLength={200} aria-label={t("store.trackTitle")} disabled={!canManage} />
-                          <span className="col-span-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-                            <label className="flex items-center gap-1">
-                              <input type="checkbox" name="stream" value="1" defaultChecked={x.stream} disabled={!canManage} className="accent-primary" /> {t("store.trackStream")}
-                            </label>
-                            <span className="truncate">{x.name}</span>
-                            {canManage && (
-                              <span className="flex gap-1">
-                                <SubmitButton size="sm" variant="outline">
-                                  {t("common.save")}
-                                </SubmitButton>
-                                <SubmitButton size="sm" variant="ghost" name="delete" value="1" data-confirm="store.confirmRemoveTrack" aria-label={t("store.removeTrack")}>
-                                  <Trash2Icon />
-                                </SubmitButton>
-                              </span>
-                            )}
-                          </span>
-                        </form>
-                      </li>
-                    ))}
-                  </ol>
-                )}
-                {canManage && ctx.can("org.files.manage") && <FileUpload orgId={ctx.org.id} entity="product_audio" entityId={p.id} />}
-              </FormCard>
-
-              <FormCard id="downloads" title={t("store.downloads")} description={t("store.downloadsHint")}>
-                <FileList ctx={ctx} entity="products" entityId={p.id} back={`${here}#downloads`} />
-              </FormCard>
-            </>
-          }
-        >
-          <ProductForm t={t} p={p} disabled={!canManage} />
-        </RecordLayout>
+            }>
+              <ProductForm t={t} p={p} disabled={!canManage} />
+            </RecordLayout>
+          )}
+        </>
       )}
     </Page>
   )

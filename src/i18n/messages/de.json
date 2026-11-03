@@ -5733,11 +5733,11 @@
     "removeImage": "Bild entfernen",
     "tooManyImages": "Höchstens 12 Bilder pro Produkt.",
     "variants": "Varianten",
-    "variantsHint": "Größen, Farben … jede mit eigener Stückzahl und optional eigenem Preis.",
+    "variantsHint": "Größen, Farben, Vinyl / Digital … jede mit eigener Stückzahl und optional eigenem Preis.",
     "noVariants": "Keine Varianten – das Produkt hat eine Stückzahl ({left}).",
     "leftOf": "{left} von {stock} frei",
     "variantName": "Variante",
-    "variantPlaceholder": "z. B. M oder Schwarz / L",
+    "variantPlaceholder": "Name, z. B. Vinyl oder Digital",
     "variantActive": "verkaufen",
     "addVariant": "Hinzufügen",
     "deleteVariant": "Variante löschen",
@@ -5820,6 +5820,10 @@
     "confirmRemoveTrack": "Diesen Titel entfernen? Die Datei landet im Papierkorb.",
     "trackRemoved": "Titel entfernt.",
     "variantDigital": "digital",
-    "variantDigitalHint": "Digital (nur Download, kein Versand, kein Bestand nötig)"
+    "variantDigitalHint": "Digital (nur Download, kein Versand, kein Bestand nötig)",
+    "productTabs": "Produktbereiche",
+    "tabProduct": "Produkt",
+    "tabVariants": "Varianten ({count})",
+    "tabDigital": "Musik & Downloads"
   }
 }

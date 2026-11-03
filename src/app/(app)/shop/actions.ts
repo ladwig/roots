@@ -91,7 +91,7 @@ export async function saveVariant(fd: FormData) {
   const { ctx, t } = await manager()
   const productId = id(fd, "product_id")
   const variantId = id(fd)
-  const here = `/shop/${productId}#variants`
+  const here = `/shop/${productId}?tab=variants`
   if (!productId) back("/shop", { error: t("errors.invalid_input") })
   if (variantId && fd.get("delete")) {
     const { error } = await ctx.supabase.from("product_variants").delete().eq("id", variantId).eq("org_id", ctx.org.id)
@@ -222,7 +222,7 @@ export async function saveTrack(fd: FormData) {
   const { ctx, t } = await manager()
   const productId = id(fd, "product_id")
   const fileId = id(fd)
-  const here = `/shop/${productId}#tracks`
+  const here = `/shop/${productId}?tab=digital`
   if (!productId || !fileId) back("/shop", { error: t("errors.invalid_input") })
   if (fd.get("delete")) {
     const { error } = await ctx.supabase.rpc("soft_delete", { p_table: "public.files", p_id: fileId })
