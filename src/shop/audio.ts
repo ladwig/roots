@@ -15,7 +15,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import type { Database } from "@/lib/supabase/types"
 import { APP_URL } from "@/lib/url"
 import { headSize, presign, r2Ready, removeKeys, uploadFile, uploadStream } from "@/lib/r2"
-import { convertArgs, DOWNLOAD_FORMATS, durationOf, EXT, ffmpeg, MIME, type Format } from "./convert"
+import { convertArgs, DOWNLOAD_FORMATS, durationOf, EXT, ffmpeg, MIME, titleFromFile, type Format } from "./convert"
 
 type Db = SupabaseClient<Database>
 type Stored = { key: string; size: number }
@@ -33,12 +33,6 @@ export async function productTrackList(db: Db, orgId: string, productId: string)
   return (data ?? []) as TrackRow[]
 }
 
-/** "Gasp" from "objects_LENGUA001 - A1 Npoint_O - Gasp Master (24, 44.1).wav": the last " - " part, without extension/"Master"/brackets. */
-export function titleFromFile(name: string) {
-  const base = name.replace(/\.[a-z0-9]+$/i, "")
-  const last = base.split(" - ").pop() ?? base
-  return last.replace(/\([^)]*\)/g, "").replace(/\bmaster\b\s*\d*/gi, "").replace(/^\s*(\d+|[A-D]\d)[\s._-]+/i, "").replace(/\s+/g, " ").trim() || base
-}
 
 /** New track: the row ("uploading") + a one-hour PUT link the browser uploads the master to. */
 export async function startTrackUpload(db: Db, orgId: string, productId: string, file: { name: string; size: number }) {

@@ -58,7 +58,8 @@ export function AudioUpload({ productId }: { productId: string }) {
           className="sr-only"
           disabled={busy}
           onChange={(e) => {
-            const files = [...(e.target.files ?? [])]
+            // In name order (A1, A2, B1 … / 01, 02 …): the upload order becomes the track order.
+            const files = [...(e.target.files ?? [])].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
             e.target.value = ""
             if (files.length) upload(files)
           }}
