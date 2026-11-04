@@ -35,6 +35,12 @@ export function MusicPlayer({ tracks, cover, artist, buy }: { tracks: PlayerTrac
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the track changes
   }, [index])
 
+  // Leaving the page: Next keeps visited pages alive but hidden (Activity), which runs cleanups – stop the music then.
+  useEffect(() => {
+    const a = audio.current
+    return () => a?.pause()
+  }, [])
+
   const go = (i: number) => {
     if (!tracks[i]?.src) return
     if (i === index) return toggle()
