@@ -103,7 +103,7 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/sh
         </form>
       )}
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
-      {canRefund && (
+      {canRefund && param(sp, "refund") && (
         <UrlSheet params={["refund"]} title={t("store.refundTitle", { number: String(o.number) })} meta={t("store.refundMeta", { paid: t.money(payment?.amount ?? 0, cur), left: t.money(refundLeft, cur) })}>
           <RefundForm
             orderId={o.id}
