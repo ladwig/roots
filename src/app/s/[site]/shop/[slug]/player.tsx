@@ -22,6 +22,7 @@ export function MusicPlayer({ tracks, cover, artist }: { tracks: PlayerTrack[]; 
   const [time, setTime] = useState(0)
   const [duration, setDuration] = useState(NaN)
   const current = tracks[index]
+  const total = Number.isFinite(duration) ? duration : (current?.duration ?? NaN) // stored length until the file says
 
   // A new track: load it and keep playing if we were.
   useEffect(() => {
@@ -91,7 +92,7 @@ export function MusicPlayer({ tracks, cover, artist }: { tracks: PlayerTrack[]; 
           <input
             type="range"
             min={0}
-            max={Number.isFinite(duration) ? duration : 0}
+            max={Number.isFinite(total) ? total : 0}
             step={0.1}
             value={time}
             onChange={(e) => {
@@ -103,7 +104,7 @@ export function MusicPlayer({ tracks, cover, artist }: { tracks: PlayerTrack[]; 
           />
           <div className="flex items-center justify-between text-xs text-muted-foreground tabular-nums">
             <span>
-              {clock(time)} / {clock(duration)}
+              {clock(time)} / {clock(total)}
             </span>
             <span className="flex gap-1">
               <button type="button" onClick={() => step(-1)} aria-label={t("store.previous")} className="grid size-8 place-items-center rounded-md hover:bg-muted hover:text-foreground">
@@ -123,6 +124,7 @@ export function MusicPlayer({ tracks, cover, artist }: { tracks: PlayerTrack[]; 
               <button
                 type="button"
                 onClick={() => go(i)}
+                title={x.src ? undefined : t("store.buyersOnly")}
                 disabled={!x.src}
                 className={cn("flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left hover:bg-muted disabled:cursor-default disabled:hover:bg-transparent", i === index && x.src && "bg-muted font-medium")}
               >
@@ -130,12 +132,8 @@ export function MusicPlayer({ tracks, cover, artist }: { tracks: PlayerTrack[]; 
                   {i === index && playing ? <PauseIcon className="ml-auto size-3 fill-current" /> : i + 1}
                 </span>
                 <span className={cn("min-w-0 flex-1 truncate", !x.src && "text-muted-foreground")}>{x.title}</span>
+                {!x.src && <LockIcon className="size-3 text-muted-foreground" aria-label={t("store.buyersOnly")} />}
                 {x.duration ? <span className="text-xs text-muted-foreground tabular-nums">{clock(x.duration)}</span> : null}
-                {!x.src && (
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <LockIcon className="size-3" /> {t("store.buyersOnly")}
-                  </span>
-                )}
               </button>
             </li>
           ))}
