@@ -20,8 +20,10 @@ export const pdfText = (s: string) =>
   s
     .replace(/[   ]/g, " ")
     .replace(/[‐-‒]/g, "-")
+    .replace(/\r\n?/g, "\n") // textareas post Windows line breaks
+    .replace(/\t/g, " ")
     .split("")
-    .filter((c) => c.charCodeAt(0) < 256 || WIN_ANSI_EXTRA.includes(c))
+    .filter((c) => c === "\n" || (c >= " " && c !== "\x7f" && c.charCodeAt(0) < 256 && !(c >= "\x80" && c < "\xa0")) || WIN_ANSI_EXTRA.includes(c))
     .join("")
 
 function wrap(text: string, font: PDFFont, size: number, width: number) {
