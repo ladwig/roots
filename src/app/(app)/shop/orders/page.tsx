@@ -79,11 +79,20 @@ export default async function OrdersPage({ searchParams }: PageProps<"/shop/orde
           { header: t("store.total"), cell: (o) => t.money(o.pay_orders.amount_total, o.pay_orders.currency) },
           { header: t("store.delivery"), cell: (o) => t.dynamic(`store.deliveries.${o.delivery}`) },
           {
+            header: t("store.payment"),
+            cell: (o) => (
+              <span className="grid">
+                <span>{t.dynamic(`store.payments.${o.payment}`)}</span>
+                <span className="text-xs text-muted-foreground">{t.dynamic(`payments.statuses.${o.pay_orders.status}`)}</span>
+              </span>
+            ),
+          },
+          {
             header: t("store.status"),
             cell: (o) => (
               <span className="flex flex-wrap gap-1">
                 <Badge variant={o.status === "cancelled" ? "destructive" : o.status === "new" ? "default" : "secondary"}>{t.dynamic(`store.orderStatus.${o.status}`)}</Badge>
-                {o.status !== "cancelled" && !paid(o.pay_orders.status) && <Badge variant="outline">{t("store.unpaid")}</Badge>}
+                {o.status !== "cancelled" && <Badge variant={paid(o.pay_orders.status) ? "secondary" : "outline"}>{paid(o.pay_orders.status) ? t("store.paid") : t("store.unpaid")}</Badge>}
               </span>
             ),
           },

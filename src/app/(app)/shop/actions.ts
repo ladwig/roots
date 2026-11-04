@@ -160,7 +160,10 @@ async function orderStep(fd: FormData, run: (ctx: Ctx, orderId: string, t: T) =>
   try {
     ok = await run(ctx, orderId, t)
   } catch (e) {
-    back(here, { error: msg(t, e instanceof Error ? e.message : "") })
+    const m = e instanceof Error ? e.message : ""
+    // Unknown errors (e.g. the payment provider's own message): log them and show what the provider said.
+    if (!t.has(m)) console.error("shop order step", orderId, e)
+    back(here, { error: t.has(m) ? t.dynamic(m) : m ? t("store.failedWith", { message: m.slice(0, 300) }) : t("store.failed") })
   }
   deliverSoon()
   back(here, { ok: ok || t("store.saved") })

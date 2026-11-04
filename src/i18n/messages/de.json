@@ -5984,6 +5984,7 @@
     },
     "phone": "Telefon",
     "billingAddress": "Rechnungsadresse",
-    "phoneMissing": "Bitte gib eine Telefonnummer an."
+    "phoneMissing": "Bitte gib eine Telefonnummer an.",
+    "failedWith": "Das hat nicht geklappt: {message}"
   }
 }

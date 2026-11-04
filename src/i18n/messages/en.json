@@ -5984,6 +5984,7 @@
     },
     "phone": "Phone",
     "billingAddress": "Billing address",
-    "phoneMissing": "Please enter a phone number."
+    "phoneMissing": "Please enter a phone number.",
+    "failedWith": "That didn't work: {message}"
   }
 }
