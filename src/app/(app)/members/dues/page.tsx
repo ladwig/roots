@@ -17,6 +17,7 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { pageParam, param, withParams } from "@/lib/url"
+import { reminderScope } from "@/members/dues"
 import { addLevy, bulkDues, createSepaRun, generateDues, sendReminders, setRunStatus } from "../actions"
 
 type Status = "open" | "paid" | "cancelled"
@@ -44,14 +45,13 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
     query,
     ctx.supabase.from("sepa_runs").select("id, collection_on, count, total_cents, status, created_at").eq("org_id", ctx.org.id).order("created_at", { ascending: false }).limit(10),
     // ponytail: open total summed here over ≤ 5000 rows; an RPC once dues lists get longer.
-    ctx.supabase.from("member_dues").select("amount_cents, due_on, membership_id").eq("org_id", ctx.org.id).eq("status", "open").limit(5000),
+    ctx.supabase.from("member_dues").select("amount_cents, due_on, membership_id, run_id").eq("org_id", ctx.org.id).eq("status", "open").limit(5000),
     canManage ? ctx.supabase.from("contacts").select("tags").eq("org_id", ctx.org.id).is("deleted_at", null).limit(2000) : Promise.resolve({ data: [] }),
   ])
   const rows = data?.slice(0, PAGE_SIZE) ?? []
   const openTotal = (open ?? []).reduce((s, d) => s + d.amount_cents, 0)
-  const overdueDues = (open ?? []).filter((d) => d.due_on < now)
-  const overdue = overdueDues.reduce((s, d) => s + d.amount_cents, 0)
-  const overduePeople = new Set(overdueDues.map((d) => d.membership_id)).size // one reminder mail per person
+  const overdue = (open ?? []).filter((d) => d.due_on < now).reduce((s, d) => s + d.amount_cents, 0)
+  const remind = reminderScope(open ?? [], now) // what "remind all" really mails (dues in a SEPA run are skipped)
   const tags = [...new Set((tagRows ?? []).flatMap((r) => r.tags))].sort((a, b) => a.localeCompare(b, t.locale))
   const highlight = param(sp, "run")
   const chip = (href: string, current: boolean, label: string) => (
@@ -74,9 +74,9 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
         actions={
           canManage && (
             <>
-              {overdue > 0 && (
+              {remind.people > 0 && (
                 <form action={sendReminders}>
-                  <SubmitButton size="sm" variant="outline" data-confirm="membership.confirmRemindAll" data-confirm-count={overduePeople} data-confirm-amount={t.money(overdue)}>
+                  <SubmitButton size="sm" variant="outline" data-confirm="membership.confirmRemindAll" data-confirm-count={remind.people} data-confirm-amount={t.money(remind.cents)}>
                     <BellIcon /> {t("membership.remindAll")}
                   </SubmitButton>
                 </form>

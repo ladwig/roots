@@ -53,3 +53,9 @@ export function periodFee(feeCents: number, interval: Interval, p: { start: stri
   const covered = months.filter((x) => billable(m, x)).length
   return Math.round((feeCents * covered) / months.length)
 }
+
+/** Who "Erinnerung an alle Überfälligen" mails, as sendReminders() picks them: overdue, open, not in a SEPA run. */
+export function reminderScope(open: { membership_id: string; amount_cents: number; due_on: string; run_id: string | null }[], today: string) {
+  const due = open.filter((d) => d.due_on < today && !d.run_id)
+  return { people: new Set(due.map((d) => d.membership_id)).size, cents: due.reduce((s, d) => s + d.amount_cents, 0) }
+}

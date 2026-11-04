@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { billable, coversPeriod, earliestEnd, isPaused, periodFee, periods } from "./dues.ts"
+import { billable, coversPeriod, earliestEnd, isPaused, periodFee, periods, reminderScope } from "./dues.ts"
 import { pain008, sepaText } from "./sepa.ts"
 
 test("periods are calendar-aligned and start inside the range", () => {
@@ -78,4 +78,15 @@ test("fee-free until (DJ voucher): periods ending on or before it are free", () 
   assert.ok(!billable(m, { start: "2027-04-01", end: "2027-06-30" }))
   assert.ok(billable(m, { start: "2027-07-01", end: "2027-09-30" }))
   assert.equal(periodFee(1200, "year", { start: "2027-01-01", end: "2027-12-31" }, m, true), 600)
+})
+
+test("reminderScope counts only overdue dues outside a SEPA run, people by membership", () => {
+  const open = [
+    { membership_id: "a", amount_cents: 4400, due_on: "2026-10-01", run_id: null },
+    { membership_id: "a", amount_cents: 1200, due_on: "2026-10-02", run_id: null },
+    { membership_id: "b", amount_cents: 4400, due_on: "2026-10-03", run_id: "run-1" }, // collected by the bank
+    { membership_id: "c", amount_cents: 9900, due_on: "2026-12-01", run_id: null }, // not due yet
+  ]
+  assert.deepEqual(reminderScope(open, "2026-11-04"), { people: 1, cents: 5600 })
+  assert.deepEqual(reminderScope([], "2026-11-04"), { people: 0, cents: 0 })
 })
