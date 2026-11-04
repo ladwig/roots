@@ -374,7 +374,10 @@ function mailMessage(kind: MailKind, o: Order, t: T, custom: string | null, bank
     parts.push(md(`<p><strong>${esc(head)}</strong><br>${lines.map(esc).join("<br>")}</p>`, `${head}\n${lines.join("\n")}`))
   }
   if (kind === "confirmation" && unpaid && o.payment === "pickup") parts.push(md(`<p>${esc(t("store.payOnPickupNote"))}</p>`, t("store.payOnPickupNote")))
-  if ((kind === "ready" || (kind === "confirmation" && o.delivery === "pickup")) && pickupText) parts.push(md(`<p>${esc(pickupText).replace(/\n/g, "<br>")}</p>`, pickupText))
+  if ((kind === "ready" || (kind === "confirmation" && o.delivery === "pickup")) && pickupText) {
+    const head = t("store.deliveries.pickup")
+    parts.push(md(`<p><strong>${esc(head)}:</strong><br>${esc(pickupText).replace(/\n/g, "<br>")}</p>`, `${head}:\n${pickupText}`))
+  }
   if (kind === "refunded") {
     const last = o.pay_orders.pay_payments.flatMap((p) => p.pay_refunds).sort((a, b) => b.created_at.localeCompare(a.created_at))[0]
     const rows = o.pay_orders.pay_order_items.filter((i) => i.refunded_quantity).map((i) => `${i.refunded_quantity}× ${i.description}`)
