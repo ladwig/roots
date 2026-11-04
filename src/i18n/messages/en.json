@@ -2535,7 +2535,26 @@
       "one": "+ {count} other membership",
       "other": "+ {count} other memberships"
     },
-    "open": "open"
+    "open": "open",
+    "confirmRemindAll": {
+      "one": "Remind {count} member about {amount}?",
+      "other": "Remind {count} members about {amount} in total?"
+    },
+    "confirmRemindAllHint": "Each person gets an email with their open dues right away. People without an email address are skipped.",
+    "confirmBulkRemind": {
+      "one": "Send a reminder for {count} selected due?",
+      "other": "Send reminders for {count} selected dues?"
+    },
+    "confirmBulkRemindHint": "Each person gets an email with their open dues right away. People without an email address are skipped.",
+    "confirmBulkPaid": {
+      "one": "Mark {count} due as paid?",
+      "other": "Mark {count} dues as paid?"
+    },
+    "confirmCollected": {
+      "one": "Mark {count} due over {amount} as collected?",
+      "other": "Mark {count} dues over {amount} as collected?"
+    },
+    "confirmCollectedHint": "Only mark it once the bank has run the direct debit. The dues then count as paid."
   },
   "forms": {
     "nav": "Forms",

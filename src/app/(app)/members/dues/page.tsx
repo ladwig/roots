@@ -44,12 +44,14 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
     query,
     ctx.supabase.from("sepa_runs").select("id, collection_on, count, total_cents, status, created_at").eq("org_id", ctx.org.id).order("created_at", { ascending: false }).limit(10),
     // ponytail: open total summed here over ≤ 5000 rows; an RPC once dues lists get longer.
-    ctx.supabase.from("member_dues").select("amount_cents, due_on").eq("org_id", ctx.org.id).eq("status", "open").limit(5000),
+    ctx.supabase.from("member_dues").select("amount_cents, due_on, membership_id").eq("org_id", ctx.org.id).eq("status", "open").limit(5000),
     canManage ? ctx.supabase.from("contacts").select("tags").eq("org_id", ctx.org.id).is("deleted_at", null).limit(2000) : Promise.resolve({ data: [] }),
   ])
   const rows = data?.slice(0, PAGE_SIZE) ?? []
   const openTotal = (open ?? []).reduce((s, d) => s + d.amount_cents, 0)
-  const overdue = (open ?? []).filter((d) => d.due_on < now).reduce((s, d) => s + d.amount_cents, 0)
+  const overdueDues = (open ?? []).filter((d) => d.due_on < now)
+  const overdue = overdueDues.reduce((s, d) => s + d.amount_cents, 0)
+  const overduePeople = new Set(overdueDues.map((d) => d.membership_id)).size // one reminder mail per person
   const tags = [...new Set((tagRows ?? []).flatMap((r) => r.tags))].sort((a, b) => a.localeCompare(b, t.locale))
   const highlight = param(sp, "run")
   const chip = (href: string, current: boolean, label: string) => (
@@ -74,7 +76,7 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
             <>
               {overdue > 0 && (
                 <form action={sendReminders}>
-                  <SubmitButton size="sm" variant="outline">
+                  <SubmitButton size="sm" variant="outline" data-confirm="membership.confirmRemindAll" data-confirm-count={overduePeople} data-confirm-amount={t.money(overdue)}>
                     <BellIcon /> {t("membership.remindAll")}
                   </SubmitButton>
                 </form>
@@ -171,7 +173,9 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
                     <form action={setRunStatus}>
                       <input type="hidden" name="id" value={r.id} />
                       <input type="hidden" name="status" value="collected" />
-                      <SubmitButton size="sm">{t("membership.markCollected")}</SubmitButton>
+                      <SubmitButton size="sm" data-confirm="membership.confirmCollected" data-confirm-count={r.count} data-confirm-amount={t.money(r.total_cents)}>
+                        {t("membership.markCollected")}
+                      </SubmitButton>
                     </form>
                     <form action={setRunStatus}>
                       <input type="hidden" name="id" value={r.id} />
@@ -227,10 +231,10 @@ export default async function DuesPage({ searchParams }: PageProps<"/members/due
       {canManage && (
         <BulkBar form="bulk-dues">
           <input type="hidden" name="back" value={`/members/dues${withParams(sp, {})}`} />
-          <SubmitButton size="sm" variant="outline" formAction={bulkDues} name="intent" value="paid">
+          <SubmitButton size="sm" variant="outline" formAction={bulkDues} name="intent" value="paid" data-confirm="membership.confirmBulkPaid">
             <CheckIcon /> {t("membership.markPaid")}
           </SubmitButton>
-          <SubmitButton size="sm" variant="outline" formAction={bulkDues} name="intent" value="remind">
+          <SubmitButton size="sm" variant="outline" formAction={bulkDues} name="intent" value="remind" data-confirm="membership.confirmBulkRemind">
             <BellIcon /> {t("membership.remind")}
           </SubmitButton>
           <Button type="submit" size="sm" variant="ghost" formAction="/export/dues" formMethod="get" name="format" value="xlsx">

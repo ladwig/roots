@@ -12,7 +12,7 @@ import { useT } from "@/i18n/client"
  */
 export function ConfirmHost() {
   const t = useT()
-  const [ask, setAsk] = useState<{ form: HTMLFormElement; button: HTMLElement; key: string; count: number; label: string } | null>(null)
+  const [ask, setAsk] = useState<{ form: HTMLFormElement; button: HTMLElement; key: string; vars: { count: number; amount: string }; label: string } | null>(null)
   const passed = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -25,7 +25,9 @@ export function ConfirmHost() {
       e.preventDefault()
       e.stopPropagation()
       const form = e.target as HTMLFormElement
-      setAsk({ form, button, key, count: new FormData(form, button).getAll("ids").length, label: button.textContent?.trim() ?? "" })
+      // data-confirm-count / -amount: what the server knows (people to email, money) beyond the ticked ids.
+      const count = Number(button.dataset.confirmCount ?? new FormData(form, button).getAll("ids").length)
+      setAsk({ form, button, key, vars: { count, amount: button.dataset.confirmAmount ?? "" }, label: button.textContent?.trim() ?? "" })
     }
     document.addEventListener("submit", onSubmit, true)
     return () => document.removeEventListener("submit", onSubmit, true)
@@ -44,8 +46,8 @@ export function ConfirmHost() {
     <Dialog open={!!ask} onOpenChange={(o) => !o && setAsk(null)}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{ask ? t.dynamic(ask.key, { count: ask.count }) : ""}</DialogTitle>
-          {ask && t.has(`${ask.key}Hint`) && <DialogDescription>{t.dynamic(`${ask.key}Hint`)}</DialogDescription>}
+          <DialogTitle>{ask ? t.dynamic(ask.key, ask.vars) : ""}</DialogTitle>
+          {ask && t.has(`${ask.key}Hint`) && <DialogDescription>{t.dynamic(`${ask.key}Hint`, ask.vars)}</DialogDescription>}
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => setAsk(null)}>

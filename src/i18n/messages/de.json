@@ -2535,7 +2535,26 @@
       "one": "+ {count} weitere Mitgliedschaft",
       "other": "+ {count} weitere Mitgliedschaften"
     },
-    "open": "offen"
+    "open": "offen",
+    "confirmRemindAll": {
+      "one": "{count} Mitglied an {amount} erinnern?",
+      "other": "{count} Mitglieder an insgesamt {amount} erinnern?"
+    },
+    "confirmRemindAllHint": "Jede Person bekommt sofort eine E-Mail mit ihren offenen Beiträgen. Wer keine E-Mail-Adresse hat, wird übersprungen.",
+    "confirmBulkRemind": {
+      "one": "An {count} ausgewählten Beitrag erinnern?",
+      "other": "An {count} ausgewählte Beiträge erinnern?"
+    },
+    "confirmBulkRemindHint": "Jede Person bekommt sofort eine E-Mail mit ihren offenen Beiträgen. Wer keine E-Mail-Adresse hat, wird übersprungen.",
+    "confirmBulkPaid": {
+      "one": "{count} Beitrag als bezahlt markieren?",
+      "other": "{count} Beiträge als bezahlt markieren?"
+    },
+    "confirmCollected": {
+      "one": "{count} Beitrag über {amount} als eingezogen markieren?",
+      "other": "{count} Beiträge über {amount} als eingezogen markieren?"
+    },
+    "confirmCollectedHint": "Erst markieren, wenn die Bank die Lastschrift ausgeführt hat. Die Beiträge gelten dann als bezahlt."
   },
   "forms": {
     "nav": "Formulare",
