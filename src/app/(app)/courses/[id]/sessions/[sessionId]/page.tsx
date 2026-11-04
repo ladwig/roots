@@ -10,6 +10,7 @@ import { requirePerm } from "@/lib/context"
 import { toLocalInput } from "@/lib/time"
 import { param } from "@/lib/url"
 import { deleteSession, saveAttendance, updateSession } from "../../../actions"
+import { DateInput } from "@/components/date-input"
 
 // One date of a course: attendance list (enrolled participants, tick who was there), change/cancel/delete the date.
 export default async function SessionPage({ params, searchParams }: { params: Promise<{ id: string; sessionId: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -67,11 +68,11 @@ export default async function SessionPage({ params, searchParams }: { params: Pr
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
                 <Label htmlFor="d-start">{t("courses.start")}</Label>
-                <Input id="d-start" name="starts_at" type="datetime-local" required defaultValue={toLocalInput(s.starts_at)} />
+                <DateInput id="d-start" name="starts_at" type="datetime-local" required defaultValue={toLocalInput(s.starts_at)} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="d-end">{t("courses.end")}</Label>
-                <Input id="d-end" name="ends_at" type="datetime-local" required defaultValue={toLocalInput(s.ends_at)} />
+                <DateInput id="d-end" name="ends_at" type="datetime-local" required defaultValue={toLocalInput(s.ends_at)} />
               </div>
             </div>
             <div className="grid gap-2">

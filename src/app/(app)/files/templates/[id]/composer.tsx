@@ -16,6 +16,7 @@ import { DocumentPage } from "@/documents/templates"
 import { useT } from "@/i18n/client"
 import { fieldVars, fillHtml, fillText, type LetterField, type Vars } from "@/letters/model"
 import { letterContact, saveLetter, sendLetter } from "../actions"
+import { DateInput } from "@/components/date-input"
 
 type Contact = { id: string; label: string; detail: string }
 type Filled = { vars: Vars; recipient: string[] }
@@ -98,7 +99,7 @@ export function Composer({
         )}
         <div className="grid gap-2">
           <Label htmlFor="l-date">{t("letters.date")}</Label>
-          <Input id="l-date" name="date" type="date" required value={date} onChange={(e) => setDate(e.target.value)} />
+          <DateInput id="l-date" name="date" required defaultValue={date} onValueChange={setDate} />
         </div>
         {fields.map((f) => (
           <div key={f.key} className="grid gap-2">

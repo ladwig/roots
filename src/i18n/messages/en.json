@@ -4910,7 +4910,10 @@
       "money": "Please enter an amount like 12.50.",
       "number": "Please enter a number.",
       "date": "Please enter a date."
-    }
+    },
+    "datePlaceholder": "DD.MM.YYYY",
+    "pickDate": "Pick a date",
+    "time": "Time"
   },
   "rentals": {
     "nav": "Rentals",

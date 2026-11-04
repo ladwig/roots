@@ -21,6 +21,7 @@ import { requirePerm } from "@/lib/context"
 import type { Tables } from "@/lib/supabase/types"
 import { param, withParams, type SearchParams } from "@/lib/url"
 import { bookCashEntry, closeCashMonth, reverseCashEntry, saveAccount } from "./actions"
+import { DateInput } from "@/components/date-input"
 
 type Ctx = Awaited<ReturnType<typeof requirePerm>>
 type Entry = Tables<"cash_entries">
@@ -248,7 +249,7 @@ function Field({ id, label, ...props }: { id: string; label: string } & React.Co
   return (
     <div className="grid gap-2">
       <Label htmlFor={id}>{label}</Label>
-      <Input id={id} {...props} />
+      {props.type === "date" ? <DateInput id={id} {...(props as React.ComponentProps<typeof DateInput>)} /> : <Input id={id} {...props} />}
     </div>
   )
 }

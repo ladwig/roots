@@ -18,6 +18,7 @@ import { requirePerm } from "@/lib/context"
 import { param } from "@/lib/url"
 import { addParticipant, addSessions, restoreCourse, setParticipantStatus, trashCourse } from "../actions"
 import { CourseForm } from "../course-form"
+import { DateInput } from "@/components/date-input"
 
 const WEEKDAYS = [1, 2, 3, 4, 5, 6, 7]
 
@@ -234,11 +235,11 @@ export default async function CoursePage({ params, searchParams }: { params: Pro
                     </div>
                     <div className="grid gap-1">
                       <Label htmlFor="s-from">{t("courses.from")}</Label>
-                      <Input id="s-from" name="from" type="date" required />
+                      <DateInput id="s-from" name="from" type="date" required />
                     </div>
                     <div className="grid gap-1">
                       <Label htmlFor="s-to">{t("courses.to")}</Label>
-                      <Input id="s-to" name="to" type="date" required />
+                      <DateInput id="s-to" name="to" type="date" required />
                     </div>
                   </div>
                   <label className="flex items-center gap-2 text-sm">
@@ -256,11 +257,11 @@ export default async function CoursePage({ params, searchParams }: { params: Pro
                   <input type="hidden" name="course_id" value={id} />
                   <div className="grid gap-1">
                     <Label htmlFor="o-start">{t("courses.start")}</Label>
-                    <Input id="o-start" name="starts_at" type="datetime-local" required />
+                    <DateInput id="o-start" name="starts_at" type="datetime-local" required />
                   </div>
                   <div className="grid gap-1">
                     <Label htmlFor="o-end">{t("courses.end")}</Label>
-                    <Input id="o-end" name="ends_at" type="datetime-local" required />
+                    <DateInput id="o-end" name="ends_at" type="datetime-local" required />
                   </div>
                   <SubmitButton className="justify-self-end">{t("courses.add")}</SubmitButton>
                 </form>

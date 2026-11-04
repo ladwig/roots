@@ -15,6 +15,7 @@ import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param, withParams } from "@/lib/url"
 import { deletePosition, deleteSeries, savePosition, saveSeries } from "../actions"
+import { DateInput } from "@/components/date-input"
 
 const WEEKDAYS = [1, 2, 3, 4, 5, 6, 7] as const
 
@@ -166,11 +167,11 @@ export default async function ShiftSetup({ searchParams }: PageProps<"/shifts/se
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="grid gap-2">
                 <Label htmlFor="se-sd">{t("shifts.startDate")}</Label>
-                <Input id="se-sd" name="start_date" type="date" required defaultValue={editing?.start_date ?? new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })} />
+                <DateInput id="se-sd" name="start_date" type="date" required defaultValue={editing?.start_date ?? new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="se-ed">{t("shifts.endDate")}</Label>
-                <Input id="se-ed" name="end_date" type="date" defaultValue={editing?.end_date ?? ""} />
+                <DateInput id="se-ed" name="end_date" type="date" defaultValue={editing?.end_date ?? ""} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="se-needed">{t("shifts.needed")}</Label>

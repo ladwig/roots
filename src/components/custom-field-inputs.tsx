@@ -2,6 +2,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { formatValue, type CustomValues, type FieldDef } from "@/lib/custom-fields"
+import { DateInput } from "@/components/date-input"
 
 // Inputs for an entity's custom fields (form names "custom.<key>", read back with readCustom()).
 export function CustomFieldInputs({ defs, values, idPrefix }: { defs: FieldDef[]; values?: CustomValues; idPrefix: string }) {
@@ -34,6 +35,8 @@ export function CustomFieldInputs({ defs, values, idPrefix }: { defs: FieldDef[]
                   </NativeSelectOption>
                 ))}
               </NativeSelect>
+            ) : d.type === "date" ? (
+              <DateInput id={id} name={name} defaultValue={value ? String(value) : undefined} required={d.required} />
             ) : (
               <Input
                 id={id}

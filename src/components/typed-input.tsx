@@ -1,5 +1,6 @@
 "use client"
 
+import { DateInput } from "@/components/date-input"
 import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
@@ -30,7 +31,16 @@ const SPECS: Record<InputKind, Spec> = {
  * groups of four, 12,5 → 12,50), marks wrong values and blocks submitting them (custom validity), shows why.
  * `country` narrows the postcode check (DE = five digits). Money posts German text ("1.234,50"): parse with moneyCents().
  */
-export function TypedInput({ kind, country, className, onBlur, onChange, defaultValue, ...props }: { kind: InputKind; country?: string | null } & Omit<React.ComponentProps<"input">, "type">) {
+type TypedProps = { kind: InputKind; country?: string | null } & Omit<React.ComponentProps<"input">, "type">
+
+// Dates go to <DateInput> (TT.MM.JJJJ + calendar in every browser; native date inputs follow the browser language).
+export function TypedInput(props: TypedProps) {
+  if (props.kind !== "date") return <TextTypedInput {...props} />
+  const { id, name, defaultValue, required, disabled, min, className } = props
+  return <DateInput id={id} name={name} defaultValue={defaultValue as string | undefined} required={required} disabled={disabled} min={min as string | undefined} className={className} aria-label={props["aria-label"]} />
+}
+
+function TextTypedInput({ kind, country, className, onBlur, onChange, defaultValue, ...props }: TypedProps) {
   const t = useT()
   const spec = SPECS[kind]
   const [error, setError] = useState(false)

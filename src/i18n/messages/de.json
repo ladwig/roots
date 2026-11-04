@@ -4910,7 +4910,10 @@
       "money": "Bitte einen Betrag wie 12,50 eingeben.",
       "number": "Bitte eine Zahl eingeben.",
       "date": "Bitte ein Datum eingeben."
-    }
+    },
+    "datePlaceholder": "TT.MM.JJJJ",
+    "pickDate": "Datum im Kalender wählen",
+    "time": "Uhrzeit"
   },
   "rentals": {
     "nav": "Vermietung",

@@ -3,7 +3,6 @@ import { FormCard, Page, PageHeader } from "@/components/page"
 import { notFound } from "next/navigation"
 import { DataTable } from "@/components/data-table"
 import { SubmitButton } from "@/components/submit-button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
 import type { T } from "@/i18n/translate"
@@ -12,6 +11,7 @@ import { param } from "@/lib/url"
 import { PRESETS, period } from "@/reports/period"
 import { loadReport } from "@/reports/server"
 import { GroupedBars, StackedBars } from "./charts"
+import { DateInput } from "@/components/date-input"
 
 // Reports: KPIs per area for a period (presets or own range, in the URL). Each area only for those who may see it.
 export default async function ReportsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -47,11 +47,11 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         <form key={`${p.from}:${p.to}`} className="flex flex-wrap items-end gap-3" action="/reports">
           <div className="grid gap-1">
             <Label htmlFor="r-from">{t("reports.from")}</Label>
-            <Input id="r-from" name="from" type="date" defaultValue={p.from} className="w-40" />
+            <DateInput id="r-from" name="from" type="date" defaultValue={p.from} className="w-40" />
           </div>
           <div className="grid gap-1">
             <Label htmlFor="r-to">{t("reports.to")}</Label>
-            <Input id="r-to" name="to" type="date" defaultValue={p.to} className="w-40" />
+            <DateInput id="r-to" name="to" type="date" defaultValue={p.to} className="w-40" />
           </div>
           <SubmitButton size="sm" variant="outline">
             {t("reports.show")}

@@ -18,6 +18,7 @@ import type { Tables } from "@/lib/supabase/types"
 import { toLocalInput } from "@/lib/time"
 import { param, withParams } from "@/lib/url"
 import { artistGuestList, deleteSlot, saveArtist, saveSlot } from "./actions"
+import { DateInput } from "@/components/date-input"
 
 const textarea =
   "rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
@@ -179,11 +180,11 @@ function SlotForm({ t, eventId, defaultStart, slot, artists }: { t: T; eventId: 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="grid gap-2">
           <Label htmlFor="s-start">{t("lineup.start")}</Label>
-          <Input id="s-start" name="starts_at" type="datetime-local" required defaultValue={toLocalInput(slot?.starts_at ?? defaultStart)} />
+          <DateInput id="s-start" name="starts_at" type="datetime-local" required defaultValue={toLocalInput(slot?.starts_at ?? defaultStart)} />
         </div>
         <div className="grid gap-2">
           <Label htmlFor="s-end">{t("lineup.end")}</Label>
-          <Input id="s-end" name="ends_at" type="datetime-local" defaultValue={slot?.ends_at ? toLocalInput(slot.ends_at) : undefined} />
+          <DateInput id="s-end" name="ends_at" type="datetime-local" defaultValue={slot?.ends_at ? toLocalInput(slot.ends_at) : undefined} />
         </div>
       </div>
       <label className="flex items-center gap-2 text-sm">

@@ -12,6 +12,7 @@ import { getContext } from "@/lib/context"
 import { loadFields, type CustomValues } from "@/lib/custom-fields"
 import type { Tables } from "@/lib/supabase/types"
 import { toLocalInput } from "@/lib/time"
+import { DateInput } from "@/components/date-input"
 
 type Ev = Tables<"events">
 
@@ -42,11 +43,11 @@ export async function EventForm({ t, action, ev, disabled }: { t: T; action: (fd
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="ev-starts">{t("eventsPage.startsAt")}</Label>
-              <Input id="ev-starts" name="starts_at" type="datetime-local" defaultValue={ev ? toLocalInput(ev.starts_at) : undefined} required />
+              <DateInput id="ev-starts" name="starts_at" type="datetime-local" defaultValue={ev ? toLocalInput(ev.starts_at) : undefined} required />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="ev-ends">{t("eventsPage.endsAt")}</Label>
-              <Input id="ev-ends" name="ends_at" type="datetime-local" defaultValue={ev?.ends_at ? toLocalInput(ev.ends_at) : undefined} />
+              <DateInput id="ev-ends" name="ends_at" type="datetime-local" defaultValue={ev?.ends_at ? toLocalInput(ev.ends_at) : undefined} />
             </div>
           </div>
         </FormCard>

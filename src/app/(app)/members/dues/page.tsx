@@ -18,6 +18,7 @@ import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { pageParam, param, withParams } from "@/lib/url"
 import { addLevy, bulkDues, createSepaRun, generateDues, sendReminders, setRunStatus } from "../actions"
+import { DateInput } from "@/components/date-input"
 
 type Status = "open" | "paid" | "cancelled"
 const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
@@ -246,7 +247,7 @@ function Field({ id, label, ...props }: { id: string; label: string } & React.Co
   return (
     <div className="grid gap-2">
       <Label htmlFor={id}>{label}</Label>
-      <Input id={id} {...props} />
+      {props.type === "date" ? <DateInput id={id} {...(props as React.ComponentProps<typeof DateInput>)} /> : <Input id={id} {...props} />}
     </div>
   )
 }

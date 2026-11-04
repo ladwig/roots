@@ -2,6 +2,7 @@
 
 import "@xyflow/react/dist/style.css"
 import { useCallback, useMemo, useState, useTransition } from "react"
+import { DateInput } from "@/components/date-input"
 import {
   addEdge,
   Background,
@@ -1257,7 +1258,7 @@ function DateValue({ value: full, dates, time, disabled, onChange: emit }: { val
         <NativeSelectOption value="calc">{t("automations.dateCalc")}</NativeSelectOption>
       </NativeSelect>
       {!calc ? (
-        <Input type="date" value={/^\d{4}-\d{2}-\d{2}$/.test(value) ? value : ""} disabled={disabled} aria-label={t("automations.value")} onChange={(e) => onChange(e.target.value)} />
+        <DateInput defaultValue={/^\d{4}-\d{2}-\d{2}$/.test(value) ? value : ""} disabled={disabled} aria-label={t("automations.value")} onValueChange={onChange} />
       ) : (
         <div className="grid grid-cols-[minmax(0,1fr)_3.5rem_4rem_minmax(0,1fr)] gap-1">
           <NativeSelect value={base} disabled={disabled} aria-label={t("automations.dateBase")} className="w-full" onChange={(e) => build(e.target.value, sign, n, unit)}>

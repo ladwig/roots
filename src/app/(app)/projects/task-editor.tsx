@@ -12,6 +12,7 @@ import type { ChecklistItem } from "@/projects/fields"
 import { autosaveTaskAction, trashTaskAction } from "./actions"
 import { AutosaveForm } from "./autosave-form"
 import { Checklist } from "./checklist"
+import { DateInput } from "@/components/date-input"
 
 export type EditorTask = { id: string; title: string; description: string; status_id: string; project_id: string | null; start_on: string | null; due_on: string | null; custom: unknown; tags: string[]; checklist: unknown; created_at: string; completed_at: string | null; task_assignees: { user_id: string }[] }
 
@@ -72,11 +73,11 @@ export function TaskEditor({
             </div>
             <div className="grid gap-2">
               <Label htmlFor="tk-start">{t("projects.start")}</Label>
-              <Input id="tk-start" name="start_on" type="date" defaultValue={task.start_on ?? ""} />
+              <DateInput id="tk-start" name="start_on" type="date" defaultValue={task.start_on ?? ""} />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="tk-due">{t("projects.due")}</Label>
-              <Input id="tk-due" name="due_on" type="date" defaultValue={task.due_on ?? ""} />
+              <DateInput id="tk-due" name="due_on" type="date" defaultValue={task.due_on ?? ""} />
             </div>
           </div>
           <div className="grid gap-2">
