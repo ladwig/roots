@@ -76,7 +76,6 @@ export function readBlocks(input: unknown): Block[] {
           const href = safeHref((i as Record<string, unknown>)?.href)
           return label && href ? [{ label, href }] : []
         })
-      if (!block.items.length) return []
     }
     return [Object.fromEntries(Object.entries(block).filter(([, v]) => v !== undefined)) as Block]
   })

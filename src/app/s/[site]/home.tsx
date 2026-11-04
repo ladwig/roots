@@ -84,6 +84,7 @@ function BlockView({ b, t, slug, path, upcoming, picked, forms, wiki, products }
         </section>
       )
     case "links":
+      if (!b.items?.length) return null // kept while being filled in (name without URL yet), shows once a link is complete
       return (
         <section className="grid gap-3">
           {heading()}
