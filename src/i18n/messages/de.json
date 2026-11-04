@@ -602,8 +602,8 @@
     },
     "setupTitle": "So richtet ihr {name} ein",
     "costs": {
-      "title": "Zahlungskosten an Käufer weitergeben",
-      "passOn": "Servicegebühr auf jede bezahlte Online-Bestellung (Tickets) aufschlagen",
+      "title": "Kosten für Ticketverkauf weitergeben",
+      "passOn": "Servicegebühr auf jede bezahlte Online-Ticketbestellung aufschlagen",
       "percent": "Prozent",
       "fixed": "Fix je Bestellung",
       "invalid": "Bitte gültige Werte eintragen (Prozent unter 50, fix höchstens 100 €).",

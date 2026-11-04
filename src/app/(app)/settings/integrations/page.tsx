@@ -79,7 +79,7 @@ export default async function IntegrationsSettings({ searchParams }: PageProps<"
                       ` · ${t("integrations.stripe.testMode")}`}
                   </p>
                 )}
-                {(i.key === "stripe" || i.key === "sumup") && row?.status === "connected" && (
+                {(i.key === "stripe" || i.key === "sumup") && row?.status === "connected" && ctx.modules.has("tickets") && (
                   // Payment costs → buyers: a service fee on every paid order (not a card surcharge, see src/payments/fees.ts).
                   <details className="rounded-lg border p-3 text-sm" open={!!(row.config as Record<string, unknown>)?.pass_fees}>
                     <summary className="cursor-pointer font-medium">{t("integrations.costs.title")}</summary>

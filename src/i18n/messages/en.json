@@ -602,8 +602,8 @@
     },
     "setupTitle": "How to set up {name}",
     "costs": {
-      "title": "Pass payment costs on to buyers",
-      "passOn": "Add a service fee to every paid online order (tickets)",
+      "title": "Pass ticket sales costs on",
+      "passOn": "Add a service fee to every paid online ticket order",
       "percent": "Percent",
       "fixed": "Fixed per order",
       "invalid": "Please enter valid values (percent below 50, fixed at most €100).",
