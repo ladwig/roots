@@ -24,6 +24,7 @@ import { deleteCode, deleteTicketType, deleteTier, removeFromWaitlist, setTicket
 import { SubmitButton } from "@/components/submit-button"
 import { CopyButton } from "@/components/copy-button"
 import { CodeKindFields } from "./code-kind-fields"
+import { DateInput } from "@/components/date-input"
 
 type TicketType = Tables<"ticket_types">
 type Tier = Tables<"ticket_tiers">
@@ -430,7 +431,7 @@ function TierList({
         placeholder={t("tickets.tierQuota")}
         aria-label={t("tickets.tierQuota")}
       />
-      <Input
+      <DateInput
         name="sales_end"
         type="datetime-local"
         defaultValue={r?.sales_end ? toLocalInput(r.sales_end) : undefined}
@@ -489,7 +490,7 @@ function CodeForm({ t, eventId, c, types }: { t: T; eventId: string; c?: Code; t
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="grid gap-2">
           <Label htmlFor="c-from">{t("tickets.validFrom")}</Label>
-          <Input
+          <DateInput
             id="c-from"
             name="valid_from"
             type="datetime-local"
@@ -498,7 +499,7 @@ function CodeForm({ t, eventId, c, types }: { t: T; eventId: string; c?: Code; t
         </div>
         <div className="grid gap-2">
           <Label htmlFor="c-until">{t("tickets.validUntil")}</Label>
-          <Input
+          <DateInput
             id="c-until"
             name="valid_until"
             type="datetime-local"
@@ -554,7 +555,7 @@ function TypeForm({ t, eventId, ty }: { t: T; eventId: string; ty?: TicketType }
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="grid gap-2">
           <Label htmlFor="ty-start">{t("tickets.salesStart")}</Label>
-          <Input
+          <DateInput
             id="ty-start"
             name="sales_start"
             type="datetime-local"
@@ -563,7 +564,7 @@ function TypeForm({ t, eventId, ty }: { t: T; eventId: string; ty?: TicketType }
         </div>
         <div className="grid gap-2">
           <Label htmlFor="ty-end">{t("tickets.salesEnd")}</Label>
-          <Input id="ty-end" name="sales_end" type="datetime-local" defaultValue={ty?.sales_end ? toLocalInput(ty.sales_end) : undefined} />
+          <DateInput id="ty-end" name="sales_end" type="datetime-local" defaultValue={ty?.sales_end ? toLocalInput(ty.sales_end) : undefined} />
         </div>
       </div>
       <div className="grid gap-2">

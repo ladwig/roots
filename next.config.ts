@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
+  // The audio worker runs ffmpeg (src/shop/audio.ts): ship the binary with that one route only.
+  serverExternalPackages: ["ffmpeg-static"],
+  outputFileTracingIncludes: { "/api/cron/audio": ["./node_modules/ffmpeg-static/ffmpeg"] },
   // Image uploads (2 MB limit in the bucket) go through Server Actions; default is 1 MB.
   // staleTimes.dynamic: pages visited in the last 30 s show at once when clicking back to them (actions that change
   // data redirect / refresh, so they still show fresh results).

@@ -13,6 +13,7 @@ import { absenceDays } from "@/hr/pay"
 import { requirePerm } from "@/lib/context"
 import { param, withParams } from "@/lib/url"
 import { deleteAbsence, saveAbsence } from "../actions"
+import { DateInput } from "@/components/date-input"
 
 const COLORS: Record<string, string> = { vacation: "var(--chart-1)", sick: "var(--destructive)", unpaid: "var(--chart-4)", other: "var(--chart-3)" }
 const addDays = (d: string, n: number) => new Date(new Date(`${d}T12:00:00Z`).getTime() + n * 86_400_000).toISOString().slice(0, 10)
@@ -89,11 +90,11 @@ export default async function AbsencesPage({ searchParams }: PageProps<"/hr/abse
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
                 <Label htmlFor="ab-start">{t("hr.from")}</Label>
-                <Input id="ab-start" name="starts_on" type="date" required defaultValue={editing?.starts_on ?? start} />
+                <DateInput id="ab-start" name="starts_on" type="date" required defaultValue={editing?.starts_on ?? start} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="ab-end">{t("hr.to")}</Label>
-                <Input id="ab-end" name="ends_on" type="date" defaultValue={editing?.ends_on ?? end} />
+                <DateInput id="ab-end" name="ends_on" type="date" defaultValue={editing?.ends_on ?? end} />
               </div>
             </div>
             <label className="flex items-center gap-2 text-sm">

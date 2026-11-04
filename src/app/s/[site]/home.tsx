@@ -12,7 +12,10 @@ import { sitePath } from "@/lib/url"
 import { blockAvailable, type Block } from "@/site/blocks"
 import { cleanPage } from "@/site/html"
 import { renderTemplate } from "@/site/template"
+import type { CatalogProduct } from "@/shop/fields"
+import { priceLabel, soldOut } from "@/shop/view"
 import { outsideIndex } from "@/wiki/outside"
+import { ProductCards } from "./shop/cards"
 
 type Ev = { id: string; title: string; slug: string; status: string; starts_at: string; venue_name: string | null; venue_address: string | null; image_path: string | null }
 const EV_COLS = "id, title, slug, status, starts_at, venue_name, venue_address, image_path"
@@ -25,12 +28,13 @@ export async function SiteHome({ slug, org, db, tagline, blocks: all, modules, f
   const blocks = all.filter((b) => b.on && blockAvailable(b.type, modules))
   const now = new Date().toISOString()
   const pinned = blocks.flatMap((b) => (b.type === "event" && b.event_id ? [b.event_id] : []))
-  const [upcoming, picked, wiki] = await Promise.all([
+  const [upcoming, picked, wiki, shop] = await Promise.all([
     blocks.some((b) => b.type === "events")
       ? db.from("events").select(EV_COLS).eq("org_id", org.id).or(`ends_at.gte.${now},and(ends_at.is.null,starts_at.gte.${now})`).order("starts_at").limit(50)
       : Promise.resolve({ data: [] as Ev[] }),
     pinned.length ? db.from("events").select(EV_COLS).eq("org_id", org.id).in("id", pinned) : Promise.resolve({ data: [] as Ev[] }),
     blocks.some((b) => b.type === "wiki") ? outsideIndex(org.id, "public") : Promise.resolve([]),
+    blocks.some((b) => b.type === "shop") ? db.rpc("shop_catalog", { p_org: org.id }) : Promise.resolve({ data: [] }),
   ])
   const path = (href: string) => (href.startsWith("/") ? sitePath(slug, href) : href)
 
@@ -46,16 +50,16 @@ export async function SiteHome({ slug, org, db, tagline, blocks: all, modules, f
         </div>
       </header>
       {blocks.map((b) => (
-        // CSS hooks for own styles: .site-block and .site-block-<type> (hero, text, links, events, event, form, portal, wiki).
+        // CSS hooks for own styles: .site-block and .site-block-<type> (hero, text, links, events, event, form, portal, wiki, shop).
         <div key={b.id} className={`site-block site-block-${b.type} grid`}>
-        <BlockView b={b} t={t} slug={slug} path={path} upcoming={(upcoming.data ?? []) as Ev[]} picked={(picked.data ?? []) as Ev[]} forms={forms} wiki={wiki} />
+        <BlockView b={b} t={t} slug={slug} path={path} upcoming={(upcoming.data ?? []) as Ev[]} picked={(picked.data ?? []) as Ev[]} forms={forms} wiki={wiki} products={(shop.data ?? []) as CatalogProduct[]} />
         </div>
       ))}
     </main>
   )
 }
 
-function BlockView({ b, t, slug, path, upcoming, picked, forms, wiki }: { b: Block; t: T; slug: string; path: (h: string) => string; upcoming: Ev[]; picked: Ev[]; forms: { slug: string; title: string; intro: string | null }[]; wiki: { id: string; title: string }[] }) {
+function BlockView({ b, t, slug, path, upcoming, picked, forms, wiki, products }: { b: Block; t: T; slug: string; path: (h: string) => string; upcoming: Ev[]; picked: Ev[]; forms: { slug: string; title: string; intro: string | null }[]; wiki: { id: string; title: string }[]; products: CatalogProduct[] }) {
   const heading = (fallback?: string) => (b.title || fallback ? <h2 className="font-heading text-xl font-semibold">{b.title || fallback}</h2> : null)
   switch (b.type) {
     case "hero":
@@ -176,6 +180,19 @@ function BlockView({ b, t, slug, path, upcoming, picked, forms, wiki }: { b: Blo
           </ul>
         </section>
       )
+    case "shop": {
+      const list = products.filter((p) => !b.category || p.category === b.category)
+      if (!list.length) return null
+      return (
+        <section className="grid gap-3">
+          {heading(t("store.shopTitle"))}
+          <ProductCards products={list.slice(0, b.limit ?? 6)} site={slug} t={t} />
+          <Button variant="outline" className="justify-self-start" render={<Link href={sitePath(slug, b.category ? `/shop?c=${encodeURIComponent(b.category)}` : "/shop")} />} nativeButton={false}>
+            {t("site.allProducts")}
+          </Button>
+        </section>
+      )
+    }
   }
 }
 
@@ -198,11 +215,12 @@ function EventLink({ e, t, slug }: { e: Ev; t: T; slug: string }) {
 async function HtmlHome({ slug, org, db, tagline, modules, forms, html, legal, t }: { slug: string; org: Org; db: SupabaseClient<Database>; tagline: string | null; modules: string[]; forms: { slug: string; title: string; intro: string | null }[]; html: string; legal?: { imprint: boolean; privacy: boolean }; t: T }) {
   const on = new Set(modules)
   const now = new Date().toISOString()
-  const [{ data: evs }, wiki] = await Promise.all([
+  const [{ data: evs }, wiki, { data: shop }] = await Promise.all([
     on.has("events") && /\{\{[#^]?\s*(events|next)/.test(html)
       ? db.from("events").select(EV_COLS).eq("org_id", org.id).or(`ends_at.gte.${now},and(ends_at.is.null,starts_at.gte.${now})`).order("starts_at").limit(50)
       : Promise.resolve({ data: [] as Ev[] }),
     on.has("wiki") && html.includes("wiki") ? outsideIndex(org.id, "public") : Promise.resolve([]),
+    on.has("shop") && /\{\{[#^]?\s*(products|shop)/.test(html) ? db.rpc("shop_catalog", { p_org: org.id }) : Promise.resolve({ data: [] }),
   ])
   const events = ((evs ?? []) as Ev[]).map((e) => ({
     title: e.title,
@@ -226,6 +244,15 @@ async function HtmlHome({ slug, org, db, tagline, modules, forms, html, legal, t
     form: Object.fromEntries(forms.map((f) => [f.slug, { title: f.title, url: sitePath(slug, `/f/${f.slug}`) }])),
     portal: on.has("members") ? { url: sitePath(slug, "/portal") } : null,
     wiki: wiki.map((p) => ({ title: p.title, url: sitePath(slug, `/wiki/${p.id}`) })),
+    products: ((shop ?? []) as CatalogProduct[]).map((p) => ({
+      name: p.name,
+      price: priceLabel(p, t),
+      image: p.images[0] ? `/i/${p.images[0]}` : "",
+      category: p.category ?? "",
+      url: sitePath(slug, `/shop/${p.slug}`),
+      sold_out: soldOut(p),
+    })),
+    shop: on.has("shop") ? { url: sitePath(slug, "/shop") } : null,
     imprint_url: legal?.imprint ? sitePath(slug, "/impressum") : "",
     privacy_url: legal?.privacy ? sitePath(slug, "/datenschutz") : "",
   }

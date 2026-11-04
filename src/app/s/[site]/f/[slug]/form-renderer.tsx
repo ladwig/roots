@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState } from "react"
+import { DateInput } from "@/components/date-input"
 import { SubmitButton } from "@/components/submit-button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -63,7 +64,7 @@ export function FormRenderer({ form, site, slug, org }: { form: PublicForm; site
     else {
       const type = custom ? ({ number: "text", date: "date", email: "email", url: "url" } as Record<string, string>)[custom.type] ?? "text" : builtin?.type === "tel" ? "tel" : (builtin?.type ?? "text")
       const auto: Record<string, string> = { first_name: "given-name", last_name: "family-name", email: "email", phone: "tel", street: "street-address", postal_code: "postal-code", city: "address-level2", company: "organization", birthday: "bday" }
-      input = <Input {...common} type={type} autoComplete={auto[e.field] ?? "off"} maxLength={custom ? 2000 : 320} />
+      input = type === "date" ? <DateInput id={common.id} name={common.name} required={common.required} defaultValue={common.defaultValue ? String(common.defaultValue) : undefined} /> : <Input {...common} type={type} autoComplete={auto[e.field] ?? "off"} maxLength={custom ? 2000 : 320} />
     }
     return (
       <div key={e.id} className="grid gap-2">

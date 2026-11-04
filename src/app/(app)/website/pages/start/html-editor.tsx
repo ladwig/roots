@@ -15,6 +15,7 @@ const START: { key: string; code: string }[] = [
   { key: "forms", code: '{{#forms}}<a href="{{url}}">{{title}}</a>{{/forms}}' },
   { key: "portal", code: '{{#portal}}<a href="{{url}}">Mitgliederbereich</a>{{/portal}}' },
   { key: "wiki", code: '{{#wiki}}<a href="{{url}}">{{title}}</a>{{/wiki}}' },
+  { key: "products", code: '{{#products}}\n  <a class="product" href="{{url}}">\n    <img src="{{image}}" alt="">\n    <strong>{{name}}</strong> {{price}}{{#sold_out}} · ausverkauft{{/sold_out}}\n  </a>\n{{/products}}\n{{#shop}}<a href="{{url}}">Zum Shop</a>{{/shop}}' },
 ]
 
 

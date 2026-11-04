@@ -8,6 +8,7 @@ import { toLocalInput } from "@/lib/time"
 import type { Tables } from "@/lib/supabase/types"
 import { priceInput } from "@/tickets/price"
 import { saveList } from "./actions"
+import { DateInput } from "@/components/date-input"
 
 // New / edit list. Event lists can be tied to an artist and to a ticket type (entries get free tickets).
 export async function ListForm({ eventId, list }: { eventId: string | null; list?: Tables<"guest_lists"> }) {
@@ -69,7 +70,7 @@ export async function ListForm({ eventId, list }: { eventId: string | null; list
         </div>
         <div className="grid gap-2">
           <Label htmlFor="gl-closes">{t("guestlists.closesAt")}</Label>
-          <Input id="gl-closes" name="link_closes_at" type="datetime-local" defaultValue={list?.link_closes_at ? toLocalInput(list.link_closes_at) : undefined} />
+          <DateInput id="gl-closes" name="link_closes_at" type="datetime-local" defaultValue={list?.link_closes_at ? toLocalInput(list.link_closes_at) : undefined} />
         </div>
       </div>
       {ev && <p className="text-xs text-muted-foreground">{t("guestlists.autoTickets")}</p>}

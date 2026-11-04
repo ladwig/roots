@@ -11,6 +11,7 @@ import { getT } from "@/i18n/server"
 import { toLocalInput, type monthOf } from "@/lib/time"
 import { minutes, warnings, type Entry } from "@/shifts/time"
 import { deleteEntry, saveEntry } from "@/app/(app)/shifts/time-actions"
+import { DateInput } from "@/components/date-input"
 
 // Time tracking screens: own entries ("Meine Schichten") and one person's month (Stunden › Name).
 export type TimeRow = Entry & { note: string | null; approved_at: string | null; shift_id: string | null; shifts?: { title: string | null; positions: { name: string } | null } | null }
@@ -101,11 +102,11 @@ export async function TimeEntryForm({ entry, staffId, returnTo, canDelete }: { e
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-2">
             <Label htmlFor="te-start">{t("time.start")}</Label>
-            <Input id="te-start" name="started_at" type="datetime-local" required defaultValue={entry ? toLocalInput(entry.started_at) : ""} />
+            <DateInput id="te-start" name="started_at" type="datetime-local" required defaultValue={entry ? toLocalInput(entry.started_at) : ""} />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="te-end">{t("time.end")}</Label>
-            <Input id="te-end" name="ended_at" type="datetime-local" defaultValue={entry?.ended_at ? toLocalInput(entry.ended_at) : ""} />
+            <DateInput id="te-end" name="ended_at" type="datetime-local" defaultValue={entry?.ended_at ? toLocalInput(entry.ended_at) : ""} />
           </div>
         </div>
         <div className="grid gap-2">

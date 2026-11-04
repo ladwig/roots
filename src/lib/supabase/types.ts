@@ -465,14 +465,14 @@ isOneToOne: false
                   ]
                 },"documents": {
                   Row: {
-                    "cancelled_at": string | null,"contact_id": string | null,"created_at": string,"created_by": string | null,"currency": string,"due_date": string | null,"gross_total": number,"id": string,"intro": string | null,"issue_date": string | null,"issued_at": string | null,"kind": string,"net_total": number,"notes": string | null,"number": string | null,"org_id": string,"outro": string | null,"paid_at": string | null,"recipient_address": string | null,"recipient_email": string | null,"recipient_name": string | null,"recipient_vat_id": string | null,"seller": Json | null,"service_from": string | null,"service_to": string | null,"source_id": string | null,"status": string,"tax_mode": string,"tax_total": number,"title": string | null,"updated_at": string,"updated_by": string | null,"valid_until": string | null
+                    "cancelled_at": string | null,"contact_id": string | null,"created_at": string,"created_by": string | null,"currency": string,"due_date": string | null,"gross_total": number,"id": string,"intro": string | null,"issue_date": string | null,"issued_at": string | null,"kind": string,"net_total": number,"notes": string | null,"number": string | null,"org_id": string,"outro": string | null,"paid_at": string | null,"prices_gross": boolean,"recipient_address": string | null,"recipient_email": string | null,"recipient_name": string | null,"recipient_vat_id": string | null,"seller": Json | null,"service_from": string | null,"service_to": string | null,"source_id": string | null,"status": string,"tax_mode": string,"tax_total": number,"title": string | null,"updated_at": string,"updated_by": string | null,"valid_until": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "cancelled_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"due_date"?: string | null,"gross_total"?: number,"id"?: string,"intro"?: string | null,"issue_date"?: string | null,"issued_at"?: string | null,"kind": string,"net_total"?: number,"notes"?: string | null,"number"?: string | null,"org_id": string,"outro"?: string | null,"paid_at"?: string | null,"recipient_address"?: string | null,"recipient_email"?: string | null,"recipient_name"?: string | null,"recipient_vat_id"?: string | null,"seller"?: Json | null,"service_from"?: string | null,"service_to"?: string | null,"source_id"?: string | null,"status"?: string,"tax_mode"?: string,"tax_total"?: number,"title"?: string | null,"updated_at"?: string,"updated_by"?: string | null,"valid_until"?: string | null
+                    "cancelled_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"due_date"?: string | null,"gross_total"?: number,"id"?: string,"intro"?: string | null,"issue_date"?: string | null,"issued_at"?: string | null,"kind": string,"net_total"?: number,"notes"?: string | null,"number"?: string | null,"org_id": string,"outro"?: string | null,"paid_at"?: string | null,"prices_gross"?: boolean,"recipient_address"?: string | null,"recipient_email"?: string | null,"recipient_name"?: string | null,"recipient_vat_id"?: string | null,"seller"?: Json | null,"service_from"?: string | null,"service_to"?: string | null,"source_id"?: string | null,"status"?: string,"tax_mode"?: string,"tax_total"?: number,"title"?: string | null,"updated_at"?: string,"updated_by"?: string | null,"valid_until"?: string | null
                   }
                   Update: {
-                    "cancelled_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"due_date"?: string | null,"gross_total"?: number,"id"?: string,"intro"?: string | null,"issue_date"?: string | null,"issued_at"?: string | null,"kind"?: string,"net_total"?: number,"notes"?: string | null,"number"?: string | null,"org_id"?: string,"outro"?: string | null,"paid_at"?: string | null,"recipient_address"?: string | null,"recipient_email"?: string | null,"recipient_name"?: string | null,"recipient_vat_id"?: string | null,"seller"?: Json | null,"service_from"?: string | null,"service_to"?: string | null,"source_id"?: string | null,"status"?: string,"tax_mode"?: string,"tax_total"?: number,"title"?: string | null,"updated_at"?: string,"updated_by"?: string | null,"valid_until"?: string | null
+                    "cancelled_at"?: string | null,"contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"due_date"?: string | null,"gross_total"?: number,"id"?: string,"intro"?: string | null,"issue_date"?: string | null,"issued_at"?: string | null,"kind"?: string,"net_total"?: number,"notes"?: string | null,"number"?: string | null,"org_id"?: string,"outro"?: string | null,"paid_at"?: string | null,"prices_gross"?: boolean,"recipient_address"?: string | null,"recipient_email"?: string | null,"recipient_name"?: string | null,"recipient_vat_id"?: string | null,"seller"?: Json | null,"service_from"?: string | null,"service_to"?: string | null,"source_id"?: string | null,"status"?: string,"tax_mode"?: string,"tax_total"?: number,"title"?: string | null,"updated_at"?: string,"updated_by"?: string | null,"valid_until"?: string | null
                   }
                   Relationships: [
                     {
@@ -1271,14 +1271,14 @@ isOneToOne: false
                   ]
                 },"org_billing": {
                   Row: {
-                    "bank_name": string | null,"bic": string | null,"city": string | null,"country": string,"created_at": string,"created_by": string | null,"email": string | null,"iban": string | null,"id": string,"invoice_intro": string | null,"invoice_outro": string | null,"legal_name": string | null,"org_id": string,"payment_days": number,"phone": string | null,"postal_code": string | null,"quote_days": number,"quote_intro": string | null,"quote_outro": string | null,"register": string | null,"representatives": string | null,"street": string | null,"tax_mode": string,"tax_number": string | null,"template": string,"updated_at": string,"updated_by": string | null,"vat_id": string | null,"website": string | null
+                    "bank_name": string | null,"bic": string | null,"city": string | null,"country": string,"created_at": string,"created_by": string | null,"email": string | null,"iban": string | null,"id": string,"invoice_intro": string | null,"invoice_outro": string | null,"legal_name": string | null,"org_id": string,"payment_days": number,"phone": string | null,"postal_code": string | null,"quote_days": number,"quote_intro": string | null,"quote_outro": string | null,"register": string | null,"representatives": string | null,"short_invoices": boolean,"street": string | null,"tax_mode": string,"tax_number": string | null,"template": string,"updated_at": string,"updated_by": string | null,"vat_id": string | null,"website": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "bank_name"?: string | null,"bic"?: string | null,"city"?: string | null,"country"?: string,"created_at"?: string,"created_by"?: string | null,"email"?: string | null,"iban"?: string | null,"id"?: string,"invoice_intro"?: string | null,"invoice_outro"?: string | null,"legal_name"?: string | null,"org_id": string,"payment_days"?: number,"phone"?: string | null,"postal_code"?: string | null,"quote_days"?: number,"quote_intro"?: string | null,"quote_outro"?: string | null,"register"?: string | null,"representatives"?: string | null,"street"?: string | null,"tax_mode"?: string,"tax_number"?: string | null,"template"?: string,"updated_at"?: string,"updated_by"?: string | null,"vat_id"?: string | null,"website"?: string | null
+                    "bank_name"?: string | null,"bic"?: string | null,"city"?: string | null,"country"?: string,"created_at"?: string,"created_by"?: string | null,"email"?: string | null,"iban"?: string | null,"id"?: string,"invoice_intro"?: string | null,"invoice_outro"?: string | null,"legal_name"?: string | null,"org_id": string,"payment_days"?: number,"phone"?: string | null,"postal_code"?: string | null,"quote_days"?: number,"quote_intro"?: string | null,"quote_outro"?: string | null,"register"?: string | null,"representatives"?: string | null,"short_invoices"?: boolean,"street"?: string | null,"tax_mode"?: string,"tax_number"?: string | null,"template"?: string,"updated_at"?: string,"updated_by"?: string | null,"vat_id"?: string | null,"website"?: string | null
                   }
                   Update: {
-                    "bank_name"?: string | null,"bic"?: string | null,"city"?: string | null,"country"?: string,"created_at"?: string,"created_by"?: string | null,"email"?: string | null,"iban"?: string | null,"id"?: string,"invoice_intro"?: string | null,"invoice_outro"?: string | null,"legal_name"?: string | null,"org_id"?: string,"payment_days"?: number,"phone"?: string | null,"postal_code"?: string | null,"quote_days"?: number,"quote_intro"?: string | null,"quote_outro"?: string | null,"register"?: string | null,"representatives"?: string | null,"street"?: string | null,"tax_mode"?: string,"tax_number"?: string | null,"template"?: string,"updated_at"?: string,"updated_by"?: string | null,"vat_id"?: string | null,"website"?: string | null
+                    "bank_name"?: string | null,"bic"?: string | null,"city"?: string | null,"country"?: string,"created_at"?: string,"created_by"?: string | null,"email"?: string | null,"iban"?: string | null,"id"?: string,"invoice_intro"?: string | null,"invoice_outro"?: string | null,"legal_name"?: string | null,"org_id"?: string,"payment_days"?: number,"phone"?: string | null,"postal_code"?: string | null,"quote_days"?: number,"quote_intro"?: string | null,"quote_outro"?: string | null,"register"?: string | null,"representatives"?: string | null,"short_invoices"?: boolean,"street"?: string | null,"tax_mode"?: string,"tax_number"?: string | null,"template"?: string,"updated_at"?: string,"updated_by"?: string | null,"vat_id"?: string | null,"website"?: string | null
                   }
                   Relationships: [
                     {
@@ -1587,6 +1587,78 @@ isOneToOne: false
       referencedColumns: ["id"]
     },{
       foreignKeyName: "positions_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"product_tracks": {
+                  Row: {
+                    "buyable": boolean,"claimed_at": string | null,"created_at": string,"created_by": string | null,"duration_seconds": number | null,"error": string | null,"formats": NonNullable<Json>,"id": string,"master_key": string,"master_name": string,"master_size": number | null,"org_id": string,"position": number,"product_id": string,"status": string,"stream": boolean,"title": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "buyable"?: boolean,"claimed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"duration_seconds"?: number | null,"error"?: string | null,"formats"?: NonNullable<Json>,"id"?: string,"master_key": string,"master_name": string,"master_size"?: number | null,"org_id": string,"position"?: number,"product_id": string,"status"?: string,"stream"?: boolean,"title": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "buyable"?: boolean,"claimed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"duration_seconds"?: number | null,"error"?: string | null,"formats"?: NonNullable<Json>,"id"?: string,"master_key"?: string,"master_name"?: string,"master_size"?: number | null,"org_id"?: string,"position"?: number,"product_id"?: string,"status"?: string,"stream"?: boolean,"title"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "product_tracks_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "product_tracks_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "products"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"product_variants": {
+                  Row: {
+                    "active": boolean,"created_at": string,"created_by": string | null,"digital": boolean,"id": string,"image_path": string | null,"name": string,"name_your_price": boolean | null,"option_values": (string)[] | null,"org_id": string,"position": number,"price_cents": number | null,"product_id": string,"stock": number | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"digital"?: boolean,"id"?: string,"image_path"?: string | null,"name": string,"name_your_price"?: boolean | null,"option_values"?: (string)[] | null,"org_id": string,"position"?: number,"price_cents"?: number | null,"product_id": string,"stock"?: number | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"digital"?: boolean,"id"?: string,"image_path"?: string | null,"name"?: string,"name_your_price"?: boolean | null,"option_values"?: (string)[] | null,"org_id"?: string,"position"?: number,"price_cents"?: number | null,"product_id"?: string,"stock"?: number | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "product_variants_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "product_variants_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "products"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"products": {
+                  Row: {
+                    "audio_zips": NonNullable<Json>,"audio_zips_claimed_at": string | null,"category": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string,"id": string,"images": (string)[],"kind": string,"max_per_order": number,"name": string,"name_your_price": boolean,"options": NonNullable<Json>,"org_id": string,"position": number,"price_cents": number,"release_at": string | null,"release_done_at": string | null,"slug": string,"status": string,"stock": number | null,"suggested_cents": number | null,"tax_rate": number,"track_price_cents": number | null,"updated_at": string,"updated_by": string | null,"video_url": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "audio_zips"?: NonNullable<Json>,"audio_zips_claimed_at"?: string | null,"category"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string,"id"?: string,"images"?: (string)[],"kind"?: string,"max_per_order"?: number,"name": string,"name_your_price"?: boolean,"options"?: NonNullable<Json>,"org_id": string,"position"?: number,"price_cents"?: number,"release_at"?: string | null,"release_done_at"?: string | null,"slug": string,"status"?: string,"stock"?: number | null,"suggested_cents"?: number | null,"tax_rate"?: number,"track_price_cents"?: number | null,"updated_at"?: string,"updated_by"?: string | null,"video_url"?: string | null
+                  }
+                  Update: {
+                    "audio_zips"?: NonNullable<Json>,"audio_zips_claimed_at"?: string | null,"category"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string,"id"?: string,"images"?: (string)[],"kind"?: string,"max_per_order"?: number,"name"?: string,"name_your_price"?: boolean,"options"?: NonNullable<Json>,"org_id"?: string,"position"?: number,"price_cents"?: number,"release_at"?: string | null,"release_done_at"?: string | null,"slug"?: string,"status"?: string,"stock"?: number | null,"suggested_cents"?: number | null,"tax_rate"?: number,"track_price_cents"?: number | null,"updated_at"?: string,"updated_by"?: string | null,"video_url"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "products_org_id_fkey"
       columns: ["org_id"]
 isOneToOne: false
       referencedRelation: "orgs"
@@ -1932,6 +2004,64 @@ isOneToOne: false
       columns: ["series_id"]
 isOneToOne: false
       referencedRelation: "shift_series"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"shop_orders": {
+                  Row: {
+                    "cancelled_at": string | null,"city": string | null,"company": string | null,"completed_at": string | null,"contact_id": string | null,"country": string | null,"created_at": string,"created_by": string | null,"delivery": string,"id": string,"invoice_error": string | null,"invoice_id": string | null,"name": string,"note": string | null,"number": number,"order_id": string,"org_id": string,"payment": string,"placed_at": string | null,"postal_code": string | null,"shipped_at": string | null,"shipping_cents": number,"shipping_name": string | null,"status": string,"street": string | null,"token": string,"tracking": string | null,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cancelled_at"?: string | null,"city"?: string | null,"company"?: string | null,"completed_at"?: string | null,"contact_id"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"delivery": string,"id"?: string,"invoice_error"?: string | null,"invoice_id"?: string | null,"name": string,"note"?: string | null,"number": number,"order_id": string,"org_id": string,"payment": string,"placed_at"?: string | null,"postal_code"?: string | null,"shipped_at"?: string | null,"shipping_cents"?: number,"shipping_name"?: string | null,"status"?: string,"street"?: string | null,"token"?: string,"tracking"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "cancelled_at"?: string | null,"city"?: string | null,"company"?: string | null,"completed_at"?: string | null,"contact_id"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"delivery"?: string,"id"?: string,"invoice_error"?: string | null,"invoice_id"?: string | null,"name"?: string,"note"?: string | null,"number"?: number,"order_id"?: string,"org_id"?: string,"payment"?: string,"placed_at"?: string | null,"postal_code"?: string | null,"shipped_at"?: string | null,"shipping_cents"?: number,"shipping_name"?: string | null,"status"?: string,"street"?: string | null,"token"?: string,"tracking"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "shop_orders_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "shop_orders_invoice_id_fkey"
+      columns: ["invoice_id"]
+isOneToOne: false
+      referencedRelation: "documents"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "shop_orders_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: true
+      referencedRelation: "pay_orders"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "shop_orders_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"shop_settings": {
+                  Row: {
+                    "auto_invoice": boolean,"created_at": string,"created_by": string | null,"id": string,"intro": string | null,"mails": NonNullable<Json>,"org_id": string,"pay_on_pickup": boolean,"pay_online": boolean,"pay_transfer": boolean,"pickup": boolean,"pickup_text": string | null,"shipping": boolean,"shipping_rates": NonNullable<Json>,"terms": string | null,"title": string | null,"transfer_days": number,"updated_at": string,"updated_by": string | null,"withdrawal": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "auto_invoice"?: boolean,"created_at"?: string,"created_by"?: string | null,"id"?: string,"intro"?: string | null,"mails"?: NonNullable<Json>,"org_id": string,"pay_on_pickup"?: boolean,"pay_online"?: boolean,"pay_transfer"?: boolean,"pickup"?: boolean,"pickup_text"?: string | null,"shipping"?: boolean,"shipping_rates"?: NonNullable<Json>,"terms"?: string | null,"title"?: string | null,"transfer_days"?: number,"updated_at"?: string,"updated_by"?: string | null,"withdrawal"?: string | null
+                  }
+                  Update: {
+                    "auto_invoice"?: boolean,"created_at"?: string,"created_by"?: string | null,"id"?: string,"intro"?: string | null,"mails"?: NonNullable<Json>,"org_id"?: string,"pay_on_pickup"?: boolean,"pay_online"?: boolean,"pay_transfer"?: boolean,"pickup"?: boolean,"pickup_text"?: string | null,"shipping"?: boolean,"shipping_rates"?: NonNullable<Json>,"terms"?: string | null,"title"?: string | null,"transfer_days"?: number,"updated_at"?: string,"updated_by"?: string | null,"withdrawal"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "shop_settings_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: true
+      referencedRelation: "orgs"
       referencedColumns: ["id"]
     }
                   ]
@@ -2384,6 +2514,9 @@ isOneToOne: false
 "attendance_refs_ok":
 { Args: { "p_org": string,"p_participant": string,"p_session": string }; Returns: boolean
                            },
+"audio_due":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
 "billing_usage":
 { Args: { "p_from": string,"p_to": string }; Returns: {
               "fees_collected_cents": number,"fees_open_cents": number,"members": number,"modules": (string)[],"orders": number,"org_id": string,"sales_cents": number,"users": number
@@ -2407,6 +2540,37 @@ isOneToOne: false
 { Args: { "p_code": string,"p_event": string }; Returns: {
               "checked_in_at": string,"holder_name": string,"result": string,"type_name": string
             }[]
+                           },
+"claim_audio_track":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "buyable": boolean,
+"claimed_at": string | null,
+"created_at": string,
+"created_by": string | null,
+"duration_seconds": number | null,
+"error": string | null,
+"formats": NonNullable<Json>,
+"id": string,
+"master_key": string,
+"master_name": string,
+"master_size": number | null,
+"org_id": string,
+"position": number,
+"product_id": string,
+"status": string,
+"stream": boolean,
+"title": string,
+"updated_at": string,
+"updated_by": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "product_tracks"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"claim_audio_zips":
+{ Args: Record<PropertyKey, never>; Returns: string
                            },
 "claim_email_sends":
 { Args: { "p_limit"?: number }; Returns: {
@@ -2752,11 +2916,32 @@ isOneToOne: false
 "shift_self":
 { Args: { "p_action": string,"p_shift": string,"p_token"?: string }; Returns: string
                            },
+"shop_catalog":
+{ Args: { "p_org": string,"p_slug"?: string }; Returns: Json
+                           },
+"shop_check":
+{ Args: { "p_order": string }; Returns: boolean
+                           },
+"shop_left":
+{ Args: { "p_item": string,"p_stock": number }; Returns: number
+                           },
+"shop_public":
+{ Args: { "p_org": string }; Returns: boolean
+                           },
+"shop_public_settings":
+{ Args: { "p_org": string }; Returns: Json
+                           },
+"shop_release_due":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
 "site_for_host":
 { Args: { "p_host": string }; Returns: string
                            },
 "soft_delete":
 { Args: { "p_id": string,"p_table": unknown }; Returns: boolean
+                           },
+"system_call":
+{ Args: Record<PropertyKey, never>; Returns: boolean
                            },
 "take_number":
 { Args: { "p_date": string,"p_kind": string,"p_org": string }; Returns: number

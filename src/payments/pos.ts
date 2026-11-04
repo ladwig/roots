@@ -2,7 +2,7 @@
 // collects it here – in cash (paid at once), by QR code (the org's online checkout on the buyer's phone) or on a
 // card terminal (a provider with `terminal`, SumUp Solo today). The webhook / reconcileOrder() confirm card payments.
 import { createAdminClient } from "@/lib/supabase/admin"
-import { markPaid, providerFor, providerByKey, reconcileOrder, startCheckout } from "./server"
+import { payManually, providerFor, providerByKey, reconcileOrder, startCheckout } from "./server"
 
 export const POS_METHODS = ["cash", "qr", "terminal"] as const
 export type PosMethod = (typeof POS_METHODS)[number]
@@ -34,12 +34,7 @@ export async function collect(orderId: string, method: PosMethod, o: { readerId?
   const meta = { ...((order.metadata ?? {}) as Record<string, unknown>), pos_method: method }
 
   if (method === "cash" || order.amount_total === 0) {
-    await db().from("pay_orders").update({ provider: "cash", metadata: meta as never }).eq("id", orderId)
-    await db().from("pay_payments").upsert(
-      { org_id: order.org_id, order_id: orderId, provider: "cash", provider_ref: orderId, amount: order.amount_total, application_fee: order.application_fee },
-      { onConflict: "provider,provider_ref", ignoreDuplicates: true }
-    )
-    await markPaid("cash", orderId, orderId)
+    await payManually(orderId, "cash", { pos_method: method })
     return { status: "paid" }
   }
 

@@ -7,6 +7,7 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import type { T } from "@/i18n/translate"
 import type { CustomValues, FieldDef } from "@/lib/custom-fields"
 import { DOT, PICKABLE_COLORS } from "@/projects/fields"
+import { DateInput } from "@/components/date-input"
 
 export type ProjectValues = { name: string; description: string; color: string; status_id: string; lead_id: string | null; start_on: string | null; end_on: string | null; custom: unknown }
 
@@ -51,11 +52,11 @@ export function ProjectFields({ t, p, statuses, team, defs, disabled }: { t: T; 
           </div>
           <div className="grid gap-2">
             <Label htmlFor="pj-start">{t("projects.start")}</Label>
-            <Input id="pj-start" name="start_on" type="date" defaultValue={p?.start_on ?? ""} />
+            <DateInput id="pj-start" name="start_on" type="date" defaultValue={p?.start_on ?? ""} />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="pj-end">{t("projects.end")}</Label>
-            <Input id="pj-end" name="end_on" type="date" defaultValue={p?.end_on ?? ""} />
+            <DateInput id="pj-end" name="end_on" type="date" defaultValue={p?.end_on ?? ""} />
           </div>
           <fieldset className="grid gap-2 sm:col-span-2">
             <legend className="mb-2 text-sm font-medium">{t("projects.color")}</legend>

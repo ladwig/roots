@@ -13,7 +13,6 @@ import { SaveBar } from "@/components/save-bar"
 import { SubmitButton } from "@/components/submit-button"
 import { TypedInput } from "@/components/typed-input"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
@@ -29,6 +28,7 @@ import { RENTAL_COLS } from "@/rentals/server"
 import { contactName } from "../../../contacts/fields"
 import { addPersonAction, giveNoticeAction, removePersonAction, returnAction, trashRentalAction, updateRentalAction } from "../../actions"
 import { kindLabel, period, StateBadge } from "../../parts"
+import { DateInput } from "@/components/date-input"
 
 // One rental (Mietvertrag / Buchung / Ausleihe / Ausgabe): people with roles, period and terms (saved by the save bar),
 // notice, keys handed out on it, files.
@@ -183,11 +183,11 @@ export default async function RentalPage({ params, searchParams }: PageProps<"/r
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid content-start gap-2">
                   <Label htmlFor="e-start">{t("rentals.starts")}</Label>
-                  <Input id="e-start" name="starts_at" type={long ? "date" : "datetime-local"} required defaultValue={dateValue(r.starts_at)} />
+                  <DateInput id="e-start" name="starts_at" type={long ? "date" : "datetime-local"} required defaultValue={dateValue(r.starts_at)} />
                 </div>
                 <div className="grid content-start gap-2">
                   <Label htmlFor="e-end">{t("rentals.ends")}</Label>
-                  <Input id="e-end" name="ends_at" type={long ? "date" : "datetime-local"} defaultValue={dateValue(r.ends_at)} />
+                  <DateInput id="e-end" name="ends_at" type={long ? "date" : "datetime-local"} defaultValue={dateValue(r.ends_at)} />
                 </div>
               </div>
               <div className="grid gap-2">

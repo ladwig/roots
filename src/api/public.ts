@@ -20,6 +20,10 @@ import { passOnFor, reconcileOrder } from "@/payments/server"
 import { sendLoginLink } from "@/portal/login"
 import { buyTickets, ticketsForBuyer } from "@/tickets/server"
 import { joinWaitlist, waitlistClaim } from "@/tickets/waitlist"
+import { cleanHtml } from "@/site/html"
+import { DELIVERIES, ORDER_STATUSES, PAYMENTS, priceCart, readShippingRates, type CatalogProduct } from "@/shop/fields"
+import { onlineReady, orderFiles, orderForBuyer, orderMusic, placeOrder } from "@/shop/server"
+import { playerTracks } from "@/shop/audio"
 import { ApiError, error, json, match, notFound, readInput, uuid } from "./core"
 
 type Org = { id: string; slug: string; name: string; logo_path: string | null; site_domain: string | null }
@@ -101,6 +105,58 @@ async function publishedEvent(org: Org, slug: string) {
   if (!e) throw notFound()
   return e
 }
+const ShopProduct = z.object({
+  id: uuid,
+  slug: z.string(),
+  name: z.string(),
+  kind: z.enum(["physical", "digital"]),
+  price_cents: z.number().int().describe("Gross; variants may have their own"),
+  tax_rate: z.number(),
+  category: z.string().nullable(),
+  images: z.array(z.string()).describe("Picture URLs, first = cover"),
+  video_url: z.string().nullable(),
+  max_per_order: z.number().int(),
+  release_at: z.string().nullable().describe("Release date while it is ahead (pre-order): sells now, digital delivery unlocks that day"),
+  name_your_price: z.boolean().describe("Name your price: price_cents is the minimum, send your own price_cents when ordering"),
+  suggested_cents: z.number().int().nullable(),
+  track_price_cents: z.number().int().nullable().describe("Single tracks for sale at this price (minimum when name your price); null = album only"),
+  tracks_for_sale: z.array(z.object({ id: uuid, title: z.string() })).describe("Tracks sold on their own (order them by id)"),
+  left: z.number().int().nullable().describe("Products without variants: units left (null = unlimited)"),
+  variants: z.array(z.object({ id: uuid, name: z.string(), price_cents: z.number().int(), left: z.number().int().nullable(), digital: z.boolean().describe("Download only: no shipping, delivered after payment"), name_your_price: z.boolean(), values: z.array(z.string()).nullable().describe("Its option values (in `options` order)"), image: z.string().nullable().describe("Picture URL to show when picked") })),
+  options: z.array(z.object({ name: z.string(), values: z.array(z.string()) })).describe("Variant options (Farbe, Größe …): pick one value each, the variant with those `values` is the item"),
+  url: z.string().describe("Hosted product page"),
+})
+const shopCatalog = async (orgId: string, slug?: string) => ((await createPublicClient().rpc("shop_catalog", { p_org: orgId, p_slug: slug })).data ?? []) as CatalogProduct[]
+const shopProductOut = (org: Org, p: CatalogProduct) => ({
+  id: p.id,
+  slug: p.slug,
+  name: p.name,
+  kind: p.kind,
+  price_cents: p.price_cents,
+  tax_rate: Number(p.tax_rate),
+  category: p.category,
+  images: p.images.map((i) => imageUrl(i)!),
+  video_url: p.video_url,
+  max_per_order: p.max_per_order,
+  release_at: p.release_at ?? null,
+  name_your_price: !!p.name_your_price,
+  suggested_cents: p.suggested_cents ?? null,
+  track_price_cents: p.track_price_cents ?? null,
+  tracks_for_sale: p.tracks ?? [],
+  left: p.left,
+  variants: p.variants.map((v) => ({ ...v, name_your_price: !!v.name_your_price, values: v.values ?? null, image: v.image ? imageUrl(v.image)! : null })),
+  options: p.options ?? [],
+  url: siteUrl(org.slug, `/shop/${p.slug}`, org.site_domain),
+})
+const SHOP_ERRORS: Record<string, string> = {
+  "store.soldOutError": "sold_out",
+  "store.belowMinError": "price_below_min",
+  "store.cartChanged": "cart_changed",
+  "store.priceChanged": "price_changed",
+  "store.deliveryInvalid": "delivery_invalid",
+  "store.shippingInvalid": "shipping_invalid",
+  "store.paymentInvalid": "payment_invalid",
+}
 async function publicForm(org: Org, slug: string) {
   const f = (await cachedForm(org.id, slug)) as unknown as PublicForm | null
   if (!f) throw notFound()
@@ -159,7 +215,7 @@ export const publicEndpoints: PublicEndpoint[] = [
     tag: "Organisation",
     summary: "The start page",
     description:
-      "What the hosted start page shows, for your own website: tagline, the visible blocks in order (hero, text = Markdown, links, events, event, form, portal, wiki; fetch the events/forms they name with the other endpoints) and the Impressum / Datenschutz texts (Markdown).",
+      "What the hosted start page shows, for your own website: tagline, the visible blocks in order (hero, text = Markdown, links, events, event, form, portal, wiki, shop = `limit` products of `category` or all; fetch the events/forms/products they name with the other endpoints) and the Impressum / Datenschutz texts (Markdown).",
     response: z.object({
       tagline: z.string().nullable(),
       blocks: z.array(z.record(z.string(), z.unknown())),
@@ -354,6 +410,170 @@ export const publicEndpoints: PublicEndpoint[] = [
           .map((k) => ({ code: k.code, status: k.status, type: k.ticket_types?.name ?? null, holder_name: k.holder_name, event: k.events })),
         pdf_url: paid ? siteUrl(org.slug, `/t/${id}/pdf?k=${query.token}`, org.site_domain) : null,
         tickets_url: siteUrl(org.slug, `/t/${id}?k=${query.token}`, org.site_domain),
+      }
+    },
+  }),
+  endpoint({
+    method: "GET",
+    path: "/{org}/shop",
+    tag: "Shop",
+    summary: "The shop: settings buyers see + published products",
+    description: "Products with what's still available (`left`, null = unlimited; per variant when a product has variants). Delivery and payment options as the checkout offers them; prices are gross cents.",
+    response: z.object({
+      title: z.string().nullable(),
+      intro: z.string().nullable(),
+      deliveries: z.object({ pickup: z.boolean(), pickup_text: z.string().nullable(), shipping: z.boolean(), shipping_rates: z.array(z.object({ id: z.string(), name: z.string(), cents: z.number().int(), free_from: z.number().int().nullable(), countries: z.array(z.string()) })) }),
+      payments: z.object({ online: z.boolean(), transfer: z.boolean(), pickup: z.boolean() }),
+      terms: z.boolean().describe("Has terms / a cancellation policy the buyer must accept (accept_terms)"),
+      small_business: z.boolean().describe("Kleinunternehmer (§ 19 UStG): show no VAT, but the note \"Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.\" Otherwise prices include VAT at each product's tax_rate."),
+      products: z.array(ShopProduct),
+      url: z.string(),
+    }),
+    async handler({ org }) {
+      const [{ data: conf }, products, ready] = await Promise.all([createPublicClient().rpc("shop_public_settings", { p_org: org.id }), shopCatalog(org.id), onlineReady(org.id)])
+      if (!conf) throw notFound()
+      const c = conf as Record<string, unknown>
+      return {
+        title: (c.title as string) ?? null,
+        intro: (c.intro as string) ?? null,
+        deliveries: { pickup: !!c.pickup, pickup_text: (c.pickup_text as string) ?? null, shipping: !!c.shipping, shipping_rates: readShippingRates(c.shipping_rates) },
+        payments: { online: !!c.pay_online && ready, transfer: !!c.pay_transfer, pickup: !!c.pay_on_pickup },
+        terms: !!(c.terms || c.withdrawal),
+        small_business: !!c.small_business,
+        products: products.map((p) => shopProductOut(org, p)),
+        url: siteUrl(org.slug, "/shop", org.site_domain),
+      }
+    },
+  }),
+  endpoint({
+    method: "GET",
+    path: "/{org}/shop/products/{slug}",
+    tag: "Shop",
+    summary: "One product with its description",
+    response: ShopProduct.extend({
+      description: z.string().describe("HTML, already cleaned"),
+      tracks: z.array(z.object({ id: uuid, title: z.string(), duration_seconds: z.number().int().nullable(), stream_url: z.string().nullable().describe("128 kbps MP3 to play (a redirect to a short-lived link); null = buyers only") })).describe("Music for a player, in order (converted tracks only)"),
+    }),
+    async handler({ org, params }) {
+      const [p] = await shopCatalog(org.id, params.slug)
+      if (!p) throw notFound()
+      const tracks = await playerTracks(org.id, p.id)
+      return {
+        ...shopProductOut(org, p),
+        description: cleanHtml(p.description ?? ""),
+        tracks: tracks.map((x) => ({ id: x.id, title: x.title, duration_seconds: x.duration, stream_url: x.stream ? siteUrl(org.slug, `/shop/${p.slug}/track/${x.id}`, org.site_domain) : null })),
+      }
+    },
+  }),
+  endpoint({
+    method: "POST",
+    path: "/{org}/shop/orders",
+    tag: "Shop",
+    summary: "Place a shop order",
+    description:
+      "Checks items, stock, delivery and payment like the hosted cart. `total_cents` = what you showed the buyer (items + shipping); a different total now → `price_changed`. Send the buyer to `next_url`: the provider's payment page (`payment: online`), else the order page (transfer: bank details there + by mail; pickup: pay when collecting). `success_url` may contain `{ORDER_ID}` and `{TOKEN}`. Errors: `sold_out`, `cart_changed`, `price_changed`, `delivery_invalid`, `shipping_invalid`, `payment_invalid`, `terms_missing`, `waiver_missing` (digital items need `digital_waiver: true`), `price_below_min` (name your price under the minimum), `unavailable`.",
+    body: z
+      .object({
+        email,
+        name,
+        items: z.array(z.object({ id: uuid.describe("Variant id, product id (products without variants) or track id (tracks_for_sale)"), quantity: z.number().int().min(1).max(100), price_cents: z.number().int().min(0).max(1_000_000).optional().describe("Name your price: the buyer's unit price (≥ the minimum; default = the suggestion). Ignored for fixed prices.") }).strict()).min(1).max(30),
+        delivery: z.enum(DELIVERIES),
+        shipping_rate: z.string().max(40).optional(),
+        payment: z.enum(PAYMENTS).default("online"),
+        address: z.object({ company: z.string().max(200).optional(), street: z.string().trim().min(1).max(200), postal_code: z.string().trim().min(1).max(20), city: z.string().trim().min(1).max(100), country: z.string().regex(/^[A-Z]{2}$/).default("DE") }).strict().optional().describe("Required for shipping; else optional billing address"),
+        note: z.string().max(2000).optional(),
+        total_cents: z.number().int().min(0),
+        accept_terms: z.boolean().optional(),
+        digital_waiver: z.boolean().optional(),
+        success_url: https.optional(),
+        cancel_url: https.optional(),
+      })
+      .strict(),
+    response: z.object({ order_id: uuid, token: z.string().describe("Secret for GET /shop/orders/{order_id}"), next_url: z.string(), order_url: z.string() }),
+    status: 201,
+    async handler({ org, body, t }) {
+      const [{ data: conf }, products] = await Promise.all([createPublicClient().rpc("shop_public_settings", { p_org: org.id }), shopCatalog(org.id)])
+      if (!conf) throw notFound()
+      const c = conf as Record<string, unknown>
+      if ((c.terms || c.withdrawal) && !body.accept_terms) throw keyError(422, "store.termsMissing", t)
+      const cart = body.items.map((i) => ({ id: i.id, q: i.quantity, ...(i.price_cents !== undefined && { p: i.price_cents }) }))
+      const lines = priceCart(cart, products)
+      if (lines.some((l) => l.digital) && !body.digital_waiver) throw keyError(422, "store.waiverMissing", t)
+      if (body.delivery === "shipping" && !body.address) throw keyError(422, "store.addressMissing", t)
+      const order = (id: string, token: string) => siteUrl(org.slug, `/o/${id}?k=${token}`, org.site_domain)
+      try {
+        const r = await placeOrder({
+          orgId: org.id,
+          cart,
+          name: body.name,
+          email: body.email,
+          delivery: body.delivery,
+          payment: body.payment,
+          rateId: body.shipping_rate ?? null,
+          address: body.address ? { company: body.address.company || null, street: body.address.street, postal_code: body.address.postal_code, city: body.address.city, country: body.address.country } : null,
+          note: body.note?.trim() || null,
+          expectedTotal: body.total_cents,
+          orderUrl: (id, token) => (body.success_url ? body.success_url.replaceAll("{ORDER_ID}", id).replaceAll("{TOKEN}", token) : order(id, token)),
+          cancelUrl: () => body.cancel_url ?? siteUrl(org.slug, "/shop", org.site_domain),
+        })
+        return { order_id: r.orderId, token: r.token, next_url: r.url, order_url: order(r.orderId, r.token) }
+      } catch (err) {
+        const key = err instanceof Error ? err.message : ""
+        if (SHOP_ERRORS[key]) throw new ApiError(409, SHOP_ERRORS[key], t.dynamic(key))
+        console.error("public api shop order", org.slug, key)
+        throw new ApiError(503, "unavailable", t("store.unavailable"))
+      }
+    },
+  }),
+  endpoint({
+    method: "GET",
+    path: "/{org}/shop/orders/{order_id}",
+    tag: "Shop",
+    summary: "A shop order",
+    description: "Needs the order's `token`. While an online payment is open the provider is asked directly (poll on your success page until `payment_status` is `paid`). Downloads of digital products appear once paid.",
+    query: z.object({ token: z.string().max(64) }),
+    response: z.object({
+      order_id: uuid,
+      number: z.number().int(),
+      status: z.enum(ORDER_STATUSES),
+      payment: z.enum(PAYMENTS),
+      payment_status: z.string(),
+      delivery: z.enum(DELIVERIES),
+      total_cents: z.number().int(),
+      items: z.array(z.object({ description: z.string(), quantity: z.number().int(), unit_amount: z.number().int() })),
+      tracking: z.string().nullable(),
+      downloads: z.array(z.object({ name: z.string(), url: z.string() })),
+      music: z
+        .array(z.object({ product_id: uuid, name: z.string(), album_zip: z.object({ size: z.number().int(), url: z.string() }).nullable().describe("WAV + MP3 320 folders; null while it's being built"), tracks: z.array(z.object({ id: uuid, title: z.string(), files: z.array(z.object({ format: z.enum(["wav", "mp3"]), size: z.number().int(), url: z.string() })) })) }))
+        .describe("Paid, released music (products with a release date ahead come once it has passed): the album ZIP and single tracks as WAV (original) / MP3 320 (links redirect to short-lived files)"),
+      invoice_url: z.string().nullable(),
+      order_url: z.string(),
+    }),
+    async handler({ org, params, query }) {
+      const id = params.order_id
+      let o = uuid.safeParse(id).success ? await orderForBuyer(id, query.token) : null
+      if (!o || o.org_id !== org.id) throw notFound()
+      if (o.pay_orders.status === "open" && o.payment === "online") {
+        await reconcileOrder(id).catch((e) => console.error("reconcile", id, e))
+        o = (await orderForBuyer(id, query.token))!
+      }
+      const [files, music] = await Promise.all([orderFiles(o), orderMusic(o)])
+      const audio = (product: string, f: string, track?: string) => siteUrl(org.slug, `/o/${id}/audio/${product}/${f}?k=${query.token}${track ? `&t=${track}` : ""}`, org.site_domain)
+      const fmt = (sizes: Partial<Record<"mp3" | "wav", number>>, product: string, track?: string) => (["wav", "mp3"] as const).flatMap((f) => (sizes[f] ? [{ format: f, size: sizes[f]!, url: audio(product, f, track) }] : []))
+      return {
+        order_id: id,
+        number: o.number,
+        status: o.status as (typeof ORDER_STATUSES)[number],
+        payment: o.payment as (typeof PAYMENTS)[number],
+        payment_status: o.pay_orders.status,
+        delivery: o.delivery as (typeof DELIVERIES)[number],
+        total_cents: o.pay_orders.amount_total,
+        items: o.pay_orders.pay_order_items.map((i) => ({ description: i.description, quantity: i.quantity, unit_amount: i.unit_amount })),
+        tracking: o.tracking,
+        downloads: files.map((f) => ({ name: f.name, url: siteUrl(org.slug, `/o/${id}/file/${f.id}?k=${query.token}`, org.site_domain) })),
+        music: music.map((m) => ({ product_id: m.productId, name: m.name, album_zip: m.zip ? { size: m.zip, url: audio(m.productId, "zip") } : null, tracks: m.tracks.map((x) => ({ id: x.id, title: x.title, files: fmt(x.sizes, m.productId, x.id) })) })),
+        invoice_url: o.invoice_id ? siteUrl(org.slug, `/o/${id}/invoice?k=${query.token}`, org.site_domain) : null,
+        order_url: siteUrl(org.slug, `/o/${id}?k=${query.token}`, org.site_domain),
       }
     },
   }),

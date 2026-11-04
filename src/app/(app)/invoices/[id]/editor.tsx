@@ -12,6 +12,7 @@ import { useT } from "@/i18n/client"
 import { TAX_RATES, totals, UNITS } from "@/documents/calc"
 import { parsePrice, priceInput } from "@/tickets/price"
 import { issueDocument, saveDocument } from "../actions"
+import { DateInput } from "@/components/date-input"
 
 export type EditorDoc = {
   id: string
@@ -32,6 +33,7 @@ export type EditorDoc = {
   notes: string | null
   tax_mode: string
   currency: string
+  prices_gross?: boolean
 }
 type Row = { key: number; title: string; description: string; quantity: string; unit: string; unit_price: string; tax_rate: number }
 export type EditorContact = { id: string; name: string; address: string; email: string | null }
@@ -77,7 +79,7 @@ export function DocumentEditor({
       return next
     })
   const add = () => setRows((rs) => [...rs, { key: ++seq, title: "", description: "", quantity: "1", unit: "flat", unit_price: "", tax_rate: small ? 0 : defaultTax }])
-  const sum = totals(rows.map((r) => ({ quantity: num(r.quantity), unit_price: parsePrice(r.unit_price) ?? 0, tax_rate: r.tax_rate })), small)
+  const sum = totals(rows.map((r) => ({ quantity: num(r.quantity), unit_price: parsePrice(r.unit_price) ?? 0, tax_rate: r.tax_rate })), small, !!doc.prices_gross)
   const money = (c: number) => t.money(c, doc.currency)
   const payload = JSON.stringify(
     rows.map((r) => ({ title: r.title, description: r.description, quantity: r.quantity, unit: r.unit, unit_price: r.unit_price, tax_rate: small ? 0 : r.tax_rate })),
@@ -154,17 +156,17 @@ export function DocumentEditor({
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="d-issue">{t("invoices.issueDate")}</Label>
-              <Input id="d-issue" name="issue_date" type="date" defaultValue={doc.issue_date ?? ""} />
+              <DateInput id="d-issue" name="issue_date" type="date" defaultValue={doc.issue_date ?? ""} />
             </div>
             {doc.kind === "invoice" ? (
               <div className="grid gap-2">
                 <Label htmlFor="d-due">{t("invoices.dueDate")}</Label>
-                <Input id="d-due" name="due_date" type="date" defaultValue={doc.due_date ?? ""} />
+                <DateInput id="d-due" name="due_date" type="date" defaultValue={doc.due_date ?? ""} />
               </div>
             ) : (
               <div className="grid gap-2">
                 <Label htmlFor="d-valid">{t("invoices.validUntil")}</Label>
-                <Input id="d-valid" name="valid_until" type="date" defaultValue={doc.valid_until ?? ""} />
+                <DateInput id="d-valid" name="valid_until" type="date" defaultValue={doc.valid_until ?? ""} />
               </div>
             )}
           </div>
@@ -172,11 +174,11 @@ export function DocumentEditor({
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
                 <Label htmlFor="d-sfrom">{t("invoices.serviceFrom")}</Label>
-                <Input id="d-sfrom" name="service_from" type="date" defaultValue={doc.service_from ?? ""} />
+                <DateInput id="d-sfrom" name="service_from" type="date" defaultValue={doc.service_from ?? ""} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="d-sto">{t("invoices.serviceTo")}</Label>
-                <Input id="d-sto" name="service_to" type="date" defaultValue={doc.service_to ?? ""} />
+                <DateInput id="d-sto" name="service_to" type="date" defaultValue={doc.service_to ?? ""} />
               </div>
             </div>
           )}

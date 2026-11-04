@@ -22,10 +22,11 @@ export default async function StartPage({ searchParams }: PageProps<"/website/pa
   const sp = await searchParams
   const has = (m: string) => ctx.modules.has(m)
   const now = new Date().toISOString()
-  const [site, { data: events }, { data: forms }] = await Promise.all([
+  const [site, { data: events }, { data: forms }, { data: products }] = await Promise.all([
     loadSite(ctx.supabase, ctx.org.id),
     has("events") ? ctx.supabase.from("events").select("id, title, starts_at").eq("org_id", ctx.org.id).is("deleted_at", null).neq("status", "draft").gte("starts_at", now).order("starts_at").limit(50) : Promise.resolve({ data: null }),
     has("forms") ? ctx.supabase.from("forms").select("slug, title").eq("org_id", ctx.org.id).eq("status", "published").is("deleted_at", null).order("title") : Promise.resolve({ data: null }),
+    has("shop") ? ctx.supabase.from("products").select("category").eq("org_id", ctx.org.id).eq("status", "published").is("deleted_at", null).not("category", "is", null).limit(500) : Promise.resolve({ data: null }),
   ])
   // View: blocks or own HTML (?mode=); saving in a view makes it the start page's mode.
   const mode = (param(sp, "mode") ?? site.draft.home_mode) === "html" ? "html" : "blocks"
@@ -62,6 +63,7 @@ export default async function StartPage({ searchParams }: PageProps<"/website/pa
               types={BLOCK_TYPES.filter((b) => blockAvailable(b.type, ctx.modules)).map((b) => b.type)}
               events={(events ?? []).map((e) => ({ value: e.id, label: `${e.title} · ${t.date(e.starts_at, { dateStyle: "medium" })}` }))}
               forms={(forms ?? []).map((f) => ({ value: f.slug, label: f.title }))}
+              categories={[...new Set((products ?? []).map((p) => p.category!))].sort()}
             />
           </FormCard>
           )}

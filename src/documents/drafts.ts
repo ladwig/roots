@@ -78,7 +78,7 @@ export type DraftHeader = Partial<{
 export async function writeDraft(db: Db, orgId: string, id: string, header: DraftHeader, items?: DraftItem[]): Promise<DbErr | null> {
   const { data: doc } = await db
     .from("documents")
-    .select("id, status, tax_mode, service_from, service_to, document_items(quantity, unit_price, tax_rate)")
+    .select("id, status, tax_mode, prices_gross, service_from, service_to, document_items(quantity, unit_price, tax_rate)")
     .eq("id", id)
     .eq("org_id", orgId)
     .maybeSingle()
@@ -92,7 +92,7 @@ export async function writeDraft(db: Db, orgId: string, id: string, header: Draf
     if (!c) return fail("invalid_input")
   }
   const lines = items ?? doc.document_items.map((i) => ({ quantity: Number(i.quantity), unit_price: i.unit_price, tax_rate: Number(i.tax_rate) }))
-  const sum = totals(lines, (header.tax_mode ?? doc.tax_mode) === "small_business")
+  const sum = totals(lines, (header.tax_mode ?? doc.tax_mode) === "small_business", doc.prices_gross)
   const { error } = await db
     .from("documents")
     .update({ ...header, net_total: sum.net, tax_total: sum.tax, gross_total: sum.gross })

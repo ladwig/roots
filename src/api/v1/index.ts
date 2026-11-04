@@ -20,6 +20,7 @@ import { endpoints as rentals } from "./rentals"
 import { endpoints as reports } from "./reports"
 import { endpoints as settings } from "./settings"
 import { endpoints as shifts } from "./shifts"
+import { endpoints as shop } from "./shop"
 import { endpoints as tickets } from "./tickets"
 import { endpoints as wiki } from "./wiki"
 
@@ -36,6 +37,7 @@ export const endpoints: Endpoint[] = [
   ...cashbook,
   ...projects,
   ...rentals,
+  ...shop,
   ...payments,
   ...shifts,
   ...hr,

@@ -105,7 +105,7 @@ export const OBJECTS = {
     table: "pay_orders",
     module: "payments",
     idKey: "order_id",
-    fields: [num("amount_total"), pick("status", ["open", "paid", "cancelled", "refunded"]), pick("source_module", ["tickets", "members", "invoices"]), text("customer_email"), text("customer_name")],
+    fields: [num("amount_total"), pick("status", ["open", "paid", "cancelled", "refunded"]), pick("source_module", ["tickets", "members", "invoices", "shop"]), text("customer_email"), text("customer_name")],
   },
   guest_list: {
     table: "guest_lists", remove: "soft",
@@ -237,6 +237,23 @@ export const OBJECTS = {
     fields: [pick("status", ["request", "confirmed", "cancelled"], true), at("starts_at"), at("ends_at", true), at("notice_at"), num("price_cents", true), pick("unit", ["hour", "day", "week", "month", "year", "once"]), num("deposit_cents"), text("note", true)],
     relations: { object_id: "rental_object" },
   },
+  product: {
+    table: "products",
+    module: "shop",
+    idKey: "product_id",
+    remove: "soft",
+    record: true,
+    fields: [text("name", true), pick("status", ["draft", "published", "archived"], true), pick("kind", ["physical", "digital"]), num("price_cents", true), num("stock", true), text("category", true)],
+  },
+  product_variant: { table: "product_variants", module: "shop", record: true, fields: [text("name"), num("price_cents"), num("stock", true), bool("active", true)], relations: { product_id: "product" } },
+  shop_order: {
+    table: "shop_orders",
+    module: "shop",
+    idKey: "shop_order_id",
+    record: true,
+    fields: [num("number"), pick("status", ["new", "ready", "shipped", "completed", "cancelled"], true), pick("delivery", ["pickup", "shipping", "digital"]), pick("payment", ["online", "transfer", "pickup"]), text("name"), text("city"), text("tracking", true), text("note")],
+    relations: { order_id: "order", contact_id: "contact", invoice_id: "invoice" },
+  },
   task_status: { table: "task_statuses", module: "projects", fields: [text("name"), bool("is_done")] },
   wiki_page: { table: "wiki_pages", remove: "soft", module: "wiki", record: true, fields: [text("title")], relations: { parent_id: "wiki_page" } },
   cash_entry: {
@@ -274,7 +291,7 @@ export const def = (k: ObjectKey): ObjectDef => OBJECTS[k]
 export const NOT_OBJECTS = [
   "api_keys", "cash_closings", "custom_fields", "document_items", "email_automations", "email_campaigns", "email_templates", "org_domains", "org_prices", "org_sites", "employee_private", "event_subscriptions",
   "invites", "letter_templates", "locations", "mcp_connections", "member_settings", "number_ranges", "org_billing", "org_integrations", "org_members",
-  "org_modules", "orgs", "platform_admins", "positions", "rental_contacts", "rental_rates", "roles", "sepa_runs", "shift_series", "site_pages", "sites", "task_assignees", "project_links", "comments", "ticket_codes",
+  "org_modules", "orgs", "platform_admins", "positions", "rental_contacts", "rental_rates", "roles", "shop_settings", "product_tracks", "sepa_runs", "shift_series", "site_pages", "sites", "task_assignees", "project_links", "comments", "ticket_codes",
   "ticket_tiers", "workflow_runs", "workflows",
 ]
 
@@ -296,6 +313,9 @@ export const EVENT_OBJECTS: Record<string, ObjectKey[]> = {
   "contact.created": ["contact"],
   "tickets.sold": ["contact", "event", "order", "tickets"],
   "order.paid": ["contact", "order"],
+  "shop.order_placed": ["shop_order", "contact", "order"],
+  "shop.order_ready": ["shop_order", "contact", "order"],
+  "shop.order_shipped": ["shop_order", "contact", "order"],
   "order.refunded": ["contact", "order"],
   "order.failed": ["contact", "order"],
   "event.published": ["event"],

@@ -7,7 +7,6 @@ import { NewPage } from "@/components/new-page"
 import { FormCard } from "@/components/page"
 import { SaveBar } from "@/components/save-bar"
 import { TypedInput } from "@/components/typed-input"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
@@ -19,6 +18,7 @@ import { param, type SearchParams } from "@/lib/url"
 import { longTerm, UNITS, wordFor, type Family } from "@/rentals/fields"
 import { createRentalAction } from "../../actions"
 import { kindLabel } from "../../parts"
+import { DateInput } from "@/components/date-input"
 
 // New contract / booking / loan for one object (?object=…; from the calendar also ?start=&end=). Picking a rate is
 // enough: empty price/terms are taken from it on save, so the form stays short.
@@ -72,12 +72,12 @@ export default async function NewRentalPage({ searchParams }: { searchParams: Pr
               {long ? (
                 <TypedInput kind="date" id="n-start" name="starts_at" required defaultValue={start?.slice(0, 10) ?? today} />
               ) : (
-                <Input id="n-start" name="starts_at" type="datetime-local" required defaultValue={start ? toLocalInput(start) : `${today}T10:00`} />
+                <DateInput id="n-start" name="starts_at" type="datetime-local" required defaultValue={start ? toLocalInput(start) : `${today}T10:00`} />
               )}
             </div>
             <div className="grid content-start gap-2">
               <Label htmlFor="n-end">{t("rentals.ends")}</Label>
-              {long ? <TypedInput kind="date" id="n-end" name="ends_at" defaultValue={end?.slice(0, 10) ?? ""} /> : <Input id="n-end" name="ends_at" type="datetime-local" defaultValue={end ? toLocalInput(end) : ""} />}
+              {long ? <TypedInput kind="date" id="n-end" name="ends_at" defaultValue={end?.slice(0, 10) ?? ""} /> : <DateInput id="n-end" name="ends_at" type="datetime-local" defaultValue={end ? toLocalInput(end) : ""} />}
             </div>
           </div>
           <div className="grid gap-2">

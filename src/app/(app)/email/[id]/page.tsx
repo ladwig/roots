@@ -17,6 +17,7 @@ import { requirePerm } from "@/lib/context"
 import { toLocalInput } from "@/lib/time"
 import { param } from "@/lib/url"
 import { saveCampaign, trashCampaign, unscheduleCampaign } from "../actions"
+import { DateInput } from "@/components/date-input"
 
 export default async function CampaignPage({ params, searchParams }: PageProps<"/email/[id]">) {
   const { id } = await params
@@ -119,7 +120,7 @@ export default async function CampaignPage({ params, searchParams }: PageProps<"
                   <div className="grid gap-2">
                     <Label htmlFor="c-at">{t("email.sendAt")}</Label>
                     <div className="flex flex-wrap gap-2">
-                      <Input id="c-at" name="send_at" type="datetime-local" defaultValue={c.send_at ? toLocalInput(c.send_at) : ""} className="w-auto flex-1" />
+                      <DateInput id="c-at" name="send_at" type="datetime-local" defaultValue={c.send_at ? toLocalInput(c.send_at) : ""} className="w-auto flex-1" />
                       <SubmitButton name="intent" value="schedule" variant="outline" size="sm">
                         {t("email.schedule")}
                       </SubmitButton>

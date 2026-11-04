@@ -16,6 +16,7 @@ import { fromLocalInput, toLocalInput } from "@/lib/time"
 import { param, withParams } from "@/lib/url"
 import { assign, deleteShift, moveShift, saveShift } from "./actions"
 import { CalendarView, type CalendarItem } from "@/components/calendar-view"
+import { DateInput } from "@/components/date-input"
 
 const day = (d: string) => new Date(`${d}T12:00:00Z`)
 const iso = (d: Date) => d.toISOString().slice(0, 10)
@@ -210,11 +211,11 @@ function ShiftForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="grid gap-2">
           <Label htmlFor="sh-start">{t("shifts.start")}</Label>
-          <Input id="sh-start" name="starts_at" type="datetime-local" required defaultValue={shift ? toLocalInput(shift.starts_at) : defaults.start} />
+          <DateInput id="sh-start" name="starts_at" type="datetime-local" required defaultValue={shift ? toLocalInput(shift.starts_at) : defaults.start} />
         </div>
         <div className="grid gap-2">
           <Label htmlFor="sh-end">{t("shifts.end")}</Label>
-          <Input id="sh-end" name="ends_at" type="datetime-local" required defaultValue={shift ? toLocalInput(shift.ends_at) : defaults.end} />
+          <DateInput id="sh-end" name="ends_at" type="datetime-local" required defaultValue={shift ? toLocalInput(shift.ends_at) : defaults.end} />
         </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">

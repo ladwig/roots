@@ -39,6 +39,7 @@ type Doc = {
   tax_mode: string
   currency: string
   seller: unknown
+  prices_gross?: boolean // shop invoices: unit prices incl. VAT
 }
 type Item = { position: number; title: string; description: string | null; quantity: number; unit: string; unit_price: number; tax_rate: number }
 
@@ -71,7 +72,7 @@ export function buildView(doc: Doc, items: Item[], seller: Seller, logoUrl: stri
   const small = doc.tax_mode === "small_business"
   const money = (c: number) => t.money(sign * c, doc.currency)
   const date = (d: string | null) => (d ? t.date(`${d}T12:00:00Z`, { dateStyle: "medium" }) : "")
-  const sum = totals(items.map((i) => ({ quantity: Number(i.quantity), unit_price: i.unit_price, tax_rate: Number(i.tax_rate) })), small)
+  const sum = totals(items.map((i) => ({ quantity: Number(i.quantity), unit_price: i.unit_price, tax_rate: Number(i.tax_rate) })), small, !!doc.prices_gross)
   const service =
     doc.service_from && doc.service_to && doc.service_to !== doc.service_from ? `${date(doc.service_from)} – ${date(doc.service_to)}` : date(doc.service_from)
   const { senderLine, footer } = letterhead(seller, t)
@@ -117,7 +118,7 @@ export function buildView(doc: Doc, items: Item[], seller: Seller, logoUrl: stri
           { label: t("invoices.gross"), value: money(sum.gross), strong: true },
         ],
     notes: [
-      ...(small ? [t("invoices.smallBusinessNote")] : []),
+      ...(small ? [t("invoices.smallBusinessNote")] : doc.prices_gross ? [t("invoices.grossPricesNote")] : []),
       ...(doc.kind === "invoice" && doc.due_date ? [t("invoices.payUntil", { date: date(doc.due_date) })] : []),
     ],
     footer,
