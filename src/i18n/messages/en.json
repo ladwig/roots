@@ -5922,7 +5922,7 @@
     "optionsInvalid": "Every option needs a unique name and at least one value.",
     "tooManyCombos": "Too many combinations (max. 100).",
     "variantImage": "Picture",
-    "imageN": "Picture {n}",
+    "noVariantImage": "No own picture",
     "combinationUnavailable": "This combination isn't available.",
     "leftColumn": "Available",
     "vatRate": "incl. {rate} % VAT",

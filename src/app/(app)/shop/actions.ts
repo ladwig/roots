@@ -272,7 +272,8 @@ export async function finishAudioUpload(trackId: string): Promise<{ error?: stri
 }
 
 /** Single tracks: one price for all of a product's tracks (empty = album only). */
-export async function saveTrackPrice(fd: FormData) {
+/** The music tab in one go: price per single track (empty = album only) + every track's number, title, switches. */
+export async function saveTracks(fd: FormData) {
   const { ctx, t } = await manager()
   const productId = id(fd, "product_id")
   const here = `/shop/${productId}?tab=digital`
@@ -281,10 +282,20 @@ export async function saveTrackPrice(fd: FormData) {
   if (!productId || (raw && (cents === null || cents > 1_000_000))) back(here, { error: t("store.priceInvalid") })
   const { error, count } = await ctx.supabase.from("products").update({ track_price_cents: cents }, { count: "exact" }).eq("id", productId).eq("org_id", ctx.org.id)
   if (error || !count) back(here, { error: error ? dbError(t, error) : t("errors.not_allowed") })
+  const buyable = fd.get("has_buyable") === "1"
+  for (const v of fd.getAll("track").map(String).filter((v) => UUID.test(v))) {
+    const r = await updateTrack(ctx.supabase, ctx.org.id, v, {
+      title: String(fd.get(`title_${v}`) ?? ""),
+      position: Number(fd.get(`position_${v}`)) || 0,
+      stream: fd.get(`stream_${v}`) === "1",
+      ...(buyable ? { buyable: fd.get(`buyable_${v}`) === "1" } : {}),
+    })
+    if ("error" in r) back(here, { error: r.error === "db" ? dbError(t, r.db!) : t.dynamic(String(r.error)) })
+  }
   back(here, { ok: t("store.saved") }) // the catalog is read live, no cache to refresh
 }
 
-/** A track: title, number, whether it plays in the shop; `delete` removes it with its files, `retry` converts again. */
+/** One track: `delete` removes it with its files, else it is converted again (retry). Edits go through saveTracks. */
 export async function saveTrack(fd: FormData) {
   const { ctx, t } = await manager()
   const productId = id(fd, "product_id")
@@ -293,9 +304,7 @@ export async function saveTrack(fd: FormData) {
   if (!productId || !trackId) back("/shop", { error: t("errors.invalid_input") })
   const r = fd.get("delete")
     ? await deleteTrack(ctx.supabase, ctx.org.id, trackId)
-    : fd.get("retry")
-      ? await finishTrackUpload(ctx.supabase, ctx.org.id, trackId)
-      : await updateTrack(ctx.supabase, ctx.org.id, trackId, { title: String(fd.get("title") ?? ""), position: Number(fd.get("position")) || 0, stream: fd.get("stream") === "1", ...(fd.has("buyable") || fd.get("has_buyable") ? { buyable: fd.get("buyable") === "1" } : {}) })
+    : await finishTrackUpload(ctx.supabase, ctx.org.id, trackId)
   if ("error" in r) back(here, { error: r.error === "db" ? dbError(t, r.db!) : t.dynamic(String(r.error)) })
   back(here, { ok: fd.get("delete") ? t("store.trackRemoved") : t("store.saved") })
 }

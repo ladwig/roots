@@ -15,7 +15,7 @@ import { imageUrl } from "@/lib/images"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { param, siteUrl } from "@/lib/url"
 import { priceInput } from "@/tickets/price"
-import { productImage, restoreProduct, saveOptions, saveTrack, saveTrackPrice, saveVariant, saveVariants, trashProduct } from "../actions"
+import { productImage, restoreProduct, saveOptions, saveTrack, saveTracks, saveVariant, saveVariants, trashProduct } from "../actions"
 import { SaveBar } from "@/components/save-bar"
 import { MultiSelect } from "@/components/multi-select"
 import type { ProductOption } from "@/shop/fields"
@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label"
 import { productTrackList } from "@/shop/audio"
 import { AutoRefresh } from "@/app/s/[site]/t/[order]/auto-refresh"
 import { AudioUpload } from "./audio-upload"
+import { ImagePick } from "./image-pick"
 import { ProductForm } from "../product-form"
 
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`
@@ -183,20 +184,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                                 <td className="px-2 py-1.5 text-xs whitespace-nowrap text-muted-foreground">{leftLabel(v.id, v.stock)}</td>
                                 {p.images.length > 0 && (
                                   <td className="px-2 py-1.5">
-                                    <div className="flex items-center gap-1.5">
-                                      {v.image_path && (
-                                        // eslint-disable-next-line @next/next/no-img-element -- public bucket URL
-                                        <img src={imageUrl(v.image_path)} alt="" className="size-7 rounded border object-cover" />
-                                      )}
-                                      <select name={f("image")} defaultValue={v.image_path ?? ""} disabled={!canManage} aria-label={t("store.variantImage")} className="h-8 rounded-md border bg-transparent px-1 text-xs">
-                                        <option value="">–</option>
-                                        {p.images.map((path, i) => (
-                                          <option key={path} value={path}>
-                                            {t("store.imageN", { n: i + 1 })}
-                                          </option>
-                                        ))}
-                                      </select>
-                                    </div>
+                                    <ImagePick name={f("image")} images={p.images.map((path) => ({ path, url: imageUrl(path) ?? "" }))} defaultValue={v.image_path ?? ""} disabled={!canManage} label={t("store.variantImage")} noneLabel={t("store.noVariantImage")} />
                                   </td>
                                 )}
                                 <td className="px-2 py-1.5 text-center">
@@ -253,27 +241,23 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
             <div className="grid items-start gap-6 lg:grid-cols-2">
               <FormCard id="tracks" title={t("store.tracks")} description={t("store.tracksHint")}>
                 {busyAudio && <AutoRefresh />}
-                {/* Single tracks: one price for every track (empty = album only); "or more" when the product is name-your-price. */}
-                <form action={saveTrackPrice} className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed p-2 text-sm">
+                {/* One form + save bar: price per single track ("or more" when the product is name-your-price) and every track.
+                    Delete / retry post the small forms below (form attribute). */}
+                <form action={saveTracks} className="grid gap-2">
                   <input type="hidden" name="product_id" value={p.id} />
-                  <Label htmlFor="track-price" className="font-normal">{t("store.trackPrice")}</Label>
-                  <TypedInput kind="money" id="track-price" name="track_price" defaultValue={p.track_price_cents != null ? priceInput(p.track_price_cents) : ""} placeholder="–" disabled={!canManage} />
-                  {canManage && (
-                    <SubmitButton size="sm" variant="outline">
-                      {t("common.save")}
-                    </SubmitButton>
-                  )}
-                  <p className="w-full text-xs text-muted-foreground">{t("store.trackPriceHint")}</p>
-                </form>
-                {tracks.length > 0 && (
-                  <ol className="grid gap-2">
-                    {tracks.map((x, i) => (
-                      <li key={x.id}>
-                        <form action={saveTrack} className="grid grid-cols-[3rem_1fr] items-center gap-2 rounded-lg border p-2">
-                          <input type="hidden" name="id" value={x.id} />
-                          <input type="hidden" name="product_id" value={p.id} />
-                          <Input name="position" type="number" defaultValue={x.position || i + 1} aria-label={t("store.trackNumber")} disabled={!canManage} />
-                          <Input name="title" defaultValue={x.title} maxLength={200} aria-label={t("store.trackTitle")} disabled={!canManage} />
+                  {p.track_price_cents != null && <input type="hidden" name="has_buyable" value="1" />}
+                  <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed p-2 text-sm">
+                    <Label htmlFor="track-price" className="font-normal">{t("store.trackPrice")}</Label>
+                    <TypedInput kind="money" id="track-price" name="track_price" defaultValue={p.track_price_cents != null ? priceInput(p.track_price_cents) : ""} placeholder="–" disabled={!canManage} />
+                    <p className="w-full text-xs text-muted-foreground">{t("store.trackPriceHint")}</p>
+                  </div>
+                  {tracks.length > 0 && (
+                    <ol className="grid gap-2">
+                      {tracks.map((x, i) => (
+                        <li key={x.id} className="grid grid-cols-[3rem_1fr] items-center gap-2 rounded-lg border p-2">
+                          <input type="hidden" name="track" value={x.id} />
+                          <Input name={`position_${x.id}`} type="number" defaultValue={x.position || i + 1} aria-label={t("store.trackNumber")} disabled={!canManage} />
+                          <Input name={`title_${x.id}`} defaultValue={x.title} maxLength={200} aria-label={t("store.trackTitle")} disabled={!canManage} />
                           <span className="col-span-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                             {x.status !== "ready" && <Badge variant={x.status === "failed" ? "destructive" : "outline"}>{t.dynamic(`store.trackStatus.${x.status}`)}</Badge>}
                             {x.duration_seconds ? <span className="tabular-nums">{clock(x.duration_seconds)}</span> : null}
@@ -282,36 +266,43 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                           </span>
                           <span className="col-span-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                             <label className="flex items-center gap-1">
-                              <input type="checkbox" name="stream" value="1" defaultChecked={x.stream} disabled={!canManage} className="accent-primary" /> {t("store.trackStream")}
+                              <input type="checkbox" name={`stream_${x.id}`} value="1" defaultChecked={x.stream} disabled={!canManage} className="accent-primary" /> {t("store.trackStream")}
                             </label>
                             {p.track_price_cents != null && (
                               <label className="flex items-center gap-1">
-                                <input type="hidden" name="has_buyable" value="1" />
-                                <input type="checkbox" name="buyable" value="1" defaultChecked={x.buyable} disabled={!canManage} className="accent-primary" /> {t("store.trackBuyable")}
+                                <input type="checkbox" name={`buyable_${x.id}`} value="1" defaultChecked={x.buyable} disabled={!canManage} className="accent-primary" /> {t("store.trackBuyable")}
                               </label>
                             )}
                             <span className="min-w-0 flex-1 truncate" title={x.master_name}>{x.master_name}</span>
                             {canManage && (
                               <span className="flex gap-1">
                                 {(x.status === "failed" || x.status === "uploading") && (
-                                  <SubmitButton size="sm" variant="outline" name="retry" value="1">
+                                  <SubmitButton size="sm" variant="outline" form={`track-retry-${x.id}`}>
                                     {t("store.trackRetry")}
                                   </SubmitButton>
                                 )}
-                                <SubmitButton size="sm" variant="outline">
-                                  {t("common.save")}
-                                </SubmitButton>
-                                <SubmitButton size="sm" variant="ghost" name="delete" value="1" data-confirm="store.confirmRemoveTrack" aria-label={t("store.removeTrack")}>
+                                <SubmitButton size="icon-sm" variant="ghost" form={`track-del-${x.id}`} data-confirm="store.confirmRemoveTrack" aria-label={t("store.removeTrack")}>
                                   <Trash2Icon />
                                 </SubmitButton>
                               </span>
                             )}
                           </span>
-                        </form>
-                      </li>
-                    ))}
-                  </ol>
-                )}
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                  {canManage && <SaveBar />}
+                </form>
+                {canManage &&
+                  tracks.map((x) =>
+                    (["del", "retry"] as const).map((kind) => (
+                      <form key={`${kind}-${x.id}`} id={`track-${kind}-${x.id}`} action={saveTrack} hidden>
+                        <input type="hidden" name="id" value={x.id} />
+                        <input type="hidden" name="product_id" value={p.id} />
+                        <input type="hidden" name={kind === "del" ? "delete" : "retry"} value="1" />
+                      </form>
+                    )),
+                  )}
                 {tracks.some((x) => x.status === "ready") && (
                   <p className="text-xs text-muted-foreground">
                     {zips.zip ? t("store.zipsReady", { list: mb(zips.zip.size) }) : t("store.zipsPreparing")}
