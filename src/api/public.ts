@@ -116,6 +116,7 @@ const ShopProduct = z.object({
   images: z.array(z.string()).describe("Picture URLs, first = cover"),
   video_url: z.string().nullable(),
   max_per_order: z.number().int(),
+  release_at: z.string().nullable().describe("Release date while it is ahead (pre-order): sells now, digital delivery unlocks that day"),
   left: z.number().int().nullable().describe("Products without variants: units left (null = unlimited)"),
   variants: z.array(z.object({ id: uuid, name: z.string(), price_cents: z.number().int(), left: z.number().int().nullable(), digital: z.boolean().describe("Download only: no shipping, delivered after payment") })),
   url: z.string().describe("Hosted product page"),
@@ -132,6 +133,7 @@ const shopProductOut = (org: Org, p: CatalogProduct) => ({
   images: p.images.map((i) => imageUrl(i)!),
   video_url: p.video_url,
   max_per_order: p.max_per_order,
+  release_at: p.release_at ?? null,
   left: p.left,
   variants: p.variants,
   url: siteUrl(org.slug, `/shop/${p.slug}`, org.site_domain),
@@ -528,8 +530,8 @@ export const publicEndpoints: PublicEndpoint[] = [
       tracking: z.string().nullable(),
       downloads: z.array(z.object({ name: z.string(), url: z.string() })),
       music: z
-        .array(z.object({ product_id: uuid, name: z.string(), album: z.array(z.object({ format: z.enum(["mp3", "flac", "wav"]), size: z.number().int(), url: z.string() })), tracks: z.array(z.object({ id: uuid, title: z.string(), files: z.array(z.object({ format: z.enum(["mp3", "flac", "wav"]), size: z.number().int(), url: z.string() })) })) }))
-        .describe("Paid music: the album as ZIP and single tracks in MP3 320 / FLAC / WAV (links redirect to short-lived files)"),
+        .array(z.object({ product_id: uuid, name: z.string(), album_zip: z.object({ size: z.number().int(), url: z.string() }).nullable().describe("WAV + MP3 320 folders; null while it's being built"), tracks: z.array(z.object({ id: uuid, title: z.string(), files: z.array(z.object({ format: z.enum(["wav", "mp3"]), size: z.number().int(), url: z.string() })) })) }))
+        .describe("Paid, released music (products with a release date ahead come once it has passed): the album ZIP and single tracks as WAV (original) / MP3 320 (links redirect to short-lived files)"),
       invoice_url: z.string().nullable(),
       order_url: z.string(),
     }),
@@ -543,7 +545,7 @@ export const publicEndpoints: PublicEndpoint[] = [
       }
       const [files, music] = await Promise.all([orderFiles(o), orderMusic(o)])
       const audio = (product: string, f: string, track?: string) => siteUrl(org.slug, `/o/${id}/audio/${product}/${f}?k=${query.token}${track ? `&t=${track}` : ""}`, org.site_domain)
-      const fmt = (sizes: Partial<Record<"mp3" | "flac" | "wav", number>>, product: string, track?: string) => (["mp3", "flac", "wav"] as const).flatMap((f) => (sizes[f] ? [{ format: f, size: sizes[f]!, url: audio(product, f, track) }] : []))
+      const fmt = (sizes: Partial<Record<"mp3" | "wav", number>>, product: string, track?: string) => (["wav", "mp3"] as const).flatMap((f) => (sizes[f] ? [{ format: f, size: sizes[f]!, url: audio(product, f, track) }] : []))
       return {
         order_id: id,
         number: o.number,
@@ -555,7 +557,7 @@ export const publicEndpoints: PublicEndpoint[] = [
         items: o.pay_orders.pay_order_items.map((i) => ({ description: i.description, quantity: i.quantity, unit_amount: i.unit_amount })),
         tracking: o.tracking,
         downloads: files.map((f) => ({ name: f.name, url: siteUrl(org.slug, `/o/${id}/file/${f.id}?k=${query.token}`, org.site_domain) })),
-        music: music.map((m) => ({ product_id: m.productId, name: m.name, album: fmt(m.zips, m.productId), tracks: m.tracks.map((x) => ({ id: x.id, title: x.title, files: fmt(x.sizes, m.productId, x.id) })) })),
+        music: music.map((m) => ({ product_id: m.productId, name: m.name, album_zip: m.zip ? { size: m.zip, url: audio(m.productId, "zip") } : null, tracks: m.tracks.map((x) => ({ id: x.id, title: x.title, files: fmt(x.sizes, m.productId, x.id) })) })),
         invoice_url: o.invoice_id ? siteUrl(org.slug, `/o/${id}/invoice?k=${query.token}`, org.site_domain) : null,
         order_url: siteUrl(org.slug, `/o/${id}?k=${query.token}`, org.site_domain),
       }

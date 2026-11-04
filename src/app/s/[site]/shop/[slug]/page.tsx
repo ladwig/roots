@@ -64,6 +64,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
           <h1 className="font-heading text-3xl font-semibold">{p.name}</h1>
           <p className="text-xl">{priceLabel(p, t)}</p>
           <p className="text-xs text-muted-foreground">{t(p.kind === "digital" ? "store.vatDigital" : "store.vatShipping")}</p>
+          {p.release_at && <p className="site-release rounded-lg bg-muted px-3 py-2 text-sm">{t("store.releaseNote", { date: t.date(p.release_at, { dateStyle: "long" }) })}</p>}
           {tracks.length > 0 && (
             <MusicPlayer
               tracks={tracks.map((x) => ({ id: x.id, title: x.title, duration: x.duration, src: x.stream ? sitePath(site, `/shop/${slug}/track/${x.id}`) : null }))}

@@ -18,10 +18,11 @@ export const durationOf = (log: string) => {
   return m ? Math.round(Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3])) : null
 }
 
-export type Format = "stream" | "mp3" | "flac" | "wav"
-export const DOWNLOAD_FORMATS = ["mp3", "flac", "wav"] as const
-export const EXT: Record<Format, string> = { stream: "mp3", mp3: "mp3", flac: "flac", wav: "wav" }
-export const MIME: Record<Format, string> = { stream: "audio/mpeg", mp3: "audio/mpeg", flac: "audio/flac", wav: "audio/wav" }
+// stream = the shop's player (128k); buyers get mp3 (320k) and wav (the master as uploaded, or converted from AIFF/FLAC).
+export type Format = "stream" | "mp3" | "wav"
+export const DOWNLOAD_FORMATS = ["mp3", "wav"] as const
+export const EXT: Record<Format, string> = { stream: "mp3", mp3: "mp3", wav: "wav" }
+export const MIME: Record<Format, string> = { stream: "audio/mpeg", mp3: "audio/mpeg", wav: "audio/wav" }
 
 /** ffmpeg arguments: one input, one output per format (tags on each). The WAV is only made when the master isn't one. */
 export function convertArgs(input: string, out: (f: Format) => string, tags: Record<string, string>, masterIsWav: boolean) {
@@ -29,7 +30,6 @@ export function convertArgs(input: string, out: (f: Format) => string, tags: Rec
   const outputs: [Format, string[]][] = [
     ["stream", ["-c:a", "libmp3lame", "-b:a", "128k", "-ar", "44100"]],
     ["mp3", ["-c:a", "libmp3lame", "-b:a", "320k"]],
-    ["flac", ["-c:a", "flac", "-compression_level", "8"]],
     ...(masterIsWav ? [] : [["wav", ["-c:a", "pcm_s24le"]] as [Format, string[]]]),
   ]
   return { formats: outputs.map(([f]) => f), args: ["-i", input, ...outputs.flatMap(([f, codec]) => ["-map", "0:a:0", "-map_metadata", "-1", ...meta, ...codec, out(f)])] }

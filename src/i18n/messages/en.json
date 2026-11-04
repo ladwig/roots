@@ -5651,6 +5651,10 @@
       "cancelled": {
         "title": "Order #{number} cancelled",
         "message": "Your order #{number} was cancelled. If you already paid, you'll get the money back."
+      },
+      "released": {
+        "title": "Out now: order #{number}",
+        "message": "It's here: your pre-order is out. Your downloads are unlocked now."
       }
     },
     "mailKinds": {
@@ -5658,14 +5662,16 @@
       "paid": "Payment received",
       "ready": "Ready for pickup",
       "shipped": "Shipped",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "released": "Released (downloads unlocked)"
     },
     "mailWhen": {
       "confirmation": "After ordering (paid online: after the payment). With items, bank details for transfers, invoice PDF.",
       "paid": "When you mark a transfer or cash payment as paid. With invoice.",
       "ready": "When you mark a pickup order as ready. With the pickup note.",
       "shipped": "When you mark an order as shipped. With the tracking number, if entered.",
-      "cancelled": "When you cancel an order. With the cancellation invoice."
+      "cancelled": "When you cancel an order. With the cancellation invoice.",
+      "released": "On the release day of a pre-ordered product."
     },
     "mails": "Emails to buyers",
     "mailsHint": "Which emails go out. Your own text replaces the standard line at the top; placeholders: {number}, {name}, {total}, {org}.",
@@ -5813,7 +5819,7 @@
     "next": "Next track",
     "buyersOnly": "after purchase",
     "tracks": "Music",
-    "tracksHint": "Upload the lossless master per track (WAV, AIFF or FLAC). roots makes the player version for the shop and, for buyers, MP3 320, FLAC and WAV – single tracks and an album ZIP. Number = order. Unticked tracks are listed in the player but don't play (buyers only).",
+    "tracksHint": "Upload the master per track (WAV, AIFF or FLAC). roots makes the player version for the shop (MP3 128) and, for buyers, MP3 320 + WAV – single tracks and one album ZIP. Number = order. Unticked tracks are listed in the player but don't play (buyers only).",
     "trackNumber": "No.",
     "trackTitle": "Title",
     "trackStream": "playable in the shop",
@@ -5845,11 +5851,17 @@
     },
     "audioFormats": {
       "mp3": "MP3 320",
-      "flac": "FLAC",
       "wav": "WAV"
     },
-    "zipsReady": "Album ZIPs ready: {list}",
-    "zipsPreparing": "Album ZIPs are being built …",
-    "albumZip": "Whole album as ZIP"
+    "zipsReady": "Album ZIP ready (WAV + MP3 320): {list}",
+    "zipsPreparing": "Album ZIP is being built …",
+    "albumZip": "Whole album",
+    "albumZipButton": "Album as ZIP (WAV + MP3 320)",
+    "releaseOn": "Release date (optional)",
+    "releaseHint": "For pre-orders: sells normally until then; downloads and music unlock on the day – buyers get a mail then.",
+    "releaseInvalid": "The release date is invalid.",
+    "releaseNote": "Out on {date}. You can order now – downloads are available from the release day.",
+    "releaseShort": "Out {date}",
+    "releaseLater": "{name} comes out on {date} – your downloads unlock here then and you'll get a mail."
   }
 }

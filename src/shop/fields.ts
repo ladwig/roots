@@ -1,6 +1,7 @@
 // Shop: the rules the public pages, the App forms and the API share (pure, relative imports only, node --test).
 // Prices are gross integer cents (what the buyer pays); VAT rates as on invoices.
 import { moneyCents } from "../lib/inputs.ts"
+import { fromLocalInput } from "../lib/time.ts"
 
 export const TAX_RATES = [19, 7, 0] as const
 export const PRODUCT_KINDS = ["physical", "digital"] as const
@@ -9,7 +10,7 @@ export const DELIVERIES = ["pickup", "shipping", "digital"] as const
 export const PAYMENTS = ["online", "transfer", "pickup"] as const
 export const ORDER_STATUSES = ["new", "ready", "shipped", "completed", "cancelled"] as const
 /** Mails the shop sends to buyers; each can be switched off and given its own text (Shop → Einstellungen). */
-export const MAIL_KINDS = ["confirmation", "paid", "ready", "shipped", "cancelled"] as const
+export const MAIL_KINDS = ["confirmation", "paid", "ready", "shipped", "cancelled", "released"] as const
 export type Delivery = (typeof DELIVERIES)[number]
 export type Payment = (typeof PAYMENTS)[number]
 export type MailKind = (typeof MAIL_KINDS)[number]
@@ -100,6 +101,7 @@ export type CatalogProduct = {
   video_url: string | null
   category: string | null
   max_per_order: number
+  release_at?: string | null // only while ahead
   description?: string | null
   left: number | null // products without variants; null = unlimited
   variants: CatalogVariant[]
@@ -190,6 +192,7 @@ export type ProductRow = {
   max_per_order: number
   category: string | null
   video_url: string | null
+  release_at: string | null // release date (pre-orders): digital delivery unlocks that day
 }
 
 const intOrNull = (v: string) => (v.trim() === "" ? null : Number(v.trim()))
@@ -211,8 +214,11 @@ export function readProduct(get: (k: string) => string): { row: ProductRow } | {
   if (video && (!/^https:\/\/\S+$/.test(video) || video.length > 500)) return { error: "store.videoInvalid" }
   const kind = PRODUCT_KINDS.find((k) => k === get("kind")) ?? "physical"
   const status = PRODUCT_STATUSES.find((s) => s === get("status")) ?? "draft"
+  const release = get("release_on").trim() // "2026-11-27" (Berlin) or empty
+  const release_at = release ? fromLocalInput(`${release}T00:00`)?.toISOString() ?? null : null
+  if (release && (!/^\d{4}-\d{2}-\d{2}$/.test(release) || !release_at)) return { error: "store.releaseInvalid" }
   return {
-    row: { name, slug, description: get("description").slice(0, 50000), kind, status, price_cents: price, tax_rate: tax, stock, max_per_order: max, category: get("category").trim().slice(0, 60) || null, video_url: video || null },
+    row: { name, slug, description: get("description").slice(0, 50000), kind, status, price_cents: price, tax_rate: tax, stock, max_per_order: max, category: get("category").trim().slice(0, 60) || null, video_url: video || null, release_at },
   }
 }
 

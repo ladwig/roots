@@ -6,6 +6,7 @@ import { cancelOrder, ensureInvoice, mail, markOrderPaid, setOrderStatus } from 
 import { deleteTrack, finishTrackUpload, productTrackList, startTrackUpload, updateTrack } from "@/shop/audio"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
 import { putImage, ts, type Db } from "./shared"
+import { toLocalInput } from "@/lib/time"
 
 // Shop: products (+ variants, pictures, downloads via /files), orders and their fulfilment, settings. Validation =
 // the App's (src/shop/fields.ts), order steps = src/shop/server.ts (mails, invoices, refunds happen there too).
@@ -24,12 +25,13 @@ const Product = z.object({
   max_per_order: z.number().int(),
   category: z.string().nullable(),
   video_url: z.string().nullable(),
+  release_at: ts.nullable().describe("Release date (pre-order): sells before it, digital delivery (downloads, music) unlocks that day"),
   images: z.array(z.object({ path: z.string(), image_url: z.string() })).describe("First = cover"),
   variants: z.array(Variant),
   created_at: ts,
   updated_at: ts,
 })
-const PRODUCT_COLS = "id, slug, name, description, kind, status, price_cents, tax_rate, stock, max_per_order, category, video_url, images, created_at, updated_at, product_variants(id, name, price_cents, stock, active, digital, position)"
+const PRODUCT_COLS = "id, slug, name, description, kind, status, price_cents, tax_rate, stock, max_per_order, category, video_url, release_at, images, created_at, updated_at, product_variants(id, name, price_cents, stock, active, digital, position)"
 type ProductRow = { images: string[]; tax_rate: number; product_variants: { position: number }[] } & Record<string, unknown>
 const productOut = ({ product_variants, images, ...p }: ProductRow) => ({
   ...p,
@@ -50,6 +52,7 @@ const ProductInput = z
     max_per_order: z.number().int().min(1).max(100),
     category: z.string().max(60).nullable(),
     video_url: z.string().max(500).nullable().describe("YouTube/Vimeo link or a direct https MP4"),
+    release_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().describe("Release date YYYY-MM-DD (Europe/Berlin), null = none. Before it the product sells normally; downloads/music unlock on the day and the buyers get the `released` mail."),
   })
   .partial()
   .strict()
@@ -103,7 +106,7 @@ const Track = z.object({ id: uuid, title: z.string(), position: z.number().int()
 const trackOut = (x: Awaited<ReturnType<typeof productTrackList>>[number]) => ({ id: x.id, title: x.title, position: x.position, stream: x.stream, status: x.status as "ready", error: x.error, file_name: x.master_name, duration_seconds: x.duration_seconds, formats: Object.fromEntries(Object.entries(x.formats).map(([k, v]) => [k, { size: v!.size }])) })
 const invalid = (key: string) => new ApiError(422, key.split(".").pop()!.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`), key)
 // The API speaks cents; the shared parser reads form strings ("25,00").
-const asForm = (b: Record<string, unknown>) => ({ ...b, price: b.price_cents == null ? undefined : (Number(b.price_cents) / 100).toFixed(2).replace(".", ",") })
+const asForm = (b: Record<string, unknown>) => ({ ...b, release_on: b.release_on !== undefined ? b.release_on : b.release_at ? toLocalInput(String(b.release_at)).slice(0, 10) : null, price: b.price_cents == null ? undefined : (Number(b.price_cents) / 100).toFixed(2).replace(".", ",") })
 
 async function productOf(db: Db, orgId: string, id: string) {
   const { data } = await db.from("products").select(PRODUCT_COLS).eq("id", id).eq("org_id", orgId).is("deleted_at", null).maybeSingle()
@@ -303,7 +306,7 @@ export const endpoints: Endpoint[] = [
     permission: "shop.view",
     tag: TAG,
     summary: "List a product's music tracks",
-    description: "Tracks in order with their conversion status (`uploading` → `pending` → `processing` → `ready` | `failed`), duration and the formats made from the master (stream = 128 kbps MP3 for the shop's player; mp3 = 320 kbps, flac, wav = what buyers download). Album ZIPs are built once every track is ready.",
+    description: "Tracks in order with their conversion status (`uploading` → `pending` → `processing` → `ready` | `failed`), duration and the formats made from the master (stream = 128 kbps MP3 for the shop's player; mp3 = 320 kbps and wav = the master, what buyers download). One album ZIP (WAV + MP3 320 folders) is built once every track is ready.",
     response: z.object({ tracks: z.array(Track), album_zips: z.record(z.string(), z.object({ size: z.number().int() })) }),
     async handler({ db, orgId, params }) {
       await productOf(db, orgId, params.id)

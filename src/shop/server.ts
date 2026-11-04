@@ -203,7 +203,8 @@ export async function shopPaid(order: PaidOrder) {
   if (!o || o.status === "cancelled") return
   await db().from("shop_orders").update({ placed_at: new Date().toISOString() }).eq("id", o.id).is("placed_at", null)
   await linkContact(o)
-  if (o.delivery === "digital") await db().from("shop_orders").update({ status: "completed" }).eq("id", o.id).eq("status", "new")
+  // Digital orders are done once paid, unless something in them comes out later (then on release day, shopReleases()).
+  if (o.delivery === "digital" && !(await orderUnreleased(o)).length) await db().from("shop_orders").update({ status: "completed" }).eq("id", o.id).eq("status", "new")
   await ensureInvoice(o.order_id).catch((e) => console.error("shop invoice", o.order_id, e))
   // Online orders weren't real before the payment: they get the confirmation (and count as placed) now.
   await mail(o.payment === "online" ? "confirmation" : "paid", o.order_id).catch((e) => console.error("shop mail", o.order_id, e))
@@ -332,7 +333,7 @@ const md = (html: string, text: string): Markup => ({ html, text })
 export const orderLink = (o: { order_id: string; token: string; orgs: { slug: string; site_domain: string | null } }) =>
   siteUrl(o.orgs.slug, `/o/${o.order_id}?k=${o.token}`, o.orgs.site_domain)
 
-function mailMessage(kind: MailKind, o: Order, t: T, custom: string | null, bank: { holder: string; iban: string; bic: string | null } | null, pickupText: string | null, downloads: boolean) {
+function mailMessage(kind: MailKind, o: Order, t: T, custom: string | null, bank: { holder: string; iban: string; bic: string | null } | null, pickupText: string | null, downloads: boolean, later: { name: string; release_at: string }[]) {
   const cur = o.pay_orders.currency
   const vars = { number: String(o.number), name: o.name, total: t.money(o.pay_orders.amount_total, cur), org: o.orgs.name }
   const intro = custom?.trim() ? custom.replace(/\{([a-z]+)\}/g, (m, k: string) => (k in vars ? vars[k as keyof typeof vars] : m)) : t.dynamic(`store.mail.${kind}.message`, vars)
@@ -362,7 +363,13 @@ function mailMessage(kind: MailKind, o: Order, t: T, custom: string | null, bank
   if (kind === "confirmation" && unpaid && o.payment === "pickup") parts.push(md(`<p>${esc(t("store.payOnPickupNote"))}</p>`, t("store.payOnPickupNote")))
   if ((kind === "ready" || (kind === "confirmation" && o.delivery === "pickup")) && pickupText) parts.push(md(`<p>${esc(pickupText).replace(/\n/g, "<br>")}</p>`, pickupText))
   if (kind === "shipped" && o.tracking) parts.push(md(`<p>${esc(t("store.trackingLine", { tracking: o.tracking }))}</p>`, t("store.trackingLine", { tracking: o.tracking })))
-  if (downloads && (kind === "confirmation" || kind === "paid")) parts.push(md(`<p>${esc(t("store.downloadsNote"))}</p>`, t("store.downloadsNote")))
+  if (downloads && (kind === "confirmation" || kind === "paid" || kind === "released")) parts.push(md(`<p>${esc(t("store.downloadsNote"))}</p>`, t("store.downloadsNote")))
+  // Pre-orders: say when the digital part comes (the "released" mail follows on the day).
+  if (kind === "confirmation" || kind === "paid")
+    for (const p of later) {
+      const line = t("store.releaseLater", { name: p.name, date: t.date(p.release_at, { dateStyle: "long" }) })
+      parts.push(md(`<p>${esc(line)}</p>`, line))
+    }
   return { html: parts.map((p) => p.html).join(""), text: parts.map((p) => p.text).join("\n\n") }
 }
 
@@ -389,7 +396,7 @@ export async function mail(kind: MailKind, orderId: string) {
     number: String(o.number),
     total: t.money(o.pay_orders.amount_total, o.pay_orders.currency),
     title: t.dynamic(`store.mail.${kind}.title`, vars),
-    message: mailMessage(kind, o, t, conf.message ?? null, bank?.iban ? { holder: bank.legal_name ?? o.orgs.name, iban: bank.iban, bic: bank.bic } : null, settings.pickup_text, (await orderFiles(o)).length > 0 || (await orderMusic(o)).length > 0),
+    message: mailMessage(kind, o, t, conf.message ?? null, bank?.iban ? { holder: bank.legal_name ?? o.orgs.name, iban: bank.iban, bic: bank.bic } : null, settings.pickup_text, (await orderFiles(o)).length > 0 || (await orderMusic(o)).length > 0, await orderUnreleased(o)),
     button: button(link, t("store.mail.button")),
     link,
     // event placeholders a shared template may use stay empty
@@ -466,17 +473,51 @@ export async function orderForBuyer(orderId: string, token: string) {
 }
 export type BuyerOrder = Order
 
-const unlocked = (o: Order) => ["paid", "partially_refunded"].includes(o.pay_orders.status) && o.status !== "cancelled"
+const isPaid = (o: Order) => ["paid", "partially_refunded"].includes(o.pay_orders.status) && o.status !== "cancelled"
 const orderProductIds = (o: Order) => [...new Set(o.pay_orders.pay_order_items.map((i) => (i.metadata as Record<string, unknown> | null)?.product_id).filter((x): x is string => typeof x === "string"))]
 
-/** Music of the products in a paid order (every format, single tracks + album ZIPs; src/shop/audio.ts). */
-export const orderMusic = async (o: Order) => (unlocked(o) ? orderAudio(o.org_id, orderProductIds(o)) : [])
-
-/** Files of the products in a paid order (downloads on the order page). */
-export async function orderFiles(o: Order) {
-  if (!unlocked(o)) return []
+/** Products of the order that aren't released yet (release date ahead): their digital delivery waits until the day. */
+export async function orderUnreleased(o: Order): Promise<{ id: string; name: string; release_at: string }[]> {
   const ids = orderProductIds(o)
+  if (!ids.length) return []
+  const { data } = await db().from("products").select("id, name, release_at").eq("org_id", o.org_id).in("id", ids).gt("release_at", new Date().toISOString())
+  return (data ?? []) as { id: string; name: string; release_at: string }[]
+}
+// Paid + released: what the buyer may download now.
+async function unlockedIds(o: Order) {
+  if (!isPaid(o)) return []
+  const later = new Set((await orderUnreleased(o)).map((p) => p.id))
+  return orderProductIds(o).filter((id) => !later.has(id))
+}
+
+/** Music of the released products in a paid order (WAV + MP3 320, single tracks + album ZIP; src/shop/audio.ts). */
+export const orderMusic = async (o: Order) => orderAudio(o.org_id, await unlockedIds(o))
+
+/** Files of the released products in a paid order (downloads on the order page). */
+export async function orderFiles(o: Order) {
+  const ids = await unlockedIds(o)
   if (!ids.length) return []
   const { data } = await db().from("files").select("id, name, size, entity_id").eq("org_id", o.org_id).eq("entity", "products").in("entity_id", ids).order("name")
   return data ?? []
+}
+
+/**
+ * Release day (minute worker, shop_release_due()): products whose release date has come unlock their digital delivery.
+ * Every paid order with them gets the "released" mail (downloads are on the order page now); purely digital orders
+ * with nothing else pending are completed. Claimed per product (release_done_at), so it runs once per date.
+ */
+export async function shopReleases() {
+  const now = new Date().toISOString()
+  const { data: due } = await db().from("products").select("id, org_id").lte("release_at", now).is("release_done_at", null).is("deleted_at", null).limit(20)
+  for (const p of due ?? []) {
+    const { data: claimed } = await db().from("products").update({ release_done_at: now }).eq("id", p.id).is("release_done_at", null).select("id")
+    if (!claimed?.length) continue
+    const { data: items } = await db().from("pay_order_items").select("order_id, pay_orders!inner(status, source_module)").eq("org_id", p.org_id).eq("metadata->>product_id", p.id).eq("pay_orders.source_module", "shop").in("pay_orders.status", ["paid", "partially_refunded"])
+    for (const orderId of new Set((items ?? []).map((i) => i.order_id))) {
+      const o = await loadOrder(orderId)
+      if (!o || o.status === "cancelled") continue
+      if (o.delivery === "digital" && !(await orderUnreleased(o)).length) await db().from("shop_orders").update({ status: "completed" }).eq("id", o.id).eq("status", "new")
+      await mail("released", orderId).catch((e) => console.error("shop release mail", orderId, e))
+    }
+  }
 }

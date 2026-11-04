@@ -2,7 +2,7 @@ import { audioDownloadUrl } from "@/shop/audio"
 import { orderForBuyer, orderMusic } from "@/shop/server"
 import { getSite } from "../../../../../data"
 
-// Music download for the buyer (order id + token): the album ZIP, or one track (?t=), in mp3 | flac | wav → a
+// Music download for the buyer (order id + token): the album ZIP (format "zip"), or one track (?t=) as mp3 | wav → a
 // short-lived link to the file in R2, named for the buyer.
 export async function GET(request: Request, { params }: RouteContext<"/s/[site]/o/[order]/audio/[product]/[format]">) {
   const { site, order, product, format } = await params

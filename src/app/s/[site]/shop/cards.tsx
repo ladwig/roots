@@ -21,6 +21,7 @@ export function ProductCards({ products, site, t }: { products: CatalogProduct[]
             <div className="grid gap-0.5">
               <p className="font-medium leading-tight">{p.name}</p>
               <p className="text-sm text-muted-foreground">{soldOut(p) ? t("store.soldOut") : priceLabel(p, t)}</p>
+              {p.release_at && <p className="text-xs text-muted-foreground">{t("store.releaseShort", { date: t.date(p.release_at, { dateStyle: "medium" }) })}</p>}
             </div>
           </Link>
         </li>

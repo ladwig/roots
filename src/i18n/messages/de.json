@@ -5651,6 +5651,10 @@
       "cancelled": {
         "title": "Bestellung #{number} storniert",
         "message": "Deine Bestellung #{number} wurde storniert. Wenn du schon bezahlt hast, bekommst du den Betrag zurück."
+      },
+      "released": {
+        "title": "Jetzt erschienen: Bestellung #{number}",
+        "message": "Es ist so weit: deine Vorbestellung ist erschienen. Deine Downloads sind jetzt freigeschaltet."
       }
     },
     "mailKinds": {
@@ -5658,14 +5662,16 @@
       "paid": "Zahlung erhalten",
       "ready": "Abholbereit",
       "shipped": "Versendet",
-      "cancelled": "Storniert"
+      "cancelled": "Storniert",
+      "released": "Erschienen (Downloads frei)"
     },
     "mailWhen": {
       "confirmation": "Nach der Bestellung (online bezahlt: nach der Zahlung). Mit Artikeln, Bankverbindung bei Überweisung, Rechnung als PDF.",
       "paid": "Wenn ihr eine Überweisung oder Barzahlung als bezahlt markiert. Mit Rechnung.",
       "ready": "Wenn ihr eine Abholbestellung als abholbereit markiert. Mit dem Abholhinweis.",
       "shipped": "Wenn ihr eine Bestellung als versendet markiert. Mit Sendungsnummer, falls eingetragen.",
-      "cancelled": "Wenn ihr eine Bestellung storniert. Mit Stornorechnung."
+      "cancelled": "Wenn ihr eine Bestellung storniert. Mit Stornorechnung.",
+      "released": "Am Erscheinungstag eines vorbestellten Produkts."
     },
     "mails": "E-Mails an Käufer:innen",
     "mailsHint": "Welche E-Mails rausgehen. Eigener Text ersetzt den Standardsatz oben in der Mail; Platzhalter: {number}, {name}, {total}, {org}.",
@@ -5813,7 +5819,7 @@
     "next": "Nächster Titel",
     "buyersOnly": "nach dem Kauf",
     "tracks": "Musik",
-    "tracksHint": "Pro Titel das verlustfreie Master hochladen (WAV, AIFF oder FLAC). roots macht daraus die Player-Version für den Shop und für Käufer:innen MP3 320, FLAC und WAV – einzeln und als Album-ZIP. Nummer = Reihenfolge. Ohne Häkchen steht der Titel im Player, spielt aber nicht (nur nach dem Kauf).",
+    "tracksHint": "Pro Titel das Master hochladen (WAV, AIFF oder FLAC). roots macht daraus die Player-Version für den Shop (MP3 128) und für Käufer:innen MP3 320 + WAV – einzeln und als ein Album-ZIP. Nummer = Reihenfolge. Ohne Häkchen steht der Titel im Player, spielt aber nicht (nur nach dem Kauf).",
     "trackNumber": "Nr.",
     "trackTitle": "Titel",
     "trackStream": "im Shop abspielbar",
@@ -5845,11 +5851,17 @@
     },
     "audioFormats": {
       "mp3": "MP3 320",
-      "flac": "FLAC",
       "wav": "WAV"
     },
-    "zipsReady": "Album-ZIPs fertig: {list}",
-    "zipsPreparing": "Album-ZIPs werden erstellt …",
-    "albumZip": "Ganzes Album als ZIP"
+    "zipsReady": "Album-ZIP fertig (WAV + MP3 320): {list}",
+    "zipsPreparing": "Album-ZIP wird erstellt …",
+    "albumZip": "Ganzes Album",
+    "albumZipButton": "Album als ZIP (WAV + MP3 320)",
+    "releaseOn": "Erscheint am (optional)",
+    "releaseHint": "Für Vorbestellungen: bis dahin normal kaufbar, Downloads und Musik werden an dem Tag freigeschaltet – Käufer:innen bekommen dann eine Mail.",
+    "releaseInvalid": "Das Erscheinungsdatum ist ungültig.",
+    "releaseNote": "Erscheint am {date}. Du kannst jetzt schon bestellen – Downloads gibt es ab dem Erscheinungstag.",
+    "releaseShort": "Erscheint {date}",
+    "releaseLater": "{name} erscheint am {date} – deine Downloads werden dann hier freigeschaltet und du bekommst eine Mail."
   }
 }

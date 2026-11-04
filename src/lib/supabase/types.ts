@@ -1647,14 +1647,14 @@ isOneToOne: false
                   ]
                 },"products": {
                   Row: {
-                    "audio_zips": NonNullable<Json>,"audio_zips_claimed_at": string | null,"category": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string,"id": string,"images": (string)[],"kind": string,"max_per_order": number,"name": string,"org_id": string,"position": number,"price_cents": number,"slug": string,"status": string,"stock": number | null,"tax_rate": number,"updated_at": string,"updated_by": string | null,"video_url": string | null
+                    "audio_zips": NonNullable<Json>,"audio_zips_claimed_at": string | null,"category": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string,"id": string,"images": (string)[],"kind": string,"max_per_order": number,"name": string,"org_id": string,"position": number,"price_cents": number,"release_at": string | null,"release_done_at": string | null,"slug": string,"status": string,"stock": number | null,"tax_rate": number,"updated_at": string,"updated_by": string | null,"video_url": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "audio_zips"?: NonNullable<Json>,"audio_zips_claimed_at"?: string | null,"category"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string,"id"?: string,"images"?: (string)[],"kind"?: string,"max_per_order"?: number,"name": string,"org_id": string,"position"?: number,"price_cents"?: number,"slug": string,"status"?: string,"stock"?: number | null,"tax_rate"?: number,"updated_at"?: string,"updated_by"?: string | null,"video_url"?: string | null
+                    "audio_zips"?: NonNullable<Json>,"audio_zips_claimed_at"?: string | null,"category"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string,"id"?: string,"images"?: (string)[],"kind"?: string,"max_per_order"?: number,"name": string,"org_id": string,"position"?: number,"price_cents"?: number,"release_at"?: string | null,"release_done_at"?: string | null,"slug": string,"status"?: string,"stock"?: number | null,"tax_rate"?: number,"updated_at"?: string,"updated_by"?: string | null,"video_url"?: string | null
                   }
                   Update: {
-                    "audio_zips"?: NonNullable<Json>,"audio_zips_claimed_at"?: string | null,"category"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string,"id"?: string,"images"?: (string)[],"kind"?: string,"max_per_order"?: number,"name"?: string,"org_id"?: string,"position"?: number,"price_cents"?: number,"slug"?: string,"status"?: string,"stock"?: number | null,"tax_rate"?: number,"updated_at"?: string,"updated_by"?: string | null,"video_url"?: string | null
+                    "audio_zips"?: NonNullable<Json>,"audio_zips_claimed_at"?: string | null,"category"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string,"id"?: string,"images"?: (string)[],"kind"?: string,"max_per_order"?: number,"name"?: string,"org_id"?: string,"position"?: number,"price_cents"?: number,"release_at"?: string | null,"release_done_at"?: string | null,"slug"?: string,"status"?: string,"stock"?: number | null,"tax_rate"?: number,"updated_at"?: string,"updated_by"?: string | null,"video_url"?: string | null
                   }
                   Relationships: [
                     {
@@ -2929,6 +2929,9 @@ isOneToOne: false
                            },
 "shop_public_settings":
 { Args: { "p_org": string }; Returns: Json
+                           },
+"shop_release_due":
+{ Args: Record<PropertyKey, never>; Returns: boolean
                            },
 "site_for_host":
 { Args: { "p_host": string }; Returns: string

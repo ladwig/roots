@@ -6,11 +6,11 @@ import { getT } from "@/i18n/server"
 import { param, sitePath } from "@/lib/url"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { reconcileOrder } from "@/payments/server"
-import { orderFiles, orderForBuyer, orderMusic } from "@/shop/server"
+import { orderFiles, orderForBuyer, orderMusic, orderUnreleased } from "@/shop/server"
 import { AutoRefresh } from "../../t/[order]/auto-refresh"
 import { getSite } from "../../data"
 
-const FORMATS = ["mp3", "flac", "wav"] as const
+const FORMATS = ["wav", "mp3"] as const
 const mb = (bytes: number) => `${Math.max(1, Math.round(bytes / 1024 / 1024))} MB`
 
 // The buyer's shop order (link from the payment success page / emails). Access = order id + secret token.
@@ -28,9 +28,10 @@ export default async function BuyerOrder({ params, searchParams }: PageProps<"/s
   const t = await getT()
   const cur = o.pay_orders.currency
   const paid = ["paid", "partially_refunded"].includes(o.pay_orders.status)
-  const [files, music, { data: bank }, { data: inv }] = await Promise.all([
+  const [files, music, later, { data: bank }, { data: inv }] = await Promise.all([
     orderFiles(o),
     orderMusic(o),
+    orderUnreleased(o),
     o.payment === "transfer" && !paid ? createAdminClient().from("org_billing").select("legal_name, iban, bic").eq("org_id", o.org_id).maybeSingle() : Promise.resolve({ data: null }),
     o.invoice_id ? createAdminClient().from("documents").select("status, number").eq("id", o.invoice_id).maybeSingle() : Promise.resolve({ data: null }),
   ])
@@ -99,6 +100,11 @@ export default async function BuyerOrder({ params, searchParams }: PageProps<"/s
         {o.tracking && <p>{t("store.trackingLine", { tracking: o.tracking })}</p>}
       </section>
 
+      {later.map((p) => (
+        <p key={p.id} className="site-release rounded-lg border bg-muted/50 px-3 py-2 text-sm">
+          {t("store.releaseLater", { name: p.name, date: t.date(p.release_at, { dateStyle: "long" }) })}
+        </p>
+      ))}
       {music.map((m) => (
         // Bandcamp-style: the whole album as ZIP or single tracks, in every format (links are made fresh on each click).
         <section key={m.productId} className="site-music-downloads grid gap-3 rounded-xl border p-4">
@@ -107,16 +113,13 @@ export default async function BuyerOrder({ params, searchParams }: PageProps<"/s
           </h2>
           <div className="grid gap-1">
             <p className="text-sm text-muted-foreground">{t("store.albumZip")}</p>
-            <div className="flex flex-wrap gap-2">
-              {FORMATS.map((f) =>
-                m.zips[f] ? (
-                  <Button key={f} render={<a href={withToken(`/o/${order}/audio/${m.productId}/${f}`)} />} nativeButton={false} size="sm">
-                    <DownloadIcon /> {t.dynamic(`store.audioFormats.${f}`)} · {mb(m.zips[f]!)}
-                  </Button>
-                ) : null,
-              )}
-              {!Object.keys(m.zips).length && <p className="text-sm text-muted-foreground">{t("store.zipsPreparing")}</p>}
-            </div>
+            {m.zip ? (
+              <Button render={<a href={withToken(`/o/${order}/audio/${m.productId}/zip`)} />} nativeButton={false} size="sm" className="justify-self-start">
+                <DownloadIcon /> {t("store.albumZipButton")} · {mb(m.zip)}
+              </Button>
+            ) : (
+              <p className="text-sm text-muted-foreground">{t("store.zipsPreparing")}</p>
+            )}
           </div>
           <ol className="grid divide-y rounded-lg border text-sm">
             {m.tracks.map((x, i) => (

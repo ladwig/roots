@@ -44,7 +44,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   const left = new Map(await Promise.all(items.map(async (i) => [i.id, i.stock === null ? null : (await admin.rpc("shop_left", { p_item: i.id, p_stock: i.stock })).data] as const)))
   const leftLabel = (itemId: string, stock: number | null) => (stock === null ? t("store.unlimited") : t("store.leftOf", { left: Math.max(0, left.get(itemId) ?? 0), stock }))
   const here = `/shop/${id}`
-  const zips = (p.audio_zips ?? {}) as Partial<Record<"mp3" | "flac" | "wav", { size: number }>>
+  const zips = (p.audio_zips ?? {}) as { zip?: { size: number } }
   // Conversions / ZIPs still running: the page reloads itself until they're done.
   const busyAudio = tracks.some((x) => x.status === "pending" || x.status === "processing") || (tracks.some((x) => x.status === "ready") && !Object.keys(zips).length)
   const tab = param(sp, "tab") === "variants" ? "variants" : param(sp, "tab") === "digital" ? "digital" : "product"
@@ -55,7 +55,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
         crumbs={[{ href: "/shop", label: t("store.products") }, { label: p.name }]}
         title={p.name}
         badge={<Badge variant={p.status === "published" ? "default" : "secondary"}>{t.dynamic(`store.statuses.${p.status}`)}</Badge>}
-        meta={[t.money(p.price_cents, "eur"), p.category].filter(Boolean).join(" · ")}
+        meta={[t.money(p.price_cents, "eur"), p.category, p.release_at && t("store.releaseShort", { date: t.date(p.release_at, { dateStyle: "medium" }) })].filter(Boolean).join(" · ")}
         actions={
           p.status === "published" && (
             <a href={siteUrl(ctx.org.slug, `/shop/${p.slug}`, ctx.org.site_domain)} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-sm hover:bg-muted">
@@ -174,7 +174,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                           <span className="col-span-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                             <Badge variant={x.status === "ready" ? "secondary" : x.status === "failed" ? "destructive" : "outline"}>{t.dynamic(`store.trackStatus.${x.status}`)}</Badge>
                             {x.duration_seconds ? <span className="tabular-nums">{clock(x.duration_seconds)}</span> : null}
-                            {x.status === "ready" && <span>{(["mp3", "flac", "wav"] as const).flatMap((f) => (x.formats[f] ? [`${t.dynamic(`store.audioFormats.${f}`)} ${mb(x.formats[f]!.size)}`] : [])).join(" · ")}</span>}
+                            {x.status === "ready" && <span>{(["wav", "mp3"] as const).flatMap((f) => (x.formats[f] ? [`${t.dynamic(`store.audioFormats.${f}`)} ${mb(x.formats[f]!.size)}`] : [])).join(" · ")}</span>}
                             {x.status === "failed" && x.error && <span className="w-full truncate text-destructive" title={x.error}>{x.error}</span>}
                           </span>
                           <span className="col-span-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
@@ -205,9 +205,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                 )}
                 {tracks.some((x) => x.status === "ready") && (
                   <p className="text-xs text-muted-foreground">
-                    {Object.keys(zips).length
-                      ? t("store.zipsReady", { list: (["mp3", "flac", "wav"] as const).flatMap((f) => (zips[f] ? [`${t.dynamic(`store.audioFormats.${f}`)} ${mb(zips[f]!.size)}`] : [])).join(" · ") })
-                      : t("store.zipsPreparing")}
+                    {zips.zip ? t("store.zipsReady", { list: mb(zips.zip.size) }) : t("store.zipsPreparing")}
                   </p>
                 )}
                 {canManage && <AudioUpload productId={p.id} />}

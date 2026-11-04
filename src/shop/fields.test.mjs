@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { changeCart, deliveriesFor, paymentsFor, priceCart, readCart, readShippingRates, shippingCents, slugify } from "./fields.ts"
+import { changeCart, deliveriesFor, paymentsFor, priceCart, readCart, readProduct, readShippingRates, shippingCents, slugify } from "./fields.ts"
 
 const A = "11111111-1111-4111-8111-111111111111"
 const V = "22222222-2222-4222-8222-222222222222"
@@ -72,4 +72,11 @@ test("shipping countries: EU expands, unknown codes dropped", () => {
   const [r] = readShippingRates([{ name: "EU", cents: 900, countries: "EU, CH, XX" }])
   assert.equal(r.countries.length, 28)
   assert.ok(r.countries.includes("FR") && r.countries.includes("CH") && !r.countries.includes("XX"))
+})
+
+test("release date: Berlin midnight, invalid rejected, empty = none", () => {
+  const get = (o) => (k) => o[k] ?? ""
+  assert.equal(readProduct(get({ name: "LP", release_on: "2026-11-27" })).row.release_at, "2026-11-26T23:00:00.000Z")
+  assert.equal(readProduct(get({ name: "LP" })).row.release_at, null)
+  assert.equal(readProduct(get({ name: "LP", release_on: "27.11.2026" })).error, "store.releaseInvalid")
 })

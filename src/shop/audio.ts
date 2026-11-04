@@ -1,7 +1,7 @@
 // Shop music (Bandcamp-style), shared by the App, the key API, the public pages and the audio worker. Files live in R2
 // (src/lib/r2.ts): the org uploads a lossless master per track straight from the browser (startTrackUpload → PUT →
-// finishTrackUpload); /api/cron/audio converts it (stream MP3 for the player; MP3 320, FLAC, WAV for buyers) and then
-// builds one album ZIP per download format. Rows: product_tracks + products.audio_zips. Callers check permissions;
+// finishTrackUpload); /api/cron/audio converts it (stream MP3 for the player; MP3 320 + WAV for buyers) and then
+// builds one album ZIP (WAV + MP3 320 folders). Rows: product_tracks + products.audio_zips. Callers check permissions;
 // every query filters by org (the key API's client bypasses RLS).
 import { createWriteStream } from "node:fs"
 import { mkdtemp, rm, stat } from "node:fs/promises"
@@ -168,18 +168,16 @@ async function buildZips(productId: string) {
   if (!p) return
   const { data } = await db.from("product_tracks").select("title, position, formats").eq("product_id", productId).eq("status", "ready").order("position").order("created_at")
   const tracks = (data ?? []) as { title: string; formats: Partial<Record<Format, Stored>> }[]
-  const zips: Record<string, Stored> = {}
+  // One ZIP with a folder per format: "WAV/01 Gasp.wav", "MP3 320/01 Gasp.mp3".
+  const folder = { wav: "WAV", mp3: "MP3 320" } as const
+  const files = (["wav", "mp3"] as const).flatMap((f) => tracks.flatMap((t, i) => (t.formats[f] ? [{ name: `${folder[f]}/${nn(i)} ${safeName(t.title)}.${EXT[f]}`, size: t.formats[f]!.size, key: t.formats[f]!.key }] : [])))
   const { downloadZip, predictLength } = await import("client-zip")
-  for (const f of DOWNLOAD_FORMATS) {
-    const files = tracks.flatMap((t, i) => (t.formats[f] ? [{ name: `${nn(i)} ${safeName(t.title)}.${EXT[f]}`, size: t.formats[f]!.size, key: t.formats[f]!.key }] : []))
-    if (!files.length) continue
-    async function* inputs() {
-      for (const x of files) yield { name: x.name, size: x.size, input: (await fetch(await presign(x.key, "GET", 900))).body! }
-    }
-    const key = `${prefix(p.org_id, p.id)}/album-${f}.zip`
-    const body = downloadZip(inputs(), { length: predictLength(files.map(({ name, size }) => ({ name, size }))) }).body!
-    zips[f] = { key, size: await uploadStream(key, body as unknown as AsyncIterable<Uint8Array>, "application/zip") }
+  async function* inputs() {
+    for (const x of files) yield { name: x.name, size: x.size, input: (await fetch(await presign(x.key, "GET", 900))).body! }
   }
+  const key = `${prefix(p.org_id, p.id)}/album.zip`
+  const body = downloadZip(inputs(), { length: predictLength(files.map(({ name, size }) => ({ name, size }))) }).body!
+  const zips = files.length ? { zip: { key, size: await uploadStream(key, body as unknown as AsyncIterable<Uint8Array>, "application/zip") } } : {}
   // Only if nothing changed meanwhile (a change clears the claim): else the next run builds again.
   await db.from("products").update({ audio_zips: zips, audio_zips_claimed_at: null }).eq("id", productId).eq("audio_zips_claimed_at", p.audio_zips_claimed_at!)
 }
@@ -197,7 +195,7 @@ export async function streamUrl(orgId: string, productId: string, trackId: strin
   return t?.formats.stream ? presign(t.formats.stream.key, "GET", 3600) : null
 }
 
-export type BuyerAudio = { productId: string; name: string; zips: Partial<Record<(typeof DOWNLOAD_FORMATS)[number], number>>; tracks: { id: string; title: string; sizes: Partial<Record<(typeof DOWNLOAD_FORMATS)[number], number>> }[] }
+export type BuyerAudio = { productId: string; name: string; zip: number | null; tracks: { id: string; title: string; sizes: Partial<Record<(typeof DOWNLOAD_FORMATS)[number], number>> }[] }
 
 /** The music of the products in a paid order (caller checks the order is paid and the buyer's token). */
 export async function orderAudio(orgId: string, productIds: string[]): Promise<BuyerAudio[]> {
@@ -210,21 +208,21 @@ export async function orderAudio(orgId: string, productIds: string[]): Promise<B
   const sizes = (f: Record<string, Stored>) => Object.fromEntries(DOWNLOAD_FORMATS.flatMap((k) => (f[k] ? [[k, f[k].size]] : [])))
   return (products ?? []).flatMap((p) => {
     const own = (tracks ?? []).filter((t) => t.product_id === p.id)
-    return own.length ? [{ productId: p.id, name: p.name, zips: sizes((p.audio_zips ?? {}) as Record<string, Stored>), tracks: own.map((t) => ({ id: t.id, title: t.title, sizes: sizes((t.formats ?? {}) as Record<string, Stored>) })) }] : []
+    return own.length ? [{ productId: p.id, name: p.name, zip: ((p.audio_zips ?? {}) as Record<string, Stored>).zip?.size ?? null, tracks: own.map((t) => ({ id: t.id, title: t.title, sizes: sizes((t.formats ?? {}) as Record<string, Stored>) })) }] : []
   })
 }
 
-/** A download link for one track or the album ZIP (trackId null) in a format, named for the buyer. */
+/** A download link, named for the buyer: the album ZIP (`zip`) or one track (trackId) as `mp3` | `wav`. */
 export async function audioDownloadUrl(orgId: string, productId: string, format: string, trackId: string | null) {
-  if (!(DOWNLOAD_FORMATS as readonly string[]).includes(format)) return null
-  const f = format as (typeof DOWNLOAD_FORMATS)[number]
   const db = createAdminClient()
   const { data: p } = await db.from("products").select("name, audio_zips").eq("id", productId).eq("org_id", orgId).maybeSingle()
   if (!p) return null
-  if (!trackId) {
-    const z = ((p.audio_zips ?? {}) as Record<string, Stored>)[f]
-    return z ? presign(z.key, "GET", 600, `${safeName(p.name)} (${f.toUpperCase()}).zip`) : null
+  if (format === "zip") {
+    const z = ((p.audio_zips ?? {}) as Record<string, Stored>).zip
+    return z ? presign(z.key, "GET", 600, `${safeName(p.name)}.zip`) : null
   }
+  if (!(DOWNLOAD_FORMATS as readonly string[]).includes(format) || !trackId) return null
+  const f = format as (typeof DOWNLOAD_FORMATS)[number]
   const list = await productTrackList(db, orgId, productId)
   const i = list.filter((t) => t.status === "ready").findIndex((t) => t.id === trackId)
   const t = list.filter((x) => x.status === "ready")[i]

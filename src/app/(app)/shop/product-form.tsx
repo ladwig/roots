@@ -9,6 +9,7 @@ import type { T } from "@/i18n/translate"
 import type { Tables } from "@/lib/supabase/types"
 import { PRODUCT_KINDS, PRODUCT_STATUSES, TAX_RATES } from "@/shop/fields"
 import { priceInput } from "@/tickets/price"
+import { toLocalInput } from "@/lib/time"
 import { saveProduct } from "./actions"
 
 export function ProductForm({ t, p, disabled }: { t: T; p?: Tables<"products"> | null; disabled?: boolean }) {
@@ -45,6 +46,11 @@ export function ProductForm({ t, p, disabled }: { t: T; p?: Tables<"products"> |
           <div className="grid gap-2">
             <Label htmlFor="p-max">{t("store.maxPerOrder")}</Label>
             <TypedInput kind="number" id="p-max" name="max_per_order" min={1} max={100} inputMode="numeric" defaultValue={p?.max_per_order ?? 10} disabled={disabled} />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="p-release">{t("store.releaseOn")}</Label>
+            <TypedInput kind="date" id="p-release" name="release_on" defaultValue={p?.release_at ? toLocalInput(p.release_at).slice(0, 10) : ""} disabled={disabled} />
+            <p className="text-xs text-muted-foreground">{t("store.releaseHint")}</p>
           </div>
         </div>
       </FormCard>
