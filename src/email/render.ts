@@ -65,7 +65,7 @@ export function renderMail(t: { subject: string; body: string; format?: string }
   // Only campaigns/automations get a footer (the unsubscribe link); event mails end where the template ends.
   const foot = unsub ? `<p style="margin:28px 0 0;font-size:12px;color:#777">${esc(footer.org)} · <a href="${esc(footer.unsubscribeUrl!)}" style="color:#777">${esc(footer.unsubscribeLabel!)}</a></p>` : ""
   const textFoot = unsub ? `\n\n--\n${footer.org} · ${footer.unsubscribeLabel}: ${footer.unsubscribeUrl}\n` : ""
-  const logo = footer.logo ? `<img src="${esc(footer.logo)}" alt="${esc(footer.org)}" style="max-height:56px;max-width:200px;margin:0 0 20px">` : ""
+  const logo = footer.logo ? `<img src="${esc(footer.logo)}" alt="${esc(footer.org)}" height="48" style="display:block;height:48px;width:auto;max-width:100%;margin:0 0 20px">` : ""
   const wrap = (inner: string) => `<div style="font:15px/1.6 system-ui,-apple-system,sans-serif;color:#1a1a1a;max-width:600px">${logo}${inner}${foot}</div>`
 
   if (t.format === "html") {
