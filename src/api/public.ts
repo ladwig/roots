@@ -425,6 +425,7 @@ export const publicEndpoints: PublicEndpoint[] = [
       deliveries: z.object({ pickup: z.boolean(), pickup_text: z.string().nullable(), shipping: z.boolean(), shipping_rates: z.array(z.object({ id: z.string(), name: z.string(), cents: z.number().int(), free_from: z.number().int().nullable(), countries: z.array(z.string()) })) }),
       payments: z.object({ online: z.boolean(), transfer: z.boolean(), pickup: z.boolean() }),
       terms: z.boolean().describe("Has terms / a cancellation policy the buyer must accept (accept_terms)"),
+      small_business: z.boolean().describe("Kleinunternehmer (§ 19 UStG): show no VAT, but the note \"Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.\" Otherwise prices include VAT at each product's tax_rate."),
       products: z.array(ShopProduct),
       url: z.string(),
     }),
@@ -438,6 +439,7 @@ export const publicEndpoints: PublicEndpoint[] = [
         deliveries: { pickup: !!c.pickup, pickup_text: (c.pickup_text as string) ?? null, shipping: !!c.shipping, shipping_rates: readShippingRates(c.shipping_rates) },
         payments: { online: !!c.pay_online && ready, transfer: !!c.pay_transfer, pickup: !!c.pay_on_pickup },
         terms: !!(c.terms || c.withdrawal),
+        small_business: !!c.small_business,
         products: products.map((p) => shopProductOut(org, p)),
         url: siteUrl(org.slug, "/shop", org.site_domain),
       }

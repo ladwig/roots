@@ -11,7 +11,7 @@ import { imageUrl } from "@/lib/images"
 import { param, sitePath } from "@/lib/url"
 import { cn } from "@/lib/utils"
 import { getCart } from "@/shop/cart"
-import { deliveriesFor, paymentsFor, priceCart, readShippingRates, shippingCents, subtotalOf, type CatalogProduct, type Delivery, type ShopSettings } from "@/shop/fields"
+import { deliveriesFor, paymentsFor, priceCart, readShippingRates, shippingCents, subtotalOf, vatIncluded, type CatalogProduct, type Delivery, type ShopSettings } from "@/shop/fields"
 import { onlineReady } from "@/shop/server"
 import { getSite } from "../data"
 import { PriceInput, QtyInput } from "./qty"
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: PageProps<"/s/[site]/cart">):
   return s ? { title: `${t("store.cart")} · ${s.org.name}`, robots: { index: false } } : {}
 }
 
-type PublicSettings = ShopSettings & { pickup_text: string | null; terms: string | null; withdrawal: string | null }
+type PublicSettings = ShopSettings & { pickup_text: string | null; terms: string | null; withdrawal: string | null; small_business?: boolean }
 
 // Cart + checkout on one page. Delivery and shipping rate are links (?d=, ?r=) so the total is always computed on the
 // server; the form then only asks who orders and how they pay.
@@ -199,7 +199,17 @@ export default async function CartPage({ params, searchParams }: PageProps<"/s/[
               <span>{t("store.total")}</span>
               <span className="tabular-nums">{t.money(total, "eur")}</span>
             </p>
-            <p className="text-xs text-muted-foreground">{t("store.vatIncluded")}</p>
+            {settings.small_business ? (
+              <p className="text-xs text-muted-foreground">{t("store.smallBusinessNote")}</p>
+            ) : (
+              // VAT contained per rate (shipping at the highest rate of the goods, as on the invoice).
+              vatIncluded([...lines.map((l) => ({ cents: l.quantity * l.unit, rate: l.tax_rate })), ...(shipping ? [{ cents: shipping, rate: Math.max(...lines.map((l) => l.tax_rate)) }] : [])]).map((v) => (
+                <p key={v.rate} className="flex justify-between text-xs text-muted-foreground">
+                  <span>{t("store.vatContained", { rate: v.rate })}</span>
+                  <span className="tabular-nums">{t.money(v.cents, "eur")}</span>
+                </p>
+              ))
+            )}
           </div>
 
           {delivery && !problems && (

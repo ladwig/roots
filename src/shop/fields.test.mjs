@@ -113,3 +113,8 @@ test("variant options: read, combinations, plan", async () => {
   assert.deepEqual(plan.remove, ["b", "c"])
   assert.deepEqual(planVariants([], [{ id: "c", option_values: null }]).remove, [])
 })
+
+test("VAT contained in gross prices, per rate", async () => {
+  const { vatIncluded } = await import("./fields.ts")
+  assert.deepEqual(vatIncluded([{ cents: 1190, rate: 19 }, { cents: 1070, rate: 7 }, { cents: 500, rate: 0 }, { cents: 1190, rate: 19 }]), [{ rate: 19, cents: 380 }, { rate: 7, cents: 70 }])
+})

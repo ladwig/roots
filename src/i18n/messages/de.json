@@ -5563,7 +5563,7 @@
     "subtotal": "Zwischensumme",
     "shippingLine": "Versand",
     "total": "Gesamt",
-    "free": "Frei",
+    "free": "kostenlos",
     "name": "Dein Name",
     "email": "Deine E-Mail",
     "shippingAddress": "Lieferadresse",
@@ -5891,6 +5891,14 @@
     "tooManyCombos": "Zu viele Kombinationen (max. 100).",
     "variantImage": "Bild",
     "imageN": "Bild {n}",
-    "combinationUnavailable": "Diese Kombination ist nicht verfügbar."
+    "combinationUnavailable": "Diese Kombination ist nicht verfügbar.",
+    "leftColumn": "Frei",
+    "vatRate": "inkl. {rate} % MwSt.",
+    "vatNone": "ohne MwSt.",
+    "plusShipping": "zzgl. Versand",
+    "smallBusinessShort": "Kein Ausweis der USt. (§ 19 UStG)",
+    "smallBusinessNote": "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.",
+    "vatContained": "enthaltene MwSt. {rate} %",
+    "smallBusinessApp": "Ihr seid Kleinunternehmer (Rechnungen → Einstellungen): im Shop und auf Rechnungen wird keine USt. ausgewiesen. Der Satz gilt erst, wenn ihr das umstellt."
   }
 }

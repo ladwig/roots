@@ -36,10 +36,11 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   const t = await getT()
   const sp = await searchParams
   const canManage = ctx.can("shop.manage")
-  const [{ data: p }, { data: variants }, tracks] = await Promise.all([
+  const [{ data: p }, { data: variants }, tracks, { data: billing }] = await Promise.all([
     ctx.supabase.from("products").select("*").eq("id", id).eq("org_id", ctx.org.id).maybeSingle(),
     ctx.supabase.from("product_variants").select("*").eq("product_id", id).eq("org_id", ctx.org.id).order("position").order("created_at"),
     productTrackList(ctx.supabase, ctx.org.id, id),
+    ctx.supabase.from("org_billing").select("tax_mode").eq("org_id", ctx.org.id).maybeSingle(),
   ])
   if (!p) notFound()
   // Units still free (stock − paid − held by open orders); the product's own stock only counts without variants.
@@ -147,7 +148,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                             <th className="px-2 py-2 font-medium">{t("store.variantName")}</th>
                             <th className="px-2 py-2 font-medium">{t("store.price")}</th>
                             <th className="px-2 py-2 font-medium">{t("store.stock")}</th>
-                            <th className="px-2 py-2 font-medium">{t("store.free")}</th>
+                            <th className="px-2 py-2 font-medium">{t("store.leftColumn")}</th>
                             {p.images.length > 0 && <th className="px-2 py-2 font-medium">{t("store.variantImage")}</th>}
                             <th className="px-2 py-2 text-center font-medium">{t("store.variantActive")}</th>
                             <th className="px-2 py-2 text-center font-medium">{t("store.variantDigital")}</th>
@@ -369,7 +370,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
               </FormCard>
 
             }>
-              <ProductForm t={t} p={p} disabled={!canManage} />
+              <ProductForm t={t} p={p} disabled={!canManage} small={billing?.tax_mode === "small_business"} />
             </RecordLayout>
           )}
         </>

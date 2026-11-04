@@ -16,6 +16,7 @@ import { Gallery } from "./gallery"
 import { priceInput } from "@/tickets/price"
 import { MusicPlayer } from "./player"
 import { OptionPicker } from "./option-picker"
+import { VariantSelect } from "./variant-select"
 import { addToCart } from "../actions"
 import { priceLabel, soldOut } from "@/shop/view"
 
@@ -47,7 +48,8 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   const r = await load(site, slug)
   if (!r) notFound()
   const { p } = r
-  const [t, tracks] = await Promise.all([getT(), playerTracks(r.s.org.id, p.id)])
+  const [t, tracks, { data: conf }] = await Promise.all([getT(), playerTracks(r.s.org.id, p.id), r.s.db.rpc("shop_public_settings", { p_org: r.s.org.id })])
+  const small = !!(conf as { small_business?: boolean } | null)?.small_business // Kleinunternehmer: no VAT
   const video = videoEmbed(p.video_url)
   const gone = soldOut(p)
   const first = p.variants.find((v) => v.left !== 0)
@@ -67,7 +69,10 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
         <div className="grid content-start gap-4">
           <h1 className="font-heading text-3xl font-semibold">{p.name}</h1>
           <p className="text-xl">{priceLabel(p, t)}</p>
-          <p className="text-xs text-muted-foreground">{t(p.kind === "digital" ? "store.vatDigital" : "store.vatShipping")}</p>
+          <p className="text-xs text-muted-foreground">
+            {small ? t("store.smallBusinessShort") : Number(p.tax_rate) > 0 ? t("store.vatRate", { rate: Number(p.tax_rate) }) : t("store.vatNone")}
+            {p.kind !== "digital" && ` · ${t("store.plusShipping")}`}
+          </p>
           {p.release_at && <p className="site-release rounded-lg bg-muted px-3 py-2 text-sm">{t("store.releaseNote", { date: t.date(p.release_at, { dateStyle: "long" }) })}</p>}
           {tracks.length > 0 && (
             <MusicPlayer
@@ -92,14 +97,14 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
               ) : p.variants.length > 0 ? (
                 <div className="grid gap-1">
                   <Label htmlFor="item">{t("store.variant")}</Label>
-                  <select id="item" name="item" defaultValue={first?.id} required className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm">
+                  <VariantSelect id="item" name="item" defaultValue={first?.id} required images={Object.fromEntries(p.variants.flatMap((v) => (v.image ? [[v.id, v.image]] : [])))} className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm">
                     {p.variants.map((v) => (
                       <option key={v.id} value={v.id} disabled={v.left === 0}>
                         {v.name} · {v.name_your_price ? t("store.orMore", { price: t.money(v.price_cents, "eur") }) : t.money(v.price_cents, "eur")}
                         {v.left === 0 ? ` · ${t("store.soldOut")}` : v.left !== null && v.left <= 5 ? ` · ${t("store.left", { count: v.left })}` : ""}
                       </option>
                     ))}
-                  </select>
+                  </VariantSelect>
                 </div>
               ) : (
                 <>

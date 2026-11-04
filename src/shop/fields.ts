@@ -306,3 +306,10 @@ export function planVariants(options: ProductOption[], existing: { id: string; o
 
 /** The variant a buyer's picks point to (all options chosen). */
 export const variantFor = (variants: CatalogVariant[], picked: string[]) => variants.find((v) => v.values && v.values.length === picked.length && v.values.every((x, i) => x === picked[i])) ?? null
+
+/** VAT contained in gross amounts, per rate (what the cart shows: "enthaltene MwSt. 19 %: 3,19 €"). 0 % rates are left out. */
+export function vatIncluded(items: { cents: number; rate: number }[]): { rate: number; cents: number }[] {
+  const sums = new Map<number, number>()
+  for (const i of items) if (i.rate > 0) sums.set(i.rate, (sums.get(i.rate) ?? 0) + i.cents)
+  return [...sums].sort((a, b) => b[0] - a[0]).map(([rate, gross]) => ({ rate, cents: Math.round((gross * rate) / (100 + rate)) }))
+}

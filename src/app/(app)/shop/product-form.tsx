@@ -12,7 +12,7 @@ import { priceInput } from "@/tickets/price"
 import { toLocalInput } from "@/lib/time"
 import { saveProduct } from "./actions"
 
-export function ProductForm({ t, p, disabled }: { t: T; p?: Tables<"products"> | null; disabled?: boolean }) {
+export function ProductForm({ t, p, disabled, small }: { t: T; p?: Tables<"products"> | null; disabled?: boolean; small?: boolean }) {
   return (
     <form action={saveProduct} className="grid gap-6">
       {p && <input type="hidden" name="id" value={p.id} />}
@@ -38,15 +38,16 @@ export function ProductForm({ t, p, disabled }: { t: T; p?: Tables<"products"> |
           </div>
           <div className="grid gap-2">
             <Label htmlFor="p-tax">{t("store.taxRate")}</Label>
-            <Choice id="p-tax" name="tax_rate" label={t("store.taxRate")} defaultValue={String(p?.tax_rate ?? 19)} disabled={disabled} options={TAX_RATES.map((r) => ({ value: String(r), label: `${r} %` }))} />
+            <Choice id="p-tax" name="tax_rate" required label={t("store.taxRate")} defaultValue={String(p?.tax_rate ?? 19)} disabled={disabled} options={TAX_RATES.map((r) => ({ value: String(r), label: `${r} %` }))} />
+            {small && <p className="text-xs text-muted-foreground">{t("store.smallBusinessApp")}</p>}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="p-kind">{t("store.kind")}</Label>
-            <Choice id="p-kind" name="kind" label={t("store.kind")} defaultValue={p?.kind ?? "physical"} disabled={disabled} options={PRODUCT_KINDS.map((k) => ({ value: k, label: t.dynamic(`store.kinds.${k}`) }))} />
+            <Choice id="p-kind" name="kind" required label={t("store.kind")} defaultValue={p?.kind ?? "physical"} disabled={disabled} options={PRODUCT_KINDS.map((k) => ({ value: k, label: t.dynamic(`store.kinds.${k}`) }))} />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="p-status">{t("store.status")}</Label>
-            <Choice id="p-status" name="status" label={t("store.status")} defaultValue={p?.status ?? "draft"} disabled={disabled} options={PRODUCT_STATUSES.map((s) => ({ value: s, label: t.dynamic(`store.statuses.${s}`) }))} />
+            <Choice id="p-status" name="status" required label={t("store.status")} defaultValue={p?.status ?? "draft"} disabled={disabled} options={PRODUCT_STATUSES.map((s) => ({ value: s, label: t.dynamic(`store.statuses.${s}`) }))} />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="p-stock">{t("store.stock")}</Label>

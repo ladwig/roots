@@ -8,11 +8,10 @@ import { ProductForm } from "../product-form"
 export default async function NewProductPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const ctx = await requirePerm("shop.manage")
   if (!ctx.modules.has("shop")) notFound()
-  const t = await getT()
-  const sp = await searchParams
+  const [t, sp, { data: billing }] = await Promise.all([getT(), searchParams, ctx.supabase.from("org_billing").select("tax_mode").eq("org_id", ctx.org.id).maybeSingle()])
   return (
     <NewPage list={{ href: "/shop", label: t("store.products") }} title={t("store.newProduct")} error={param(sp, "error")}>
-      <ProductForm t={t} />
+      <ProductForm t={t} small={billing?.tax_mode === "small_business"} />
     </NewPage>
   )
 }

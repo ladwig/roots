@@ -5563,7 +5563,7 @@
     "subtotal": "Subtotal",
     "shippingLine": "Shipping",
     "total": "Total",
-    "free": "Free",
+    "free": "free",
     "name": "Your name",
     "email": "Your email",
     "shippingAddress": "Shipping address",
@@ -5891,6 +5891,14 @@
     "tooManyCombos": "Too many combinations (max. 100).",
     "variantImage": "Picture",
     "imageN": "Picture {n}",
-    "combinationUnavailable": "This combination isn't available."
+    "combinationUnavailable": "This combination isn't available.",
+    "leftColumn": "Available",
+    "vatRate": "incl. {rate} % VAT",
+    "vatNone": "no VAT",
+    "plusShipping": "plus shipping",
+    "smallBusinessShort": "No VAT shown (§ 19 UStG)",
+    "smallBusinessNote": "Under § 19 UStG (small business) no VAT is charged.",
+    "vatContained": "included VAT {rate} %",
+    "smallBusinessApp": "You're a small business (Invoices → Settings): no VAT is shown in the shop or on invoices. The rate only applies once you switch that off."
   }
 }
