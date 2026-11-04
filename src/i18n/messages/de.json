@@ -5992,6 +5992,7 @@
     "soldPieces": {
       "one": "{count} Stück",
       "other": "{count} Stück"
-    }
+    },
+    "orderReceived": "Eingegangen"
   }
 }

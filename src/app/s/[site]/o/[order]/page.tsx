@@ -52,7 +52,7 @@ export default async function BuyerOrder({ params, searchParams }: PageProps<"/s
           {s.org.name} · {t.date(o.created_at, { dateStyle: "medium", timeStyle: "short" })}
         </p>
         <div className="flex flex-wrap gap-2 pt-1">
-          <Badge variant={o.status === "cancelled" ? "destructive" : "secondary"}>{t.dynamic(`store.orderStatus.${o.status}`)}</Badge>
+          <Badge variant={o.status === "cancelled" ? "destructive" : "secondary"}>{o.status === "new" ? t("store.orderReceived") : t.dynamic(`store.orderStatus.${o.status}`)}</Badge>
           {o.status !== "cancelled" && <Badge variant={paid ? "secondary" : "outline"}>{paid ? t("store.paid") : t("store.unpaid")}</Badge>}
         </div>
       </header>
