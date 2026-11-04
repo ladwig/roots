@@ -5718,7 +5718,6 @@
     "mailsHint": "Which emails go out. Your own text replaces the standard line at the top; placeholders: {number}, {name}, {total}, {org}.",
     "mailText": "Own text",
     "mailTemplateHint": "Look: your default template under Communication → Templates (otherwise the roots mail).",
-    "resendMail": "Send again: {kind}",
     "mailSent": "Email sent.",
     "mailNotSent": "The email wasn't sent (switched off or no email sending set up).",
     "product": "Product",
@@ -5993,6 +5992,7 @@
       "one": "{count} piece",
       "other": "{count} pieces"
     },
-    "orderReceived": "Received"
+    "orderReceived": "Received",
+    "resendMailTitle": "Send mail again"
   }
 }

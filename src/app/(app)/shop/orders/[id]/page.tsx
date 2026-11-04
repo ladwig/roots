@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { BanIcon, MailIcon, Undo2Icon } from "lucide-react"
-import { ActionsMenu, MenuSeparator, MenuSubmit } from "@/components/actions-menu"
+import { ActionsMenu, MenuGroup, MenuSubmit } from "@/components/actions-menu"
 import { Notice } from "@/components/notice"
 import { FormCard, Page, PageHeader, RecordLayout } from "@/components/page"
 import { SubmitButton } from "@/components/submit-button"
@@ -64,28 +64,29 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/sh
         }
         meta={[o.placed_at && t.date(o.placed_at, { dateStyle: "medium", timeStyle: "short" }), t.dynamic(`store.payments.${o.payment}`), t.dynamic(`store.deliveries.${o.delivery}`)].filter(Boolean).join(" · ")}
         actions={
-          canRefund && (
-            <Button variant="outline" size="sm" render={<Link href={withParams(sp, { refund: "1" })} />}>
-              <Undo2Icon /> {t("store.refund")}
-            </Button>
-          )
+          <>
+            {canRefund && (
+              <Button variant="outline" size="sm" render={<Link href={withParams(sp, { refund: "1" })} />}>
+                <Undo2Icon /> {t("store.refund")}
+              </Button>
+            )}
+            {canManage && live && ctx.can("payments.refund") && (
+              <SubmitButton form="cancel-order" size="sm" variant="outline" data-confirm={paid ? "store.confirmCancelPaid" : "store.confirmCancel"}>
+                <BanIcon /> {t("store.cancelOrder")}
+              </SubmitButton>
+            )}
+          </>
         }
         menu={
           canManage && (
             <ActionsMenu>
-              {MAIL_KINDS.filter((k) => k !== "refunded" || refunds.length).map((k) => (
-                <MenuSubmit key={k} form={`mail-${k}`} icon={<MailIcon />}>
-                  {t("store.resendMail", { kind: t.dynamic(`store.mailKinds.${k}`) })}
-                </MenuSubmit>
-              ))}
-              {live && ctx.can("payments.refund") && (
-                <>
-                  <MenuSeparator />
-                  <MenuSubmit form="cancel-order" icon={<BanIcon />} destructive confirm={paid ? "store.confirmCancelPaid" : "store.confirmCancel"}>
-                    {t("store.cancelOrder")}
+              <MenuGroup label={t("store.resendMailTitle")}>
+                {MAIL_KINDS.filter((k) => k !== "refunded" || refunds.length).map((k) => (
+                  <MenuSubmit key={k} form={`mail-${k}`} icon={<MailIcon />}>
+                    {t.dynamic(`store.mailKinds.${k}`)}
                   </MenuSubmit>
-                </>
-              )}
+                ))}
+              </MenuGroup>
             </ActionsMenu>
           )
         }

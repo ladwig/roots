@@ -5718,7 +5718,6 @@
     "mailsHint": "Welche E-Mails rausgehen. Eigener Text ersetzt den Standardsatz oben in der Mail; Platzhalter: {number}, {name}, {total}, {org}.",
     "mailText": "Eigener Text",
     "mailTemplateHint": "Aussehen: eure Standard-Vorlage unter Kommunikation → Vorlagen (sonst die roots-Mail).",
-    "resendMail": "Mail erneut senden: {kind}",
     "mailSent": "Mail gesendet.",
     "mailNotSent": "Die Mail wurde nicht gesendet (abgeschaltet oder kein E-Mail-Versand eingerichtet).",
     "product": "Produkt",
@@ -5993,6 +5992,7 @@
       "one": "{count} Stück",
       "other": "{count} Stück"
     },
-    "orderReceived": "Eingegangen"
+    "orderReceived": "Eingegangen",
+    "resendMailTitle": "Mail erneut senden"
   }
 }

@@ -30,7 +30,7 @@ export type PaymentProvider = {
     charge(input: { orgId: string; readerId: string; orderId: string; amount: number; currency: string; description: string }): Promise<{ providerRef: string }>
   }
   /** Refunds (part of) a payment; `providerPaymentRef` is what the provider needs to refund. */
-  refund(input: { orgId: string; providerPaymentRef: string; amount: number; idempotencyKey: string }): Promise<{
+  refund(input: { orgId: string; providerPaymentRef: string; amount: number; idempotencyKey: string; withFee?: boolean }): Promise<{
     providerRef: string
     status: "pending" | "succeeded" | "failed"
   }>

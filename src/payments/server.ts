@@ -265,7 +265,7 @@ const keptFee = (metadata: unknown) => Math.max(0, Math.round(Number((metadata a
 export async function refundOrder(orderId: string, amount?: number, reason?: string) {
   const { data: payment } = await db()
     .from("pay_payments")
-    .select("id, org_id, provider, provider_payment_ref, amount, pay_refunds(amount, status), pay_orders(metadata)")
+    .select("id, org_id, provider, provider_payment_ref, amount, application_fee, fee_collected, pay_refunds(amount, status), pay_orders(metadata)")
     .eq("order_id", orderId)
     .eq("status", "succeeded")
     .maybeSingle()
@@ -282,6 +282,7 @@ export async function refundOrder(orderId: string, amount?: number, reason?: str
     providerPaymentRef: payment.provider_payment_ref,
     amount: value,
     idempotencyKey: `refund_${payment.id}_${refunded}_${value}`,
+    withFee: payment.fee_collected && (payment.application_fee ?? 0) > 0, // the provider took roots' fee: give it back pro rata
   })
   await db().from("pay_refunds").insert({
     org_id: payment.org_id,

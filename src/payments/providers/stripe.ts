@@ -47,10 +47,10 @@ export const stripeProvider: PaymentProvider = {
     const pi = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id
     return { paid: session.payment_status !== "unpaid" && session.status === "complete", providerPaymentRef: pi }
   },
-  async refund({ orgId, providerPaymentRef, amount, idempotencyKey }) {
+  async refund({ orgId, providerPaymentRef, amount, idempotencyKey, withFee }) {
     const s = await stripeFor(orgId)
     const refund = await s.client.refunds.create(
-      { payment_intent: providerPaymentRef, amount, ...(s.direct ? {} : { refund_application_fee: true }) },
+      { payment_intent: providerPaymentRef, amount, ...(!s.direct && withFee ? { refund_application_fee: true } : {}) }, // Stripe rejects it on charges without a fee
       { ...s.options, idempotencyKey }
     )
     return {

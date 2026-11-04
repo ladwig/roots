@@ -48,9 +48,19 @@ export function MenuDownload({ href, icon, children }: { href: string; icon?: Re
 }
 
 // Destructive items ask first (<ConfirmHost>); `confirm` = the question's message key.
+/** A titled group of items (e.g. "Mail erneut senden" → one item per mail). */
+export function MenuGroup({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <DropdownMenuGroup>
+      <DropdownMenuLabel>{label}</DropdownMenuLabel>
+      {children}
+    </DropdownMenuGroup>
+  )
+}
+
 export function MenuSubmit({ form, icon, children, destructive, confirm = "common.confirmTrash" }: { form: string; icon?: React.ReactNode; children: React.ReactNode; destructive?: boolean; confirm?: string }) {
   return (
-    <DropdownMenuItem render={<button type="submit" form={form} className="w-full" data-confirm={destructive ? confirm : undefined} />} nativeButton variant={destructive ? "destructive" : "default"}>
+    <DropdownMenuItem render={<button type="submit" form={form} className="w-full text-left" data-confirm={destructive ? confirm : undefined} />} nativeButton variant={destructive ? "destructive" : "default"}>
       {icon} {children}
     </DropdownMenuItem>
   )
