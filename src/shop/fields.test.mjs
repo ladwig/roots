@@ -64,7 +64,7 @@ test("product input", async () => {
   assert.deepEqual([r.row.slug, r.row.price_cents, r.row.stock, r.row.tax_rate, r.row.status], ["tour-shirt", 2500, null, 7, "draft"])
   assert.equal(readProduct(get({ name: "x", slug: "agb" })).error, "store.slugInvalid")
   assert.equal(readProduct(get({ name: "x", price: "abc" })).error, "store.priceInvalid")
-  assert.deepEqual(readVariant(get({ name: "XL", price: "", stock: "3" })).row, { name: "XL", price_cents: null, stock: 3, active: true, digital: false })
+  assert.deepEqual(readVariant(get({ name: "XL", price: "", stock: "3" })).row, { name: "XL", price_cents: null, stock: 3, active: true, digital: false, name_your_price: null })
   assert.equal(readVariant(get({ name: "Digital", digital: "1" })).row.digital, true)
 })
 
@@ -79,4 +79,22 @@ test("release date: Berlin midnight, invalid rejected, empty = none", () => {
   assert.equal(readProduct(get({ name: "LP", release_on: "2026-11-27" })).row.release_at, "2026-11-26T23:00:00.000Z")
   assert.equal(readProduct(get({ name: "LP" })).row.release_at, null)
   assert.equal(readProduct(get({ name: "LP", release_on: "27.11.2026" })).error, "store.releaseInvalid")
+})
+
+test("name your price + single tracks in the cart", () => {
+  const T = "44444444-4444-4444-8444-444444444444"
+  const album = { id: A, slug: "lp", name: "LP", kind: "digital", price_cents: 800, tax_rate: 19, images: [], video_url: null, category: null, max_per_order: 5, left: null, variants: [], name_your_price: true, suggested_cents: 1000, track_price_cents: 150, tracks: [{ id: T, title: "Stigma" }] }
+  const [def, chosen, low, track] = [
+    priceCart([{ id: A, q: 1 }], [album])[0],
+    priceCart([{ id: A, q: 1, p: 2500 }], [album])[0],
+    priceCart([{ id: A, q: 1, p: 500 }], [album])[0],
+    priceCart([{ id: T, q: 3, p: 200 }], [album])[0],
+  ]
+  assert.deepEqual([def.unit, def.problem], [1000, null]) // the suggestion
+  assert.deepEqual([chosen.unit, chosen.problem], [2500, null])
+  assert.equal(low.problem, "below_min")
+  assert.deepEqual([track.name, track.quantity, track.unit, track.digital, track.trackId], ["LP – Stigma", 1, 200, true, T])
+  assert.equal(priceCart([{ id: A, q: 1, p: 1 }], [{ ...album, name_your_price: false }])[0].unit, 800) // fixed price ignores p
+  assert.deepEqual(readCart(JSON.stringify([{ id: A, q: 1, p: 1234 }, { id: V, q: 1, p: -5 }])), [{ id: A, q: 1, p: 1234 }, { id: V, q: 1 }])
+  assert.deepEqual(changeCart([{ id: A, q: 1, p: 900 }], A, 2, "set"), [{ id: A, q: 2, p: 900 }])
 })

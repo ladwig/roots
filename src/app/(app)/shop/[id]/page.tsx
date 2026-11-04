@@ -15,7 +15,8 @@ import { imageUrl } from "@/lib/images"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { param, siteUrl } from "@/lib/url"
 import { priceInput } from "@/tickets/price"
-import { productImage, restoreProduct, saveTrack, saveVariant, trashProduct } from "../actions"
+import { productImage, restoreProduct, saveTrack, saveTrackPrice, saveVariant, trashProduct } from "../actions"
+import { Label } from "@/components/ui/label"
 import { productTrackList } from "@/shop/audio"
 import { AutoRefresh } from "@/app/s/[site]/t/[order]/auto-refresh"
 import { AudioUpload } from "./audio-upload"
@@ -133,6 +134,10 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                             <label className="flex items-center gap-1">
                               <input type="checkbox" name="digital" value="1" defaultChecked={v.digital} disabled={!canManage} className="accent-primary" /> {t("store.variantDigital")}
                             </label>
+                            <label className="flex items-center gap-1" title={t("store.nameYourPriceHint")}>
+                              <input type="hidden" name="has_nyp" value="1" />
+                              <input type="checkbox" name="name_your_price" value="1" defaultChecked={v.name_your_price ?? p.name_your_price} disabled={!canManage} className="accent-primary" /> {t("store.variantNyp")}
+                            </label>
                           </span>
                           {canManage && (
                             <span className="flex gap-1">
@@ -171,6 +176,18 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
             <div className="grid items-start gap-6 lg:grid-cols-2">
               <FormCard id="tracks" title={t("store.tracks")} description={t("store.tracksHint")}>
                 {busyAudio && <AutoRefresh />}
+                {/* Single tracks: one price for every track (empty = album only); "or more" when the product is name-your-price. */}
+                <form action={saveTrackPrice} className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed p-2 text-sm">
+                  <input type="hidden" name="product_id" value={p.id} />
+                  <Label htmlFor="track-price" className="font-normal">{t("store.trackPrice")}</Label>
+                  <TypedInput kind="money" id="track-price" name="track_price" defaultValue={p.track_price_cents != null ? priceInput(p.track_price_cents) : ""} placeholder="–" disabled={!canManage} />
+                  {canManage && (
+                    <SubmitButton size="sm" variant="outline">
+                      {t("common.save")}
+                    </SubmitButton>
+                  )}
+                  <p className="w-full text-xs text-muted-foreground">{t("store.trackPriceHint")}</p>
+                </form>
                 {tracks.length > 0 && (
                   <ol className="grid gap-2">
                     {tracks.map((x, i) => (
@@ -190,6 +207,12 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                             <label className="flex items-center gap-1">
                               <input type="checkbox" name="stream" value="1" defaultChecked={x.stream} disabled={!canManage} className="accent-primary" /> {t("store.trackStream")}
                             </label>
+                            {p.track_price_cents != null && (
+                              <label className="flex items-center gap-1">
+                                <input type="hidden" name="has_buyable" value="1" />
+                                <input type="checkbox" name="buyable" value="1" defaultChecked={x.buyable} disabled={!canManage} className="accent-primary" /> {t("store.trackBuyable")}
+                              </label>
+                            )}
                             <span className="min-w-0 flex-1 truncate" title={x.master_name}>{x.master_name}</span>
                             {canManage && (
                               <span className="flex gap-1">

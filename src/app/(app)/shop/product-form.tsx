@@ -26,6 +26,16 @@ export function ProductForm({ t, p, disabled }: { t: T; p?: Tables<"products"> |
             <Label htmlFor="p-price">{t("store.priceGross")}</Label>
             <TypedInput kind="money" id="p-price" name="price" required defaultValue={p ? priceInput(p.price_cents) : ""} disabled={disabled} />
           </div>
+          <div className="grid gap-2 sm:col-span-2">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="name_your_price" value="1" defaultChecked={p?.name_your_price ?? false} disabled={disabled} className="size-4 accent-primary" /> {t("store.nameYourPrice")}
+            </label>
+            <p className="text-xs text-muted-foreground">{t("store.nameYourPriceHint")}</p>
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <Label htmlFor="p-suggested" className="font-normal text-muted-foreground">{t("store.suggestedPrice")}</Label>
+              <TypedInput kind="money" id="p-suggested" name="suggested" defaultValue={p?.suggested_cents != null ? priceInput(p.suggested_cents) : ""} disabled={disabled} />
+            </div>
+          </div>
           <div className="grid gap-2">
             <Label htmlFor="p-tax">{t("store.taxRate")}</Label>
             <Choice id="p-tax" name="tax_rate" label={t("store.taxRate")} defaultValue={String(p?.tax_rate ?? 19)} disabled={disabled} options={TAX_RATES.map((r) => ({ value: String(r), label: `${r} %` }))} />

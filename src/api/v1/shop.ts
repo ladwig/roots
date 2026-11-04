@@ -11,7 +11,7 @@ import { toLocalInput } from "@/lib/time"
 // Shop: products (+ variants, pictures, downloads via /files), orders and their fulfilment, settings. Validation =
 // the App's (src/shop/fields.ts), order steps = src/shop/server.ts (mails, invoices, refunds happen there too).
 const TAG = "Shop"
-const Variant = z.object({ id: uuid, name: z.string(), price_cents: z.number().int().nullable().describe("null = the product's price"), stock: z.number().int().nullable(), active: z.boolean(), digital: z.boolean().describe("Download only: no shipping, no stock needed"), position: z.number().int() })
+const Variant = z.object({ id: uuid, name: z.string(), price_cents: z.number().int().nullable().describe("null = the product's price"), stock: z.number().int().nullable(), active: z.boolean(), digital: z.boolean().describe("Download only: no shipping, no stock needed"), name_your_price: z.boolean().nullable().describe("Name your price for this variant (price = minimum); null = as the product"), position: z.number().int() })
 const Product = z.object({
   id: uuid,
   slug: z.string(),
@@ -25,13 +25,16 @@ const Product = z.object({
   max_per_order: z.number().int(),
   category: z.string().nullable(),
   video_url: z.string().nullable(),
+  name_your_price: z.boolean().describe("Name your price: `price_cents` is the minimum, buyers choose what they pay"),
+  suggested_cents: z.number().int().nullable().describe("Pre-filled choice for name your price"),
+  track_price_cents: z.number().int().nullable().describe("Single tracks for sale at this price (the minimum when name your price); null = album only"),
   release_at: ts.nullable().describe("Release date (pre-order): sells before it, digital delivery (downloads, music) unlocks that day"),
   images: z.array(z.object({ path: z.string(), image_url: z.string() })).describe("First = cover"),
   variants: z.array(Variant),
   created_at: ts,
   updated_at: ts,
 })
-const PRODUCT_COLS = "id, slug, name, description, kind, status, price_cents, tax_rate, stock, max_per_order, category, video_url, release_at, images, created_at, updated_at, product_variants(id, name, price_cents, stock, active, digital, position)"
+const PRODUCT_COLS = "id, slug, name, description, kind, status, price_cents, tax_rate, stock, max_per_order, category, video_url, release_at, name_your_price, suggested_cents, track_price_cents, images, created_at, updated_at, product_variants(id, name, price_cents, stock, active, digital, name_your_price, position)"
 type ProductRow = { images: string[]; tax_rate: number; product_variants: { position: number }[] } & Record<string, unknown>
 const productOut = ({ product_variants, images, ...p }: ProductRow) => ({
   ...p,
@@ -52,11 +55,14 @@ const ProductInput = z
     max_per_order: z.number().int().min(1).max(100),
     category: z.string().max(60).nullable(),
     video_url: z.string().max(500).nullable().describe("YouTube/Vimeo link or a direct https MP4"),
+    name_your_price: z.boolean(),
+    suggested_cents: z.number().int().min(0).max(1_000_000).nullable(),
+    track_price_cents: z.number().int().min(0).max(1_000_000).nullable(),
     release_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().describe("Release date YYYY-MM-DD (Europe/Berlin), null = none. Before it the product sells normally; downloads/music unlock on the day and the buyers get the `released` mail."),
   })
   .partial()
   .strict()
-const VariantInput = z.object({ name: z.string().max(100), price_cents: z.number().int().min(0).max(99_999_999).nullable(), stock: z.number().int().min(0).max(1_000_000).nullable(), active: z.boolean(), digital: z.boolean(), position: z.number().int() }).partial().strict()
+const VariantInput = z.object({ name: z.string().max(100), price_cents: z.number().int().min(0).max(99_999_999).nullable(), stock: z.number().int().min(0).max(1_000_000).nullable(), active: z.boolean(), digital: z.boolean(), name_your_price: z.boolean().nullable(), position: z.number().int() }).partial().strict()
 
 const ShopOrder = z.object({
   id: uuid,
@@ -102,11 +108,11 @@ const getter = (o: Record<string, unknown>) => (k: string) => {
   const v = o[k]
   return v == null ? "" : typeof v === "boolean" ? (v ? "1" : "") : String(v)
 }
-const Track = z.object({ id: uuid, title: z.string(), position: z.number().int(), stream: z.boolean(), status: z.enum(["uploading", "pending", "processing", "ready", "failed"]), error: z.string().nullable(), file_name: z.string(), duration_seconds: z.number().int().nullable(), formats: z.record(z.string(), z.object({ size: z.number().int() })) })
-const trackOut = (x: Awaited<ReturnType<typeof productTrackList>>[number]) => ({ id: x.id, title: x.title, position: x.position, stream: x.stream, status: x.status as "ready", error: x.error, file_name: x.master_name, duration_seconds: x.duration_seconds, formats: Object.fromEntries(Object.entries(x.formats).map(([k, v]) => [k, { size: v!.size }])) })
+const Track = z.object({ id: uuid, title: z.string(), position: z.number().int(), stream: z.boolean(), buyable: z.boolean().describe("Sold on its own when the product has a track price"), status: z.enum(["uploading", "pending", "processing", "ready", "failed"]), error: z.string().nullable(), file_name: z.string(), duration_seconds: z.number().int().nullable(), formats: z.record(z.string(), z.object({ size: z.number().int() })) })
+const trackOut = (x: Awaited<ReturnType<typeof productTrackList>>[number]) => ({ id: x.id, title: x.title, position: x.position, stream: x.stream, buyable: x.buyable, status: x.status as "ready", error: x.error, file_name: x.master_name, duration_seconds: x.duration_seconds, formats: Object.fromEntries(Object.entries(x.formats).map(([k, v]) => [k, { size: v!.size }])) })
 const invalid = (key: string) => new ApiError(422, key.split(".").pop()!.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`), key)
 // The API speaks cents; the shared parser reads form strings ("25,00").
-const asForm = (b: Record<string, unknown>) => ({ ...b, release_on: b.release_on !== undefined ? b.release_on : b.release_at ? toLocalInput(String(b.release_at)).slice(0, 10) : null, price: b.price_cents == null ? undefined : (Number(b.price_cents) / 100).toFixed(2).replace(".", ",") })
+const asForm = (b: Record<string, unknown>) => ({ ...b, suggested: b.suggested_cents == null ? "" : (Number(b.suggested_cents) / 100).toFixed(2).replace(".", ","), has_nyp: b.name_your_price == null ? "" : "1", release_on: b.release_on !== undefined ? b.release_on : b.release_at ? toLocalInput(String(b.release_at)).slice(0, 10) : null, price: b.price_cents == null ? undefined : (Number(b.price_cents) / 100).toFixed(2).replace(".", ",") })
 
 async function productOf(db: Db, orgId: string, id: string) {
   const { data } = await db.from("products").select(PRODUCT_COLS).eq("id", id).eq("org_id", orgId).is("deleted_at", null).maybeSingle()
@@ -172,7 +178,7 @@ export const endpoints: Endpoint[] = [
     async handler({ db, orgId, body }) {
       const r = readProduct(getter(asForm(body)))
       if ("error" in r) throw invalid(r.error)
-      const { data, error } = await db.from("products").insert({ ...r.row, org_id: orgId }).select("id").single()
+      const { data, error } = await db.from("products").insert({ ...r.row, track_price_cents: body.track_price_cents ?? null, org_id: orgId }).select("id").single()
       if (error) throw conflictOrDb(error)
       return productOf(db, orgId, data.id)
     },
@@ -189,7 +195,7 @@ export const endpoints: Endpoint[] = [
       const old = await productOf(db, orgId, params.id)
       const r = readProduct(getter(asForm({ ...old, ...body })))
       if ("error" in r) throw invalid(r.error)
-      const { error } = await db.from("products").update(r.row).eq("id", params.id).eq("org_id", orgId)
+      const { error } = await db.from("products").update({ ...r.row, ...(body.track_price_cents !== undefined && { track_price_cents: body.track_price_cents }) }).eq("id", params.id).eq("org_id", orgId)
       if (error) throw conflictOrDb(error)
       return productOf(db, orgId, params.id)
     },
@@ -274,12 +280,12 @@ export const endpoints: Endpoint[] = [
     body: VariantInput,
     response: Variant,
     async handler({ db, orgId, params, body }) {
-      const { data: old } = await db.from("product_variants").select("name, price_cents, stock, active, digital, position").eq("id", params.id).eq("org_id", orgId).maybeSingle()
+      const { data: old } = await db.from("product_variants").select("name, price_cents, stock, active, digital, name_your_price, position").eq("id", params.id).eq("org_id", orgId).maybeSingle()
       if (!old) throw notFound()
-      const next = { name: body.name ?? old.name, price_cents: body.price_cents !== undefined ? body.price_cents : old.price_cents, stock: body.stock !== undefined ? body.stock : old.stock, active: body.active ?? old.active, position: body.position ?? old.position }
+      const next = { name: body.name ?? old.name, price_cents: body.price_cents !== undefined ? body.price_cents : old.price_cents, stock: body.stock !== undefined ? body.stock : old.stock, active: body.active ?? old.active, digital: body.digital ?? old.digital, name_your_price: body.name_your_price !== undefined ? body.name_your_price : old.name_your_price, position: body.position ?? old.position }
       const r = readVariant(getter({ ...asForm(next), has_active: "1" }))
       if ("error" in r) throw invalid(r.error)
-      const { data, error } = await db.from("product_variants").update({ ...r.row, position: next.position }).eq("id", params.id).eq("org_id", orgId).select("id, name, price_cents, stock, active, digital, position").single()
+      const { data, error } = await db.from("product_variants").update({ ...r.row, position: next.position }).eq("id", params.id).eq("org_id", orgId).select("id, name, price_cents, stock, active, digital, name_your_price, position").single()
       if (error) throw dbError(error)
       return data
     },
@@ -352,8 +358,8 @@ export const endpoints: Endpoint[] = [
     permission: "shop.manage",
     tag: TAG,
     summary: "Change a track",
-    description: "Title, number (`position`) and whether it plays in the shop (`stream`). Title or order changes rebuild the album ZIPs.",
-    body: z.object({ title: z.string().max(200), position: z.number().int().min(0).max(999), stream: z.boolean() }).partial().strict(),
+    description: "Title, number (`position`), whether it plays in the shop (`stream`) and whether it is sold on its own (`buyable`, needs the product's `track_price_cents`). Title or order changes rebuild the album ZIPs.",
+    body: z.object({ title: z.string().max(200), position: z.number().int().min(0).max(999), stream: z.boolean(), buyable: z.boolean() }).partial().strict(),
     response: z.object({ ok: z.literal(true) }),
     async handler({ db, orgId, params, body }) {
       const r = await updateTrack(db, orgId, params.id, body)

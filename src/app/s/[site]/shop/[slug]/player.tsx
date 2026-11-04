@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react"
 import { LockIcon, PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon } from "lucide-react"
 import { useT } from "@/i18n/client"
+import { addToCart } from "../actions"
 import { cn } from "@/lib/utils"
 
-export type PlayerTrack = { id: string; title: string; duration?: number | null; src: string | null } // src null = buyers only
+export type PlayerTrack = { id: string; title: string; duration?: number | null; src: string | null; buy?: boolean } // src null = buyers only; buy = sold on its own
 
 const clock = (s: number) => (Number.isFinite(s) ? `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}` : "–:––")
 
@@ -13,7 +14,7 @@ const clock = (s: number) => (Number.isFinite(s) ? `${Math.floor(s / 60)}:${Stri
  * Bandcamp-style player: cover, big play button, the current track with a seek bar, prev/next and the tracklist
  * (click a row to play it; the next playable track follows on its own). One <audio> element, no library.
  */
-export function MusicPlayer({ tracks, cover, artist }: { tracks: PlayerTrack[]; cover: string | null; artist: string }) {
+export function MusicPlayer({ tracks, cover, artist, buy }: { tracks: PlayerTrack[]; cover: string | null; artist: string; buy?: { site: string; slug: string; label: string } | null }) {
   const t = useT()
   const audio = useRef<HTMLAudioElement>(null)
   const playable = tracks.map((x, i) => (x.src ? i : -1)).filter((i) => i >= 0)
@@ -120,13 +121,13 @@ export function MusicPlayer({ tracks, cover, artist }: { tracks: PlayerTrack[]; 
       {tracks.length > 1 && (
         <ol className="grid text-sm">
           {tracks.map((x, i) => (
-            <li key={x.id}>
+            <li key={x.id} className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => go(i)}
                 title={x.src ? undefined : t("store.buyersOnly")}
                 disabled={!x.src}
-                className={cn("flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left hover:bg-muted disabled:cursor-default disabled:hover:bg-transparent", i === index && x.src && "bg-muted font-medium")}
+                className={cn("flex min-w-0 flex-1 items-center gap-3 rounded-md px-2 py-1.5 text-left hover:bg-muted disabled:cursor-default disabled:hover:bg-transparent", i === index && x.src && "bg-muted font-medium")}
               >
                 <span className="w-5 text-right text-xs text-muted-foreground tabular-nums">
                   {i === index && playing ? <PauseIcon className="ml-auto size-3 fill-current" /> : i + 1}
@@ -135,6 +136,17 @@ export function MusicPlayer({ tracks, cover, artist }: { tracks: PlayerTrack[]; 
                 {!x.src && <LockIcon className="size-3 text-muted-foreground" aria-label={t("store.buyersOnly")} />}
                 {x.duration ? <span className="text-xs text-muted-foreground tabular-nums">{clock(x.duration)}</span> : null}
               </button>
+              {buy && x.buy && (
+                // Single track into the cart (a digital line on its own).
+                <form action={addToCart}>
+                  <input type="hidden" name="site" value={buy.site} />
+                  <input type="hidden" name="slug" value={buy.slug} />
+                  <input type="hidden" name="item" value={x.id} />
+                  <button type="submit" className="rounded-md border px-2 py-0.5 text-xs whitespace-nowrap hover:bg-muted" title={t("store.buyTrack")}>
+                    {buy.label} · {t("store.buy")}
+                  </button>
+                </form>
+              )}
             </li>
           ))}
         </ol>

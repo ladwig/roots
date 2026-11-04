@@ -233,6 +233,19 @@ export async function finishAudioUpload(trackId: string): Promise<{ error?: stri
   return "error" in r ? { error: r.error === "db" ? dbError(t, r.db!) : t.dynamic(String(r.error)) } : {}
 }
 
+/** Single tracks: one price for all of a product's tracks (empty = album only). */
+export async function saveTrackPrice(fd: FormData) {
+  const { ctx, t } = await manager()
+  const productId = id(fd, "product_id")
+  const here = `/shop/${productId}?tab=digital`
+  const raw = String(fd.get("track_price") ?? "").trim()
+  const cents = raw ? moneyCents(raw) : null
+  if (!productId || (raw && (cents === null || cents > 1_000_000))) back(here, { error: t("store.priceInvalid") })
+  const { error, count } = await ctx.supabase.from("products").update({ track_price_cents: cents }, { count: "exact" }).eq("id", productId).eq("org_id", ctx.org.id)
+  if (error || !count) back(here, { error: error ? dbError(t, error) : t("errors.not_allowed") })
+  back(here, { ok: t("store.saved") }) // the catalog is read live, no cache to refresh
+}
+
 /** A track: title, number, whether it plays in the shop; `delete` removes it with its files, `retry` converts again. */
 export async function saveTrack(fd: FormData) {
   const { ctx, t } = await manager()
@@ -244,7 +257,7 @@ export async function saveTrack(fd: FormData) {
     ? await deleteTrack(ctx.supabase, ctx.org.id, trackId)
     : fd.get("retry")
       ? await finishTrackUpload(ctx.supabase, ctx.org.id, trackId)
-      : await updateTrack(ctx.supabase, ctx.org.id, trackId, { title: String(fd.get("title") ?? ""), position: Number(fd.get("position")) || 0, stream: fd.get("stream") === "1" })
+      : await updateTrack(ctx.supabase, ctx.org.id, trackId, { title: String(fd.get("title") ?? ""), position: Number(fd.get("position")) || 0, stream: fd.get("stream") === "1", ...(fd.has("buyable") || fd.get("has_buyable") ? { buyable: fd.get("buyable") === "1" } : {}) })
   if ("error" in r) back(here, { error: r.error === "db" ? dbError(t, r.db!) : t.dynamic(String(r.error)) })
   back(here, { ok: fd.get("delete") ? t("store.trackRemoved") : t("store.saved") })
 }

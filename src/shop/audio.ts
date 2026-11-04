@@ -19,11 +19,11 @@ import { convertArgs, DOWNLOAD_FORMATS, durationOf, EXT, ffmpeg, MIME, titleFrom
 
 type Db = SupabaseClient<Database>
 type Stored = { key: string; size: number }
-export type TrackRow = { id: string; title: string; position: number; stream: boolean; status: string; error: string | null; master_name: string; master_size: number | null; duration_seconds: number | null; formats: Partial<Record<Format, Stored>> }
+export type TrackRow = { id: string; title: string; position: number; stream: boolean; buyable: boolean; status: string; error: string | null; master_name: string; master_size: number | null; duration_seconds: number | null; formats: Partial<Record<Format, Stored>> }
 
 export const MASTER_EXT = ["wav", "aif", "aiff", "flac"] as const
 export const MAX_MASTER = 250 * 1024 * 1024 // the worker holds master + outputs in /tmp (500 MB)
-const TRACK_COLS = "id, title, position, stream, status, error, master_name, master_size, duration_seconds, formats"
+const TRACK_COLS = "id, title, position, stream, buyable, status, error, master_name, master_size, duration_seconds, formats"
 const prefix = (orgId: string, productId: string) => `audio/${orgId}/${productId}`
 const safeName = (s: string) => s.replace(/[\\/:*?"<>|]+/g, "-").trim().slice(0, 120) || "track"
 const nn = (i: number) => String(i + 1).padStart(2, "0")
@@ -63,12 +63,13 @@ export async function finishTrackUpload(db: Db, orgId: string, trackId: string) 
   return { ok: true } as const
 }
 
-export async function updateTrack(db: Db, orgId: string, trackId: string, patch: { title?: string; position?: number; stream?: boolean }) {
-  const row: { title?: string; position?: number; stream?: boolean } = {}
+export async function updateTrack(db: Db, orgId: string, trackId: string, patch: { title?: string; position?: number; stream?: boolean; buyable?: boolean }) {
+  const row: { title?: string; position?: number; stream?: boolean; buyable?: boolean } = {}
   if (patch.title !== undefined) row.title = patch.title.trim().slice(0, 200)
   if (patch.title !== undefined && !row.title) return { error: "store.trackTitleRequired" } as const
   if (patch.position !== undefined) row.position = Math.max(0, Math.min(999, Math.floor(patch.position)))
   if (patch.stream !== undefined) row.stream = patch.stream
+  if (patch.buyable !== undefined) row.buyable = patch.buyable
   const { data, error } = await db.from("product_tracks").update(row).eq("id", trackId).eq("org_id", orgId).select("product_id").maybeSingle()
   if (error) return { error: "db", db: error } as const
   if (!data) return { error: "errors.not_found" } as const
@@ -191,18 +192,25 @@ export async function streamUrl(orgId: string, productId: string, trackId: strin
 
 export type BuyerAudio = { productId: string; name: string; zip: number | null; tracks: { id: string; title: string; sizes: Partial<Record<(typeof DOWNLOAD_FORMATS)[number], number>> }[] }
 
-/** The music of the products in a paid order (caller checks the order is paid and the buyer's token). */
-export async function orderAudio(orgId: string, productIds: string[]): Promise<BuyerAudio[]> {
-  if (!productIds.length) return []
+/**
+ * The music a paid order unlocks (caller checks payment, release and the buyer's token): whole products (every track +
+ * the album ZIP) and single tracks bought on their own (just those, no ZIP).
+ */
+export async function orderAudio(orgId: string, productIds: string[], singles: { track: string; product: string }[] = []): Promise<BuyerAudio[]> {
+  const all = [...new Set([...productIds, ...singles.map((x) => x.product)])]
+  if (!all.length) return []
   const db = createAdminClient()
-  const [{ data: products }, { data: tracks }] = await Promise.all([
-    db.from("products").select("id, name, audio_zips").eq("org_id", orgId).in("id", productIds),
-    db.from("product_tracks").select("id, product_id, title, formats").eq("org_id", orgId).in("product_id", productIds).eq("status", "ready").order("position").order("created_at"),
+  const [{ data: products }, { data: rows }] = await Promise.all([
+    db.from("products").select("id, name, audio_zips").eq("org_id", orgId).in("id", all),
+    db.from("product_tracks").select("id, product_id, title, formats").eq("org_id", orgId).in("product_id", all).eq("status", "ready").order("position").order("created_at"),
   ])
+  const whole = new Set(productIds)
+  const single = new Set(singles.map((x) => x.track))
+  const tracks = (rows ?? []).filter((t) => whole.has(t.product_id) || single.has(t.id))
   const sizes = (f: Record<string, Stored>) => Object.fromEntries(DOWNLOAD_FORMATS.flatMap((k) => (f[k] ? [[k, f[k].size]] : [])))
   return (products ?? []).flatMap((p) => {
     const own = (tracks ?? []).filter((t) => t.product_id === p.id)
-    return own.length ? [{ productId: p.id, name: p.name, zip: ((p.audio_zips ?? {}) as Record<string, Stored>).zip?.size ?? null, tracks: own.map((t) => ({ id: t.id, title: t.title, sizes: sizes((t.formats ?? {}) as Record<string, Stored>) })) }] : []
+    return own.length ? [{ productId: p.id, name: p.name, zip: whole.has(p.id) ? (((p.audio_zips ?? {}) as Record<string, Stored>).zip?.size ?? null) : null, tracks: own.map((t) => ({ id: t.id, title: t.title, sizes: sizes((t.formats ?? {}) as Record<string, Stored>) })) }] : []
   })
 }
 

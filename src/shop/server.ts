@@ -87,6 +87,7 @@ export async function placeOrder(p: PlaceInput) {
   const [settings, products, ready] = await Promise.all([shopSettings(p.orgId), catalog(p.orgId), onlineReady(p.orgId)])
   const lines = priceCart(p.cart, products)
   if (!lines.length || lines.length !== p.cart.length) throw new Error("store.cartChanged")
+  if (lines.some((l) => l.problem === "below_min")) throw new Error("store.belowMinError")
   if (lines.some((l) => l.problem)) throw new Error("store.soldOutError")
   if (!deliveriesFor(settings, lines).includes(p.delivery)) throw new Error("store.deliveryInvalid")
   const subtotal = subtotalOf(lines)
@@ -112,7 +113,7 @@ export async function placeOrder(p: PlaceInput) {
     customerEmail: p.email,
     customerName: p.name,
     items: [
-      ...lines.map((l) => ({ description: l.name.slice(0, 200), quantity: l.quantity, unitAmount: l.unit, sourceId: l.id, metadata: { tax_rate: l.tax_rate, product_id: l.product.id, kind: l.digital ? "digital" : "physical" } })),
+      ...lines.map((l) => ({ description: l.name.slice(0, 200), quantity: l.quantity, unitAmount: l.unit, sourceId: l.id, metadata: { tax_rate: l.tax_rate, product_id: l.product.id, kind: l.digital ? "digital" : "physical", ...(l.trackId && { track_id: l.trackId }), ...(l.nyp && { name_your_price: true }) } })),
       ...(rateName ? [{ description: `${t("store.shippingLine")}: ${rateName}`.slice(0, 200), quantity: 1, unitAmount: shipping, metadata: { tax_rate: shipRate, shipping: true } }] : []),
     ],
   })
@@ -261,7 +262,7 @@ const addressLines = (o: Pick<Order, "name" | "company" | "street" | "postal_cod
  */
 export async function ensureInvoice(orderId: string, force = false) {
   const o = await loadOrder(orderId)
-  if (!o) return
+  if (!o || o.pay_orders.amount_total === 0) return // free orders (name your price 0 €, free downloads): no invoice
   const [{ data: mod }, settings] = await Promise.all([
     db().from("org_modules").select("module_key").eq("org_id", o.org_id).eq("module_key", "invoices").maybeSingle(),
     shopSettings(o.org_id),
@@ -462,7 +463,7 @@ export async function reopenCart(o: Order): Promise<CartLine[]> {
   if (o.payment !== "online" || o.pay_orders.status !== "open") return []
   await cancelCollect(o.order_id) // stops the checkout, cancels the order
   await db().from("shop_orders").update({ status: "cancelled" }).eq("id", o.id)
-  return o.pay_orders.pay_order_items.filter((i) => i.source_id).map((i) => ({ id: i.source_id!, q: i.quantity }))
+  return o.pay_orders.pay_order_items.filter((i) => i.source_id).map((i) => ({ id: i.source_id!, q: i.quantity, ...((i.metadata as Record<string, unknown> | null)?.name_your_price ? { p: i.unit_amount } : {}) }))
 }
 
 /** Buyer's order page: the order if the token matches. */
@@ -474,7 +475,11 @@ export async function orderForBuyer(orderId: string, token: string) {
 export type BuyerOrder = Order
 
 const isPaid = (o: Order) => ["paid", "partially_refunded"].includes(o.pay_orders.status) && o.status !== "cancelled"
-const orderProductIds = (o: Order) => [...new Set(o.pay_orders.pay_order_items.map((i) => (i.metadata as Record<string, unknown> | null)?.product_id).filter((x): x is string => typeof x === "string"))]
+const meta = (i: { metadata: unknown }) => (i.metadata ?? {}) as Record<string, unknown>
+const orderProductIds = (o: Order) => [...new Set(o.pay_orders.pay_order_items.map((i) => meta(i).product_id).filter((x): x is string => typeof x === "string"))]
+// Products bought as a whole (album, any variant) vs. single tracks bought on their own (track id → product id).
+const wholeProductIds = (o: Order) => new Set(o.pay_orders.pay_order_items.filter((i) => !meta(i).track_id).map((i) => meta(i).product_id).filter((x): x is string => typeof x === "string"))
+const singleTracks = (o: Order) => o.pay_orders.pay_order_items.flatMap((i) => (typeof meta(i).track_id === "string" ? [{ track: meta(i).track_id as string, product: meta(i).product_id as string }] : []))
 
 /** Products of the order that aren't released yet (release date ahead): their digital delivery waits until the day. */
 export async function orderUnreleased(o: Order): Promise<{ id: string; name: string; release_at: string }[]> {
@@ -490,12 +495,21 @@ async function unlockedIds(o: Order) {
   return orderProductIds(o).filter((id) => !later.has(id))
 }
 
-/** Music of the released products in a paid order (WAV + MP3 320, single tracks + album ZIP; src/shop/audio.ts). */
-export const orderMusic = async (o: Order) => orderAudio(o.org_id, await unlockedIds(o))
+/**
+ * Music of the released products in a paid order (WAV + MP3 320; src/shop/audio.ts): whole products with every track
+ * and the album ZIP, single-track purchases with just their tracks.
+ */
+export async function orderMusic(o: Order) {
+  const open = new Set(await unlockedIds(o))
+  const whole = wholeProductIds(o)
+  const tracks = singleTracks(o).filter((x) => open.has(x.product) && !whole.has(x.product))
+  return orderAudio(o.org_id, [...whole].filter((id) => open.has(id)), tracks)
+}
 
-/** Files of the released products in a paid order (downloads on the order page). */
+/** Files of the released products bought as a whole in a paid order (downloads on the order page). */
 export async function orderFiles(o: Order) {
-  const ids = await unlockedIds(o)
+  const whole = wholeProductIds(o)
+  const ids = (await unlockedIds(o)).filter((id) => whole.has(id))
   if (!ids.length) return []
   const { data } = await db().from("files").select("id, name, size, entity_id").eq("org_id", o.org_id).eq("entity", "products").in("entity_id", ids).order("name")
   return data ?? []

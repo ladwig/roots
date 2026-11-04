@@ -1595,14 +1595,14 @@ isOneToOne: false
                   ]
                 },"product_tracks": {
                   Row: {
-                    "claimed_at": string | null,"created_at": string,"created_by": string | null,"duration_seconds": number | null,"error": string | null,"formats": NonNullable<Json>,"id": string,"master_key": string,"master_name": string,"master_size": number | null,"org_id": string,"position": number,"product_id": string,"status": string,"stream": boolean,"title": string,"updated_at": string,"updated_by": string | null
+                    "buyable": boolean,"claimed_at": string | null,"created_at": string,"created_by": string | null,"duration_seconds": number | null,"error": string | null,"formats": NonNullable<Json>,"id": string,"master_key": string,"master_name": string,"master_size": number | null,"org_id": string,"position": number,"product_id": string,"status": string,"stream": boolean,"title": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "claimed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"duration_seconds"?: number | null,"error"?: string | null,"formats"?: NonNullable<Json>,"id"?: string,"master_key": string,"master_name": string,"master_size"?: number | null,"org_id": string,"position"?: number,"product_id": string,"status"?: string,"stream"?: boolean,"title": string,"updated_at"?: string,"updated_by"?: string | null
+                    "buyable"?: boolean,"claimed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"duration_seconds"?: number | null,"error"?: string | null,"formats"?: NonNullable<Json>,"id"?: string,"master_key": string,"master_name": string,"master_size"?: number | null,"org_id": string,"position"?: number,"product_id": string,"status"?: string,"stream"?: boolean,"title": string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "claimed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"duration_seconds"?: number | null,"error"?: string | null,"formats"?: NonNullable<Json>,"id"?: string,"master_key"?: string,"master_name"?: string,"master_size"?: number | null,"org_id"?: string,"position"?: number,"product_id"?: string,"status"?: string,"stream"?: boolean,"title"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "buyable"?: boolean,"claimed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"duration_seconds"?: number | null,"error"?: string | null,"formats"?: NonNullable<Json>,"id"?: string,"master_key"?: string,"master_name"?: string,"master_size"?: number | null,"org_id"?: string,"position"?: number,"product_id"?: string,"status"?: string,"stream"?: boolean,"title"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -1621,14 +1621,14 @@ isOneToOne: false
                   ]
                 },"product_variants": {
                   Row: {
-                    "active": boolean,"created_at": string,"created_by": string | null,"digital": boolean,"id": string,"name": string,"org_id": string,"position": number,"price_cents": number | null,"product_id": string,"stock": number | null,"updated_at": string,"updated_by": string | null
+                    "active": boolean,"created_at": string,"created_by": string | null,"digital": boolean,"id": string,"name": string,"name_your_price": boolean | null,"org_id": string,"position": number,"price_cents": number | null,"product_id": string,"stock": number | null,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"digital"?: boolean,"id"?: string,"name": string,"org_id": string,"position"?: number,"price_cents"?: number | null,"product_id": string,"stock"?: number | null,"updated_at"?: string,"updated_by"?: string | null
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"digital"?: boolean,"id"?: string,"name": string,"name_your_price"?: boolean | null,"org_id": string,"position"?: number,"price_cents"?: number | null,"product_id": string,"stock"?: number | null,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"digital"?: boolean,"id"?: string,"name"?: string,"org_id"?: string,"position"?: number,"price_cents"?: number | null,"product_id"?: string,"stock"?: number | null,"updated_at"?: string,"updated_by"?: string | null
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"digital"?: boolean,"id"?: string,"name"?: string,"name_your_price"?: boolean | null,"org_id"?: string,"position"?: number,"price_cents"?: number | null,"product_id"?: string,"stock"?: number | null,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -1647,14 +1647,14 @@ isOneToOne: false
                   ]
                 },"products": {
                   Row: {
-                    "audio_zips": NonNullable<Json>,"audio_zips_claimed_at": string | null,"category": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string,"id": string,"images": (string)[],"kind": string,"max_per_order": number,"name": string,"org_id": string,"position": number,"price_cents": number,"release_at": string | null,"release_done_at": string | null,"slug": string,"status": string,"stock": number | null,"tax_rate": number,"updated_at": string,"updated_by": string | null,"video_url": string | null
+                    "audio_zips": NonNullable<Json>,"audio_zips_claimed_at": string | null,"category": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"deleted_by": string | null,"description": string,"id": string,"images": (string)[],"kind": string,"max_per_order": number,"name": string,"name_your_price": boolean,"org_id": string,"position": number,"price_cents": number,"release_at": string | null,"release_done_at": string | null,"slug": string,"status": string,"stock": number | null,"suggested_cents": number | null,"tax_rate": number,"track_price_cents": number | null,"updated_at": string,"updated_by": string | null,"video_url": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "audio_zips"?: NonNullable<Json>,"audio_zips_claimed_at"?: string | null,"category"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string,"id"?: string,"images"?: (string)[],"kind"?: string,"max_per_order"?: number,"name": string,"org_id": string,"position"?: number,"price_cents"?: number,"release_at"?: string | null,"release_done_at"?: string | null,"slug": string,"status"?: string,"stock"?: number | null,"tax_rate"?: number,"updated_at"?: string,"updated_by"?: string | null,"video_url"?: string | null
+                    "audio_zips"?: NonNullable<Json>,"audio_zips_claimed_at"?: string | null,"category"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string,"id"?: string,"images"?: (string)[],"kind"?: string,"max_per_order"?: number,"name": string,"name_your_price"?: boolean,"org_id": string,"position"?: number,"price_cents"?: number,"release_at"?: string | null,"release_done_at"?: string | null,"slug": string,"status"?: string,"stock"?: number | null,"suggested_cents"?: number | null,"tax_rate"?: number,"track_price_cents"?: number | null,"updated_at"?: string,"updated_by"?: string | null,"video_url"?: string | null
                   }
                   Update: {
-                    "audio_zips"?: NonNullable<Json>,"audio_zips_claimed_at"?: string | null,"category"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string,"id"?: string,"images"?: (string)[],"kind"?: string,"max_per_order"?: number,"name"?: string,"org_id"?: string,"position"?: number,"price_cents"?: number,"release_at"?: string | null,"release_done_at"?: string | null,"slug"?: string,"status"?: string,"stock"?: number | null,"tax_rate"?: number,"updated_at"?: string,"updated_by"?: string | null,"video_url"?: string | null
+                    "audio_zips"?: NonNullable<Json>,"audio_zips_claimed_at"?: string | null,"category"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"deleted_by"?: string | null,"description"?: string,"id"?: string,"images"?: (string)[],"kind"?: string,"max_per_order"?: number,"name"?: string,"name_your_price"?: boolean,"org_id"?: string,"position"?: number,"price_cents"?: number,"release_at"?: string | null,"release_done_at"?: string | null,"slug"?: string,"status"?: string,"stock"?: number | null,"suggested_cents"?: number | null,"tax_rate"?: number,"track_price_cents"?: number | null,"updated_at"?: string,"updated_by"?: string | null,"video_url"?: string | null
                   }
                   Relationships: [
                     {
@@ -2543,7 +2543,8 @@ isOneToOne: false
                            },
 "claim_audio_track":
 { Args: Record<PropertyKey, never>; Returns: {
-              "claimed_at": string | null,
+              "buyable": boolean,
+"claimed_at": string | null,
 "created_at": string,
 "created_by": string | null,
 "duration_seconds": number | null,

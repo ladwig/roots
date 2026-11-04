@@ -117,8 +117,12 @@ const ShopProduct = z.object({
   video_url: z.string().nullable(),
   max_per_order: z.number().int(),
   release_at: z.string().nullable().describe("Release date while it is ahead (pre-order): sells now, digital delivery unlocks that day"),
+  name_your_price: z.boolean().describe("Name your price: price_cents is the minimum, send your own price_cents when ordering"),
+  suggested_cents: z.number().int().nullable(),
+  track_price_cents: z.number().int().nullable().describe("Single tracks for sale at this price (minimum when name your price); null = album only"),
+  tracks_for_sale: z.array(z.object({ id: uuid, title: z.string() })).describe("Tracks sold on their own (order them by id)"),
   left: z.number().int().nullable().describe("Products without variants: units left (null = unlimited)"),
-  variants: z.array(z.object({ id: uuid, name: z.string(), price_cents: z.number().int(), left: z.number().int().nullable(), digital: z.boolean().describe("Download only: no shipping, delivered after payment") })),
+  variants: z.array(z.object({ id: uuid, name: z.string(), price_cents: z.number().int(), left: z.number().int().nullable(), digital: z.boolean().describe("Download only: no shipping, delivered after payment"), name_your_price: z.boolean() })),
   url: z.string().describe("Hosted product page"),
 })
 const shopCatalog = async (orgId: string, slug?: string) => ((await createPublicClient().rpc("shop_catalog", { p_org: orgId, p_slug: slug })).data ?? []) as CatalogProduct[]
@@ -134,12 +138,17 @@ const shopProductOut = (org: Org, p: CatalogProduct) => ({
   video_url: p.video_url,
   max_per_order: p.max_per_order,
   release_at: p.release_at ?? null,
+  name_your_price: !!p.name_your_price,
+  suggested_cents: p.suggested_cents ?? null,
+  track_price_cents: p.track_price_cents ?? null,
+  tracks_for_sale: p.tracks ?? [],
   left: p.left,
-  variants: p.variants,
+  variants: p.variants.map((v) => ({ ...v, name_your_price: !!v.name_your_price })),
   url: siteUrl(org.slug, `/shop/${p.slug}`, org.site_domain),
 })
 const SHOP_ERRORS: Record<string, string> = {
   "store.soldOutError": "sold_out",
+  "store.belowMinError": "price_below_min",
   "store.cartChanged": "cart_changed",
   "store.priceChanged": "price_changed",
   "store.deliveryInvalid": "delivery_invalid",
@@ -458,12 +467,12 @@ export const publicEndpoints: PublicEndpoint[] = [
     tag: "Shop",
     summary: "Place a shop order",
     description:
-      "Checks items, stock, delivery and payment like the hosted cart. `total_cents` = what you showed the buyer (items + shipping); a different total now → `price_changed`. Send the buyer to `next_url`: the provider's payment page (`payment: online`), else the order page (transfer: bank details there + by mail; pickup: pay when collecting). `success_url` may contain `{ORDER_ID}` and `{TOKEN}`. Errors: `sold_out`, `cart_changed`, `price_changed`, `delivery_invalid`, `shipping_invalid`, `payment_invalid`, `terms_missing`, `waiver_missing` (digital items need `digital_waiver: true`), `unavailable`.",
+      "Checks items, stock, delivery and payment like the hosted cart. `total_cents` = what you showed the buyer (items + shipping); a different total now → `price_changed`. Send the buyer to `next_url`: the provider's payment page (`payment: online`), else the order page (transfer: bank details there + by mail; pickup: pay when collecting). `success_url` may contain `{ORDER_ID}` and `{TOKEN}`. Errors: `sold_out`, `cart_changed`, `price_changed`, `delivery_invalid`, `shipping_invalid`, `payment_invalid`, `terms_missing`, `waiver_missing` (digital items need `digital_waiver: true`), `price_below_min` (name your price under the minimum), `unavailable`.",
     body: z
       .object({
         email,
         name,
-        items: z.array(z.object({ id: uuid.describe("Variant id, or product id for products without variants"), quantity: z.number().int().min(1).max(100) }).strict()).min(1).max(30),
+        items: z.array(z.object({ id: uuid.describe("Variant id, product id (products without variants) or track id (tracks_for_sale)"), quantity: z.number().int().min(1).max(100), price_cents: z.number().int().min(0).max(1_000_000).optional().describe("Name your price: the buyer's unit price (≥ the minimum; default = the suggestion). Ignored for fixed prices.") }).strict()).min(1).max(30),
         delivery: z.enum(DELIVERIES),
         shipping_rate: z.string().max(40).optional(),
         payment: z.enum(PAYMENTS).default("online"),
@@ -483,14 +492,15 @@ export const publicEndpoints: PublicEndpoint[] = [
       if (!conf) throw notFound()
       const c = conf as Record<string, unknown>
       if ((c.terms || c.withdrawal) && !body.accept_terms) throw keyError(422, "store.termsMissing", t)
-      const lines = priceCart(body.items.map((i) => ({ id: i.id, q: i.quantity })), products)
+      const cart = body.items.map((i) => ({ id: i.id, q: i.quantity, ...(i.price_cents !== undefined && { p: i.price_cents }) }))
+      const lines = priceCart(cart, products)
       if (lines.some((l) => l.digital) && !body.digital_waiver) throw keyError(422, "store.waiverMissing", t)
       if (body.delivery === "shipping" && !body.address) throw keyError(422, "store.addressMissing", t)
       const order = (id: string, token: string) => siteUrl(org.slug, `/o/${id}?k=${token}`, org.site_domain)
       try {
         const r = await placeOrder({
           orgId: org.id,
-          cart: body.items.map((i) => ({ id: i.id, q: i.quantity })),
+          cart,
           name: body.name,
           email: body.email,
           delivery: body.delivery,

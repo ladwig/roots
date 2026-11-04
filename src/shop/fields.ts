@@ -59,7 +59,8 @@ export const shippingCents = (rate: ShippingRate, subtotal: number) => (rate.fre
 
 // ---------- cart (cookie, one per org) ----------
 
-export type CartLine = { id: string; q: number } // id = variant id, or product id for products without variants
+export type CartLine = { id: string; q: number; p?: number } // id = variant / product (no variants) / track id; p = chosen price (name your price)
+export const MAX_UNIT_CENTS = 1_000_000 // name-your-price ceiling per unit (10.000 €): typos, abuse
 export const MAX_CART_LINES = 30
 
 export function readCart(raw: string | undefined | null): CartLine[] {
@@ -70,26 +71,30 @@ export function readCart(raw: string | undefined | null): CartLine[] {
     return []
   }
   if (!Array.isArray(v)) return []
-  const lines = new Map<string, number>()
+  const lines = new Map<string, { q: number; p?: number }>()
   for (const l of v.slice(0, MAX_CART_LINES)) {
     const id = String((l as CartLine)?.id ?? "")
     const q = Math.floor(Number((l as CartLine)?.q))
-    if (UUID.test(id) && q >= 1) lines.set(id, Math.min(100, (lines.get(id) ?? 0) + q))
+    const p = (l as CartLine)?.p
+    if (!UUID.test(id) || !(q >= 1)) continue
+    const price = Number.isInteger(p) && p! >= 0 && p! <= MAX_UNIT_CENTS ? p : lines.get(id)?.p
+    lines.set(id, { q: Math.min(100, (lines.get(id)?.q ?? 0) + q), ...(price !== undefined && { p: price }) })
   }
-  return [...lines].map(([id, q]) => ({ id, q }))
+  return [...lines].map(([id, l]) => ({ id, ...l }))
 }
 
-/** Add (q > 0), change (set) or remove (q = 0) a line. */
-export function changeCart(cart: CartLine[], id: string, q: number, mode: "add" | "set"): CartLine[] {
+/** Add (q > 0), change (set) or remove (q = 0) a line; `price` (name your price) replaces the line's chosen price. */
+export function changeCart(cart: CartLine[], id: string, q: number, mode: "add" | "set", price?: number | null): CartLine[] {
   if (!UUID.test(id)) return cart
-  const now = cart.find((l) => l.id === id)?.q ?? 0
-  const next = Math.max(0, Math.min(100, Math.floor(mode === "add" ? now + q : q)))
+  const line = cart.find((l) => l.id === id)
+  const next = Math.max(0, Math.min(100, Math.floor(mode === "add" ? (line?.q ?? 0) + q : q)))
+  const p = price !== undefined && price !== null && Number.isInteger(price) && price >= 0 && price <= MAX_UNIT_CENTS ? price : line?.p
   const rest = cart.filter((l) => l.id !== id)
-  return next > 0 ? [...rest, { id, q: next }].slice(-MAX_CART_LINES) : rest
+  return next > 0 ? [...rest, { id, q: next, ...(p !== undefined && { p }) }].slice(-MAX_CART_LINES) : rest
 }
 
 // The public catalog (shop_catalog()) as the pages and the order logic read it.
-export type CatalogVariant = { id: string; name: string; price_cents: number; left: number | null; digital: boolean }
+export type CatalogVariant = { id: string; name: string; price_cents: number; left: number | null; digital: boolean; name_your_price?: boolean }
 export type CatalogProduct = {
   id: string
   slug: string
@@ -102,6 +107,10 @@ export type CatalogProduct = {
   category: string | null
   max_per_order: number
   release_at?: string | null // only while ahead
+  name_your_price?: boolean // price = minimum, buyers choose (variants: their own flag)
+  suggested_cents?: number | null
+  track_price_cents?: number | null // single tracks for sale (null = album only)
+  tracks?: { id: string; title: string }[] // the buyable ones
   description?: string | null
   left: number | null // products without variants; null = unlimited
   variants: CatalogVariant[]
@@ -116,18 +125,33 @@ export type PricedLine = {
   unit: number
   tax_rate: number
   digital: boolean // download, no shipping (digital product or digital variant)
-  problem: "gone" | "sold_out" | "too_many" | null // gone = no longer for sale
+  trackId: string | null // a single track
+  nyp: boolean // name your price: `min` is the floor, `unit` what the buyer chose
+  min: number
+  problem: "gone" | "sold_out" | "too_many" | "below_min" | null // gone = no longer for sale
 }
 
-/** Cart lines with today's prices and availability. Lines whose product/variant vanished come back as "gone". */
+/** What a name-your-price item costs when the buyer didn't choose: the suggestion if it's at least the minimum. */
+export const suggestedPrice = (p: CatalogProduct, min: number) => Math.max(min, p.suggested_cents ?? min)
+
+/**
+ * Cart lines with today's prices and availability. Lines whose product/variant/track vanished come back as "gone".
+ * Name-your-price items cost what the buyer chose (`p`, else the suggestion), at least the minimum.
+ */
 export function priceCart(cart: CartLine[], catalog: CatalogProduct[]): PricedLine[] {
   return cart.flatMap((l) => {
     for (const p of catalog) {
-      const v = p.variants.find((x) => x.id === l.id) ?? null
-      if (!v && (p.id !== l.id || p.variants.length)) continue
-      const left = v ? v.left : p.left
-      const problem = left !== null && left < l.q ? "sold_out" : l.q > p.max_per_order ? "too_many" : null
-      return [{ id: l.id, product: p, variant: v, name: v ? `${p.name} · ${v.name}` : p.name, quantity: l.q, unit: v ? v.price_cents : p.price_cents, tax_rate: Number(p.tax_rate), digital: v ? !!v.digital : p.kind === "digital", problem }]
+      const track = p.track_price_cents != null ? p.tracks?.find((x) => x.id === l.id) : undefined
+      const v = track ? null : (p.variants.find((x) => x.id === l.id) ?? null)
+      if (!track && !v && (p.id !== l.id || p.variants.length)) continue
+      const min = track ? p.track_price_cents! : v ? v.price_cents : p.price_cents
+      const nyp = v ? !!v.name_your_price : !!p.name_your_price
+      const unit = nyp ? (l.p ?? suggestedPrice(p, min)) : min
+      const quantity = track ? 1 : l.q // a track is bought once
+      const left = track ? null : v ? v.left : p.left
+      const problem = left !== null && left < quantity ? "sold_out" : quantity > p.max_per_order ? "too_many" : nyp && (unit < min || unit > MAX_UNIT_CENTS) ? "below_min" : null
+      const name = track ? `${p.name} – ${track.title}` : v ? `${p.name} · ${v.name}` : p.name
+      return [{ id: l.id, product: p, variant: v, name, quantity, unit, tax_rate: Number(p.tax_rate), digital: track ? true : v ? !!v.digital : p.kind === "digital", trackId: track?.id ?? null, nyp, min, problem }]
     }
     return []
   })
@@ -193,6 +217,8 @@ export type ProductRow = {
   category: string | null
   video_url: string | null
   release_at: string | null // release date (pre-orders): digital delivery unlocks that day
+  name_your_price: boolean // price = minimum, buyers choose
+  suggested_cents: number | null // pre-filled choice (≥ the price)
 }
 
 const intOrNull = (v: string) => (v.trim() === "" ? null : Number(v.trim()))
@@ -217,18 +243,21 @@ export function readProduct(get: (k: string) => string): { row: ProductRow } | {
   const release = get("release_on").trim() // "2026-11-27" (Berlin) or empty
   const release_at = release ? fromLocalInput(`${release}T00:00`)?.toISOString() ?? null : null
   if (release && (!/^\d{4}-\d{2}-\d{2}$/.test(release) || !release_at)) return { error: "store.releaseInvalid" }
+  const name_your_price = get("name_your_price") === "1"
+  const suggested = get("suggested").trim() ? moneyCents(get("suggested")) : null
+  if (get("suggested").trim() && (suggested === null || suggested > MAX_UNIT_CENTS)) return { error: "store.priceInvalid" }
   return {
-    row: { name, slug, description: get("description").slice(0, 50000), kind, status, price_cents: price, tax_rate: tax, stock, max_per_order: max, category: get("category").trim().slice(0, 60) || null, video_url: video || null, release_at },
+    row: { name, slug, description: get("description").slice(0, 50000), kind, status, price_cents: price, tax_rate: tax, stock, max_per_order: max, category: get("category").trim().slice(0, 60) || null, video_url: video || null, release_at, name_your_price, suggested_cents: name_your_price ? suggested : null },
   }
 }
 
 /** One variant line: name, optional own price ("" = product price), optional stock. */
-export function readVariant(get: (k: string) => string): { row: { name: string; price_cents: number | null; stock: number | null; active: boolean; digital: boolean } } | { error: string } {
+export function readVariant(get: (k: string) => string): { row: { name: string; price_cents: number | null; stock: number | null; active: boolean; digital: boolean; name_your_price: boolean | null } } | { error: string } {
   const name = get("name").trim().slice(0, 100)
   if (!name) return { error: "store.nameRequired" }
   const price = get("price").trim() ? moneyCents(get("price")) : null
   if (get("price").trim() && (price === null || price > 99_999_999)) return { error: "store.priceInvalid" }
   const stock = intOrNull(get("stock"))
   if (stock !== null && !(Number.isInteger(stock) && stock >= 0 && stock <= 1_000_000)) return { error: "errors.invalid_input" }
-  return { row: { name, price_cents: price, stock, active: get("has_active") === "1" ? get("active") === "1" : true, digital: get("digital") === "1" } }
+  return { row: { name, price_cents: price, stock, active: get("has_active") === "1" ? get("active") === "1" : true, digital: get("digital") === "1", name_your_price: get("has_nyp") === "1" ? get("name_your_price") === "1" : null } }
 }

@@ -5,11 +5,14 @@ import { getT } from "@/i18n/server"
 import { back, siteActionPath, siteUrl } from "@/lib/url"
 import { getCart, saveCart } from "@/shop/cart"
 import { changeCart, DELIVERIES, PAYMENTS, type Delivery, type Payment } from "@/shop/fields"
+import { moneyCents } from "@/lib/inputs"
 import { orderForBuyer, placeOrder, reopenCart } from "@/shop/server"
 import { getSite } from "../data"
 
 const str = (fd: FormData, k: string, max: number) => String(fd.get(k) ?? "").trim().slice(0, max)
-const BUYER_ERRORS = ["store.soldOutError", "store.cartChanged", "store.priceChanged", "store.deliveryInvalid", "store.shippingInvalid", "store.paymentInvalid"]
+// Name your price: "12,50" → cents (checked against the minimum when the cart is priced; junk = keep the old one).
+const chosenPrice = (fd: FormData) => (fd.get("price") ? moneyCents(str(fd, "price", 20)) : null)
+const BUYER_ERRORS = ["store.soldOutError", "store.belowMinError", "store.cartChanged", "store.priceChanged", "store.deliveryInvalid", "store.shippingInvalid", "store.paymentInvalid"]
 
 // Public: put a product/variant into the cart (validated again at checkout against the live catalog).
 export async function addToCart(fd: FormData) {
@@ -17,7 +20,7 @@ export async function addToCart(fd: FormData) {
   const s = await getSite(site)
   if (!s) redirect(siteActionPath(site, "/shop"))
   const q = Math.max(1, Math.min(100, Math.floor(Number(fd.get("q")) || 1)))
-  await saveCart(s.org.id, changeCart(await getCart(s.org.id), str(fd, "item", 36), q, "add"))
+  await saveCart(s.org.id, changeCart(await getCart(s.org.id), str(fd, "item", 36), q, "add", chosenPrice(fd)))
   redirect(siteActionPath(site, "/cart"))
 }
 
@@ -27,7 +30,7 @@ export async function updateCart(fd: FormData) {
   const s = await getSite(site)
   if (!s) redirect(siteActionPath(site, "/shop"))
   const q = Math.max(0, Math.min(100, Math.floor(Number(fd.get("q")) || 0)))
-  await saveCart(s.org.id, changeCart(await getCart(s.org.id), str(fd, "item", 36), q, "set"))
+  await saveCart(s.org.id, changeCart(await getCart(s.org.id), str(fd, "item", 36), q, "set", chosenPrice(fd)))
   redirect(`${siteActionPath(site, "/cart")}?${new URLSearchParams(str(fd, "keep", 200))}`)
 }
 

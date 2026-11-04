@@ -14,7 +14,8 @@ import { getCart } from "@/shop/cart"
 import { deliveriesFor, paymentsFor, priceCart, readShippingRates, shippingCents, subtotalOf, type CatalogProduct, type Delivery, type ShopSettings } from "@/shop/fields"
 import { onlineReady } from "@/shop/server"
 import { getSite } from "../data"
-import { QtyInput } from "./qty"
+import { PriceInput, QtyInput } from "./qty"
+import { priceInput } from "@/tickets/price"
 import { checkout, restoreCart, updateCart } from "../shop/actions"
 
 export async function generateMetadata({ params }: PageProps<"/s/[site]/cart">): Promise<Metadata> {
@@ -98,10 +99,34 @@ export default async function CartPage({ params, searchParams }: PageProps<"/s/[
                   <Link href={sitePath(site, `/shop/${l.product.slug}`)} className="font-medium hover:underline">
                     {l.name}
                   </Link>
-                  <p className="text-sm text-muted-foreground">{t.money(l.unit, "eur")}</p>
-                  {l.problem && <p className="text-sm text-destructive">{t.dynamic(`store.lineProblem.${l.problem}`, { max: l.product.max_per_order })}</p>}
+                  {l.nyp ? (
+                    // Name your price: the amount is editable here, at least the minimum.
+                    <form action={updateCart} className="flex flex-wrap items-center gap-2 pt-1 text-sm text-muted-foreground">
+                      <input type="hidden" name="site" value={site} />
+                      <input type="hidden" name="item" value={l.id} />
+                      <input type="hidden" name="q" value={l.quantity} />
+                      <input type="hidden" name="keep" value={keep} />
+                      <span>{t("store.yourPrice")}</span>
+                      <PriceInput
+                        defaultValue={priceInput(l.unit)}
+                        label={t("store.yourPrice")}
+                        fallback={
+                          <SubmitButton size="sm" variant="ghost">
+                            {t("store.update")}
+                          </SubmitButton>
+                        }
+                      />
+                      <span>€ · {t("store.atLeast", { price: t.money(l.min, "eur") })}</span>
+                    </form>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">{t.money(l.unit, "eur")}</p>
+                  )}
+                  {l.problem && <p className="text-sm text-destructive">{t.dynamic(`store.lineProblem.${l.problem}`, { max: l.product.max_per_order, price: t.money(l.min, "eur") })}</p>}
                 </div>
                 <div className="col-span-2 flex items-center justify-between gap-2 sm:col-span-1">
+                  {l.trackId ? (
+                    <span className="text-sm text-muted-foreground">{t("store.singleTrack")}</span>
+                  ) : (
                   <form action={updateCart} className="flex items-center gap-1">
                     <input type="hidden" name="site" value={site} />
                     <input type="hidden" name="item" value={l.id} />
@@ -117,6 +142,7 @@ export default async function CartPage({ params, searchParams }: PageProps<"/s/[
                       }
                     />
                   </form>
+                  )}
                   <form action={updateCart}>
                     <input type="hidden" name="site" value={site} />
                     <input type="hidden" name="item" value={l.id} />

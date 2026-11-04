@@ -5549,7 +5549,8 @@
     "lineProblem": {
       "sold_out": "No longer available in this quantity.",
       "too_many": "At most {max} per order.",
-      "gone": "No longer available."
+      "gone": "No longer available.",
+      "below_min": "At least {price}"
     },
     "delivery": "Delivery",
     "deliveries": {
@@ -5862,6 +5863,20 @@
     "releaseInvalid": "The release date is invalid.",
     "releaseNote": "Out on {date}. You can order now – downloads are available from the release day.",
     "releaseShort": "Out {date}",
-    "releaseLater": "{name} comes out on {date} – your downloads unlock here then and you'll get a mail."
+    "releaseLater": "{name} comes out on {date} – your downloads unlock here then and you'll get a mail.",
+    "orMore": "{price} or more",
+    "yourPrice": "Your price",
+    "atLeast": "at least {price}",
+    "singleTrack": "Single track",
+    "buy": "buy",
+    "buyTrack": "Buy this track on its own",
+    "belowMinError": "A price is below the minimum – please adjust it in the cart.",
+    "nameYourPrice": "Name your price",
+    "nameYourPriceHint": "The price above becomes the minimum (\"€12.00 or more\"), buyers choose their amount. €0 = free (e.g. a download for an email).",
+    "suggestedPrice": "Suggestion (pre-filled, optional)",
+    "variantNyp": "name your price",
+    "trackPrice": "Single tracks for sale at",
+    "trackPriceHint": "Empty = album only. One price for all tracks; with \"name your price\" it's the minimum. Buyers of a track get just that one (WAV + MP3 320).",
+    "trackBuyable": "sold on its own"
   }
 }

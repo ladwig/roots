@@ -5549,7 +5549,8 @@
     "lineProblem": {
       "sold_out": "Nicht mehr in dieser Menge verfügbar.",
       "too_many": "Höchstens {max} pro Bestellung.",
-      "gone": "Nicht mehr erhältlich."
+      "gone": "Nicht mehr erhältlich.",
+      "below_min": "Mindestens {price}"
     },
     "delivery": "Lieferung",
     "deliveries": {
@@ -5862,6 +5863,20 @@
     "releaseInvalid": "Das Erscheinungsdatum ist ungültig.",
     "releaseNote": "Erscheint am {date}. Du kannst jetzt schon bestellen – Downloads gibt es ab dem Erscheinungstag.",
     "releaseShort": "Erscheint {date}",
-    "releaseLater": "{name} erscheint am {date} – deine Downloads werden dann hier freigeschaltet und du bekommst eine Mail."
+    "releaseLater": "{name} erscheint am {date} – deine Downloads werden dann hier freigeschaltet und du bekommst eine Mail.",
+    "orMore": "{price} oder mehr",
+    "yourPrice": "Dein Preis",
+    "atLeast": "mindestens {price}",
+    "singleTrack": "Einzeltitel",
+    "buy": "kaufen",
+    "buyTrack": "Diesen Titel einzeln kaufen",
+    "belowMinError": "Ein Preis liegt unter dem Mindestpreis – bitte im Warenkorb anpassen.",
+    "nameYourPrice": "Preis selbst wählen",
+    "nameYourPriceHint": "Der Preis oben ist dann der Mindestpreis („12,00 € oder mehr“), Käufer:innen wählen ihren Betrag. 0 € = kostenlos (z. B. Download gegen E-Mail).",
+    "suggestedPrice": "Vorschlag (vorausgefüllt, optional)",
+    "variantNyp": "Preis selbst wählen",
+    "trackPrice": "Einzelne Titel kaufbar für",
+    "trackPriceHint": "Leer = nur als Album. Ein Preis für alle Titel; bei „Preis selbst wählen“ ist er der Mindestpreis. Käufer:innen eines Titels bekommen nur diesen (WAV + MP3 320).",
+    "trackBuyable": "einzeln kaufbar"
   }
 }
