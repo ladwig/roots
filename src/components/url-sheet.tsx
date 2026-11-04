@@ -1,7 +1,10 @@
 "use client"
 
+import { useRef } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { confirmDiscard } from "@/components/save-bar"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { useT } from "@/i18n/client"
 
 // A side drawer that exists because a search param is set (?edit=<id>, ?new=…). Closing removes the param(s).
 // Same anatomy everywhere: title, `meta` underneath (small, muted: "Angelegt am …"; live save status of an autosave
@@ -29,8 +32,15 @@ export function UrlSheet({
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const t = useT()
+  const answered = useRef(0)
 
   const close = () => {
+    // A backdrop click is an outside press and an overlay click: ask once per gesture.
+    if (Date.now() - answered.current < 500) return
+    const ok = confirmDiscard(document.querySelector("[data-slot=sheet-content]"), t("common.discardUnsaved"))
+    answered.current = Date.now()
+    if (!ok) return
     const next = new URLSearchParams(searchParams)
     for (const p of [...params, "error", "ok"]) next.delete(p)
     router.replace(next.size ? `${pathname}?${next}` : pathname, { scroll: false })

@@ -21,6 +21,7 @@
     "all": "All",
     "copy": "Copy",
     "leaveUnsaved": "You have unsaved changes. Leave the page anyway?",
+    "discardUnsaved": "Discard unsaved changes?",
     "selected": {
       "one": "{count} selected",
       "other": "{count} selected"

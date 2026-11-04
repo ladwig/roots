@@ -21,6 +21,7 @@
     "all": "Alle",
     "copy": "Kopieren",
     "leaveUnsaved": "Du hast ungespeicherte Änderungen. Seite trotzdem verlassen?",
+    "discardUnsaved": "Ungespeicherte Änderungen verwerfen?",
     "selected": {
       "one": "{count} ausgewählt",
       "other": "{count} ausgewählt"

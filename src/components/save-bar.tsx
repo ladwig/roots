@@ -37,6 +37,11 @@ export function SaveBar({ label, always }: { label?: string; always?: boolean })
     }
   }, [])
 
+  // Marks the form for confirmDiscard() (drawers, dialogs), create forms (`always`) included.
+  useEffect(() => {
+    form()?.toggleAttribute("data-dirty", dirty)
+  }, [dirty])
+
   // Unsaved changes: ask before reload/close and before following links inside the App.
   useEffect(() => {
     if (!dirty || always) return
@@ -85,6 +90,11 @@ export function SaveBar({ label, always }: { label?: string; always?: boolean })
       {target && bar ? createPortal(bar, target) : bar}
     </span>
   )
+}
+
+/** Before a drawer/dialog closes: true when no form inside `root` has unsaved changes, or the person agrees to drop them. */
+export function confirmDiscard(root: ParentNode | null, message: string): boolean {
+  return !root?.querySelector("form[data-dirty]") || window.confirm(message)
 }
 
 // Inside the form's React tree (also through the portal), so useFormStatus sees the running action.
