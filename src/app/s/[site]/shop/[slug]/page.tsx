@@ -57,12 +57,12 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   const minPrice = p.variants.length ? Math.min(...p.variants.filter((v) => v.name_your_price).map((v) => v.price_cents)) : p.price_cents
 
   return (
-    <main className="site-product mx-auto grid max-w-5xl gap-8 px-4 py-12">
+    <main className="site-product mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)] gap-8 px-4 py-12">
       <Link href={sitePath(site, "/shop")} className="text-sm text-muted-foreground underline-offset-4 hover:underline">
         ← {t("store.shopTitle")}
       </Link>
       <Notice error={param(sp, "error")} />
-      <div className="grid gap-8 md:grid-cols-2">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-8 md:grid-cols-2">
         <div className="grid content-start gap-3">
           {p.images.length > 0 ? <Gallery images={p.images.map((x) => imageUrl(x)!)} alt={p.name} /> : <div className="aspect-square rounded-xl border bg-muted" />}
         </div>
@@ -97,7 +97,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
               ) : p.variants.length > 0 ? (
                 <div className="grid gap-1">
                   <Label htmlFor="item">{t("store.variant")}</Label>
-                  <VariantSelect id="item" name="item" defaultValue={first?.id} required images={Object.fromEntries(p.variants.flatMap((v) => (v.image ? [[v.id, v.image]] : [])))} className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm">
+                  <VariantSelect id="item" name="item" defaultValue={first?.id} required images={Object.fromEntries(p.variants.flatMap((v) => (v.image ? [[v.id, v.image]] : [])))} className="h-9 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 text-sm">
                     {p.variants.map((v) => (
                       <option key={v.id} value={v.id} disabled={v.left === 0}>
                         {v.name} · {v.name_your_price ? t("store.orMore", { price: t.money(v.price_cents, "eur") }) : t.money(v.price_cents, "eur")}
@@ -131,7 +131,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
               </div>
             </form>
           )}
-          {p.description && <div className="site-product-description text-sm [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:font-semibold [&_img]:max-w-full [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-5" dangerouslySetInnerHTML={{ __html: cleanHtml(p.description) }} />}
+          {p.description && <div className="site-product-description text-sm break-words [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:font-semibold [&_img]:max-w-full [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-5" dangerouslySetInnerHTML={{ __html: cleanHtml(p.description) }} />}
         </div>
       </div>
       {video &&
