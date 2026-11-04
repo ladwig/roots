@@ -726,6 +726,18 @@ begin
   select count(*) into n from public.email_campaigns where org_id = org_a;    assert n = 0, 'B sees campaigns of A';
   select count(*) into n from public.email_sends where org_id = org_a;       assert n = 0, 'B sees sends of A';
   reset role;
+  insert into public.email_log (org_id, to_email, subject, kind, status) values (org_a, 'k@x.de', 'Bestellung', 'shop.confirmation', 'sent');
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from public.email_history where org_id = org_a and to_email = 'k@x.de';  assert n = 1, 'A sees its mail log';
+  begin
+    insert into public.email_log (org_id, to_email, kind, status) values (org_a, 'x@x.de', 'test', 'sent');
+    assert false, 'members can write the mail log';
+  exception when insufficient_privilege then null;
+  end;
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  select count(*) into n from public.email_history where org_id = org_a;     assert n = 0, 'B sees mail history of A';
+  reset role;
 
   -- Website: the org edits its own; others don't see it; anonymous visitors only through public_site()
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);

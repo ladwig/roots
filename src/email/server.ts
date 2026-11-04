@@ -96,7 +96,7 @@ export async function processEmailQueue(limit = 100) {
           ...mail,
           headers: { "List-Unsubscribe": `<${APP_URL}/api/unsubscribe/${s.id}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
           tags: { send_id: s.id },
-        })
+        }, false) // the queue row is its log
         await db.from("email_sends").update(ok ? { status: "sent", sent_at: new Date().toISOString() } : { status: "failed", error: "No email provider configured" }).eq("id", s.id)
         if (ok) sent++
       } catch (e) {

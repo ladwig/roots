@@ -20,7 +20,28 @@ export const senderOf = (config: Record<string, unknown>) => {
 // A function, not a constant: integrations → payments → tickets → here is an import cycle.
 const emailProviders = () => integrations.filter((i) => i.email)
 
-export async function sendOrgEmail(orgId: string, mail: OrgEmail): Promise<boolean> {
+/** What a mail is (E-Mail → Versand): `kind` like "shop.confirmation", the record it is about. false = not logged here
+ * (the campaign/automation queue keeps its own rows). */
+export type MailLog = { kind: string; entity?: string; entityId?: string | null } | false
+
+export async function sendOrgEmail(orgId: string, mail: OrgEmail, log: MailLog = { kind: "other" }): Promise<boolean> {
+  const write = (status: "sent" | "failed", error?: string) =>
+    log &&
+    createAdminClient()
+      .from("email_log")
+      .insert({ org_id: orgId, to_email: mail.to.slice(0, 1000), subject: mail.subject.slice(0, 500), kind: log.kind, entity: log.entity ?? null, entity_id: log.entityId ?? null, status, error: error?.slice(0, 500) ?? null })
+      .then(({ error: e }) => e && console.error("email_log", e.message))
+  try {
+    const ok = await deliver(orgId, mail)
+    await write(ok ? "sent" : "failed", ok ? undefined : "No email provider configured")
+    return ok
+  } catch (e) {
+    await write("failed", e instanceof Error ? e.message : String(e))
+    throw e
+  }
+}
+
+async function deliver(orgId: string, mail: OrgEmail): Promise<boolean> {
   const db = createAdminClient()
   const providers = emailProviders()
   const [{ data: org }, { data: rows }] = await Promise.all([

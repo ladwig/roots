@@ -62,7 +62,7 @@ export async function submitPublicForm(
       subject: t("forms.confirmSubject", { form: form.title }),
       text,
       html: text.split("\n").map((l) => `<p style="margin:0 0 4px">${l.replace(/[<>&]/g, (x) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[x]!)}</p>`).join(""),
-    }).catch(() => false))
+    }, { kind: "form.confirmation", entity: "forms", entityId: form.id }).catch(() => false))
   }
   return { id: row.id, mailFailed }
 }

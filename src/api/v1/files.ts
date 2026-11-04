@@ -474,7 +474,7 @@ export const endpoints: Endpoint[] = [
         text: message,
         html: textHtml(message),
         attachments: [{ filename: letterFileName(letter.title, letter.vars.name ?? ""), content: bytes }],
-      }).catch((e) => {
+      }, { kind: "letter", entity: "contacts", entityId: letter.contactId }).catch((e) => {
         throw new ApiError(502, "email_failed", e instanceof Error ? e.message : "Sending failed.")
       })
       if (!sent) throw new ApiError(422, "no_email_provider", "No email sending is set up for this organisation.")

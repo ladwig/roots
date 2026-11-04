@@ -2870,6 +2870,38 @@
         "button": "Button to the tickets or the seat",
         "link": "The same link as a plain address"
       }
+    },
+    "kinds": {
+      "campaign": "Campaign",
+      "automation": "Automation",
+      "workflow": "Workflow",
+      "test": "Test mail",
+      "invoice": "Invoice",
+      "letter": "Letter",
+      "other": "Other",
+      "shop": "Shop",
+      "portal": {
+        "login": "Login link (member area)"
+      },
+      "form": {
+        "confirmation": "Form confirmation"
+      },
+      "member": {
+        "reminder": "Dues reminder"
+      },
+      "event": {
+        "ticket": "Ticket",
+        "guestlist": "Guest list",
+        "waitlist": "Waiting list: place free"
+      }
+    },
+    "kind": "Kind",
+    "logHint": "Every email sent in your name – campaigns, automations, shop, tickets, invoices, logins. Without content; system mails are kept for 90 days.",
+    "logSearch": "Recipient or subject",
+    "logViews": {
+      "all": "All",
+      "system": "System mails",
+      "bulk": "Campaigns & automations"
     }
   },
   "editor": {

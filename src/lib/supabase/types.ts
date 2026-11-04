@@ -535,6 +535,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"email_log": {
+                  Row: {
+                    "created_at": string,"entity": string | null,"entity_id": string | null,"error": string | null,"id": string,"kind": string,"org_id": string,"status": string,"subject": string,"to_email": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"entity"?: string | null,"entity_id"?: string | null,"error"?: string | null,"id"?: string,"kind": string,"org_id": string,"status": string,"subject"?: string,"to_email": string
+                  }
+                  Update: {
+                    "created_at"?: string,"entity"?: string | null,"entity_id"?: string | null,"error"?: string | null,"id"?: string,"kind"?: string,"org_id"?: string,"status"?: string,"subject"?: string,"to_email"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "email_log_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"email_sends": {
                   Row: {
                     "automation_id": string | null,"campaign_id": string | null,"claimed_at": string | null,"contact_id": string | null,"created_at": string,"delivery": string | null,"delivery_at": string | null,"error": string | null,"id": string,"org_id": string,"send_after": string,"sent_at": string | null,"status": string,"to_email": string,"vars": NonNullable<Json>,"workflow_id": string | null,"workflow_node": string | null
@@ -2474,7 +2494,15 @@ isOneToOne: false
                 }
           }
           Views: {
-            [_ in never]: never
+            "email_history": {
+                  Row: {
+                    "at": string | null,"delivery": string | null,"entity": string | null,"entity_id": string | null,"error": string | null,"id": string | null,"kind": string | null,"org_id": string | null,"source": string | null,"status": string | null,"subject": string | null,"to_email": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
+                }
           }
           Functions: {
             "accept_invite":

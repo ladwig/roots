@@ -362,7 +362,7 @@ export const endpoints: Endpoint[] = [
       if (!to) throw new ApiError(422, "no_email", "The document has no recipient email; pass `to`.")
       const { org, title, filename, bytes } = await documentPdf(db, orgId, params.id)
       const message = body.message ?? fill(docT()("letters.mailText"), { name: doc.recipient_name ?? "", document: title, org: org.name })
-      const sent = await sendOrgEmail(orgId, { to, subject: body.subject ?? title, text: message, html: textHtml(message), attachments: [{ filename, content: bytes }] }).catch((e) => {
+      const sent = await sendOrgEmail(orgId, { to, subject: body.subject ?? title, text: message, html: textHtml(message), attachments: [{ filename, content: bytes }] }, { kind: "invoice", entity: "documents", entityId: params.id }).catch((e) => {
         throw new ApiError(502, "email_failed", e instanceof Error ? e.message : "Sending failed.")
       })
       if (!sent) throw new ApiError(422, "no_email_provider", "No email sending is set up for this organisation.")

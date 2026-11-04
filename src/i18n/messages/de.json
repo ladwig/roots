@@ -2870,6 +2870,38 @@
         "button": "Button zu den Tickets bzw. zum Platz",
         "link": "Derselbe Link als Adresse"
       }
+    },
+    "kinds": {
+      "campaign": "Kampagne",
+      "automation": "Automation",
+      "workflow": "Workflow",
+      "test": "Test-Mail",
+      "invoice": "Rechnung",
+      "letter": "Brief",
+      "other": "Sonstige",
+      "shop": "Shop",
+      "portal": {
+        "login": "Login-Link (Mitgliederbereich)"
+      },
+      "form": {
+        "confirmation": "Formular-Bestätigung"
+      },
+      "member": {
+        "reminder": "Beitragserinnerung"
+      },
+      "event": {
+        "ticket": "Ticket",
+        "guestlist": "Gästeliste",
+        "waitlist": "Warteliste: Platz frei"
+      }
+    },
+    "kind": "Art",
+    "logHint": "Alle E-Mails, die in eurem Namen rausgehen – Kampagnen, Automationen, Shop, Tickets, Rechnungen, Logins. Ohne Inhalt; System-Mails werden 90 Tage aufbewahrt.",
+    "logSearch": "Empfänger:in oder Betreff",
+    "logViews": {
+      "all": "Alle",
+      "system": "System-Mails",
+      "bulk": "Kampagnen & Automationen"
     }
   },
   "editor": {

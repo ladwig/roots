@@ -119,7 +119,7 @@ export async function sendLetter(fd: FormData): Promise<{ ok?: string; error?: s
       text: message,
       html: textHtml(message),
       attachments: [{ filename: letterFileName(letter.title, letter.vars.name ?? ""), content: bytes }],
-    })
+    }, { kind: "letter", entity: "contacts", entityId: letter.contactId })
     return sent ? { ok: t("letters.sent") } : { error: t("email.noProvider") }
   } catch (e) {
     return { error: e instanceof Error ? e.message : String(e) }

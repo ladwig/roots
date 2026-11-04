@@ -252,7 +252,7 @@ export async function sendReminders(db: Db, org: { id: string; name: string; slu
     const pay = settings?.iban ? t("membership.reminderPay", { name: settings.creditor_name ?? org.name, iban: settings.iban, ref: items[0].memberships!.member_no ?? "" }) : ""
     const text = [t("membership.reminderHello", { name }), "", t("membership.reminderIntro", { org: org.name }), "", ...lines, "", t("membership.reminderTotal", { total: t.money(total) }), pay, t("membership.reminderPortal", { url: siteUrl(org.slug, "/portal", org.site_domain) }), "", t("membership.reminderBye", { org: org.name })].filter((l, i, a) => l || a[i - 1]).join("\n")
     const html = text.split("\n").map((l) => (l ? `<p style="margin:0 0 4px">${l.replace(/[<>&]/g, (x) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[x]!)}</p>` : "<br>")).join("")
-    if (await sendOrgEmail(org.id, { to: email, subject: t("membership.reminderSubject", { org: org.name }), text, html })) sent.push(...items.map((d) => d.id))
+    if (await sendOrgEmail(org.id, { to: email, subject: t("membership.reminderSubject", { org: org.name }), text, html }, { kind: "member.reminder" })) sent.push(...items.map((d) => d.id))
   }
   // ponytail: reminder count bumped per batch of ids with a read-modify-write; fine for one treasurer clicking.
   for (const d of (dues ?? []).filter((x) => sent.includes(x.id)))

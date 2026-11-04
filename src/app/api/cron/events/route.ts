@@ -38,5 +38,6 @@ export async function GET(request: Request) {
   // Empty the trash (soft-deleted rows past their retention).
   const { data: purged } = await createAdminClient().rpc("purge_deleted")
   await createAdminClient().rpc("purge_portal_tokens") // expired portal logins/sessions
+  await createAdminClient().from("email_log").delete().lt("created_at", new Date(Date.now() - 90 * 86_400_000).toISOString()) // mail log: 90 days
   return NextResponse.json({ sent, emails, purged })
 }

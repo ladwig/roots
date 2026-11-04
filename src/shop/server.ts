@@ -439,7 +439,7 @@ export async function mail(kind: MailKind, orderId: string, storno?: string | nu
     const s = await invoicePdf({ ...o, invoice_id: storno }, t).catch(() => null)
     if (s) attachments = [s, ...(attachments ?? [])]
   }
-  return sendOrgEmail(o.org_id, { to, ...rendered, attachments })
+  return sendOrgEmail(o.org_id, { to, ...rendered, attachments }, { kind: `shop.${kind}`, entity: "shop_orders", entityId: o.id })
 }
 
 // ---------- team actions (callers check shop.manage) ----------

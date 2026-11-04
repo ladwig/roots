@@ -316,7 +316,7 @@ async function act(db: Db, run: Run, node: GraphNode, type: NodeType, d: Record<
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) throw new Error("no valid address")
       const esc = (x: string) => x.replace(/[&<>"]/g, (y) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[y]!)
       const html = fill(String(d.body), ctx, esc)
-      const ok = await sendOrgEmail(run.org_id, { to, subject: fill(String(d.subject), ctx).slice(0, 200), html, text: html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() })
+      const ok = await sendOrgEmail(run.org_id, { to, subject: fill(String(d.subject), ctx).slice(0, 200), html, text: html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() }, { kind: "workflow", entity: "workflows", entityId: run.workflow_id })
       if (!ok) throw new Error("no email provider connected")
       return `sent → ${to}`
     }
