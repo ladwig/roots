@@ -1034,7 +1034,8 @@
     "invalidRefund": "Invalid refund amount.",
     "refundLeft": "Leave empty = everything refundable: {amount}.",
     "feeKept": "The service fee ({amount}) isn't refunded.",
-    "noTerminal": "No card terminal set up."
+    "noTerminal": "No card terminal set up.",
+    "refundInShop": "Refund in the shop order (pieces, stock, invoice)"
   },
   "checkout": {
     "title": "Order",
@@ -5688,6 +5689,10 @@
       "released": {
         "title": "Out now: order #{number}",
         "message": "It's here: your pre-order is out. Your downloads are unlocked now."
+      },
+      "refunded": {
+        "title": "Refund for order #{number}",
+        "message": "We refunded {amount} in total for your order #{number}."
       }
     },
     "mailKinds": {
@@ -5696,7 +5701,8 @@
       "ready": "Ready for pickup",
       "shipped": "Shipped",
       "cancelled": "Cancelled",
-      "released": "Released (downloads unlocked)"
+      "released": "Released (downloads unlocked)",
+      "refunded": "Refund"
     },
     "mailWhen": {
       "confirmation": "After ordering (paid online: after the payment). With items, bank details for transfers, invoice PDF.",
@@ -5704,7 +5710,8 @@
       "ready": "When you mark a pickup order as ready. With the pickup note.",
       "shipped": "When you mark an order as shipped. With the tracking number, if entered.",
       "cancelled": "When you cancel an order. With the cancellation invoice.",
-      "released": "On the release day of a pre-ordered product."
+      "released": "On the release day of a pre-ordered product.",
+      "refunded": "When you refund part of an order. With the cancellation invoice and the new invoice."
     },
     "mails": "Emails to buyers",
     "mailsHint": "Which emails go out. Your own text replaces the standard line at the top; placeholders: {number}, {name}, {total}, {org}.",
@@ -5817,7 +5824,7 @@
     "reopen": "Reopen",
     "cancelOrder": "Cancel order",
     "confirmCancel": "Cancel this order? The items become available again.",
-    "confirmCancelPaid": "Cancel this order and refund the full amount? Its invoice gets cancelled.",
+    "confirmCancelPaid": "Cancel this order and refund what's left? Its invoice gets cancelled.",
     "cancelled": "Order cancelled.",
     "refundPending": "Refund started – the order is cancelled once the payment provider confirms it.",
     "orderCancelled": "This order is cancelled.",
@@ -5931,6 +5938,41 @@
     "smallBusinessShort": "No VAT shown (§ 19 UStG)",
     "smallBusinessNote": "Under § 19 UStG (small business) no VAT is charged.",
     "vatContained": "included VAT {rate} %",
-    "smallBusinessApp": "You're a small business (Invoices → Settings): no VAT is shown in the shop or on invoices. The rate only applies once you switch that off."
+    "smallBusinessApp": "You're a small business (Invoices → Settings): no VAT is shown in the shop or on invoices. The rate only applies once you switch that off.",
+    "refund": "Refund",
+    "refundTitle": "Refund order #{number}",
+    "refundMeta": "Paid {paid} · still refundable {left}",
+    "refundItems": "What goes back?",
+    "refundAll": "Everything",
+    "refundLeft": {
+      "one": "{count} piece refundable",
+      "other": "{count} pieces refundable"
+    },
+    "refundQty": "Quantity {item}",
+    "refundItemsHint": "Refunded pieces are back in stock, their downloads and music get locked. Shipping is its own line.",
+    "refundOther": "Refund another amount",
+    "refundAmount": "Amount",
+    "refundOtherHint": "E.g. goodwill without a return, or less for a damaged return. At most {left}.",
+    "refundReasonLabel": "Reason (optional)",
+    "refundReasonPlaceholder": "e.g. returned, wrong size",
+    "refundNotify": "Tell the customer by email (with the corrected invoice)",
+    "refundManualHint": "Paid by transfer/cash: roots records the refund, you transfer or hand the money back yourself.",
+    "refundOnlineHint": "The money goes back through the payment provider to the customer's payment method. An invoice is cancelled and reissued for the rest.",
+    "refundButton": "Refund {amount}",
+    "refundChoose": "Choose pieces or an amount",
+    "confirmRefund": "Refund now? This can't be undone.",
+    "refundDone": "Refunded.",
+    "refundLine": "Refund",
+    "refundReason": "Reason: {reason}",
+    "refundInvalid": "Please enter a valid quantity or amount.",
+    "refundTooMuch": "The amount is more than can still be refunded.",
+    "refundNothing": "Please choose pieces or an amount.",
+    "refundNotPaid": "Only paid orders can be refunded. Unpaid ones can be cancelled.",
+    "piecesRefunded": {
+      "one": "{count} refunded",
+      "other": "{count} refunded"
+    },
+    "refundedOn": "Refunded on {date}",
+    "refundPendingShort": "pending"
   }
 }

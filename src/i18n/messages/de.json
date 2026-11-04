@@ -1034,7 +1034,8 @@
     "invalidRefund": "Ungültiger Betrag für die Erstattung.",
     "refundLeft": "Leer lassen = alles Erstattbare: {amount}.",
     "feeKept": "Die Servicegebühr ({amount}) wird nicht erstattet.",
-    "noTerminal": "Kein Kartenterminal eingerichtet."
+    "noTerminal": "Kein Kartenterminal eingerichtet.",
+    "refundInShop": "In der Shop-Bestellung erstatten (Stücke, Bestand, Rechnung)"
   },
   "checkout": {
     "title": "Bestellung",
@@ -5688,6 +5689,10 @@
       "released": {
         "title": "Jetzt erschienen: Bestellung #{number}",
         "message": "Es ist so weit: deine Vorbestellung ist erschienen. Deine Downloads sind jetzt freigeschaltet."
+      },
+      "refunded": {
+        "title": "Erstattung zu Bestellung #{number}",
+        "message": "Wir haben dir für deine Bestellung #{number} insgesamt {amount} erstattet."
       }
     },
     "mailKinds": {
@@ -5696,7 +5701,8 @@
       "ready": "Abholbereit",
       "shipped": "Versendet",
       "cancelled": "Storniert",
-      "released": "Erschienen (Downloads frei)"
+      "released": "Erschienen (Downloads frei)",
+      "refunded": "Erstattung"
     },
     "mailWhen": {
       "confirmation": "Nach der Bestellung (online bezahlt: nach der Zahlung). Mit Artikeln, Bankverbindung bei Überweisung, Rechnung als PDF.",
@@ -5704,7 +5710,8 @@
       "ready": "Wenn ihr eine Abholbestellung als abholbereit markiert. Mit dem Abholhinweis.",
       "shipped": "Wenn ihr eine Bestellung als versendet markiert. Mit Sendungsnummer, falls eingetragen.",
       "cancelled": "Wenn ihr eine Bestellung storniert. Mit Stornorechnung.",
-      "released": "Am Erscheinungstag eines vorbestellten Produkts."
+      "released": "Am Erscheinungstag eines vorbestellten Produkts.",
+      "refunded": "Wenn ihr einen Teil einer Bestellung erstattet. Mit Stornorechnung und neuer Rechnung."
     },
     "mails": "E-Mails an Käufer:innen",
     "mailsHint": "Welche E-Mails rausgehen. Eigener Text ersetzt den Standardsatz oben in der Mail; Platzhalter: {number}, {name}, {total}, {org}.",
@@ -5817,7 +5824,7 @@
     "reopen": "Wieder öffnen",
     "cancelOrder": "Bestellung stornieren",
     "confirmCancel": "Diese Bestellung stornieren? Die Artikel werden wieder frei.",
-    "confirmCancelPaid": "Diese Bestellung stornieren und den vollen Betrag erstatten? Eine Rechnung wird storniert.",
+    "confirmCancelPaid": "Diese Bestellung stornieren und den noch offenen Betrag erstatten? Eine Rechnung wird storniert.",
     "cancelled": "Bestellung storniert.",
     "refundPending": "Erstattung angestoßen – die Bestellung wird storniert, sobald der Zahlungsanbieter sie bestätigt.",
     "orderCancelled": "Diese Bestellung ist storniert.",
@@ -5931,6 +5938,41 @@
     "smallBusinessShort": "Kein Ausweis der USt. (§ 19 UStG)",
     "smallBusinessNote": "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.",
     "vatContained": "enthaltene MwSt. {rate} %",
-    "smallBusinessApp": "Ihr seid Kleinunternehmer (Rechnungen → Einstellungen): im Shop und auf Rechnungen wird keine USt. ausgewiesen. Der Satz gilt erst, wenn ihr das umstellt."
+    "smallBusinessApp": "Ihr seid Kleinunternehmer (Rechnungen → Einstellungen): im Shop und auf Rechnungen wird keine USt. ausgewiesen. Der Satz gilt erst, wenn ihr das umstellt.",
+    "refund": "Erstatten",
+    "refundTitle": "Bestellung #{number} erstatten",
+    "refundMeta": "Bezahlt {paid} · noch erstattbar {left}",
+    "refundItems": "Was geht zurück?",
+    "refundAll": "Alles",
+    "refundLeft": {
+      "one": "{count} Stück erstattbar",
+      "other": "{count} Stück erstattbar"
+    },
+    "refundQty": "Anzahl {item}",
+    "refundItemsHint": "Erstattete Stücke sind wieder im Bestand, Downloads und Musik dazu werden gesperrt. Versand ist eine eigene Zeile.",
+    "refundOther": "Anderen Betrag erstatten",
+    "refundAmount": "Betrag",
+    "refundOtherHint": "Z. B. Kulanz ohne Rücksendung oder weniger bei einer beschädigten Rücksendung. Höchstens {left}.",
+    "refundReasonLabel": "Grund (optional)",
+    "refundReasonPlaceholder": "z. B. Rücksendung, falsche Größe",
+    "refundNotify": "Kund:in per E-Mail informieren (mit korrigierter Rechnung)",
+    "refundManualHint": "Bezahlt per Überweisung/bar: roots vermerkt die Erstattung, das Geld überweist bzw. gebt ihr selbst zurück.",
+    "refundOnlineHint": "Das Geld geht über den Zahlungsanbieter auf das Zahlungsmittel der Kund:in zurück. Eine Rechnung wird storniert und für den Rest neu ausgestellt.",
+    "refundButton": "{amount} erstatten",
+    "refundChoose": "Stücke oder Betrag wählen",
+    "confirmRefund": "Jetzt erstatten? Das lässt sich nicht rückgängig machen.",
+    "refundDone": "Erstattet.",
+    "refundLine": "Erstattung",
+    "refundReason": "Grund: {reason}",
+    "refundInvalid": "Bitte gültige Anzahl bzw. einen gültigen Betrag eingeben.",
+    "refundTooMuch": "Der Betrag ist höher als das, was noch erstattet werden kann.",
+    "refundNothing": "Bitte Stücke oder einen Betrag wählen.",
+    "refundNotPaid": "Nur bezahlte Bestellungen lassen sich erstatten. Unbezahlte kannst du stornieren.",
+    "piecesRefunded": {
+      "one": "{count} erstattet",
+      "other": "{count} erstattet"
+    },
+    "refundedOn": "Erstattet am {date}",
+    "refundPendingShort": "ausstehend"
   }
 }

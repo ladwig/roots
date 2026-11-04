@@ -2,7 +2,7 @@ import { z } from "zod"
 import { deliverSoon } from "@/events/worker"
 import { imageUrl, removeImage } from "@/lib/images"
 import { DELIVERIES, MAIL_KINDS, ORDER_STATUSES, PAYMENTS, PRODUCT_KINDS, PRODUCT_STATUSES, readOptions, readProduct, readShippingRates, readVariant, TAX_RATES } from "@/shop/fields"
-import { applyOptions, cancelOrder, ensureInvoice, mail, markOrderPaid, setOrderStatus } from "@/shop/server"
+import { applyOptions, cancelOrder, ensureInvoice, mail, markOrderPaid, refundShopOrder, setOrderStatus } from "@/shop/server"
 import { deleteTrack, finishTrackUpload, productTrackList, startTrackUpload, updateTrack } from "@/shop/audio"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
 import { putImage, ts, type Db } from "./shared"
@@ -89,20 +89,20 @@ const ShopOrder = z.object({
   invoice_id: uuid.nullable(),
   invoice_error: z.string().nullable(),
   order_id: uuid.describe("The payment order (/payments)"),
-  items: z.array(z.object({ description: z.string(), quantity: z.number().int(), unit_amount: z.number().int(), item_id: z.string().nullable().describe("Variant or product id") })),
+  items: z.array(z.object({ line_id: uuid.describe("Order line (for refunds)"), description: z.string(), quantity: z.number().int(), refunded_quantity: z.number().int(), unit_amount: z.number().int(), item_id: z.string().nullable().describe("Variant or product id") })),
   placed_at: ts.nullable(),
   created_at: ts,
 })
 const ORDER_COLS =
-  "id, number, status, delivery, payment, name, company, street, postal_code, city, country, shipping_name, shipping_cents, note, tracking, contact_id, invoice_id, invoice_error, order_id, placed_at, created_at, pay_orders!inner(status, amount_total, currency, customer_email, pay_order_items(description, quantity, unit_amount, source_id))"
-type OrderRow = { order_id: string; invoice_error: string | null; pay_orders: { status: string; amount_total: number; currency: string; customer_email: string | null; pay_order_items: { description: string; quantity: number; unit_amount: number; source_id: string | null }[] } } & Record<string, unknown>
+  "id, number, status, delivery, payment, name, company, street, postal_code, city, country, shipping_name, shipping_cents, note, tracking, contact_id, invoice_id, invoice_error, order_id, placed_at, created_at, pay_orders!inner(status, amount_total, currency, customer_email, pay_order_items(id, description, quantity, refunded_quantity, unit_amount, source_id))"
+type OrderRow = { order_id: string; invoice_error: string | null; pay_orders: { status: string; amount_total: number; currency: string; customer_email: string | null; pay_order_items: { id: string; description: string; quantity: number; refunded_quantity: number; unit_amount: number; source_id: string | null }[] } } & Record<string, unknown>
 const orderOut = ({ pay_orders: p, ...o }: OrderRow) => ({
   ...o,
   payment_status: p.status,
   total_cents: p.amount_total,
   currency: p.currency,
   email: p.customer_email,
-  items: p.pay_order_items.map(({ source_id, ...i }) => ({ ...i, item_id: source_id })),
+  items: p.pay_order_items.map(({ source_id, id, ...i }) => ({ ...i, line_id: id, item_id: source_id })),
 })
 
 const getter = (o: Record<string, unknown>) => (k: string) => {
@@ -478,6 +478,31 @@ export const endpoints: Endpoint[] = [
   }),
   endpoint({
     method: "POST",
+    path: "/shop/orders/{id}/refund",
+    permission: "payments.refund",
+    tag: TAG,
+    summary: "Refund part of an order",
+    description: "Pieces per order line (`lines`, line ids from the order's items) and/or another amount (`amount_cents`, e.g. goodwill; default = the pieces' price). The money goes back at the provider (transfers/cash: recorded, the org pays back itself). Refunded pieces are back in stock and unlock no downloads/music. An issued invoice gets a cancellation invoice and a new invoice for what stays. Refunding everything cancels the order. `notify` mails the buyer (kind refunded).",
+    body: z
+      .object({
+        lines: z.array(z.object({ line_id: uuid, quantity: z.number().int().min(1) })).max(100).default([]),
+        amount_cents: z.number().int().min(1).optional(),
+        reason: z.string().max(500).optional(),
+        notify: z.boolean().default(true),
+      })
+      .strict(),
+    response: z.object({ refund: z.enum(["pending", "succeeded", "failed"]), order: ShopOrder }),
+    async handler({ db, orgId, params, body }) {
+      const form: Record<string, string> = { reason: body.reason ?? "" }
+      for (const l of body.lines) form[`q_${l.line_id}`] = String(l.quantity)
+      if (body.amount_cents != null) Object.assign(form, { other: "1", amount: (body.amount_cents / 100).toFixed(2).replace(".", ",") })
+      const refund = await refundShopOrder(orgId, params.id, (k) => form[k] ?? "", body.notify).catch((e) => Promise.reject(stepError(e)))
+      deliverSoon()
+      return { refund, order: await orderOf(db, orgId, params.id) }
+    },
+  }),
+  endpoint({
+    method: "POST",
     path: "/shop/orders/{id}/invoice",
     permission: "shop.manage",
     tag: TAG,
@@ -524,7 +549,7 @@ export const endpoints: Endpoint[] = [
     permission: "shop.manage",
     tag: TAG,
     summary: "Change the shop settings",
-    description: "Payment methods, pickup/shipping (rates: [{name, cents, free_from, countries}]), automatic invoices, legal texts (Markdown), mails ({confirmation|paid|ready|shipped|cancelled: {off, message}}).",
+    description: "Payment methods, pickup/shipping (rates: [{name, cents, free_from, countries}]), automatic invoices, legal texts (Markdown), mails ({confirmation|paid|ready|shipped|refunded|cancelled|released: {off, message}}).",
     body: z
       .object({
         title: z.string().max(200).nullable(),

@@ -118,3 +118,19 @@ test("VAT contained in gross prices, per rate", async () => {
   const { vatIncluded } = await import("./fields.ts")
   assert.deepEqual(vatIncluded([{ cents: 1190, rate: 19 }, { cents: 1070, rate: 7 }, { cents: 500, rate: 0 }, { cents: 1190, rate: 19 }]), [{ rate: 19, cents: 380 }, { rate: 7, cents: 70 }])
 })
+
+test("refunds: pieces per line or another amount, never more than is left", async () => {
+  const { readRefund, refundAdjustment } = await import("./fields.ts")
+  const items = [{ id: A, quantity: 2, refunded: 1, unit: 2000 }, { id: V, quantity: 1, refunded: 0, unit: 490 }]
+  const get = (o) => (k) => o[k] ?? ""
+  assert.deepEqual(readRefund(items, get({ [`q_${A}`]: "1", [`q_${V}`]: "1" }), 5000), { lines: [{ id: A, q: 1 }, { id: V, q: 1 }], amount: 2490 })
+  assert.deepEqual(readRefund(items, get({ [`q_${A}`]: "2" }), 5000), { error: "store.refundInvalid" }) // only 1 left
+  assert.deepEqual(readRefund(items, get({ [`q_${A}`]: "1", other: "1", amount: "15,00" }), 5000), { lines: [{ id: A, q: 1 }], amount: 1500 })
+  assert.deepEqual(readRefund(items, get({ other: "1", amount: "60" }), 5000), { error: "store.refundTooMuch" })
+  assert.deepEqual(readRefund(items, get({}), 5000), { error: "store.refundNothing" })
+  // 10 € goodwill on 30 € (19 %) + 10 € (7 %) that stay → −7,50 / −2,50; the parts always add up
+  assert.deepEqual(refundAdjustment([{ cents: 3000, rate: 19 }, { cents: 1000, rate: 7 }], 1000), [{ rate: 19, cents: -750 }, { rate: 7, cents: -250 }])
+  const odd = refundAdjustment([{ cents: 1000, rate: 19 }, { cents: 1000, rate: 7 }, { cents: 1000, rate: 0 }], 100)
+  assert.equal(odd.reduce((s, x) => s + x.cents, 0), -100)
+  assert.deepEqual(refundAdjustment([{ cents: 1000, rate: 19 }], 0), [])
+})

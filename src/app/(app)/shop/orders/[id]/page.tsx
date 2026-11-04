@@ -1,17 +1,20 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { BanIcon, MailIcon } from "lucide-react"
+import { BanIcon, MailIcon, Undo2Icon } from "lucide-react"
 import { ActionsMenu, MenuSeparator, MenuSubmit } from "@/components/actions-menu"
 import { Notice } from "@/components/notice"
 import { FormCard, Page, PageHeader, RecordLayout } from "@/components/page"
 import { SubmitButton } from "@/components/submit-button"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { UrlSheet } from "@/components/url-sheet"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
-import { param } from "@/lib/url"
+import { param, withParams } from "@/lib/url"
 import { MAIL_KINDS } from "@/shop/fields"
+import { RefundForm } from "./refund-form"
 import { cancelOrderAction, invoiceAction, markPaidAction, orderStatusAction, resendMailAction } from "../../actions"
 
 // One shop order: items, delivery, buyer, payment, invoice, and the next step (ready / shipped / done).
@@ -24,7 +27,7 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/sh
   const canManage = ctx.can("shop.manage")
   const { data: o } = await ctx.supabase
     .from("shop_orders")
-    .select("*, contacts(id, first_name, last_name), documents(id, number, status), pay_orders!inner(id, status, amount_total, currency, customer_email, expires_at, paid_at, provider, pay_order_items(id, description, quantity, unit_amount))")
+    .select("*, contacts(id, first_name, last_name), documents(id, number, status), pay_orders!inner(id, status, amount_total, currency, customer_email, expires_at, paid_at, provider, pay_order_items(id, description, quantity, refunded_quantity, unit_amount), pay_payments(amount, status, pay_refunds(id, amount, status, reason, created_at)))")
     .eq("id", id)
     .eq("org_id", ctx.org.id)
     .maybeSingle()
@@ -33,6 +36,10 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/sh
   const cur = pay.currency
   const paid = ["paid", "partially_refunded"].includes(pay.status)
   const live = o.status !== "cancelled"
+  const payment = pay.pay_payments.find((x) => x.status === "succeeded")
+  const refunds = (payment?.pay_refunds ?? []).filter((r) => r.status !== "failed").sort((a, b) => a.created_at.localeCompare(b.created_at))
+  const refundLeft = (payment?.amount ?? 0) - refunds.reduce((s, r) => s + r.amount, 0)
+  const canRefund = live && paid && refundLeft > 0 && ctx.can("payments.refund")
   const hidden = <input type="hidden" name="id" value={o.id} />
   const step = (status: string, label: string, variant: "default" | "outline" = "default") => (
     <form action={orderStatusAction}>
@@ -56,10 +63,17 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/sh
           </span>
         }
         meta={[o.placed_at && t.date(o.placed_at, { dateStyle: "medium", timeStyle: "short" }), t.dynamic(`store.payments.${o.payment}`), t.dynamic(`store.deliveries.${o.delivery}`)].filter(Boolean).join(" · ")}
+        actions={
+          canRefund && (
+            <Button variant="outline" size="sm" render={<Link href={withParams(sp, { refund: "1" })} />}>
+              <Undo2Icon /> {t("store.refund")}
+            </Button>
+          )
+        }
         menu={
           canManage && (
             <ActionsMenu>
-              {MAIL_KINDS.map((k) => (
+              {MAIL_KINDS.filter((k) => k !== "refunded" || refunds.length).map((k) => (
                 <MenuSubmit key={k} form={`mail-${k}`} icon={<MailIcon />}>
                   {t("store.resendMail", { kind: t.dynamic(`store.mailKinds.${k}`) })}
                 </MenuSubmit>
@@ -89,6 +103,17 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/sh
         </form>
       )}
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
+      {canRefund && (
+        <UrlSheet params={["refund"]} title={t("store.refundTitle", { number: String(o.number) })} meta={t("store.refundMeta", { paid: t.money(payment?.amount ?? 0, cur), left: t.money(refundLeft, cur) })}>
+          <RefundForm
+            orderId={o.id}
+            items={pay.pay_order_items.map((i) => ({ id: i.id, description: i.description, left: i.quantity - i.refunded_quantity, unit: i.unit_amount }))}
+            left={refundLeft}
+            currency={cur}
+            manual={o.payment !== "online"}
+          />
+        </UrlSheet>
+      )}
 
       <RecordLayout
         aside={
@@ -165,6 +190,11 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/sh
               <li key={i.id} className="flex justify-between gap-3 py-2">
                 <span>
                   {i.quantity}× {i.description}
+                  {i.refunded_quantity > 0 && (
+                    <Badge variant="outline" className="ml-2">
+                      {t("store.piecesRefunded", { count: i.refunded_quantity })}
+                    </Badge>
+                  )}
                 </span>
                 <span className="tabular-nums">{t.money(i.quantity * i.unit_amount, cur)}</span>
               </li>
@@ -173,6 +203,16 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/sh
               <span>{t("store.total")}</span>
               <span className="tabular-nums">{t.money(pay.amount_total, cur)}</span>
             </li>
+            {refunds.map((r) => (
+              <li key={r.id} className="flex justify-between gap-3 py-2 text-muted-foreground">
+                <span>
+                  {t("store.refundedOn", { date: t.date(r.created_at, { dateStyle: "medium" }) })}
+                  {r.status === "pending" && ` · ${t("store.refundPendingShort")}`}
+                  {r.reason && <span className="block text-xs">{r.reason}</span>}
+                </span>
+                <span className="tabular-nums">−{t.money(r.amount, cur)}</span>
+              </li>
+            ))}
           </ul>
           {o.note && <p className="rounded-lg bg-muted px-3 py-2 text-sm whitespace-pre-line">{o.note}</p>}
         </FormCard>

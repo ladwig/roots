@@ -1431,14 +1431,14 @@ isOneToOne: true
                   ]
                 },"pay_order_items": {
                   Row: {
-                    "created_at": string,"created_by": string | null,"description": string,"id": string,"metadata": NonNullable<Json>,"order_id": string,"org_id": string,"quantity": number,"source_id": string | null,"unit_amount": number,"updated_at": string,"updated_by": string | null
+                    "created_at": string,"created_by": string | null,"description": string,"id": string,"metadata": NonNullable<Json>,"order_id": string,"org_id": string,"quantity": number,"refunded_quantity": number,"source_id": string | null,"unit_amount": number,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by"?: string | null,"description": string,"id"?: string,"metadata"?: NonNullable<Json>,"order_id": string,"org_id": string,"quantity": number,"source_id"?: string | null,"unit_amount": number,"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"description": string,"id"?: string,"metadata"?: NonNullable<Json>,"order_id": string,"org_id": string,"quantity": number,"refunded_quantity"?: number,"source_id"?: string | null,"unit_amount": number,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string | null,"description"?: string,"id"?: string,"metadata"?: NonNullable<Json>,"order_id"?: string,"org_id"?: string,"quantity"?: number,"source_id"?: string | null,"unit_amount"?: number,"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"description"?: string,"id"?: string,"metadata"?: NonNullable<Json>,"order_id"?: string,"org_id"?: string,"quantity"?: number,"refunded_quantity"?: number,"source_id"?: string | null,"unit_amount"?: number,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {

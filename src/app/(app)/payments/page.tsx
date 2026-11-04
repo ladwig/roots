@@ -126,7 +126,7 @@ async function OrderSheet({ t, orderId, canRefund, error, ok }: { t: T; orderId:
   const ctx = await requirePerm("payments.view")
   const { data: order } = await ctx.supabase
     .from("pay_orders")
-    .select("*, pay_order_items(*), pay_payments(*, pay_refunds(*)), tickets(id, code, holder_name, status, price, ticket_types(name))")
+    .select("*, pay_order_items(*), pay_payments(*, pay_refunds(*)), tickets(id, code, holder_name, status, price, ticket_types(name)), shop_orders(id)")
     .eq("id", orderId)
     .eq("org_id", ctx.org.id)
     .maybeSingle()
@@ -236,7 +236,12 @@ async function OrderSheet({ t, orderId, canRefund, error, ok }: { t: T; orderId:
         </section>
       )}
 
-      {refundable && (
+      {refundable && order.shop_orders ? (
+        // Shop orders are refunded on the order (pieces, stock, corrected invoice).
+        <Link href={`/shop/orders/${order.shop_orders.id}?refund=1`} className="justify-self-start text-sm underline underline-offset-4">
+          {t("payments.refundInShop")}
+        </Link>
+      ) : refundable && (
         <form action={refund.bind(null, order.id)} className="grid gap-3 rounded-lg border p-3">
           <h3 className="font-medium">{t("payments.refund")}</h3>
           <div className="grid gap-2">

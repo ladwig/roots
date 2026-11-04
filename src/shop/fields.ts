@@ -10,7 +10,7 @@ export const DELIVERIES = ["pickup", "shipping", "digital"] as const
 export const PAYMENTS = ["online", "transfer", "pickup"] as const
 export const ORDER_STATUSES = ["new", "ready", "shipped", "completed", "cancelled"] as const
 /** Mails the shop sends to buyers; each can be switched off and given its own text (Shop → Einstellungen). */
-export const MAIL_KINDS = ["confirmation", "paid", "ready", "shipped", "cancelled", "released"] as const
+export const MAIL_KINDS = ["confirmation", "paid", "ready", "shipped", "refunded", "cancelled", "released"] as const
 export type Delivery = (typeof DELIVERIES)[number]
 export type Payment = (typeof PAYMENTS)[number]
 export type MailKind = (typeof MAIL_KINDS)[number]
@@ -312,4 +312,47 @@ export function vatIncluded(items: { cents: number; rate: number }[]): { rate: n
   const sums = new Map<number, number>()
   for (const i of items) if (i.rate > 0) sums.set(i.rate, (sums.get(i.rate) ?? 0) + i.cents)
   return [...sums].sort((a, b) => b[0] - a[0]).map(([rate, gross]) => ({ rate, cents: Math.round((gross * rate) / (100 + rate)) }))
+}
+
+// ---------- refunds ----------
+
+export type RefundableItem = { id: string; quantity: number; refunded: number; unit: number }
+
+/**
+ * A refund from the order page: pieces per line (`q_<item id>`) and optionally another amount (`amount`, e.g. goodwill
+ * without taking anything back, or less for a returned item that lost value). `left` = what can still be refunded.
+ */
+export function readRefund(items: RefundableItem[], get: (k: string) => string, left: number): { lines: { id: string; q: number }[]; amount: number } | { error: string } {
+  const lines: { id: string; q: number }[] = []
+  for (const i of items) {
+    const raw = get(`q_${i.id}`).trim()
+    if (!raw) continue
+    const q = Number(raw)
+    if (!Number.isInteger(q) || q < 0 || q > i.quantity - i.refunded) return { error: "store.refundInvalid" }
+    if (q) lines.push({ id: i.id, q })
+  }
+  const items_ = lines.reduce((s, l) => s + l.q * items.find((i) => i.id === l.id)!.unit, 0)
+  const other = get("other") === "1" && get("amount").trim() ? moneyCents(get("amount")) : null
+  if (other === null && get("other") === "1" && get("amount").trim()) return { error: "store.refundInvalid" }
+  const amount = other ?? items_
+  if (!amount || amount <= 0 || amount > left) return { error: lines.length || other !== null ? "store.refundTooMuch" : "store.refundNothing" }
+  return { lines, amount }
+}
+
+/**
+ * The corrected invoice after a partial refund: what was refunded beyond the returned pieces (`extra`, negative = kept
+ * back) as one line per VAT rate, split in proportion to what stays, so the new invoice total = paid − refunded.
+ */
+export function refundAdjustment(remaining: { cents: number; rate: number }[], extra: number): { rate: number; cents: number }[] {
+  const byRate = new Map<number, number>()
+  for (const r of remaining) byRate.set(r.rate, (byRate.get(r.rate) ?? 0) + r.cents)
+  const total = [...byRate.values()].reduce((s, c) => s + c, 0)
+  if (!extra || !total) return []
+  const rates = [...byRate].sort((a, b) => b[1] - a[1])
+  let given = 0
+  return rates.map(([rate, cents], n) => {
+    const part = n === rates.length - 1 ? extra - given : Math.round((extra * cents) / total)
+    given += part
+    return { rate, cents: -part }
+  })
 }

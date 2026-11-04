@@ -9,7 +9,7 @@ import { removeImage, replaceImage } from "@/lib/images"
 import { moneyCents } from "@/lib/inputs"
 import { back } from "@/lib/url"
 import { MAIL_KINDS, readOptions, readProduct, readShippingRates, readVariant } from "@/shop/fields"
-import { applyOptions, cancelOrder, ensureInvoice, mail, markOrderPaid, setOrderStatus } from "@/shop/server"
+import { applyOptions, cancelOrder, ensureInvoice, mail, markOrderPaid, refundShopOrder, setOrderStatus } from "@/shop/server"
 import { deleteTrack, finishTrackUpload, startTrackUpload, updateTrack } from "@/shop/audio"
 
 const UUID = /^[0-9a-f-]{36}$/
@@ -192,6 +192,15 @@ export async function cancelOrderAction(fd: FormData) {
     if (!ctx.can("payments.refund")) throw new Error("errors.not_allowed")
     const r = await cancelOrder(ctx.org.id, order, String(fd.get("reason") ?? "").slice(0, 500) || undefined)
     return r === "pending" ? t("store.refundPending") : t("store.cancelled")
+  })
+}
+
+/** Refund part of the order (pieces and/or another amount, drawer on the order page); needs payments.refund. */
+export async function refundOrderAction(fd: FormData) {
+  await orderStep(fd, async (ctx, order, t) => {
+    if (!ctx.can("payments.refund")) throw new Error("errors.not_allowed")
+    const r = await refundShopOrder(ctx.org.id, order, (k) => String(fd.get(k) ?? ""), fd.get("notify") === "1")
+    return r === "pending" ? t("payments.refundPending") : t("store.refundDone")
   })
 }
 

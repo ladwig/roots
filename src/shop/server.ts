@@ -21,7 +21,9 @@ import {
   paymentsFor,
   planVariants,
   priceCart,
+  readRefund,
   readShippingRates,
+  refundAdjustment,
   shippingCents,
   subtotalOf,
   type CartLine,
@@ -174,7 +176,7 @@ export async function placeOrder(p: PlaceInput) {
 // ---------- after placing / paying ----------
 
 const ORDER_COLS =
-  "id, org_id, order_id, number, token, status, delivery, payment, name, company, street, postal_code, city, country, shipping_name, shipping_cents, note, tracking, contact_id, invoice_id, invoice_error, created_at, pay_orders!inner(status, amount_total, currency, customer_email, customer_name, expires_at, paid_at, pay_order_items(description, quantity, unit_amount, source_id, metadata)), orgs!inner(slug, name, logo_path, site_domain)"
+  "id, org_id, order_id, number, token, status, delivery, payment, name, company, street, postal_code, city, country, shipping_name, shipping_cents, note, tracking, contact_id, invoice_id, invoice_error, created_at, pay_orders!inner(status, amount_total, currency, customer_email, customer_name, expires_at, paid_at, pay_order_items(id, description, quantity, refunded_quantity, unit_amount, source_id, metadata), pay_payments(amount, status, pay_refunds(amount, status, reason, created_at))), orgs!inner(slug, name, logo_path, site_domain)"
 
 async function loadOrder(orderId: string) {
   const { data } = await db().from("shop_orders").select(ORDER_COLS).eq("order_id", orderId).maybeSingle()
@@ -281,12 +283,16 @@ export async function ensureInvoice(orderId: string, force = false) {
   } else {
     const { data: b } = await db().from("org_billing").select("tax_mode, invoice_intro, invoice_outro").eq("org_id", o.org_id).maybeSingle()
     const small = b?.tax_mode === "small_business"
-    const items = o.pay_orders.pay_order_items.map((i, position) => {
-      const meta = (i.metadata ?? {}) as Record<string, unknown>
-      return { position, title: i.description, description: null, quantity: i.quantity, unit: meta.shipping ? "flat" : "piece", unit_price: i.unit_amount, tax_rate: small ? 0 : Number(meta.tax_rate ?? 19) }
-    })
-    const sum = totals(items, small, true)
     const t = await orgT(o.org_id)
+    // After partial refunds: the pieces that stay, plus what was refunded beyond them as "Erstattung" lines.
+    const items = o.pay_orders.pay_order_items
+      .filter((i) => i.quantity > i.refunded_quantity)
+      .map((i) => ({ title: i.description, description: null, quantity: i.quantity - i.refunded_quantity, unit: meta(i).shipping ? "flat" : "piece", unit_price: i.unit_amount, tax_rate: small ? 0 : Number(meta(i).tax_rate ?? 19) }))
+    const back = o.pay_orders.pay_order_items.reduce((s, i) => s + i.refunded_quantity * i.unit_amount, 0)
+    for (const a of refundAdjustment(items.map((i) => ({ cents: i.quantity * i.unit_price, rate: i.tax_rate })), refundedCents(o) - back))
+      items.push({ title: t("store.refundLine"), description: null, quantity: 1, unit: "flat", unit_price: a.cents, tax_rate: a.rate })
+    if (!items.length) return
+    const sum = totals(items, small, true)
     const { data: doc, error } = await db()
       .from("documents")
       .insert({
@@ -312,7 +318,7 @@ export async function ensureInvoice(orderId: string, force = false) {
       .single()
     if (error) return void (await saveInvoiceError(o.id, error.message))
     id = doc.id
-    await db().from("document_items").insert(items.map((i) => ({ ...i, org_id: o.org_id, document_id: doc.id })))
+    await db().from("document_items").insert(items.map((i, position) => ({ ...i, position, org_id: o.org_id, document_id: doc.id })))
     await db().from("shop_orders").update({ invoice_id: id }).eq("id", o.id)
   }
   const { error } = await db().rpc("issue_document", { p_id: id! })
@@ -340,7 +346,7 @@ export const orderLink = (o: { order_id: string; token: string; orgs: { slug: st
 
 function mailMessage(kind: MailKind, o: Order, t: T, custom: string | null, bank: { holder: string; iban: string; bic: string | null } | null, pickupText: string | null, downloads: boolean, later: { name: string; release_at: string }[]) {
   const cur = o.pay_orders.currency
-  const vars = { number: String(o.number), name: o.name, total: t.money(o.pay_orders.amount_total, cur), org: o.orgs.name }
+  const vars = { number: String(o.number), name: o.name, total: t.money(o.pay_orders.amount_total, cur), org: o.orgs.name, amount: t.money(refundedCents(o), cur) }
   const intro = custom?.trim() ? custom.replace(/\{([a-z]+)\}/g, (m, k: string) => (k in vars ? vars[k as keyof typeof vars] : m)) : t.dynamic(`store.mail.${kind}.message`, vars)
   const parts: Markup[] = [md(`<p>${esc(intro).replace(/\n/g, "<br>")}</p>`, intro)]
   if (kind === "confirmation" || kind === "paid") {
@@ -367,6 +373,12 @@ function mailMessage(kind: MailKind, o: Order, t: T, custom: string | null, bank
   }
   if (kind === "confirmation" && unpaid && o.payment === "pickup") parts.push(md(`<p>${esc(t("store.payOnPickupNote"))}</p>`, t("store.payOnPickupNote")))
   if ((kind === "ready" || (kind === "confirmation" && o.delivery === "pickup")) && pickupText) parts.push(md(`<p>${esc(pickupText).replace(/\n/g, "<br>")}</p>`, pickupText))
+  if (kind === "refunded") {
+    const last = o.pay_orders.pay_payments.flatMap((p) => p.pay_refunds).sort((a, b) => b.created_at.localeCompare(a.created_at))[0]
+    const rows = o.pay_orders.pay_order_items.filter((i) => i.refunded_quantity).map((i) => `${i.refunded_quantity}× ${i.description}`)
+    const lines = [...rows, ...(last?.reason ? [t("store.refundReason", { reason: last.reason })] : [])]
+    if (lines.length) parts.push(md(`<p>${lines.map(esc).join("<br>")}</p>`, lines.join("\n")))
+  }
   if (kind === "shipped" && o.tracking) parts.push(md(`<p>${esc(t("store.trackingLine", { tracking: o.tracking }))}</p>`, t("store.trackingLine", { tracking: o.tracking })))
   if (downloads && (kind === "confirmation" || kind === "paid" || kind === "released")) parts.push(md(`<p>${esc(t("store.downloadsNote"))}</p>`, t("store.downloadsNote")))
   // Pre-orders: say when the digital part comes (the "released" mail follows on the day).
@@ -379,7 +391,7 @@ function mailMessage(kind: MailKind, o: Order, t: T, custom: string | null, bank
 }
 
 /** One buyer mail, unless the org switched that kind off. False = not sent (off, no address, no provider). */
-export async function mail(kind: MailKind, orderId: string) {
+export async function mail(kind: MailKind, orderId: string, storno?: string | null) {
   const o = await loadOrder(orderId)
   const to = o?.pay_orders.customer_email
   if (!o || !to) return false
@@ -408,13 +420,18 @@ export async function mail(kind: MailKind, orderId: string) {
     event: "", when: "", venue: "", count: "", list: "", until: "",
   }
   const rendered = renderEventMail(t, template ?? builtInTemplate(t), mailVars, o.orgs)
-  const pdf = ["confirmation", "paid", "cancelled"].includes(kind) ? await invoicePdf(o, t).catch(() => null) : null
+  const pdf = ["confirmation", "paid", "cancelled", "refunded"].includes(kind) ? await invoicePdf(o, t).catch(() => null) : null
   let attachments = pdf ? [pdf] : undefined
   if (kind === "cancelled" && o.invoice_id) {
     // The Stornorechnung instead of the cancelled invoice.
     const { data: storno } = await db().from("documents").select("id").eq("source_id", o.invoice_id).eq("kind", "cancellation").maybeSingle()
     const s = storno && (await invoicePdf({ ...o, invoice_id: storno.id }, t).catch(() => null))
     attachments = s ? [s] : undefined
+  }
+  if (kind === "refunded" && storno) {
+    // The Stornorechnung of the old invoice next to the new one.
+    const s = await invoicePdf({ ...o, invoice_id: storno }, t).catch(() => null)
+    if (s) attachments = [s, ...(attachments ?? [])]
   }
   return sendOrgEmail(o.org_id, { to, ...rendered, attachments })
 }
@@ -462,6 +479,42 @@ export async function cancelOrder(orgId: string, shopOrderId: string, reason?: s
   return null
 }
 
+/** Refunded so far (pending refunds included, failed ones not). */
+const refundedCents = (o: Order) => o.pay_orders.pay_payments.filter((p) => p.status === "succeeded").flatMap((p) => p.pay_refunds).filter((r) => r.status !== "failed").reduce((s, r) => s + r.amount, 0)
+
+/**
+ * Refund part of a paid order from the order page: pieces per line and/or another amount (see `readRefund`). The money
+ * goes back through the provider (transfer/cash: recorded, the org pays back itself), refunded pieces are in stock
+ * again and unlock nothing any more. Issued invoice → Stornorechnung + a new invoice for what stays. Everything
+ * refunded = the order is cancelled (shopRefunded). The buyer gets the "refunded" mail if `notify`.
+ */
+export async function refundShopOrder(orgId: string, shopOrderId: string, get: (k: string) => string, notify: boolean) {
+  const o = await teamOrder(orgId, shopOrderId)
+  if (!isPaid(o)) throw new Error("store.refundNotPaid")
+  const paid = o.pay_orders.pay_payments.find((p) => p.status === "succeeded")?.amount ?? 0
+  const r = readRefund(o.pay_orders.pay_order_items.map((i) => ({ id: i.id, quantity: i.quantity, refunded: i.refunded_quantity, unit: i.unit_amount })), get, paid - refundedCents(o))
+  if ("error" in r) throw new Error(r.error)
+  const status = await refundOrder(o.order_id, r.amount, get("reason").slice(0, 500)) // all of it → markRefunded → shopRefunded
+  for (const l of r.lines) {
+    const i = o.pay_orders.pay_order_items.find((x) => x.id === l.id)!
+    await db().from("pay_order_items").update({ refunded_quantity: i.refunded_quantity + l.q }).eq("id", i.id).eq("org_id", orgId)
+  }
+  const now = await loadOrder(o.order_id)
+  if (!now || now.status === "cancelled") return status
+  let storno: string | null = null
+  if (now.invoice_id) {
+    const { data: inv } = await db().from("documents").select("status").eq("id", now.invoice_id).single()
+    if (inv && ["sent", "paid"].includes(inv.status)) {
+      const { data } = await db().rpc("cancel_invoice", { p_id: now.invoice_id })
+      storno = data ?? null
+      await db().from("shop_orders").update({ invoice_id: null }).eq("id", now.id)
+      await ensureInvoice(o.order_id, true).catch((e) => console.error("shop invoice", o.order_id, e))
+    }
+  }
+  if (notify) await mail("refunded", o.order_id, storno).catch((e) => console.error("shop mail", o.order_id, e))
+  return status
+}
+
 /** The buyer left the payment page: an unpaid online order is dropped and its lines go back into the cart. */
 export async function reopenCart(o: Order): Promise<CartLine[]> {
   if (o.payment !== "online" || o.pay_orders.status !== "open") return []
@@ -480,10 +533,12 @@ export type BuyerOrder = Order
 
 const isPaid = (o: Order) => ["paid", "partially_refunded"].includes(o.pay_orders.status) && o.status !== "cancelled"
 const meta = (i: { metadata: unknown }) => (i.metadata ?? {}) as Record<string, unknown>
-const orderProductIds = (o: Order) => [...new Set(o.pay_orders.pay_order_items.map((i) => meta(i).product_id).filter((x): x is string => typeof x === "string"))]
+// Lines still bought (a line refunded in full no longer unlocks anything).
+const kept = (o: Order) => o.pay_orders.pay_order_items.filter((i) => i.refunded_quantity < i.quantity)
+const orderProductIds = (o: Order) => [...new Set(kept(o).map((i) => meta(i).product_id).filter((x): x is string => typeof x === "string"))]
 // Products bought as a whole (album, any variant) vs. single tracks bought on their own (track id → product id).
-const wholeProductIds = (o: Order) => new Set(o.pay_orders.pay_order_items.filter((i) => !meta(i).track_id).map((i) => meta(i).product_id).filter((x): x is string => typeof x === "string"))
-const singleTracks = (o: Order) => o.pay_orders.pay_order_items.flatMap((i) => (typeof meta(i).track_id === "string" ? [{ track: meta(i).track_id as string, product: meta(i).product_id as string }] : []))
+const wholeProductIds = (o: Order) => new Set(kept(o).filter((i) => !meta(i).track_id).map((i) => meta(i).product_id).filter((x): x is string => typeof x === "string"))
+const singleTracks = (o: Order) => kept(o).flatMap((i) => (typeof meta(i).track_id === "string" ? [{ track: meta(i).track_id as string, product: meta(i).product_id as string }] : []))
 
 /** Products of the order that aren't released yet (release date ahead): their digital delivery waits until the day. */
 export async function orderUnreleased(o: Order): Promise<{ id: string; name: string; release_at: string }[]> {
