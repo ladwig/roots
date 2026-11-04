@@ -768,7 +768,16 @@
     "object_busy": "Das Objekt ist in diesem Zeitraum schon belegt.",
     "object_included": "Dieses Objekt gehört fest zu einem anderen und wird nur mit ihm vergeben.",
     "object_unavailable": "Dieses Objekt ist nicht verfügbar (verloren oder gelöscht).",
-    "object_cycle": "Ein Objekt kann nicht in sich selbst liegen."
+    "object_cycle": "Ein Objekt kann nicht in sich selbst liegen.",
+    "page": {
+      "notFoundTitle": "Seite nicht gefunden",
+      "notFoundText": "Diesen Link gibt es nicht oder nicht mehr. Vielleicht ist er unvollständig.",
+      "home": "Zur Startseite",
+      "errorTitle": "Hier ist etwas schiefgelaufen",
+      "errorText": "Deine Daten sind nicht verloren. Versuch es noch einmal oder geh zur Startseite.",
+      "retry": "Erneut versuchen",
+      "code": "Fehlercode: {code}"
+    }
   },
   "admin": {
     "title": "Plattform",

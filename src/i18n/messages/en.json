@@ -768,7 +768,16 @@
     "object_busy": "The object is already taken in this period.",
     "object_included": "This object is a fixed part of another one and is only rented along with it.",
     "object_unavailable": "This object isn't available (lost or deleted).",
-    "object_cycle": "An object can't be inside itself."
+    "object_cycle": "An object can't be inside itself.",
+    "page": {
+      "notFoundTitle": "Page not found",
+      "notFoundText": "This link doesn't exist (any more). It may be incomplete.",
+      "home": "Go to start page",
+      "errorTitle": "Something went wrong here",
+      "errorText": "Your data is not lost. Try again or go to the start page.",
+      "retry": "Try again",
+      "code": "Error code: {code}"
+    }
   },
   "admin": {
     "title": "Platform",
