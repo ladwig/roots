@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ExternalLinkIcon, StarIcon, Trash2Icon, XIcon } from "lucide-react"
 import { ActionsMenu, MenuSubmit } from "@/components/actions-menu"
@@ -19,7 +20,6 @@ import { productTrackList } from "@/shop/audio"
 import { AutoRefresh } from "@/app/s/[site]/t/[order]/auto-refresh"
 import { AudioUpload } from "./audio-upload"
 import { ProductForm } from "../product-form"
-import { Segments } from "@/components/segments"
 
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`
 const mb = (bytes: number) => `${Math.max(1, Math.round(bytes / 1024 / 1024))} MB`
@@ -93,14 +93,23 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
         </div>
       ) : (
         <>
-          <Segments
-            label={t("store.productTabs")}
-            items={[
-              { href: here, label: t("store.tabProduct"), current: tab === "product" },
-              { href: `${here}?tab=variants`, label: t("store.tabVariants", { count: variants?.length ?? 0 }), current: tab === "variants" },
-              { href: `${here}?tab=digital`, label: t("store.tabDigital"), current: tab === "digital" },
-            ]}
-          />
+          {/* Same tab row as an event's page (Übersicht · Lineup · …), here as ?tab= on one page. */}
+          <nav aria-label={t("store.productTabs")} className="-mx-1 flex gap-1 overflow-x-auto border-b px-1 pb-2">
+            {[
+              { key: "product", href: here, label: t("store.tabProduct") },
+              { key: "variants", href: `${here}?tab=variants`, label: t("store.tabVariants", { count: variants?.length ?? 0 }) },
+              { key: "digital", href: `${here}?tab=digital`, label: t("store.tabDigital") },
+            ].map((x) => (
+              <Link
+                key={x.key}
+                href={x.href}
+                aria-current={tab === x.key ? "page" : undefined}
+                className="rounded-md px-2.5 py-1.5 text-sm whitespace-nowrap text-muted-foreground hover:bg-muted hover:text-foreground aria-[current=page]:bg-muted aria-[current=page]:font-medium aria-[current=page]:text-foreground"
+              >
+                {x.label}
+              </Link>
+            ))}
+          </nav>
           {tab === "variants" ? (
             <div className="grid max-w-3xl gap-6">
               <FormCard id="variants" title={t("store.variants")} description={t("store.variantsHint")}>
