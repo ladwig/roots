@@ -34,9 +34,9 @@ export type Field = { name: string; type: string; disabled: boolean; value: stri
 const SKIP = new Set(["hidden", "file", "password", "submit", "button", "reset", "image", "fieldset", "output", "object"])
 
 // Puts sent values back into the visible fields; files and passwords are never restored. Hidden inputs belong to
-// components (tags, rich text, pickers) and are left alone: they keep their state while the page stays mounted.
+// components (dates, tags, rich text, pickers) and are left alone: they keep their state while the page stays mounted.
 // shortcut: after a remount (path mode, back() to the unprefixed path) those components start from the server again, so
-// typed tags/rich text are lost; fix back() to keep the /app prefix (no remount) when that matters.
+// typed dates/tags/rich text are lost; fix back() to keep the /app prefix (no remount) when that matters.
 export function restoreFields(fields: Iterable<Field>, snap: Snapshot) {
   const used = new Map<string, number>()
   for (const el of fields) {
