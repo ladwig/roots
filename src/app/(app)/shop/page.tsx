@@ -30,6 +30,23 @@ export default async function ProductsPage({ searchParams }: PageProps<"/shop">)
   if (q) query = query.or(`name.ilike.%${q}%,category.ilike.%${q}%`)
   const { data } = await query
   const rows = (data ?? []).slice(0, PAGE_SIZE)
+  // Sold so far per product: paid orders, refunded pieces taken off (pieces + revenue).
+  const { data: sales } = rows.length
+    ? await ctx.supabase
+        .from("pay_order_items")
+        .select("quantity, refunded_quantity, unit_amount, metadata, pay_orders!inner(status, source_module)")
+        .eq("org_id", ctx.org.id)
+        .eq("pay_orders.source_module", "shop")
+        .in("pay_orders.status", ["paid", "partially_refunded"])
+        .in("metadata->>product_id", rows.map((p) => p.id))
+    : { data: [] }
+  const sold = new Map<string, { pieces: number; cents: number }>()
+  for (const i of sales ?? []) {
+    const id = String((i.metadata as Record<string, unknown>)?.product_id)
+    const n = i.quantity - i.refunded_quantity
+    const cur = sold.get(id) ?? { pieces: 0, cents: 0 }
+    sold.set(id, { pieces: cur.pieces + n, cents: cur.cents + n * i.unit_amount })
+  }
   const stock = (p: (typeof rows)[number]) => {
     const list = p.product_variants.filter((v) => v.active)
     const values = list.length ? list.map((v) => v.stock) : [p.stock]
@@ -93,6 +110,20 @@ export default async function ProductsPage({ searchParams }: PageProps<"/shop">)
           },
           { header: t("store.price"), cell: (p) => t.money(p.price_cents, "eur") },
           { header: t("store.stock"), cell: (p) => stock(p) },
+          {
+            header: t("store.sold"),
+            cell: (p) => {
+              const s = sold.get(p.id)
+              return s?.pieces ? (
+                <span className="grid">
+                  <span>{t("store.soldPieces", { count: s.pieces })}</span>
+                  <span className="text-xs text-muted-foreground">{t.money(s.cents, "eur")}</span>
+                </span>
+              ) : (
+                <span className="text-muted-foreground">–</span>
+              )
+            },
+          },
           {
             header: t("store.status"),
             cell: (p) => (

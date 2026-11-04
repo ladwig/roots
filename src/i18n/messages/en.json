@@ -5987,6 +5987,11 @@
     "phone": "Phone",
     "billingAddress": "Billing address",
     "phoneMissing": "Please enter a phone number.",
-    "failedWith": "That didn't work: {message}"
+    "failedWith": "That didn't work: {message}",
+    "sold": "Sold",
+    "soldPieces": {
+      "one": "{count} piece",
+      "other": "{count} pieces"
+    }
   }
 }
