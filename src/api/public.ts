@@ -476,11 +476,12 @@ export const publicEndpoints: PublicEndpoint[] = [
       .object({
         email,
         name,
+        phone: z.string().trim().regex(/^\+?[\d\s()/-]{5,40}$/),
         items: z.array(z.object({ id: uuid.describe("Variant id, product id (products without variants) or track id (tracks_for_sale)"), quantity: z.number().int().min(1).max(100), price_cents: z.number().int().min(0).max(1_000_000).optional().describe("Name your price: the buyer's unit price (≥ the minimum; default = the suggestion). Ignored for fixed prices.") }).strict()).min(1).max(30),
         delivery: z.enum(DELIVERIES),
         shipping_rate: z.string().max(40).optional(),
         payment: z.enum(PAYMENTS).default("online"),
-        address: z.object({ company: z.string().max(200).optional(), street: z.string().trim().min(1).max(200), postal_code: z.string().trim().min(1).max(20), city: z.string().trim().min(1).max(100), country: z.string().regex(/^[A-Z]{2}$/).default("DE") }).strict().optional().describe("Required for shipping; else optional billing address"),
+        address: z.object({ company: z.string().max(200).optional(), street: z.string().trim().min(1).max(200), postal_code: z.string().trim().min(1).max(20), city: z.string().trim().min(1).max(100), country: z.string().regex(/^[A-Z]{2}$/).default("DE") }).strict().describe("Shipping / billing address"),
         note: z.string().max(2000).optional(),
         total_cents: z.number().int().min(0),
         accept_terms: z.boolean().optional(),
@@ -499,7 +500,6 @@ export const publicEndpoints: PublicEndpoint[] = [
       const cart = body.items.map((i) => ({ id: i.id, q: i.quantity, ...(i.price_cents !== undefined && { p: i.price_cents }) }))
       const lines = priceCart(cart, products)
       if (lines.some((l) => l.digital) && !body.digital_waiver) throw keyError(422, "store.waiverMissing", t)
-      if (body.delivery === "shipping" && !body.address) throw keyError(422, "store.addressMissing", t)
       const order = (id: string, token: string) => siteUrl(org.slug, `/o/${id}?k=${token}`, org.site_domain)
       try {
         const r = await placeOrder({
@@ -507,10 +507,11 @@ export const publicEndpoints: PublicEndpoint[] = [
           cart,
           name: body.name,
           email: body.email,
+          phone: body.phone,
           delivery: body.delivery,
           payment: body.payment,
           rateId: body.shipping_rate ?? null,
-          address: body.address ? { company: body.address.company || null, street: body.address.street, postal_code: body.address.postal_code, city: body.address.city, country: body.address.country } : null,
+          address: { company: body.address.company || null, street: body.address.street, postal_code: body.address.postal_code, city: body.address.city, country: body.address.country },
           note: body.note?.trim() || null,
           expectedTotal: body.total_cents,
           orderUrl: (id, token) => (body.success_url ? body.success_url.replaceAll("{ORDER_ID}", id).replaceAll("{TOKEN}", token) : order(id, token)),

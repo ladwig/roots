@@ -11,7 +11,7 @@ import { imageUrl } from "@/lib/images"
 import { param, sitePath } from "@/lib/url"
 import { cn } from "@/lib/utils"
 import { getCart } from "@/shop/cart"
-import { deliveriesFor, paymentsFor, priceCart, readShippingRates, shippingCents, subtotalOf, vatIncluded, type CatalogProduct, type Delivery, type ShopSettings } from "@/shop/fields"
+import { COUNTRIES, deliveriesFor, paymentsFor, priceCart, readShippingRates, shippingCents, subtotalOf, vatIncluded, type CatalogProduct, type Delivery, type ShopSettings } from "@/shop/fields"
 import { onlineReady } from "@/shop/server"
 import { getSite } from "../data"
 import { PriceInput, QtyInput } from "./qty"
@@ -227,20 +227,15 @@ export default async function CartPage({ params, searchParams }: PageProps<"/s/[
                   <Label htmlFor="buyer-email">{t("store.email")}</Label>
                   <Input id="buyer-email" name="email" type="email" required autoComplete="email" />
                 </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="buyer-phone">{t("store.phone")}</Label>
+                  <Input id="buyer-phone" name="phone" type="tel" required maxLength={40} autoComplete="tel" />
+                </div>
               </div>
-              {delivery === "shipping" ? (
-                <fieldset className="grid gap-3">
-                  <legend className="mb-2 font-medium">{t("store.shippingAddress")}</legend>
-                  <AddressFields t={t} required countries={rate!.countries} regions={regions} />
-                </fieldset>
-              ) : (
-                <details className="rounded-lg border px-3 py-2">
-                  <summary className="cursor-pointer text-sm">{t("store.billingAddressOptional")}</summary>
-                  <div className="grid gap-3 pt-3">
-                    <AddressFields t={t} required={false} countries={null} regions={regions} />
-                  </div>
-                </details>
-              )}
+              <fieldset className="grid gap-3">
+                <legend className="mb-2 font-medium">{delivery === "shipping" ? t("store.shippingAddress") : t("store.billingAddress")}</legend>
+                <AddressFields t={t} countries={delivery === "shipping" ? rate!.countries : COUNTRIES} regions={regions} />
+              </fieldset>
               <div className="grid gap-2">
                 <Label htmlFor="note">{t("store.note")}</Label>
                 <textarea id="note" name="note" maxLength={2000} rows={2} className="rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm" />
@@ -300,7 +295,7 @@ export default async function CartPage({ params, searchParams }: PageProps<"/s/[
   )
 }
 
-function AddressFields({ t, required, countries, regions }: { t: Awaited<ReturnType<typeof getT>>; required: boolean; countries: string[] | null; regions: Intl.DisplayNames }) {
+function AddressFields({ t, countries, regions }: { t: Awaited<ReturnType<typeof getT>>; countries: string[]; regions: Intl.DisplayNames }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       <div className="grid gap-1 sm:col-span-2">
@@ -309,29 +304,28 @@ function AddressFields({ t, required, countries, regions }: { t: Awaited<ReturnT
       </div>
       <div className="grid gap-1 sm:col-span-2">
         <Label htmlFor="street">{t("store.street")}</Label>
-        <Input id="street" name="street" required={required} maxLength={200} autoComplete="street-address" />
+        <Input id="street" name="street" required maxLength={200} autoComplete="street-address" />
       </div>
       <div className="grid gap-1">
         <Label htmlFor="postal_code">{t("store.postalCode")}</Label>
-        <Input id="postal_code" name="postal_code" required={required} maxLength={20} autoComplete="postal-code" />
+        <Input id="postal_code" name="postal_code" required maxLength={20} autoComplete="postal-code" />
       </div>
       <div className="grid gap-1">
         <Label htmlFor="city">{t("store.city")}</Label>
-        <Input id="city" name="city" required={required} maxLength={100} autoComplete="address-level2" />
+        <Input id="city" name="city" required maxLength={100} autoComplete="address-level2" />
       </div>
       <div className="grid gap-1">
         <Label htmlFor="country">{t("store.country")}</Label>
-        {countries ? (
-          <select id="country" name="country" defaultValue={countries[0]} className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm" autoComplete="country">
-            {countries.map((c) => (
+        <select id="country" name="country" defaultValue={countries.includes("DE") ? "DE" : countries[0]} className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm" autoComplete="country">
+          {countries
+            .map((c) => [c, regions.of(c) ?? c])
+            .sort((a, b) => a[1].localeCompare(b[1]))
+            .map(([c, label]) => (
               <option key={c} value={c}>
-                {regions.of(c) ?? c}
+                {label}
               </option>
             ))}
-          </select>
-        ) : (
-          <Input id="country" name="country" defaultValue="DE" maxLength={2} className="w-20 uppercase" autoComplete="country" />
-        )}
+        </select>
       </div>
     </div>
   )

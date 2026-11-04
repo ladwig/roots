@@ -48,9 +48,11 @@ export async function checkout(fd: FormData) {
 
   const email = str(fd, "email", 320).toLowerCase()
   const name = str(fd, "name", 200)
+  const phone = str(fd, "phone", 40)
   const payment = (PAYMENTS.find((p) => p === fd.get("payment")) ?? "online") as Payment
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) back(here, { error: t("errors.invalid_email") })
   if (!name) back(here, { error: t("store.nameMissing") })
+  if (!/^\+?[\d\s()/-]{5,}$/.test(phone)) back(here, { error: t("store.phoneMissing") })
   if (!delivery) back(here, { error: t("store.deliveryInvalid") })
   if (fd.get("terms_required") && !fd.get("terms")) back(here, { error: t("store.termsMissing") })
   if (fd.get("waiver_required") && !fd.get("waiver")) back(here, { error: t("store.waiverMissing") })
@@ -58,8 +60,7 @@ export async function checkout(fd: FormData) {
   const postal = str(fd, "postal_code", 20)
   const city = str(fd, "city", 100)
   const country = str(fd, "country", 2).toUpperCase() || "DE"
-  const hasAddress = !!(street && postal && city)
-  if (delivery === "shipping" && !hasAddress) back(here, { error: t("store.addressMissing") })
+  if (!(street && postal && city)) back(here, { error: t("store.addressMissing") })
   if (!/^[A-Z]{2}$/.test(country)) back(here, { error: t("store.addressMissing") })
 
   let url: string
@@ -70,10 +71,11 @@ export async function checkout(fd: FormData) {
         cart,
         name,
         email,
+        phone,
         delivery,
         payment,
         rateId: rate,
-        address: hasAddress ? { company: str(fd, "company", 200) || null, street, postal_code: postal, city, country } : null,
+        address: { company: str(fd, "company", 200) || null, street, postal_code: postal, city, country },
         note: str(fd, "note", 2000) || null,
         expectedTotal: Math.floor(Number(fd.get("total"))),
         orderUrl: (order, token) => siteUrl(site, `/o/${order}?k=${token}`, s.org.site_domain),

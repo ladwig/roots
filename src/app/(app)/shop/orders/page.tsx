@@ -1,5 +1,7 @@
 import Link from "next/link"
 import { DataTable, Pager, pageRange, PAGE_SIZE, SearchBox } from "@/components/data-table"
+import { FileTextIcon } from "lucide-react"
+import { ActionsMenu, MenuSubmit } from "@/components/actions-menu"
 import { Notice } from "@/components/notice"
 import { EmptyState, Page, PageHeader } from "@/components/page"
 import { Segments } from "@/components/segments"
@@ -7,6 +9,8 @@ import { Badge } from "@/components/ui/badge"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { pageParam, param, withParams } from "@/lib/url"
+import { missingInvoices } from "@/shop/server"
+import { issueMissingInvoicesAction } from "../actions"
 
 const VIEWS = { open: ["new", "ready"], done: ["shipped", "completed"], cancelled: ["cancelled"], all: null } as const
 
@@ -28,13 +32,25 @@ export default async function OrdersPage({ searchParams }: PageProps<"/shop/orde
   const statuses = VIEWS[view]
   if (statuses) query = query.in("status", [...statuses])
   if (q) query = /^\d+$/.test(q) ? query.eq("number", Number(q)) : query.ilike("name", `%${q}%`)
-  const { data } = await query
+  const canInvoice = ctx.can("shop.manage") && ctx.modules.has("invoices")
+  const [{ data }, missing] = await Promise.all([query, canInvoice ? missingInvoices(ctx.org.id) : 0])
   const rows = (data ?? []).slice(0, PAGE_SIZE)
   const paid = (s: string) => s === "paid" || s === "partially_refunded"
 
   return (
     <Page>
-      <PageHeader area="shop" title={t("store.orders")} settings={ctx.can("shop.manage") && { href: "/shop/settings", label: t("common.settings") }} />
+      <PageHeader area="shop" title={t("store.orders")} settings={ctx.can("shop.manage") && { href: "/shop/settings", label: t("common.settings") }}
+        menu={
+          missing > 0 && (
+            <ActionsMenu>
+              <MenuSubmit form="issue-invoices" icon={<FileTextIcon />}>
+                {t("store.issueMissingInvoices", { count: missing })}
+              </MenuSubmit>
+            </ActionsMenu>
+          )
+        }
+      />
+      {missing > 0 && <form id="issue-invoices" action={issueMissingInvoicesAction} hidden />}
       <Notice error={param(sp, "error")} ok={param(sp, "ok")} />
       <div className="flex flex-wrap items-center gap-3">
         <SearchBox q={q} label={t("store.searchOrders")} keep={{ view }} />

@@ -5600,7 +5600,6 @@
     "name": "Your name",
     "email": "Your email",
     "shippingAddress": "Shipping address",
-    "billingAddressOptional": "Add a billing address (optional)",
     "company": "Company / club (optional)",
     "street": "Street and number",
     "postalCode": "Postcode",
@@ -5847,7 +5846,7 @@
     "countries": "Countries",
     "ratesHint": "For each shipping rate the countries it delivers to. Clear the name to remove it.",
     "autoInvoice": "Create invoices automatically",
-    "autoInvoiceHint": "Online and pickup payments: after payment. Bank transfers: right with the order. Cancellations get a cancellation invoice.",
+    "autoInvoiceHint": "Paid online or at pickup: after the payment; transfer: with the order. Off: issue them later under Orders → ⋯ for all paid orders at once (or one by one in the order). Cancellations get a cancellation invoice.",
     "invoicesModuleOff": "Invoices come with the Invoices module.",
     "legal": "Legal",
     "legalHint": "Markdown. If terms or a cancellation policy are filled in, buyers must confirm them before ordering.",
@@ -5974,6 +5973,17 @@
     "refundedOn": "Refunded on {date}",
     "refundPendingShort": "pending",
     "smallBusinessNoVat": "None – you're a small business (§ 19 UStG), prices are final prices without VAT.",
-    "smallBusinessChange": "Change"
+    "smallBusinessChange": "Change",
+    "invoicesIssued": {
+      "one": "{count} invoice issued.",
+      "other": "{count} invoices issued."
+    },
+    "issueMissingInvoices": {
+      "one": "Issue the invoice for {count} paid order",
+      "other": "Issue invoices for {count} paid orders"
+    },
+    "phone": "Phone",
+    "billingAddress": "Billing address",
+    "phoneMissing": "Please enter a phone number."
   }
 }

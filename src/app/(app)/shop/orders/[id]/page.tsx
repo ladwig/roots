@@ -128,6 +128,11 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/sh
                   <span className="font-medium">{o.name}</span>
                 )}
                 {o.company && <span>{o.company}</span>}
+                {o.phone && (
+                  <a href={`tel:${o.phone}`} className="text-muted-foreground underline-offset-4 hover:underline">
+                    {o.phone}
+                  </a>
+                )}
                 {pay.customer_email && (
                   <a href={`mailto:${pay.customer_email}`} className="text-muted-foreground underline-offset-4 hover:underline">
                     {pay.customer_email}

@@ -49,7 +49,7 @@ export const DEFAULT_SETTINGS = {
   pickup_text: null as string | null,
   shipping: false,
   shipping_rates: [] as unknown,
-  auto_invoice: true,
+  auto_invoice: false,
   terms: null as string | null,
   withdrawal: null as string | null,
   mails: {} as unknown,
@@ -78,10 +78,11 @@ export type PlaceInput = {
   cart: CartLine[]
   name: string
   email: string
+  phone: string
   delivery: Delivery
   payment: Payment
   rateId: string | null
-  address: Address | null
+  address: Address
   note: string | null
   expectedTotal: number // what the buyer saw; a different total now = "store.priceChanged"
   orderUrl: (orderId: string, token: string) => string
@@ -101,7 +102,7 @@ export async function placeOrder(p: PlaceInput) {
   let rateName: string | null = null
   if (p.delivery === "shipping") {
     const rate = readShippingRates(settings.shipping_rates).find((r) => r.id === p.rateId)
-    if (!rate || !p.address || !rate.countries.includes(p.address.country)) throw new Error("store.shippingInvalid")
+    if (!rate || !rate.countries.includes(p.address.country)) throw new Error("store.shippingInvalid")
     shipping = shippingCents(rate, subtotal)
     rateName = rate.name
   }
@@ -134,11 +135,12 @@ export async function placeOrder(p: PlaceInput) {
       delivery: p.delivery,
       payment,
       name: p.name,
-      company: p.address?.company ?? null,
-      street: p.address?.street ?? null,
-      postal_code: p.address?.postal_code ?? null,
-      city: p.address?.city ?? null,
-      country: p.address?.country ?? null,
+      phone: p.phone,
+      company: p.address.company,
+      street: p.address.street,
+      postal_code: p.address.postal_code,
+      city: p.address.city,
+      country: p.address.country,
       shipping_name: rateName,
       shipping_cents: shipping,
       note: p.note,
@@ -176,7 +178,7 @@ export async function placeOrder(p: PlaceInput) {
 // ---------- after placing / paying ----------
 
 const ORDER_COLS =
-  "id, org_id, order_id, number, token, status, delivery, payment, name, company, street, postal_code, city, country, shipping_name, shipping_cents, note, tracking, contact_id, invoice_id, invoice_error, created_at, pay_orders!inner(status, amount_total, currency, customer_email, customer_name, expires_at, paid_at, pay_order_items(id, description, quantity, refunded_quantity, unit_amount, source_id, metadata), pay_payments(amount, status, pay_refunds(amount, status, reason, created_at))), orgs!inner(slug, name, logo_path, site_domain)"
+  "id, org_id, order_id, number, token, status, delivery, payment, name, phone, company, street, postal_code, city, country, shipping_name, shipping_cents, note, tracking, contact_id, invoice_id, invoice_error, created_at, pay_orders!inner(status, amount_total, currency, customer_email, customer_name, expires_at, paid_at, pay_order_items(id, description, quantity, refunded_quantity, unit_amount, source_id, metadata), pay_payments(amount, status, pay_refunds(amount, status, reason, created_at))), orgs!inner(slug, name, logo_path, site_domain)"
 
 async function loadOrder(orderId: string) {
   const { data } = await db().from("shop_orders").select(ORDER_COLS).eq("order_id", orderId).maybeSingle()
@@ -243,7 +245,7 @@ async function linkContact(o: Order) {
     const [first, ...rest] = o.name.trim().split(/\s+/)
     const { data: created } = await db()
       .from("contacts")
-      .insert({ org_id: o.org_id, email, first_name: first || null, last_name: rest.join(" ") || null, company: o.company, street: o.street, postal_code: o.postal_code, city: o.city, tags: ["Shop"] })
+      .insert({ org_id: o.org_id, email, first_name: first || null, last_name: rest.join(" ") || null, company: o.company, phone: o.phone, street: o.street, postal_code: o.postal_code, city: o.city, country: o.country, tags: ["Shop"] })
       .select("id")
       .single()
     id = created?.id ?? null
@@ -307,7 +309,7 @@ export async function ensureInvoice(orderId: string, force = false) {
         currency: o.pay_orders.currency,
         intro: b?.invoice_intro ?? null,
         outro: b?.invoice_outro ?? null,
-        service_from: today(),
+        service_from: (o.pay_orders.paid_at ?? o.created_at).slice(0, 10), // the sale's day, also when issued later
         due_date: paid ? null : o.pay_orders.expires_at ? o.pay_orders.expires_at.slice(0, 10) : addDays(today(), 14),
         notes: t("store.invoiceNote", { number: String(o.number) }),
         net_total: sum.net,
@@ -477,6 +479,35 @@ export async function cancelOrder(orgId: string, shopOrderId: string, reason?: s
   await db().from("pay_orders").update({ status: "cancelled" }).eq("id", o.order_id).in("status", ["open", "failed", "expired"])
   await closeOrder(o)
   return null
+}
+
+/** Paid orders without an invoice (automatic invoices off, or issued later): how many. */
+export async function missingInvoices(orgId: string) {
+  const { count } = await missingQuery(orgId, "exact")
+  return count ?? 0
+}
+const missingQuery = (orgId: string, count?: "exact") =>
+  db()
+    .from("shop_orders")
+    .select("order_id, pay_orders!inner(status, amount_total)", { count, head: !!count })
+    .eq("org_id", orgId)
+    .is("invoice_id", null)
+    .neq("status", "cancelled")
+    .in("pay_orders.status", ["paid", "partially_refunded"])
+    .gt("pay_orders.amount_total", 0)
+
+/** Issue the missing invoices in one go (oldest first), each from the order's data as it is now. */
+export async function issueMissingInvoices(orgId: string) {
+  // ponytail: 100 per click keeps the request short; click again for more.
+  const { data } = await missingQuery(orgId).order("created_at").limit(100)
+  let done = 0
+  for (const o of data ?? []) {
+    await ensureInvoice(o.order_id, true)
+    const { data: after } = await db().from("shop_orders").select("invoice_id, invoice_error").eq("order_id", o.order_id).single()
+    if (after?.invoice_error) throw new Error(`errors.${after.invoice_error}`)
+    if (after?.invoice_id) done++
+  }
+  return done
 }
 
 /** Refunded so far (pending refunds included, failed ones not). */

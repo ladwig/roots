@@ -9,7 +9,7 @@ import { removeImage, replaceImage } from "@/lib/images"
 import { moneyCents } from "@/lib/inputs"
 import { back } from "@/lib/url"
 import { MAIL_KINDS, readOptions, readProduct, readShippingRates, readVariant } from "@/shop/fields"
-import { applyOptions, cancelOrder, ensureInvoice, mail, markOrderPaid, refundShopOrder, setOrderStatus } from "@/shop/server"
+import { applyOptions, cancelOrder, ensureInvoice, issueMissingInvoices, mail, markOrderPaid, refundShopOrder, setOrderStatus } from "@/shop/server"
 import { deleteTrack, finishTrackUpload, startTrackUpload, updateTrack } from "@/shop/audio"
 
 const UUID = /^[0-9a-f-]{36}$/
@@ -202,6 +202,18 @@ export async function refundOrderAction(fd: FormData) {
     const r = await refundShopOrder(ctx.org.id, order, (k) => String(fd.get(k) ?? ""), fd.get("notify") === "1")
     return r === "pending" ? t("payments.refundPending") : t("store.refundDone")
   })
+}
+
+/** Shop → Bestellungen → ⋯: invoices for every paid order that has none yet. */
+export async function issueMissingInvoicesAction() {
+  const { ctx, t } = await manager()
+  let done = 0
+  try {
+    done = await issueMissingInvoices(ctx.org.id)
+  } catch (e) {
+    back("/shop/orders", { error: msg(t, e instanceof Error ? e.message : "") })
+  }
+  back("/shop/orders", { ok: t("store.invoicesIssued", { count: done }) })
 }
 
 /** Issue the invoice now (auto invoices off, or the first try failed). */

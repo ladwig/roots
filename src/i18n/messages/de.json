@@ -5600,7 +5600,6 @@
     "name": "Dein Name",
     "email": "Deine E-Mail",
     "shippingAddress": "Lieferadresse",
-    "billingAddressOptional": "Rechnungsadresse angeben (optional)",
     "company": "Firma / Verein (optional)",
     "street": "Straße und Hausnummer",
     "postalCode": "PLZ",
@@ -5847,7 +5846,7 @@
     "countries": "Länder",
     "ratesHint": "Pro Versandart die Länder, in die sie liefert. Zum Entfernen den Namen leeren.",
     "autoInvoice": "Rechnungen automatisch erstellen",
-    "autoInvoiceHint": "Bei Online-Zahlung und Abholung nach der Zahlung, bei Überweisung direkt mit der Bestellung. Stornos bekommen eine Stornorechnung.",
+    "autoInvoiceHint": "Bei Online-Zahlung und Abholung nach der Zahlung, bei Überweisung direkt mit der Bestellung. Aus: Rechnungen später unter Bestellungen → ⋯ für alle bezahlten Bestellungen auf einmal erstellen (oder einzeln in der Bestellung). Stornos bekommen eine Stornorechnung.",
     "invoicesModuleOff": "Rechnungen gibt es mit dem Modul Rechnungen.",
     "legal": "Rechtliches",
     "legalHint": "Markdown. Sind AGB oder Widerrufsbelehrung ausgefüllt, müssen Käufer:innen sie vor dem Bestellen bestätigen.",
@@ -5974,6 +5973,17 @@
     "refundedOn": "Erstattet am {date}",
     "refundPendingShort": "ausstehend",
     "smallBusinessNoVat": "Keine – ihr seid Kleinunternehmer (§ 19 UStG), Preise sind Endpreise ohne USt.",
-    "smallBusinessChange": "Ändern"
+    "smallBusinessChange": "Ändern",
+    "invoicesIssued": {
+      "one": "{count} Rechnung erstellt.",
+      "other": "{count} Rechnungen erstellt."
+    },
+    "issueMissingInvoices": {
+      "one": "Rechnung für {count} bezahlte Bestellung erstellen",
+      "other": "Rechnungen für {count} bezahlte Bestellungen erstellen"
+    },
+    "phone": "Telefon",
+    "billingAddress": "Rechnungsadresse",
+    "phoneMissing": "Bitte gib eine Telefonnummer an."
   }
 }

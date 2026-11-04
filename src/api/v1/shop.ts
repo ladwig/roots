@@ -75,6 +75,7 @@ const ShopOrder = z.object({
   total_cents: z.number().int(),
   currency: z.string(),
   name: z.string(),
+  phone: z.string().nullable(),
   email: z.string().nullable(),
   company: z.string().nullable(),
   street: z.string().nullable(),
@@ -94,7 +95,7 @@ const ShopOrder = z.object({
   created_at: ts,
 })
 const ORDER_COLS =
-  "id, number, status, delivery, payment, name, company, street, postal_code, city, country, shipping_name, shipping_cents, note, tracking, contact_id, invoice_id, invoice_error, order_id, placed_at, created_at, pay_orders!inner(status, amount_total, currency, customer_email, pay_order_items(id, description, quantity, refunded_quantity, unit_amount, source_id))"
+  "id, number, status, delivery, payment, name, phone, company, street, postal_code, city, country, shipping_name, shipping_cents, note, tracking, contact_id, invoice_id, invoice_error, order_id, placed_at, created_at, pay_orders!inner(status, amount_total, currency, customer_email, pay_order_items(id, description, quantity, refunded_quantity, unit_amount, source_id))"
 type OrderRow = { order_id: string; invoice_error: string | null; pay_orders: { status: string; amount_total: number; currency: string; customer_email: string | null; pay_order_items: { id: string; description: string; quantity: number; refunded_quantity: number; unit_amount: number; source_id: string | null }[] } } & Record<string, unknown>
 const orderOut = ({ pay_orders: p, ...o }: OrderRow) => ({
   ...o,
