@@ -2,9 +2,14 @@
 
 import { useEffect, useRef, useState } from "react"
 import { createPortal, useFormStatus } from "react-dom"
+import { useSearchParams } from "next/navigation"
 import { Loader2Icon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useT } from "@/i18n/client"
+import { fieldValues, toRestore, type Sent, type Snapshot } from "@/lib/form-snapshot"
+import { appRoute } from "@/lib/url"
+
+const SENT_KEY = "roots-form-sent"
 
 /**
  * The only save control of a form: put <SaveBar /> anywhere inside the <form>. Edit forms show no button at all;
@@ -21,6 +26,8 @@ export function SaveBar({ label, always }: { label?: string; always?: boolean })
   // The form is looked up when needed, never remembered: React may swap the <form> element after the first render
   // (streamed parts of the page), and a remembered element / id then points nowhere (button did nothing).
   const form = () => ref.current?.closest("form") ?? null
+  // The URL as the page arrived (?error= from back()): <Notice> removes it from the address bar right after.
+  const arrived = useRef(useSearchParams().toString())
 
   useEffect(() => {
     // Page: a bar across the whole content area (portal to its end). Drawer: inline, sticky inside the drawer.
@@ -28,12 +35,39 @@ export function SaveBar({ label, always }: { label?: string; always?: boolean })
     const change = (e: Event) => {
       if (e.target instanceof Node && form()?.contains(e.target)) setDirty(true)
     }
+    // A failed submit redirects back here and remounts the page, which empties the form: keep what was sent
+    // (passwords and files never) and put it back below.
+    const here = (f: HTMLFormElement) => ({ path: appRoute(location.pathname), form: [...document.forms].indexOf(f) })
+    const submit = (e: Event) => {
+      const f = form()
+      if (e.target !== f || !f) return
+      const secret = new Set([...f.querySelectorAll<HTMLInputElement>("input[type=password]")].map((i) => i.name))
+      const sent: Sent = { ...here(f), at: Date.now(), values: [...fieldValues([...new FormData(f)].filter(([name]) => !secret.has(name)))] }
+      try {
+        sessionStorage.setItem(SENT_KEY, JSON.stringify(sent))
+      } catch {}
+    }
     document.addEventListener("input", change, true)
     document.addEventListener("change", change, true)
+    document.addEventListener("submit", submit, true)
+    const f = form()
+    if (f) {
+      try {
+        const sent = JSON.parse(sessionStorage.getItem(SENT_KEY) ?? "null") as Sent | null
+        const snap = toRestore(sent, { ...here(f), search: arrived.current, now: Date.now() })
+        if (snap) {
+          restoreForm(f, snap)
+          f.dispatchEvent(new Event("change", { bubbles: true })) // the restored values are unsaved changes again
+        }
+        // Another form on this page may still need it; anything else is used up or stale.
+        if (snap || !sent || sent.path !== here(f).path || Date.now() - sent.at > 30_000) sessionStorage.removeItem(SENT_KEY)
+      } catch {}
+    }
     return () => {
       clearTimeout(place)
       document.removeEventListener("input", change, true)
       document.removeEventListener("change", change, true)
+      document.removeEventListener("submit", submit, true)
     }
   }, [])
 
@@ -90,6 +124,26 @@ export function SaveBar({ label, always }: { label?: string; always?: boolean })
       {target && bar ? createPortal(bar, target) : bar}
     </span>
   )
+}
+
+// Puts sent values back into the visible fields. Hidden inputs belong to components (tags, rich text, pickers) that
+// keep their own state, so they are left alone; files and passwords are never restored.
+function restoreForm(form: HTMLFormElement, snap: Snapshot) {
+  const used = new Map<string, number>()
+  for (const el of form.elements) {
+    if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement)) continue
+    if (!el.name || el.disabled || ["hidden", "file", "password", "submit", "button"].includes(el.type)) continue
+    const values = snap.get(el.name)
+    // Unticked boxes aren't sent at all: a missing name means none of them was ticked.
+    if (el instanceof HTMLInputElement && (el.type === "checkbox" || el.type === "radio")) el.checked = (values ?? []).includes(el.value)
+    else if (!values) continue
+    else if (el instanceof HTMLSelectElement && el.multiple) for (const o of el.options) o.selected = values.includes(o.value)
+    else {
+      const i = used.get(el.name) ?? 0
+      el.value = values[i] ?? ""
+      used.set(el.name, i + 1)
+    }
+  }
 }
 
 /** Before a drawer/dialog closes: true when no form inside `root` has unsaved changes, or the person agrees to drop them. */
