@@ -15,6 +15,7 @@ import { getSite } from "../../data"
 import { Gallery } from "./gallery"
 import { priceInput } from "@/tickets/price"
 import { MusicPlayer } from "./player"
+import { OptionPicker } from "./option-picker"
 import { addToCart } from "../actions"
 import { priceLabel, soldOut } from "@/shop/view"
 
@@ -82,7 +83,13 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
             <form action={addToCart} className="grid gap-3">
               <input type="hidden" name="site" value={site} />
               <input type="hidden" name="slug" value={slug} />
-              {p.variants.length > 0 ? (
+              {p.options?.length && p.variants.some((v) => v.values) ? (
+                <OptionPicker
+                  options={p.options}
+                  variants={p.variants}
+                  prices={Object.fromEntries(p.variants.map((v) => [v.id, `${v.name_your_price ? t("store.orMore", { price: t.money(v.price_cents, "eur") }) : t.money(v.price_cents, "eur")}${v.left !== null && v.left > 0 && v.left <= 5 ? ` · ${t("store.left", { count: v.left })}` : ""}`]))}
+                />
+              ) : p.variants.length > 0 ? (
                 <div className="grid gap-1">
                   <Label htmlFor="item">{t("store.variant")}</Label>
                   <select id="item" name="item" defaultValue={first?.id} required className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm">

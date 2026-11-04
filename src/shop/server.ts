@@ -19,6 +19,7 @@ import type { PaidOrder } from "@/payments/fulfilment"
 import {
   deliveriesFor,
   paymentsFor,
+  planVariants,
   priceCart,
   readShippingRates,
   shippingCents,
@@ -28,7 +29,10 @@ import {
   type Delivery,
   type MailKind,
   type Payment,
+  type ProductOption,
 } from "./fields"
+import type { SupabaseClient } from "@supabase/supabase-js"
+import type { Database } from "@/lib/supabase/types"
 
 const db = () => createAdminClient()
 
@@ -534,4 +538,23 @@ export async function shopReleases() {
       await mail("released", orderId).catch((e) => console.error("shop release mail", orderId, e))
     }
   }
+}
+
+/**
+ * Save a product's variant options and bring its variants in line (App + API; `db` = the caller's client, RLS/org
+ * checked): one variant per combination, existing combinations keep their stock/price/picture, missing ones are
+ * created (named "Weiß / L"), the rest removed (orders keep their own copy of name and price).
+ */
+export async function applyOptions(db: SupabaseClient<Database>, orgId: string, productId: string, options: ProductOption[]) {
+  const { data: p } = await db.from("products").select("id").eq("id", productId).eq("org_id", orgId).maybeSingle()
+  if (!p) return { error: "errors.not_found" }
+  const { data: existing } = await db.from("product_variants").select("id, option_values").eq("product_id", productId).eq("org_id", orgId)
+  const plan = planVariants(options, existing ?? [])
+  const { error } = await db.from("products").update({ options }).eq("id", productId).eq("org_id", orgId)
+  if (error) return { error: "db", db: error }
+  if (plan.remove.length) await db.from("product_variants").delete().in("id", plan.remove).eq("org_id", orgId)
+  if (plan.create.length)
+    await db.from("product_variants").insert(plan.create.map((c) => ({ org_id: orgId, product_id: productId, name: c.values.join(" / ").slice(0, 100), option_values: c.values, position: c.position })))
+  await Promise.all(plan.keep.map((k) => db.from("product_variants").update({ position: k.position }).eq("id", k.id).eq("org_id", orgId)))
+  return { ok: true as const, created: plan.create.length, removed: plan.remove.length }
 }

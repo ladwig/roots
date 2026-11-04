@@ -1,11 +1,20 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 
 // Product pictures like other shops: one big picture, thumbnails below to switch.
 export function Gallery({ images, alt }: { images: string[]; alt: string }) {
   const [i, setI] = useState(0)
+  // A picked variant with its own picture shows that one (option-picker.tsx).
+  useEffect(() => {
+    const show = (e: Event) => {
+      const n = images.findIndex((src) => src.endsWith(`/${(e as CustomEvent<string>).detail}`))
+      if (n >= 0) setI(n)
+    }
+    window.addEventListener("shop:image", show)
+    return () => window.removeEventListener("shop:image", show)
+  }, [images])
   return (
     <div className="grid gap-2">
       {/* eslint-disable-next-line @next/next/no-img-element -- public bucket URL */}

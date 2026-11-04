@@ -94,7 +94,7 @@ export function changeCart(cart: CartLine[], id: string, q: number, mode: "add" 
 }
 
 // The public catalog (shop_catalog()) as the pages and the order logic read it.
-export type CatalogVariant = { id: string; name: string; price_cents: number; left: number | null; digital: boolean; name_your_price?: boolean }
+export type CatalogVariant = { id: string; name: string; price_cents: number; left: number | null; digital: boolean; name_your_price?: boolean; values?: string[] | null; image?: string | null }
 export type CatalogProduct = {
   id: string
   slug: string
@@ -111,6 +111,7 @@ export type CatalogProduct = {
   suggested_cents?: number | null
   track_price_cents?: number | null // single tracks for sale (null = album only)
   tracks?: { id: string; title: string }[] // the buyable ones
+  options?: ProductOption[] // variant options (Farbe, Größe …); variants carry their `values`
   description?: string | null
   left: number | null // products without variants; null = unlimited
   variants: CatalogVariant[]
@@ -261,3 +262,47 @@ export function readVariant(get: (k: string) => string): { row: { name: string; 
   if (stock !== null && !(Number.isInteger(stock) && stock >= 0 && stock <= 1_000_000)) return { error: "errors.invalid_input" }
   return { row: { name, price_cents: price, stock, active: get("has_active") === "1" ? get("active") === "1" : true, digital: get("digital") === "1", name_your_price: get("has_nyp") === "1" ? get("name_your_price") === "1" : null } }
 }
+
+// ---------- variant options (Farbe: Schwarz, Weiß / Größe: S, M, L → one variant per combination) ----------
+
+export type ProductOption = { name: string; values: string[] }
+export const MAX_OPTIONS = 3
+export const MAX_COMBOS = 100
+
+/** Form/API input → clean options (empty rows dropped), or an error key. */
+export function readOptions(raw: unknown): { options: ProductOption[] } | { error: string } {
+  if (!Array.isArray(raw)) return { error: "errors.invalid_input" }
+  const options = raw.flatMap((o) => {
+    const name = String((o as ProductOption)?.name ?? "").trim().slice(0, 40)
+    const values = [...new Set((Array.isArray((o as ProductOption)?.values) ? (o as ProductOption).values : []).map((v) => String(v).trim().slice(0, 40)).filter(Boolean))].slice(0, 30)
+    return name || values.length ? [{ name, values }] : []
+  })
+  if (options.length > MAX_OPTIONS) return { error: "store.tooManyOptions" }
+  if (options.some((o) => !o.name || !o.values.length) || new Set(options.map((o) => o.name.toLowerCase())).size !== options.length) return { error: "store.optionsInvalid" }
+  if (options.reduce((n, o) => n * o.values.length, 1) > MAX_COMBOS) return { error: "store.tooManyCombos" }
+  return { options }
+}
+
+/** Every combination in option order: [["Schwarz","S"], ["Schwarz","M"], …]. No options → none. */
+export const optionCombos = (options: ProductOption[]): string[][] =>
+  options.length ? options.reduce<string[][]>((acc, o) => acc.flatMap((c) => o.values.map((v) => [...c, v])), [[]]) : []
+
+/**
+ * What saving options does to the variants: keep the ones whose combination still exists (in the new order), create
+ * the missing ones, remove the rest (also flat variants once a product has options). No options → nothing changes.
+ */
+export function planVariants(options: ProductOption[], existing: { id: string; option_values: string[] | null }[]) {
+  if (!options.length) return { keep: [] as { id: string; position: number }[], create: [] as { values: string[]; position: number }[], remove: [] as string[] }
+  const key = (v: string[]) => v.join("\u0001")
+  const have = new Map(existing.filter((v) => v.option_values).map((v) => [key(v.option_values!), v.id]))
+  const combos = optionCombos(options)
+  const wanted = new Set(combos.map(key))
+  return {
+    keep: combos.flatMap((c, position) => (have.has(key(c)) ? [{ id: have.get(key(c))!, position }] : [])),
+    create: combos.flatMap((values, position) => (have.has(key(values)) ? [] : [{ values, position }])),
+    remove: existing.filter((v) => !v.option_values || !wanted.has(key(v.option_values))).map((v) => v.id),
+  }
+}
+
+/** The variant a buyer's picks point to (all options chosen). */
+export const variantFor = (variants: CatalogVariant[], picked: string[]) => variants.find((v) => v.values && v.values.length === picked.length && v.values.every((x, i) => x === picked[i])) ?? null

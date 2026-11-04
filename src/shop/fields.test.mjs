@@ -98,3 +98,18 @@ test("name your price + single tracks in the cart", () => {
   assert.deepEqual(readCart(JSON.stringify([{ id: A, q: 1, p: 1234 }, { id: V, q: 1, p: -5 }])), [{ id: A, q: 1, p: 1234 }, { id: V, q: 1 }])
   assert.deepEqual(changeCart([{ id: A, q: 1, p: 900 }], A, 2, "set"), [{ id: A, q: 2, p: 900 }])
 })
+
+test("variant options: read, combinations, plan", async () => {
+  const { readOptions, optionCombos, planVariants } = await import("./fields.ts")
+  const r = readOptions([{ name: " Farbe ", values: ["Schwarz", "Weiß", "Weiß", ""] }, { name: "Größe", values: ["S", "M"] }, { name: "", values: [] }])
+  assert.deepEqual(r.options, [{ name: "Farbe", values: ["Schwarz", "Weiß"] }, { name: "Größe", values: ["S", "M"] }])
+  assert.equal(readOptions([{ name: "Farbe", values: [] }]).error, "store.optionsInvalid")
+  assert.equal(readOptions([{ name: "a", values: ["1"] }, { name: "A", values: ["2"] }]).error, "store.optionsInvalid")
+  assert.equal(readOptions([{ name: "a", values: [...Array(11).keys()].map(String) }, { name: "b", values: [...Array(10).keys()].map(String) }]).error, "store.tooManyCombos")
+  assert.deepEqual(optionCombos(r.options), [["Schwarz", "S"], ["Schwarz", "M"], ["Weiß", "S"], ["Weiß", "M"]])
+  const plan = planVariants(r.options, [{ id: "a", option_values: ["Weiß", "M"] }, { id: "b", option_values: ["Grün", "S"] }, { id: "c", option_values: null }])
+  assert.deepEqual(plan.keep, [{ id: "a", position: 3 }])
+  assert.deepEqual(plan.create.map((c) => c.values.join("/")), ["Schwarz/S", "Schwarz/M", "Weiß/S"])
+  assert.deepEqual(plan.remove, ["b", "c"])
+  assert.deepEqual(planVariants([], [{ id: "c", option_values: null }]).remove, [])
+})

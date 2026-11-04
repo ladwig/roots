@@ -1,8 +1,8 @@
 import { z } from "zod"
 import { deliverSoon } from "@/events/worker"
 import { imageUrl, removeImage } from "@/lib/images"
-import { DELIVERIES, MAIL_KINDS, ORDER_STATUSES, PAYMENTS, PRODUCT_KINDS, PRODUCT_STATUSES, readProduct, readShippingRates, readVariant, TAX_RATES } from "@/shop/fields"
-import { cancelOrder, ensureInvoice, mail, markOrderPaid, setOrderStatus } from "@/shop/server"
+import { DELIVERIES, MAIL_KINDS, ORDER_STATUSES, PAYMENTS, PRODUCT_KINDS, PRODUCT_STATUSES, readOptions, readProduct, readShippingRates, readVariant, TAX_RATES } from "@/shop/fields"
+import { applyOptions, cancelOrder, ensureInvoice, mail, markOrderPaid, setOrderStatus } from "@/shop/server"
 import { deleteTrack, finishTrackUpload, productTrackList, startTrackUpload, updateTrack } from "@/shop/audio"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
 import { putImage, ts, type Db } from "./shared"
@@ -11,7 +11,7 @@ import { toLocalInput } from "@/lib/time"
 // Shop: products (+ variants, pictures, downloads via /files), orders and their fulfilment, settings. Validation =
 // the App's (src/shop/fields.ts), order steps = src/shop/server.ts (mails, invoices, refunds happen there too).
 const TAG = "Shop"
-const Variant = z.object({ id: uuid, name: z.string(), price_cents: z.number().int().nullable().describe("null = the product's price"), stock: z.number().int().nullable(), active: z.boolean(), digital: z.boolean().describe("Download only: no shipping, no stock needed"), name_your_price: z.boolean().nullable().describe("Name your price for this variant (price = minimum); null = as the product"), position: z.number().int() })
+const Variant = z.object({ id: uuid, name: z.string(), price_cents: z.number().int().nullable().describe("null = the product's price"), stock: z.number().int().nullable(), active: z.boolean(), digital: z.boolean().describe("Download only: no shipping, no stock needed"), name_your_price: z.boolean().nullable().describe("Name your price for this variant (price = minimum); null = as the product"), option_values: z.array(z.string()).nullable().describe("Its combination when the product has options (in option order)"), image_path: z.string().nullable().describe("One of the product's pictures, shown when picked"), position: z.number().int() })
 const Product = z.object({
   id: uuid,
   slug: z.string(),
@@ -28,13 +28,14 @@ const Product = z.object({
   name_your_price: z.boolean().describe("Name your price: `price_cents` is the minimum, buyers choose what they pay"),
   suggested_cents: z.number().int().nullable().describe("Pre-filled choice for name your price"),
   track_price_cents: z.number().int().nullable().describe("Single tracks for sale at this price (the minimum when name your price); null = album only"),
+  options: z.array(z.object({ name: z.string(), values: z.array(z.string()) })).describe("Variant options (e.g. Farbe, Größe); variants are their combinations. Change with PUT /shop/products/{id}/options"),
   release_at: ts.nullable().describe("Release date (pre-order): sells before it, digital delivery (downloads, music) unlocks that day"),
   images: z.array(z.object({ path: z.string(), image_url: z.string() })).describe("First = cover"),
   variants: z.array(Variant),
   created_at: ts,
   updated_at: ts,
 })
-const PRODUCT_COLS = "id, slug, name, description, kind, status, price_cents, tax_rate, stock, max_per_order, category, video_url, release_at, name_your_price, suggested_cents, track_price_cents, images, created_at, updated_at, product_variants(id, name, price_cents, stock, active, digital, name_your_price, position)"
+const PRODUCT_COLS = "id, slug, name, description, kind, status, price_cents, tax_rate, stock, max_per_order, category, video_url, release_at, name_your_price, suggested_cents, track_price_cents, options, images, created_at, updated_at, product_variants(id, name, price_cents, stock, active, digital, name_your_price, option_values, image_path, position)"
 type ProductRow = { images: string[]; tax_rate: number; product_variants: { position: number }[] } & Record<string, unknown>
 const productOut = ({ product_variants, images, ...p }: ProductRow) => ({
   ...p,
@@ -62,7 +63,7 @@ const ProductInput = z
   })
   .partial()
   .strict()
-const VariantInput = z.object({ name: z.string().max(100), price_cents: z.number().int().min(0).max(99_999_999).nullable(), stock: z.number().int().min(0).max(1_000_000).nullable(), active: z.boolean(), digital: z.boolean(), name_your_price: z.boolean().nullable(), position: z.number().int() }).partial().strict()
+const VariantInput = z.object({ name: z.string().max(100), price_cents: z.number().int().min(0).max(99_999_999).nullable(), stock: z.number().int().min(0).max(1_000_000).nullable(), active: z.boolean(), digital: z.boolean(), name_your_price: z.boolean().nullable(), image_path: z.string().max(300).nullable(), position: z.number().int() }).partial().strict()
 
 const ShopOrder = z.object({
   id: uuid,
@@ -253,6 +254,23 @@ export const endpoints: Endpoint[] = [
     },
   }),
   endpoint({
+    method: "PUT",
+    path: "/shop/products/{id}/options",
+    permission: "shop.manage",
+    tag: TAG,
+    summary: "Set variant options (generates the variants)",
+    description: "Up to 3 options with values, e.g. `[{ name: \"Farbe\", values: [\"Schwarz\", \"Weiß\"] }, { name: \"Größe\", values: [\"S\", \"M\", \"L\"] }]` (max 100 combinations). Creates one variant per combination; existing combinations keep stock, price and picture; variants whose combination is gone are deleted (orders keep their own copy). An empty list removes the options and leaves the variants as they are.",
+    body: z.object({ options: z.array(z.object({ name: z.string().max(40), values: z.array(z.string().max(40)).max(30) })).max(3) }).strict(),
+    response: Product,
+    async handler({ db, orgId, params, body }) {
+      const r = readOptions(body.options)
+      if ("error" in r) throw invalid(r.error)
+      const res = await applyOptions(db, orgId, params.id, r.options)
+      if ("error" in res) throw res.error === "db" ? dbError(res.db!) : notFound()
+      return productOf(db, orgId, params.id)
+    },
+  }),
+  endpoint({
     method: "POST",
     path: "/shop/products/{id}/variants",
     permission: "shop.manage",
@@ -280,12 +298,14 @@ export const endpoints: Endpoint[] = [
     body: VariantInput,
     response: Variant,
     async handler({ db, orgId, params, body }) {
-      const { data: old } = await db.from("product_variants").select("name, price_cents, stock, active, digital, name_your_price, position").eq("id", params.id).eq("org_id", orgId).maybeSingle()
+      const { data: old } = await db.from("product_variants").select("product_id, name, price_cents, stock, active, digital, name_your_price, image_path, position").eq("id", params.id).eq("org_id", orgId).maybeSingle()
       if (!old) throw notFound()
       const next = { name: body.name ?? old.name, price_cents: body.price_cents !== undefined ? body.price_cents : old.price_cents, stock: body.stock !== undefined ? body.stock : old.stock, active: body.active ?? old.active, digital: body.digital ?? old.digital, name_your_price: body.name_your_price !== undefined ? body.name_your_price : old.name_your_price, position: body.position ?? old.position }
       const r = readVariant(getter({ ...asForm(next), has_active: "1" }))
       if ("error" in r) throw invalid(r.error)
-      const { data, error } = await db.from("product_variants").update({ ...r.row, position: next.position }).eq("id", params.id).eq("org_id", orgId).select("id, name, price_cents, stock, active, digital, name_your_price, position").single()
+      const image = body.image_path !== undefined ? body.image_path : old.image_path
+      if (image && !(await productOf(db, orgId, old.product_id)).images.some((i) => i.path === image)) throw new ApiError(422, "image_unknown", "image_path must be one of the product's pictures.")
+      const { data, error } = await db.from("product_variants").update({ ...r.row, image_path: image, position: next.position }).eq("id", params.id).eq("org_id", orgId).select("id, name, price_cents, stock, active, digital, name_your_price, option_values, image_path, position").single()
       if (error) throw dbError(error)
       return data
     },

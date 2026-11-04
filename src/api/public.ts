@@ -122,7 +122,8 @@ const ShopProduct = z.object({
   track_price_cents: z.number().int().nullable().describe("Single tracks for sale at this price (minimum when name your price); null = album only"),
   tracks_for_sale: z.array(z.object({ id: uuid, title: z.string() })).describe("Tracks sold on their own (order them by id)"),
   left: z.number().int().nullable().describe("Products without variants: units left (null = unlimited)"),
-  variants: z.array(z.object({ id: uuid, name: z.string(), price_cents: z.number().int(), left: z.number().int().nullable(), digital: z.boolean().describe("Download only: no shipping, delivered after payment"), name_your_price: z.boolean() })),
+  variants: z.array(z.object({ id: uuid, name: z.string(), price_cents: z.number().int(), left: z.number().int().nullable(), digital: z.boolean().describe("Download only: no shipping, delivered after payment"), name_your_price: z.boolean(), values: z.array(z.string()).nullable().describe("Its option values (in `options` order)"), image: z.string().nullable().describe("Picture URL to show when picked") })),
+  options: z.array(z.object({ name: z.string(), values: z.array(z.string()) })).describe("Variant options (Farbe, Größe …): pick one value each, the variant with those `values` is the item"),
   url: z.string().describe("Hosted product page"),
 })
 const shopCatalog = async (orgId: string, slug?: string) => ((await createPublicClient().rpc("shop_catalog", { p_org: orgId, p_slug: slug })).data ?? []) as CatalogProduct[]
@@ -143,7 +144,8 @@ const shopProductOut = (org: Org, p: CatalogProduct) => ({
   track_price_cents: p.track_price_cents ?? null,
   tracks_for_sale: p.tracks ?? [],
   left: p.left,
-  variants: p.variants.map((v) => ({ ...v, name_your_price: !!v.name_your_price })),
+  variants: p.variants.map((v) => ({ ...v, name_your_price: !!v.name_your_price, values: v.values ?? null, image: v.image ? imageUrl(v.image)! : null })),
+  options: p.options ?? [],
   url: siteUrl(org.slug, `/shop/${p.slug}`, org.site_domain),
 })
 const SHOP_ERRORS: Record<string, string> = {

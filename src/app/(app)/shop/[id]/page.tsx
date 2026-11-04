@@ -15,7 +15,10 @@ import { imageUrl } from "@/lib/images"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { param, siteUrl } from "@/lib/url"
 import { priceInput } from "@/tickets/price"
-import { productImage, restoreProduct, saveTrack, saveTrackPrice, saveVariant, trashProduct } from "../actions"
+import { productImage, restoreProduct, saveOptions, saveTrack, saveTrackPrice, saveVariant, saveVariants, trashProduct } from "../actions"
+import { SaveBar } from "@/components/save-bar"
+import { MultiSelect } from "@/components/multi-select"
+import type { ProductOption } from "@/shop/fields"
 import { Label } from "@/components/ui/label"
 import { productTrackList } from "@/shop/audio"
 import { AutoRefresh } from "@/app/s/[site]/t/[order]/auto-refresh"
@@ -45,6 +48,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   const left = new Map(await Promise.all(items.map(async (i) => [i.id, i.stock === null ? null : (await admin.rpc("shop_left", { p_item: i.id, p_stock: i.stock })).data] as const)))
   const leftLabel = (itemId: string, stock: number | null) => (stock === null ? t("store.unlimited") : t("store.leftOf", { left: Math.max(0, left.get(itemId) ?? 0), stock }))
   const here = `/shop/${id}`
+  const options = (p.options ?? []) as ProductOption[]
   const zips = (p.audio_zips ?? {}) as { zip?: { size: number } }
   // Conversions / ZIPs still running: the page reloads itself until they're done.
   const busyAudio = tracks.some((x) => x.status === "pending" || x.status === "processing") || (tracks.some((x) => x.status === "ready") && !Object.keys(zips).length)
@@ -112,49 +116,121 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
             ))}
           </nav>
           {tab === "variants" ? (
-            <div className="grid max-w-3xl gap-6">
+            <div className="grid gap-6">
+              <FormCard id="options" title={t("store.options")} description={t("store.optionsHint")}>
+                {/* Up to 3 options; saving makes one variant per combination (existing combinations keep stock/price). */}
+                <form action={saveOptions} className="grid gap-2">
+                  <input type="hidden" name="product_id" value={p.id} />
+                  {[...options, ...Array(Math.max(0, Math.min(3, options.length + 1) - options.length)).fill(null)].map((o: { name: string; values: string[] } | null, i) => (
+                    <div key={o?.name ?? `new-${i}`} className="grid gap-2 sm:grid-cols-[10rem_1fr]">
+                      <Input name="option_name" defaultValue={o?.name ?? ""} maxLength={40} placeholder={t("store.optionNamePlaceholder")} aria-label={t("store.optionName")} disabled={!canManage} />
+                      <MultiSelect name="option_values" joined creatable options={(o?.values ?? []).map((v) => ({ value: v, label: v }))} defaultValue={o?.values ?? []} disabled={!canManage} placeholder={t("store.optionValuesPlaceholder")} />
+                    </div>
+                  ))}
+                  {canManage && (
+                    <SubmitButton size="sm" variant="outline" className="justify-self-start" data-confirm={variants?.length ? "store.confirmOptions" : undefined}>
+                      {t("store.saveOptions")}
+                    </SubmitButton>
+                  )}
+                </form>
+              </FormCard>
+
               <FormCard id="variants" title={t("store.variants")} description={t("store.variantsHint")}>
                 {!variants?.length && <p className="text-sm text-muted-foreground">{t("store.noVariants", { left: leftLabel(p.id, p.stock) })}</p>}
-                <ul className="grid gap-2">
-                  {variants?.map((v) => (
-                    <li key={v.id} className="grid gap-2 rounded-lg border p-2">
-                      <form action={saveVariant} className="grid grid-cols-[1fr_6rem_5rem] items-center gap-2">
-                        <input type="hidden" name="id" value={v.id} />
-                        <input type="hidden" name="product_id" value={p.id} />
-                        <Input name="name" defaultValue={v.name} required maxLength={100} aria-label={t("store.variantName")} disabled={!canManage} />
-                        <TypedInput kind="money" name="price" defaultValue={v.price_cents === null ? "" : priceInput(v.price_cents)} placeholder={priceInput(p.price_cents)} aria-label={t("store.price")} disabled={!canManage} />
-                        <TypedInput kind="number" name="stock" min={0} defaultValue={v.stock ?? ""} placeholder="∞" aria-label={t("store.stock")} disabled={!canManage} />
-                        <span className="col-span-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-2">
-                            {leftLabel(v.id, v.stock)}
-                            <label className="flex items-center gap-1">
-                              <input type="hidden" name="has_active" value="1" />
-                              <input type="checkbox" name="active" value="1" defaultChecked={v.active} disabled={!canManage} className="accent-primary" /> {t("store.variantActive")}
-                            </label>
-                            <label className="flex items-center gap-1">
-                              <input type="checkbox" name="digital" value="1" defaultChecked={v.digital} disabled={!canManage} className="accent-primary" /> {t("store.variantDigital")}
-                            </label>
-                            <label className="flex items-center gap-1" title={t("store.nameYourPriceHint")}>
-                              <input type="hidden" name="has_nyp" value="1" />
-                              <input type="checkbox" name="name_your_price" value="1" defaultChecked={v.name_your_price ?? p.name_your_price} disabled={!canManage} className="accent-primary" /> {t("store.variantNyp")}
-                            </label>
-                          </span>
-                          {canManage && (
-                            <span className="flex gap-1">
-                              <SubmitButton size="sm" variant="outline">
-                                {t("common.save")}
-                              </SubmitButton>
-                              <SubmitButton size="sm" variant="ghost" name="delete" value="1" data-confirm="store.confirmDeleteVariant" aria-label={t("store.deleteVariant")}>
-                                <Trash2Icon />
-                              </SubmitButton>
-                            </span>
-                          )}
-                        </span>
-                      </form>
-                    </li>
-                  ))}
-                </ul>
-                {canManage && (
+                {variants?.length ? (
+                  <form action={saveVariants} className="grid gap-3">
+                    <input type="hidden" name="product_id" value={p.id} />
+                    <div className="overflow-x-auto rounded-lg border">
+                      <table className="w-full text-sm">
+                        <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
+                          <tr>
+                            <th className="px-2 py-2 font-medium">{t("store.variantName")}</th>
+                            <th className="px-2 py-2 font-medium">{t("store.price")}</th>
+                            <th className="px-2 py-2 font-medium">{t("store.stock")}</th>
+                            <th className="px-2 py-2 font-medium">{t("store.free")}</th>
+                            {p.images.length > 0 && <th className="px-2 py-2 font-medium">{t("store.variantImage")}</th>}
+                            <th className="px-2 py-2 text-center font-medium">{t("store.variantActive")}</th>
+                            <th className="px-2 py-2 text-center font-medium">{t("store.variantDigital")}</th>
+                            <th className="px-2 py-2 text-center font-medium" title={t("store.nameYourPriceHint")}>{t("store.variantNyp")}</th>
+                            {canManage && <th className="w-10" />}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {variants.map((v) => {
+                            const f = (k: string) => `${k}_${v.id}`
+                            return (
+                              <tr key={v.id} className="align-middle">
+                                <td className="min-w-40 px-2 py-1.5">
+                                  <input type="hidden" name="variant" value={v.id} />
+                                  <input type="hidden" name={f("has_active")} value="1" />
+                                  <input type="hidden" name={f("has_nyp")} value="1" />
+                                  {v.option_values ? (
+                                    <>
+                                      <input type="hidden" name={f("name")} value={v.name} />
+                                      <span className="font-medium">{v.option_values.join(" / ")}</span>
+                                    </>
+                                  ) : (
+                                    <Input name={f("name")} defaultValue={v.name} required maxLength={100} aria-label={t("store.variantName")} disabled={!canManage} />
+                                  )}
+                                </td>
+                                <td className="w-28 px-2 py-1.5">
+                                  <TypedInput kind="money" name={f("price")} defaultValue={v.price_cents === null ? "" : priceInput(v.price_cents)} placeholder={priceInput(p.price_cents)} aria-label={t("store.price")} disabled={!canManage} />
+                                </td>
+                                <td className="w-24 px-2 py-1.5">
+                                  <TypedInput kind="number" name={f("stock")} min={0} defaultValue={v.stock ?? ""} placeholder="∞" aria-label={t("store.stock")} disabled={!canManage} />
+                                </td>
+                                <td className="px-2 py-1.5 text-xs whitespace-nowrap text-muted-foreground">{leftLabel(v.id, v.stock)}</td>
+                                {p.images.length > 0 && (
+                                  <td className="px-2 py-1.5">
+                                    <div className="flex items-center gap-1.5">
+                                      {v.image_path && (
+                                        // eslint-disable-next-line @next/next/no-img-element -- public bucket URL
+                                        <img src={imageUrl(v.image_path)} alt="" className="size-7 rounded border object-cover" />
+                                      )}
+                                      <select name={f("image")} defaultValue={v.image_path ?? ""} disabled={!canManage} aria-label={t("store.variantImage")} className="h-8 rounded-md border bg-transparent px-1 text-xs">
+                                        <option value="">–</option>
+                                        {p.images.map((path, i) => (
+                                          <option key={path} value={path}>
+                                            {t("store.imageN", { n: i + 1 })}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                  </td>
+                                )}
+                                <td className="px-2 py-1.5 text-center">
+                                  <input type="checkbox" name={f("active")} value="1" defaultChecked={v.active} disabled={!canManage} aria-label={t("store.variantActive")} className="size-4 accent-primary" />
+                                </td>
+                                <td className="px-2 py-1.5 text-center">
+                                  <input type="checkbox" name={f("digital")} value="1" defaultChecked={v.digital} disabled={!canManage} aria-label={t("store.variantDigital")} className="size-4 accent-primary" />
+                                </td>
+                                <td className="px-2 py-1.5 text-center">
+                                  <input type="checkbox" name={f("name_your_price")} value="1" defaultChecked={v.name_your_price ?? p.name_your_price} disabled={!canManage} aria-label={t("store.variantNyp")} className="size-4 accent-primary" />
+                                </td>
+                                {canManage && (
+                                  <td className="px-1 py-1.5">
+                                    <SubmitButton size="icon-sm" variant="ghost" form={`del-${v.id}`} data-confirm="store.confirmDeleteVariant" aria-label={t("store.deleteVariant")}>
+                                      <Trash2Icon />
+                                    </SubmitButton>
+                                  </td>
+                                )}
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    {canManage && <SaveBar />}
+                  </form>
+                ) : null}
+                {variants?.map((v) => (
+                  <form key={v.id} id={`del-${v.id}`} action={saveVariant} hidden>
+                    <input type="hidden" name="id" value={v.id} />
+                    <input type="hidden" name="product_id" value={p.id} />
+                    <input type="hidden" name="delete" value="1" />
+                  </form>
+                ))}
+                {canManage && !options.length && (
                   <form action={saveVariant} className="grid grid-cols-[1fr_6rem_5rem] items-center gap-2 rounded-lg border border-dashed p-2">
                     <input type="hidden" name="product_id" value={p.id} />
                     <input type="hidden" name="position" value={variants?.length ?? 0} />

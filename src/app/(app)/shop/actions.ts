@@ -8,8 +8,8 @@ import { requirePerm } from "@/lib/context"
 import { removeImage, replaceImage } from "@/lib/images"
 import { moneyCents } from "@/lib/inputs"
 import { back } from "@/lib/url"
-import { MAIL_KINDS, readProduct, readShippingRates, readVariant } from "@/shop/fields"
-import { cancelOrder, ensureInvoice, mail, markOrderPaid, setOrderStatus } from "@/shop/server"
+import { MAIL_KINDS, readOptions, readProduct, readShippingRates, readVariant } from "@/shop/fields"
+import { applyOptions, cancelOrder, ensureInvoice, mail, markOrderPaid, setOrderStatus } from "@/shop/server"
 import { deleteTrack, finishTrackUpload, startTrackUpload, updateTrack } from "@/shop/audio"
 
 const UUID = /^[0-9a-f-]{36}$/
@@ -106,6 +106,44 @@ export async function saveVariant(fd: FormData) {
     : await ctx.supabase.from("product_variants").insert({ ...r.row, org_id: ctx.org.id, product_id: productId, position: Number(fd.get("position")) || 0 })
   if (error) back(here, { error: dbError(t, error) })
   back(here, { ok: t("store.saved") })
+}
+
+/** All variants of a product in one go (the table): each row's fields come as `<field>_<variant id>`. */
+export async function saveVariants(fd: FormData) {
+  const { ctx, t } = await manager()
+  const productId = id(fd, "product_id")
+  const here = `/shop/${productId}?tab=variants`
+  if (!productId) back("/shop", { error: t("errors.invalid_input") })
+  const { data: p } = await ctx.supabase.from("products").select("images").eq("id", productId).eq("org_id", ctx.org.id).maybeSingle()
+  if (!p) back(here, { error: t("errors.not_allowed") })
+  const ids = fd.getAll("variant").map(String).filter((v) => UUID.test(v))
+  for (const v of ids) {
+    const r = readVariant((k) => String(fd.get(`${k}_${v}`) ?? ""))
+    if ("error" in r) back(here, { error: msg(t, r.error) })
+    const image = String(fd.get(`image_${v}`) ?? "")
+    const { error } = await ctx.supabase
+      .from("product_variants")
+      .update({ ...r.row, image_path: p.images.includes(image) ? image : null })
+      .eq("id", v)
+      .eq("product_id", productId)
+      .eq("org_id", ctx.org.id)
+    if (error) back(here, { error: dbError(t, error) })
+  }
+  back(here, { ok: t("store.saved") })
+}
+
+/** Variant options (Farbe, Größe …): rows `option_name` + `option_values` (comma list) → variants per combination. */
+export async function saveOptions(fd: FormData) {
+  const { ctx, t } = await manager()
+  const productId = id(fd, "product_id")
+  const here = `/shop/${productId}?tab=variants`
+  if (!productId) back("/shop", { error: t("errors.invalid_input") })
+  const values = fd.getAll("option_values").map(String)
+  const r = readOptions(fd.getAll("option_name").map((name, i) => ({ name: String(name), values: (values[i] ?? "").split(",") })))
+  if ("error" in r) back(here, { error: msg(t, r.error) })
+  const res = await applyOptions(ctx.supabase, ctx.org.id, productId, r.options)
+  if ("error" in res) back(here, { error: res.error === "db" ? dbError(t, res.db!) : msg(t, String(res.error)) })
+  back(here, { ok: t("store.optionsSaved", { created: res.created, removed: res.removed }) })
 }
 
 // ---------- orders ----------
