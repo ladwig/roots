@@ -5740,7 +5740,7 @@
     "stock": "Stückzahl",
     "stockHint": "Wie viele insgesamt verkauft werden können. Leer = unbegrenzt. Bei Varianten zählt die Stückzahl der Variante.",
     "unlimited": "unbegrenzt",
-    "maxPerOrder": "Höchstens pro Bestellung",
+    "maxPerOrder": "Maximal bestellbare Artikel",
     "productPage": "Produktseite",
     "description": "Beschreibung",
     "descriptionSet": "Beschreibung vorhanden",
@@ -5938,7 +5938,6 @@
     "smallBusinessShort": "Kein Ausweis der USt. (§ 19 UStG)",
     "smallBusinessNote": "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.",
     "vatContained": "enthaltene MwSt. {rate} %",
-    "smallBusinessApp": "Ihr seid Kleinunternehmer (Rechnungen → Einstellungen): im Shop und auf Rechnungen wird keine USt. ausgewiesen. Der Satz gilt erst, wenn ihr das umstellt.",
     "refund": "Erstatten",
     "refundTitle": "Bestellung #{number} erstatten",
     "refundMeta": "Bezahlt {paid} · noch erstattbar {left}",
@@ -5973,6 +5972,8 @@
       "other": "{count} erstattet"
     },
     "refundedOn": "Erstattet am {date}",
-    "refundPendingShort": "ausstehend"
+    "refundPendingShort": "ausstehend",
+    "smallBusinessNoVat": "Keine – ihr seid Kleinunternehmer (§ 19 UStG), Preise sind Endpreise ohne USt.",
+    "smallBusinessChange": "Ändern"
   }
 }

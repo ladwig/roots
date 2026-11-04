@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Choice } from "@/components/choice"
 import { FormCard } from "@/components/page"
 import { RichTextEditor } from "@/components/rich-text-editor"
@@ -23,7 +24,7 @@ export function ProductForm({ t, p, disabled, small }: { t: T; p?: Tables<"produ
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid content-start gap-2">
-            <Label htmlFor="p-price">{t("store.priceGross")}</Label>
+            <Label htmlFor="p-price">{small ? t("store.price") : t("store.priceGross")}</Label>
             <TypedInput kind="money" id="p-price" name="price" required defaultValue={p ? priceInput(p.price_cents) : ""} disabled={disabled} />
           </div>
           <div className="grid gap-2 sm:col-span-2">
@@ -36,11 +37,24 @@ export function ProductForm({ t, p, disabled, small }: { t: T; p?: Tables<"produ
               <TypedInput kind="money" id="p-suggested" name="suggested" defaultValue={p?.suggested_cents != null ? priceInput(p.suggested_cents) : ""} disabled={disabled} />
             </div>
           </div>
-          <div className="grid content-start gap-2">
-            <Label htmlFor="p-tax">{t("store.taxRate")}</Label>
-            <Choice id="p-tax" name="tax_rate" required label={t("store.taxRate")} defaultValue={String(p?.tax_rate ?? 19)} disabled={disabled} options={TAX_RATES.map((r) => ({ value: String(r), label: `${r} %` }))} />
-            {small && <p className="text-xs text-muted-foreground">{t("store.smallBusinessApp")}</p>}
-          </div>
+          {small ? (
+            // Kleinunternehmer: no VAT anywhere, so no rate to pick; the stored rate only applies once they switch.
+            <div className="grid content-start gap-2">
+              <input type="hidden" name="tax_rate" value={String(p?.tax_rate ?? 19)} />
+              <Label>{t("store.taxRate")}</Label>
+              <p className="text-sm text-muted-foreground">
+                {t("store.smallBusinessNoVat")}{" "}
+                <Link href="/invoices/settings" className="underline underline-offset-4">
+                  {t("store.smallBusinessChange")}
+                </Link>
+              </p>
+            </div>
+          ) : (
+            <div className="grid content-start gap-2">
+              <Label htmlFor="p-tax">{t("store.taxRate")}</Label>
+              <Choice id="p-tax" name="tax_rate" required label={t("store.taxRate")} defaultValue={String(p?.tax_rate ?? 19)} disabled={disabled} options={TAX_RATES.map((r) => ({ value: String(r), label: `${r} %` }))} />
+            </div>
+          )}
           <div className="grid content-start gap-2">
             <Label htmlFor="p-kind">{t("store.kind")}</Label>
             <Choice id="p-kind" name="kind" required label={t("store.kind")} defaultValue={p?.kind ?? "physical"} disabled={disabled} options={PRODUCT_KINDS.map((k) => ({ value: k, label: t.dynamic(`store.kinds.${k}`) }))} />

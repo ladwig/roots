@@ -5740,7 +5740,7 @@
     "stock": "Quantity",
     "stockHint": "How many can be sold in total. Empty = unlimited. With variants, each variant's quantity counts.",
     "unlimited": "unlimited",
-    "maxPerOrder": "Max per order",
+    "maxPerOrder": "Maximum items per order",
     "productPage": "Product page",
     "description": "Description",
     "descriptionSet": "Has a description",
@@ -5938,7 +5938,6 @@
     "smallBusinessShort": "No VAT shown (§ 19 UStG)",
     "smallBusinessNote": "Under § 19 UStG (small business) no VAT is charged.",
     "vatContained": "included VAT {rate} %",
-    "smallBusinessApp": "You're a small business (Invoices → Settings): no VAT is shown in the shop or on invoices. The rate only applies once you switch that off.",
     "refund": "Refund",
     "refundTitle": "Refund order #{number}",
     "refundMeta": "Paid {paid} · still refundable {left}",
@@ -5973,6 +5972,8 @@
       "other": "{count} refunded"
     },
     "refundedOn": "Refunded on {date}",
-    "refundPendingShort": "pending"
+    "refundPendingShort": "pending",
+    "smallBusinessNoVat": "None – you're a small business (§ 19 UStG), prices are final prices without VAT.",
+    "smallBusinessChange": "Change"
   }
 }
