@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation"
 import { Loader2Icon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useT } from "@/i18n/client"
-import { fieldValues, keepSent, toRestore, type Sent, type Snapshot } from "@/lib/form-snapshot"
+import { fieldValues, keepSent, restoreFields, toRestore, type Field, type Sent } from "@/lib/form-snapshot"
 import { appRoute } from "@/lib/url"
 
 const SENT_KEY = "roots-form-sent"
@@ -40,7 +40,7 @@ export function SaveBar({ label, always }: { label?: string; always?: boolean })
       const at = { ...here(f), search: query, now: Date.now() }
       const snap = toRestore(sent, at)
       if (snap) {
-        restoreForm(f, snap)
+        restoreFields(f.elements as unknown as Iterable<Field>, snap)
         f.dispatchEvent(new Event("change", { bubbles: true })) // the restored values are unsaved changes again
       }
       if (!keepSent(sent, at)) sessionStorage.removeItem(SENT_KEY)
@@ -135,28 +135,6 @@ export function SaveBar({ label, always }: { label?: string; always?: boolean })
       {target && bar ? createPortal(bar, target) : bar}
     </span>
   )
-}
-
-// Puts sent values back into the visible fields; files and passwords are never restored. Hidden inputs belong to
-// components (tags, rich text, pickers) and are left alone: they keep their state while the page stays mounted.
-// shortcut: after a remount (path mode, back() to the unprefixed path) those components start from the server again, so
-// typed tags/rich text are lost; fix back() to keep the /app prefix (no remount) when that matters.
-function restoreForm(form: HTMLFormElement, snap: Snapshot) {
-  const used = new Map<string, number>()
-  for (const el of form.elements) {
-    if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement)) continue
-    if (!el.name || el.disabled || ["hidden", "file", "password", "submit", "button"].includes(el.type)) continue
-    const values = snap.get(el.name)
-    // Unticked boxes aren't sent at all: a missing name means none of them was ticked.
-    if (el instanceof HTMLInputElement && (el.type === "checkbox" || el.type === "radio")) el.checked = (values ?? []).includes(el.value)
-    else if (!values) continue
-    else if (el instanceof HTMLSelectElement && el.multiple) for (const o of el.options) o.selected = values.includes(o.value)
-    else {
-      const i = used.get(el.name) ?? 0
-      el.value = values[i] ?? ""
-      used.set(el.name, i + 1)
-    }
-  }
 }
 
 /** Before a drawer/dialog closes: true when no form inside `root` has unsaved changes, or the person agrees to drop them. */
