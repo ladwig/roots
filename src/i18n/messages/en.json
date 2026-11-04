@@ -5654,7 +5654,6 @@
     "payOnPickupNote": "You pay when you pick it up – cash or card.",
     "trackingLine": "Tracking: {tracking}",
     "downloads": "Downloads",
-    "downloadsNote": "Your downloads are behind the button.",
     "invoiceDownload": "Invoice {number}",
     "keepOrderLink": "Keep this link – it always shows where your order stands.",
     "transfer": {
@@ -5694,7 +5693,8 @@
       "refunded": {
         "title": "Refund for order #{number}",
         "message": "We refunded {amount} in total for your order #{number}."
-      }
+      },
+      "downloadButton": "Download now"
     },
     "mailKinds": {
       "confirmation": "Order confirmation",
@@ -5994,6 +5994,6 @@
     },
     "orderReceived": "Received",
     "resendMailTitle": "Send mail again",
-    "releaseLaterMail": "{name} comes out on {date}. On that day we unlock your downloads and send you a short note."
+    "releaseLaterMail": "{name} comes out on {date}. We'll let you know again then."
   }
 }

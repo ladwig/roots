@@ -5654,7 +5654,6 @@
     "payOnPickupNote": "Du bezahlst bei der Abholung – bar oder mit Karte.",
     "trackingLine": "Sendungsverfolgung: {tracking}",
     "downloads": "Downloads",
-    "downloadsNote": "Deine Downloads findest du über den Button.",
     "invoiceDownload": "Rechnung {number}",
     "keepOrderLink": "Heb dir diesen Link auf – hier siehst du jederzeit den Stand deiner Bestellung.",
     "transfer": {
@@ -5694,7 +5693,8 @@
       "refunded": {
         "title": "Erstattung zu Bestellung #{number}",
         "message": "Wir haben dir für deine Bestellung #{number} insgesamt {amount} erstattet."
-      }
+      },
+      "downloadButton": "Jetzt herunterladen"
     },
     "mailKinds": {
       "confirmation": "Bestellbestätigung",
@@ -5994,6 +5994,6 @@
     },
     "orderReceived": "Eingegangen",
     "resendMailTitle": "Mail erneut senden",
-    "releaseLaterMail": "{name} erscheint am {date}. An dem Tag schalten wir deine Downloads frei und schicken dir eine kurze Nachricht."
+    "releaseLaterMail": "{name} erscheint am {date}. Du wirst dazu nochmals benachrichtigt."
   }
 }

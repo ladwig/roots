@@ -346,7 +346,7 @@ const md = (html: string, text: string): Markup => ({ html, text })
 export const orderLink = (o: { order_id: string; token: string; orgs: { slug: string; site_domain: string | null } }) =>
   siteUrl(o.orgs.slug, `/o/${o.order_id}?k=${o.token}`, o.orgs.site_domain)
 
-function mailMessage(kind: MailKind, o: Order, t: T, custom: string | null, bank: { holder: string; iban: string; bic: string | null } | null, pickupText: string | null, downloads: boolean, later: { name: string; release_at: string }[]) {
+function mailMessage(kind: MailKind, o: Order, t: T, custom: string | null, bank: { holder: string; iban: string; bic: string | null } | null, pickupText: string | null, later: { name: string; release_at: string }[]) {
   const cur = o.pay_orders.currency
   const vars = { number: String(o.number), name: o.name, total: t.money(o.pay_orders.amount_total, cur), org: o.orgs.name, amount: t.money(refundedCents(o), cur) }
   const intro = custom?.trim() ? custom.replace(/\{([a-z]+)\}/g, (m, k: string) => (k in vars ? vars[k as keyof typeof vars] : m)) : t.dynamic(`store.mail.${kind}.message`, vars)
@@ -385,7 +385,6 @@ function mailMessage(kind: MailKind, o: Order, t: T, custom: string | null, bank
     if (lines.length) parts.push(md(`<p>${lines.map(esc).join("<br>")}</p>`, lines.join("\n")))
   }
   if (kind === "shipped" && o.tracking) parts.push(md(`<p>${esc(t("store.trackingLine", { tracking: o.tracking }))}</p>`, t("store.trackingLine", { tracking: o.tracking })))
-  if (downloads && (kind === "confirmation" || kind === "paid" || kind === "released")) parts.push(md(`<p>${esc(t("store.downloadsNote"))}</p>`, t("store.downloadsNote")))
   // Pre-orders: say when the digital part comes (the "released" mail follows on the day).
   if (kind === "confirmation" || kind === "paid")
     for (const p of later) {
@@ -410,6 +409,8 @@ export async function mail(kind: MailKind, orderId: string, storno?: string | nu
   ])
   const template = org?.org_modules.length ? (org.email_templates[0] ?? null) : null
   const link = orderLink(o)
+  // Downloads ready → the button says so (no extra line about it).
+  const downloads = ["confirmation", "paid", "released"].includes(kind) && ((await orderFiles(o)).length > 0 || (await orderMusic(o)).length > 0)
   const vars = { number: String(o.number), name: o.name, org: o.orgs.name }
   const mailVars = {
     name: o.name,
@@ -418,8 +419,8 @@ export async function mail(kind: MailKind, orderId: string, storno?: string | nu
     number: String(o.number),
     total: t.money(o.pay_orders.amount_total, o.pay_orders.currency),
     title: t.dynamic(`store.mail.${kind}.title`, vars),
-    message: mailMessage(kind, o, t, conf.message ?? null, bank?.iban ? { holder: bank.legal_name ?? o.orgs.name, iban: bank.iban, bic: bank.bic } : null, settings.pickup_text, (await orderFiles(o)).length > 0 || (await orderMusic(o)).length > 0, await orderUnreleased(o)),
-    button: button(link, t("store.mail.button")),
+    message: mailMessage(kind, o, t, conf.message ?? null, bank?.iban ? { holder: bank.legal_name ?? o.orgs.name, iban: bank.iban, bic: bank.bic } : null, settings.pickup_text, await orderUnreleased(o)),
+    button: button(link, t(downloads ? "store.mail.downloadButton" : "store.mail.button")),
     link,
     // event placeholders a shared template may use stay empty
     event: "", when: "", venue: "", count: "", list: "", until: "",
