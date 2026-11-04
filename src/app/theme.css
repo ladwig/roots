@@ -64,7 +64,8 @@
   /* Theme had oklch(0.31 0.09 29.79): unreadable as text-destructive on the dark background. */
   --destructive: oklch(0.70 0.19 22.22);
   --border: oklch(0.28 0 0);
-  --input: oklch(0.26 0 0);
+  /* Was 0.26 = --popover: input borders vanished in drawers. 0.55 = ≥ 3:1 against popover, card, background (theme.test.mjs). */
+  --input: oklch(0.55 0 0);
   --ring: oklch(0.80 0.18 151.71);
   --chart-1: oklch(0.80 0.18 151.71);
   --chart-2: oklch(0.71 0.14 254.62);
