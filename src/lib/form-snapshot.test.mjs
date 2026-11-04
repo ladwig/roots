@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { failedSubmit, fieldValues, toRestore } from "./form-snapshot.ts"
+import { failedSubmit, fieldValues, keepSent, toRestore } from "./form-snapshot.ts"
 
 test("fieldValues groups values by name in order", () => {
   const snap = fieldValues([["tags", "a"], ["tags", "b"], ["first_name", "Erika"]])
@@ -35,4 +35,13 @@ test("toRestore ignores another page, another form and old snapshots", () => {
   assert.equal(toRestore(sent, { ...here, form: 1 }), null)
   assert.equal(toRestore(sent, { ...here, now: 1_000 + 30_001 }), null)
   assert.equal(toRestore(null, here), null)
+})
+
+test("keepSent keeps a failed submit only for another form on the same page", () => {
+  assert.equal(keepSent(sent, { ...here, form: 1 }), true)
+  assert.equal(keepSent(sent, here), false) // this form took it
+  assert.equal(keepSent(sent, { ...here, form: 1, search: "ok=Gespeichert" }), false) // saved: nothing to restore
+  assert.equal(keepSent(sent, { ...here, form: 1, path: "/contacts" }), false)
+  assert.equal(keepSent(sent, { ...here, form: 1, now: 1_000 + 30_001 }), false)
+  assert.equal(keepSent(null, here), false)
 })

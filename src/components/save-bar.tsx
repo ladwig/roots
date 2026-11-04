@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation"
 import { Loader2Icon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useT } from "@/i18n/client"
-import { fieldValues, toRestore, type Sent, type Snapshot } from "@/lib/form-snapshot"
+import { fieldValues, keepSent, toRestore, type Sent, type Snapshot } from "@/lib/form-snapshot"
 import { appRoute } from "@/lib/url"
 
 const SENT_KEY = "roots-form-sent"
@@ -26,8 +26,26 @@ export function SaveBar({ label, always }: { label?: string; always?: boolean })
   // The form is looked up when needed, never remembered: React may swap the <form> element after the first render
   // (streamed parts of the page), and a remembered element / id then points nowhere (button did nothing).
   const form = () => ref.current?.closest("form") ?? null
-  // The URL as the page arrived (?error= from back()): <Notice> removes it from the address bar right after.
-  const arrived = useRef(useSearchParams().toString())
+  // A failed submit (back(path, { error })) comes back with an emptied form: React resets it after the action, and in
+  // path mode (/app/…) the page even remounts. What was sent (never passwords or files) waits in sessionStorage for
+  // at most 30 s and is put back by tryRestore(): on mount (remount) and when the submit ends (same page instance).
+  const search = useSearchParams().toString()
+  const arrived = useRef(search) // the URL as the page arrived: <Notice> removes ?error= from the address bar right after
+  const here = (f: HTMLFormElement) => ({ path: appRoute(location.pathname), form: [...document.forms].indexOf(f) })
+  const tryRestore = (query: string) => {
+    const f = form()
+    if (!f) return
+    try {
+      const sent = JSON.parse(sessionStorage.getItem(SENT_KEY) ?? "null") as Sent | null
+      const at = { ...here(f), search: query, now: Date.now() }
+      const snap = toRestore(sent, at)
+      if (snap) {
+        restoreForm(f, snap)
+        f.dispatchEvent(new Event("change", { bubbles: true })) // the restored values are unsaved changes again
+      }
+      if (!keepSent(sent, at)) sessionStorage.removeItem(SENT_KEY)
+    } catch {}
+  }
 
   useEffect(() => {
     // Page: a bar across the whole content area (portal to its end). Drawer: inline, sticky inside the drawer.
@@ -35,9 +53,6 @@ export function SaveBar({ label, always }: { label?: string; always?: boolean })
     const change = (e: Event) => {
       if (e.target instanceof Node && form()?.contains(e.target)) setDirty(true)
     }
-    // A failed submit redirects back here and remounts the page, which empties the form: keep what was sent
-    // (passwords and files never) and put it back below.
-    const here = (f: HTMLFormElement) => ({ path: appRoute(location.pathname), form: [...document.forms].indexOf(f) })
     const submit = (e: Event) => {
       const f = form()
       if (e.target !== f || !f) return
@@ -46,29 +61,25 @@ export function SaveBar({ label, always }: { label?: string; always?: boolean })
       try {
         sessionStorage.setItem(SENT_KEY, JSON.stringify(sent))
       } catch {}
+      // Never kept longer than needed (IBANs, tax IDs…), even if no SaveBar mounts again.
+      setTimeout(() => {
+        try {
+          if ((JSON.parse(sessionStorage.getItem(SENT_KEY) ?? "null") as Sent | null)?.at === sent.at) sessionStorage.removeItem(SENT_KEY)
+        } catch {}
+      }, 30_000)
     }
     document.addEventListener("input", change, true)
     document.addEventListener("change", change, true)
     document.addEventListener("submit", submit, true)
-    const f = form()
-    if (f) {
-      try {
-        const sent = JSON.parse(sessionStorage.getItem(SENT_KEY) ?? "null") as Sent | null
-        const snap = toRestore(sent, { ...here(f), search: arrived.current, now: Date.now() })
-        if (snap) {
-          restoreForm(f, snap)
-          f.dispatchEvent(new Event("change", { bubbles: true })) // the restored values are unsaved changes again
-        }
-        // Another form on this page may still need it; anything else is used up or stale.
-        if (snap || !sent || sent.path !== here(f).path || Date.now() - sent.at > 30_000) sessionStorage.removeItem(SENT_KEY)
-      } catch {}
-    }
+    tryRestore(arrived.current)
     return () => {
       clearTimeout(place)
       document.removeEventListener("input", change, true)
       document.removeEventListener("change", change, true)
       document.removeEventListener("submit", submit, true)
     }
+    // Once per mount: tryRestore reads the form and storage when called, not values from this render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Marks the form for confirmDiscard() (drawers, dialogs), create forms (`always`) included.
@@ -115,7 +126,7 @@ export function SaveBar({ label, always }: { label?: string; always?: boolean })
             {t("common.cancel")}
           </Button>
         )}
-        <Save submit={() => form()?.requestSubmit()} label={label ?? t("common.save")} onDone={() => setDirty(false)} />
+        <Save submit={() => form()?.requestSubmit()} label={label ?? t("common.save")} onDone={() => (setDirty(false), tryRestore(search))} />
       </div>
     </div>
   )
@@ -126,8 +137,10 @@ export function SaveBar({ label, always }: { label?: string; always?: boolean })
   )
 }
 
-// Puts sent values back into the visible fields. Hidden inputs belong to components (tags, rich text, pickers) that
-// keep their own state, so they are left alone; files and passwords are never restored.
+// Puts sent values back into the visible fields; files and passwords are never restored. Hidden inputs belong to
+// components (tags, rich text, pickers) and are left alone: they keep their state while the page stays mounted.
+// shortcut: after a remount (path mode, back() to the unprefixed path) those components start from the server again, so
+// typed tags/rich text are lost; fix back() to keep the /app prefix (no remount) when that matters.
 function restoreForm(form: HTMLFormElement, snap: Snapshot) {
   const used = new Map<string, number>()
   for (const el of form.elements) {

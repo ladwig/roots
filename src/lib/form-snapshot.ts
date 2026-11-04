@@ -23,3 +23,8 @@ export function toRestore(sent: Sent | null, here: { path: string; form: number;
   if (!sent || sent.path !== here.path || sent.form !== here.form || here.now - sent.at > 30_000) return null
   return failedSubmit(here.search) ? new Map(sent.values) : null
 }
+
+/** After a SaveBar looked at it: keep the snapshot only while another form of this failed page may still need it. */
+export function keepSent(sent: Sent | null, here: { path: string; form: number; search: string; now: number }): boolean {
+  return !!sent && sent.path === here.path && sent.form !== here.form && here.now - sent.at <= 30_000 && failedSubmit(here.search)
+}
