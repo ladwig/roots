@@ -2826,7 +2826,9 @@
       "builtInHint": "This is how your event mails look while you have no default template of your own. Copy it to change text and look – in the editor or as your own HTML (placeholders work in both).",
       "copy": "Copy & customise",
       "placeholders": "Placeholders",
-      "copyName": "My event mail"
+      "copyName": "My event mail",
+      "shopMails": "Shop mails",
+      "shopMailsHint": "What buyers get after an order – in the default template's design above. Same settings as Shop → Settings."
     },
     "eventMail": {
       "greeting": "Hello {name},",

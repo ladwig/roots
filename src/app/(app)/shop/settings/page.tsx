@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param } from "@/lib/url"
-import { COUNTRIES, EU, MAIL_KINDS, readShippingRates } from "@/shop/fields"
+import { COUNTRIES, EU, readShippingRates } from "@/shop/fields"
 import { MultiSelect } from "@/components/multi-select"
 import { onlineReady, shopSettings } from "@/shop/server"
 import { priceInput } from "@/tickets/price"
 import { saveShopSettings } from "../actions"
+import { ShopMailFields } from "./mail-fields"
 
 const textarea =
   "rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
@@ -109,21 +110,7 @@ export default async function ShopSettingsPage({ searchParams }: PageProps<"/sho
         </FormCard>
 
         <FormCard id="mails" title={t("store.mails")} description={t("store.mailsHint")}>
-          {MAIL_KINDS.map((k) => (
-            <div key={k} className="grid gap-2 rounded-lg border p-3">
-              {check(`mail_${k}`, !mails[k]?.off, t.dynamic(`store.mailKinds.${k}`), t.dynamic(`store.mailWhen.${k}`))}
-              <textarea
-                name={`mail_${k}_message`}
-                rows={2}
-                maxLength={2000}
-                defaultValue={mails[k]?.message ?? ""}
-                placeholder={t.dynamic(`store.mail.${k}.message`, { number: "{number}", name: "{name}", total: "{total}", org: "{org}" })}
-                aria-label={t("store.mailText")}
-                className={textarea}
-              />
-            </div>
-          ))}
-          <p className="text-xs text-muted-foreground">{t("store.mailTemplateHint")}</p>
+          <ShopMailFields t={t} mails={mails} />
         </FormCard>
 
         <FormCard id="legal" title={t("store.legal")} description={t("store.legalHint")}>

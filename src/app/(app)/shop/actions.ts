@@ -240,6 +240,18 @@ export async function resendMailAction(fd: FormData) {
 
 // ---------- settings ----------
 
+const readMails = (fd: FormData) =>
+  Object.fromEntries(MAIL_KINDS.map((k) => [k, { off: fd.get(`mail_${k}`) !== "1", message: String(fd.get(`mail_${k}_message`) ?? "").trim().slice(0, 2000) || undefined }]))
+
+/** Only the buyer mails (E-Mail → Vorlagen shows them too). */
+export async function saveShopMails(fd: FormData) {
+  const { ctx, t } = await manager()
+  const here = "/email/templates"
+  const { error } = await ctx.supabase.from("shop_settings").upsert({ org_id: ctx.org.id, mails: readMails(fd) as never }, { onConflict: "org_id" })
+  if (error) back(here, { error: dbError(t, error) })
+  back(here, { ok: t("store.saved") })
+}
+
 export async function saveShopSettings(fd: FormData) {
   const { ctx, t } = await manager()
   const here = "/shop/settings"
@@ -254,7 +266,7 @@ export async function saveShopSettings(fd: FormData) {
     free_from: list("rate_free")[i]?.trim() ? moneyCents(list("rate_free")[i]) : null,
     countries: list("rate_countries")[i] || "DE",
   }))
-  const mails = Object.fromEntries(MAIL_KINDS.map((k) => [k, { off: !on(`mail_${k}`), message: text(`mail_${k}_message`, 2000) ?? undefined }]))
+  const mails = readMails(fd)
   const days = Math.floor(Number(fd.get("transfer_days")) || 7)
   const { error } = await ctx.supabase.from("shop_settings").upsert(
     {

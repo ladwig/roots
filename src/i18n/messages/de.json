@@ -2826,7 +2826,9 @@
       "builtInHint": "So sehen eure Event-Mails aus, solange ihr keine eigene Standardvorlage habt. Kopiert sie, um Text und Aussehen anzupassen – im Editor oder als eigenes HTML (Platzhalter funktionieren in beiden).",
       "copy": "Kopieren & anpassen",
       "placeholders": "Platzhalter",
-      "copyName": "Meine Event-Mail"
+      "copyName": "Meine Event-Mail",
+      "shopMails": "Shop-Mails",
+      "shopMailsHint": "Was Käufer:innen nach einer Bestellung bekommen – im Design der Standard-Vorlage oben. Dieselben Einstellungen wie unter Shop → Einstellungen."
     },
     "eventMail": {
       "greeting": "Hallo {name},",
