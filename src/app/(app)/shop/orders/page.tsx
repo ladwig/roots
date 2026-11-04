@@ -110,7 +110,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/shop/orde
             header: t("store.status"),
             cell: (o) => (
               <span className="flex flex-wrap gap-1">
-                {o.status !== "new" && <Badge variant={o.status === "cancelled" ? "destructive" : "secondary"}>{t.dynamic(`store.orderStatus.${o.status}`)}</Badge>}
+                <Badge variant={o.status === "cancelled" ? "destructive" : o.status === "new" ? "default" : "secondary"}>{t.dynamic(`store.orderStatus.${o.status}`)}</Badge>
               </span>
             ),
           },

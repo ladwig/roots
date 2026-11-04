@@ -58,7 +58,7 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/sh
         title={t("store.orderTitle", { number: String(o.number) })}
         badge={
           <span className="flex flex-wrap gap-1">
-            {o.status !== "new" && <Badge variant={live ? "secondary" : "destructive"}>{t.dynamic(`store.orderStatus.${o.status}`)}</Badge>}
+            <Badge variant={live ? "secondary" : "destructive"}>{t.dynamic(`store.orderStatus.${o.status}`)}</Badge>
             {live && <Badge variant={paid ? "secondary" : "outline"}>{paid ? t("store.paid") : t("store.unpaid")}</Badge>}
           </span>
         }
