@@ -10,7 +10,7 @@ import { imageUrl, imageUrlOn } from "@/lib/images"
 import { param, sitePath } from "@/lib/url"
 import { cleanHtml } from "@/site/html"
 import { videoEmbed, type CatalogProduct } from "@/shop/fields"
-import { productTracks } from "@/shop/server"
+import { playerTracks } from "@/shop/audio"
 import { getSite } from "../../data"
 import { Gallery } from "./gallery"
 import { MusicPlayer } from "./player"
@@ -45,7 +45,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   const r = await load(site, slug)
   if (!r) notFound()
   const { p } = r
-  const [t, tracks] = await Promise.all([getT(), productTracks(r.s.org.id, p.id)])
+  const [t, tracks] = await Promise.all([getT(), playerTracks(r.s.org.id, p.id)])
   const video = videoEmbed(p.video_url)
   const gone = soldOut(p)
   const first = p.variants.find((v) => v.left !== 0)
@@ -66,7 +66,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
           <p className="text-xs text-muted-foreground">{t(p.kind === "digital" ? "store.vatDigital" : "store.vatShipping")}</p>
           {tracks.length > 0 && (
             <MusicPlayer
-              tracks={tracks.map((x) => ({ id: x.id, title: x.title, src: x.stream ? sitePath(site, `/shop/${slug}/track/${x.id}`) : null }))}
+              tracks={tracks.map((x) => ({ id: x.id, title: x.title, duration: x.duration, src: x.stream ? sitePath(site, `/shop/${slug}/track/${x.id}`) : null }))}
               cover={p.images[0] ? imageUrl(p.images[0])! : null}
               artist={r.s.org.name}
             />

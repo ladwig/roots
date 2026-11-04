@@ -701,7 +701,8 @@
       "products": "Products",
       "product_variants": "Product variants",
       "shop_orders": "Shop orders",
-      "shop_settings": "Shop settings"
+      "shop_settings": "Shop settings",
+      "product_tracks": "Music tracks"
     },
     "title": "Activity",
     "comment": "Comment",
@@ -5811,8 +5812,8 @@
     "previous": "Previous track",
     "next": "Next track",
     "buyersOnly": "after purchase",
-    "tracks": "Music (player)",
-    "tracksHint": "Upload audio files (MP3, M4A, OGG …) – they show as a player on the product page. Number = order. Unticked tracks are listed but don't play (buyers get the music through the downloads).",
+    "tracks": "Music",
+    "tracksHint": "Upload the lossless master per track (WAV, AIFF or FLAC). roots makes the player version for the shop and, for buyers, MP3 320, FLAC and WAV – single tracks and an album ZIP. Number = order. Unticked tracks are listed in the player but don't play (buyers only).",
     "trackNumber": "No.",
     "trackTitle": "Title",
     "trackStream": "playable in the shop",
@@ -5825,6 +5826,30 @@
     "tabProduct": "Product",
     "tabVariants": "Variants ({count})",
     "tabDigital": "Music & downloads",
-    "allEu": "EU (all 27 countries)"
+    "allEu": "EU (all 27 countries)",
+    "audioUpload": "Upload masters",
+    "audioUploadHint": "WAV, AIFF or FLAC, up to 250 MB per track. Several files at once.",
+    "audioUploadFailed": "Upload failed",
+    "audioNotConfigured": "The audio storage isn't set up yet.",
+    "audioType": "Only WAV, AIFF or FLAC (lossless).",
+    "audioTooBig": "File too big (max. {max} per track).",
+    "audioMissing": "The file didn't arrive – please upload it again.",
+    "trackTitleRequired": "The title is missing.",
+    "trackRetry": "Convert again",
+    "trackStatus": {
+      "uploading": "Upload incomplete",
+      "pending": "Waiting for conversion",
+      "processing": "Converting …",
+      "ready": "Ready",
+      "failed": "Failed"
+    },
+    "audioFormats": {
+      "mp3": "MP3 320",
+      "flac": "FLAC",
+      "wav": "WAV"
+    },
+    "zipsReady": "Album ZIPs ready: {list}",
+    "zipsPreparing": "Album ZIPs are being built …",
+    "albumZip": "Whole album as ZIP"
   }
 }

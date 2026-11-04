@@ -1,6 +1,7 @@
 // Shop, server side (service role). Buyers are anonymous: everything here validates its own input; team actions
 // are checked by their callers (Server Actions / API). Money goes through src/payments (createOrder → startCheckout
 // or a manual payment); this module adds delivery, stock, the invoice and the buyer's mails.
+import { orderAudio } from "./audio"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { orgT } from "@/i18n/server"
 import type { T } from "@/i18n/translate"
@@ -388,7 +389,7 @@ export async function mail(kind: MailKind, orderId: string) {
     number: String(o.number),
     total: t.money(o.pay_orders.amount_total, o.pay_orders.currency),
     title: t.dynamic(`store.mail.${kind}.title`, vars),
-    message: mailMessage(kind, o, t, conf.message ?? null, bank?.iban ? { holder: bank.legal_name ?? o.orgs.name, iban: bank.iban, bic: bank.bic } : null, settings.pickup_text, (await orderFiles(o)).length > 0),
+    message: mailMessage(kind, o, t, conf.message ?? null, bank?.iban ? { holder: bank.legal_name ?? o.orgs.name, iban: bank.iban, bic: bank.bic } : null, settings.pickup_text, (await orderFiles(o)).length > 0 || (await orderMusic(o)).length > 0),
     button: button(link, t("store.mail.button")),
     link,
     // event placeholders a shared template may use stay empty
@@ -465,32 +466,17 @@ export async function orderForBuyer(orderId: string, token: string) {
 }
 export type BuyerOrder = Order
 
-/** Files of the digital products in a paid order (downloads on the order page). */
+const unlocked = (o: Order) => ["paid", "partially_refunded"].includes(o.pay_orders.status) && o.status !== "cancelled"
+const orderProductIds = (o: Order) => [...new Set(o.pay_orders.pay_order_items.map((i) => (i.metadata as Record<string, unknown> | null)?.product_id).filter((x): x is string => typeof x === "string"))]
+
+/** Music of the products in a paid order (every format, single tracks + album ZIPs; src/shop/audio.ts). */
+export const orderMusic = async (o: Order) => (unlocked(o) ? orderAudio(o.org_id, orderProductIds(o)) : [])
+
+/** Files of the products in a paid order (downloads on the order page). */
 export async function orderFiles(o: Order) {
-  if (!["paid", "partially_refunded"].includes(o.pay_orders.status) || o.status === "cancelled") return []
-  const ids = [...new Set(o.pay_orders.pay_order_items.map((i) => (i.metadata as Record<string, unknown> | null)?.product_id).filter((x): x is string => typeof x === "string"))]
+  if (!unlocked(o)) return []
+  const ids = orderProductIds(o)
   if (!ids.length) return []
   const { data } = await db().from("files").select("id, name, size, entity_id").eq("org_id", o.org_id).eq("entity", "products").in("entity_id", ids).order("name")
   return data ?? []
-}
-
-// ---------- music: tracks = audio files on the product (files entity "product_audio", meta {title, position, stream}) ----------
-
-export type Track = { id: string; title: string; position: number; stream: boolean; name: string }
-
-/** A product's tracks in order. `stream` false = listed, but only buyers get the music (via downloads). */
-export async function productTracks(orgId: string, productId: string): Promise<Track[]> {
-  const { data } = await db().from("files").select("id, name, meta").eq("org_id", orgId).eq("entity", "product_audio").eq("entity_id", productId).is("deleted_at", null)
-  return (data ?? [])
-    .map((f) => {
-      const m = (f.meta ?? {}) as Record<string, unknown>
-      return {
-        id: f.id,
-        name: f.name,
-        title: typeof m.title === "string" && m.title.trim() ? m.title : f.name.replace(/\.[a-z0-9]+$/i, "").replace(/^\d+[\s._-]+/, ""),
-        position: Number(m.position) || 0,
-        stream: m.stream !== false,
-      }
-    })
-    .sort((a, b) => a.position - b.position || a.name.localeCompare(b.name, undefined, { numeric: true }))
 }

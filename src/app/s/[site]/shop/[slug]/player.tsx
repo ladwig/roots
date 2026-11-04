@@ -5,7 +5,7 @@ import { LockIcon, PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon } from "lu
 import { useT } from "@/i18n/client"
 import { cn } from "@/lib/utils"
 
-export type PlayerTrack = { id: string; title: string; src: string | null } // src null = buyers only
+export type PlayerTrack = { id: string; title: string; duration?: number | null; src: string | null } // src null = buyers only
 
 const clock = (s: number) => (Number.isFinite(s) ? `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}` : "–:––")
 
@@ -130,6 +130,7 @@ export function MusicPlayer({ tracks, cover, artist }: { tracks: PlayerTrack[]; 
                   {i === index && playing ? <PauseIcon className="ml-auto size-3 fill-current" /> : i + 1}
                 </span>
                 <span className={cn("min-w-0 flex-1 truncate", !x.src && "text-muted-foreground")}>{x.title}</span>
+                {x.duration ? <span className="text-xs text-muted-foreground tabular-nums">{clock(x.duration)}</span> : null}
                 {!x.src && (
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
                     <LockIcon className="size-3" /> {t("store.buyersOnly")}

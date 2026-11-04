@@ -1081,6 +1081,7 @@ begin
     insert into public.product_variants (org_id, product_id, name, digital, position) values (org_a, v_p, 'Download', true, 1);
     insert into public.products (org_id, slug, name, status) values (org_a, 'secret', 'Entwurf', 'draft');
     insert into public.shop_settings (org_id, pay_transfer) values (org_a, true);
+    insert into public.product_tracks (org_id, product_id, title, master_key, master_name, status) values (org_a, v_p, 'Song', 'audio/k', 'song.wav', 'pending');
     reset role;
     insert into public.pay_orders (org_id, source_module, amount_total) values (org_a, 'shop', 2500) returning id into v_o1;
     insert into public.pay_order_items (org_id, order_id, description, quantity, unit_amount, source_id) values (org_a, v_o1, 'Shirt M', 1, 2500, v_v::text);
@@ -1111,6 +1112,11 @@ begin
     select count(*) into n from public.products where org_id = org_a;         assert n = 0, 'B sees products of A';
     select count(*) into n from public.product_variants where org_id = org_a; assert n = 0, 'B sees variants of A';
     select count(*) into n from public.shop_orders where org_id = org_a;      assert n = 0, 'B sees shop orders of A';
+    select count(*) into n from public.product_tracks where org_id = org_a;   assert n = 0, 'B sees tracks of A';
+    begin
+      insert into public.product_tracks (org_id, product_id, title, master_key, master_name) values (org_b, v_p, 'x', 'k', 'x.wav');
+      assert false, 'B attached a track to a product of A';
+    exception when insufficient_privilege or raise_exception then null; end;
     select count(*) into n from public.shop_settings where org_id = org_a;    assert n = 0, 'B sees shop settings of A';
     update public.products set name = 'X' where org_id = org_a;
     reset role;

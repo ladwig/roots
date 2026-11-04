@@ -10,6 +10,7 @@ import { moneyCents } from "@/lib/inputs"
 import { back } from "@/lib/url"
 import { MAIL_KINDS, readProduct, readShippingRates, readVariant } from "@/shop/fields"
 import { cancelOrder, ensureInvoice, mail, markOrderPaid, setOrderStatus } from "@/shop/server"
+import { deleteTrack, finishTrackUpload, startTrackUpload, updateTrack } from "@/shop/audio"
 
 const UUID = /^[0-9a-f-]{36}$/
 const id = (fd: FormData, k = "id") => {
@@ -217,21 +218,33 @@ export async function saveShopSettings(fd: FormData) {
   back(here, { ok: t("store.saved") })
 }
 
-/** A track (audio file on the product): title, order, whether the full track plays in the shop; `delete` → trash. */
+/** Music upload, step 1 (called from the browser): the track row + a link to PUT the master to. */
+export async function startAudioUpload(productId: string, name: string, size: number): Promise<{ id: string; url: string } | { error: string }> {
+  const { ctx, t } = await manager()
+  const r = await startTrackUpload(ctx.supabase, ctx.org.id, productId, { name: String(name), size: Number(size) })
+  if ("error" in r) return { error: r.error === "db" ? dbError(t, r.db!) : t.dynamic(String(r.error), { max: "250 MB" }) }
+  return { id: r.id, url: r.uploadUrl }
+}
+
+/** Step 2: the upload is done → convert (runs in the background, the page shows the status). */
+export async function finishAudioUpload(trackId: string): Promise<{ error?: string }> {
+  const { ctx, t } = await manager()
+  const r = await finishTrackUpload(ctx.supabase, ctx.org.id, trackId)
+  return "error" in r ? { error: r.error === "db" ? dbError(t, r.db!) : t.dynamic(String(r.error)) } : {}
+}
+
+/** A track: title, number, whether it plays in the shop; `delete` removes it with its files, `retry` converts again. */
 export async function saveTrack(fd: FormData) {
   const { ctx, t } = await manager()
   const productId = id(fd, "product_id")
-  const fileId = id(fd)
+  const trackId = id(fd)
   const here = `/shop/${productId}?tab=digital`
-  if (!productId || !fileId) back("/shop", { error: t("errors.invalid_input") })
-  if (fd.get("delete")) {
-    const { error } = await ctx.supabase.rpc("soft_delete", { p_table: "public.files", p_id: fileId })
-    back(here, error ? { error: dbError(t, error) } : { ok: t("store.trackRemoved") })
-  }
-  const { data: f } = await ctx.supabase.from("files").select("meta").eq("id", fileId).eq("org_id", ctx.org.id).eq("entity", "product_audio").eq("entity_id", productId).maybeSingle()
-  if (!f) back(here, { error: t("errors.not_allowed") })
-  const meta = { ...((f.meta ?? {}) as Record<string, unknown>), title: String(fd.get("title") ?? "").trim().slice(0, 200), position: Math.floor(Number(fd.get("position")) || 0), stream: fd.get("stream") === "1" }
-  const { error } = await ctx.supabase.from("files").update({ meta: meta as never }).eq("id", fileId).eq("org_id", ctx.org.id)
-  if (error) back(here, { error: dbError(t, error) })
-  back(here, { ok: t("store.saved") })
+  if (!productId || !trackId) back("/shop", { error: t("errors.invalid_input") })
+  const r = fd.get("delete")
+    ? await deleteTrack(ctx.supabase, ctx.org.id, trackId)
+    : fd.get("retry")
+      ? await finishTrackUpload(ctx.supabase, ctx.org.id, trackId)
+      : await updateTrack(ctx.supabase, ctx.org.id, trackId, { title: String(fd.get("title") ?? ""), position: Number(fd.get("position")) || 0, stream: fd.get("stream") === "1" })
+  if ("error" in r) back(here, { error: r.error === "db" ? dbError(t, r.db!) : t.dynamic(String(r.error)) })
+  back(here, { ok: fd.get("delete") ? t("store.trackRemoved") : t("store.saved") })
 }

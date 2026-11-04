@@ -291,7 +291,7 @@ export const def = (k: ObjectKey): ObjectDef => OBJECTS[k]
 export const NOT_OBJECTS = [
   "api_keys", "cash_closings", "custom_fields", "document_items", "email_automations", "email_campaigns", "email_templates", "org_domains", "org_prices", "org_sites", "employee_private", "event_subscriptions",
   "invites", "letter_templates", "locations", "mcp_connections", "member_settings", "number_ranges", "org_billing", "org_integrations", "org_members",
-  "org_modules", "orgs", "platform_admins", "positions", "rental_contacts", "rental_rates", "roles", "shop_settings", "sepa_runs", "shift_series", "site_pages", "sites", "task_assignees", "project_links", "comments", "ticket_codes",
+  "org_modules", "orgs", "platform_admins", "positions", "rental_contacts", "rental_rates", "roles", "shop_settings", "product_tracks", "sepa_runs", "shift_series", "site_pages", "sites", "task_assignees", "project_links", "comments", "ticket_codes",
   "ticket_tiers", "workflow_runs", "workflows",
 ]
 

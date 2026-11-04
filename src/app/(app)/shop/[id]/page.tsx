@@ -15,10 +15,14 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { param, siteUrl } from "@/lib/url"
 import { priceInput } from "@/tickets/price"
 import { productImage, restoreProduct, saveTrack, saveVariant, trashProduct } from "../actions"
-import { FileUpload } from "@/components/file-upload"
-import { productTracks } from "@/shop/server"
+import { productTrackList } from "@/shop/audio"
+import { AutoRefresh } from "@/app/s/[site]/t/[order]/auto-refresh"
+import { AudioUpload } from "./audio-upload"
 import { ProductForm } from "../product-form"
 import { Segments } from "@/components/segments"
+
+const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`
+const mb = (bytes: number) => `${Math.max(1, Math.round(bytes / 1024 / 1024))} MB`
 
 // One product in tabs (?tab=): Produkt (details, page text, pictures) · Varianten (stock left) · Musik & Downloads.
 export default async function ProductPage({ params, searchParams }: PageProps<"/shop/[id]">) {
@@ -31,7 +35,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   const [{ data: p }, { data: variants }, tracks] = await Promise.all([
     ctx.supabase.from("products").select("*").eq("id", id).eq("org_id", ctx.org.id).maybeSingle(),
     ctx.supabase.from("product_variants").select("*").eq("product_id", id).eq("org_id", ctx.org.id).order("position").order("created_at"),
-    productTracks(ctx.org.id, id),
+    productTrackList(ctx.supabase, ctx.org.id, id),
   ])
   if (!p) notFound()
   // Units still free (stock − paid − held by open orders); the product's own stock only counts without variants.
@@ -40,6 +44,9 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   const left = new Map(await Promise.all(items.map(async (i) => [i.id, i.stock === null ? null : (await admin.rpc("shop_left", { p_item: i.id, p_stock: i.stock })).data] as const)))
   const leftLabel = (itemId: string, stock: number | null) => (stock === null ? t("store.unlimited") : t("store.leftOf", { left: Math.max(0, left.get(itemId) ?? 0), stock }))
   const here = `/shop/${id}`
+  const zips = (p.audio_zips ?? {}) as Partial<Record<"mp3" | "flac" | "wav", { size: number }>>
+  // Conversions / ZIPs still running: the page reloads itself until they're done.
+  const busyAudio = tracks.some((x) => x.status === "pending" || x.status === "processing") || (tracks.some((x) => x.status === "ready") && !Object.keys(zips).length)
   const tab = param(sp, "tab") === "variants" ? "variants" : param(sp, "tab") === "digital" ? "digital" : "product"
 
   return (
@@ -154,6 +161,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
           ) : tab === "digital" ? (
             <div className="grid items-start gap-6 lg:grid-cols-2">
               <FormCard id="tracks" title={t("store.tracks")} description={t("store.tracksHint")}>
+                {busyAudio && <AutoRefresh />}
                 {tracks.length > 0 && (
                   <ol className="grid gap-2">
                     {tracks.map((x, i) => (
@@ -163,13 +171,24 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                           <input type="hidden" name="product_id" value={p.id} />
                           <Input name="position" type="number" defaultValue={x.position || i + 1} aria-label={t("store.trackNumber")} disabled={!canManage} />
                           <Input name="title" defaultValue={x.title} maxLength={200} aria-label={t("store.trackTitle")} disabled={!canManage} />
+                          <span className="col-span-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                            <Badge variant={x.status === "ready" ? "secondary" : x.status === "failed" ? "destructive" : "outline"}>{t.dynamic(`store.trackStatus.${x.status}`)}</Badge>
+                            {x.duration_seconds ? <span className="tabular-nums">{clock(x.duration_seconds)}</span> : null}
+                            {x.status === "ready" && <span>{(["mp3", "flac", "wav"] as const).flatMap((f) => (x.formats[f] ? [`${t.dynamic(`store.audioFormats.${f}`)} ${mb(x.formats[f]!.size)}`] : [])).join(" · ")}</span>}
+                            {x.status === "failed" && x.error && <span className="w-full truncate text-destructive" title={x.error}>{x.error}</span>}
+                          </span>
                           <span className="col-span-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                             <label className="flex items-center gap-1">
                               <input type="checkbox" name="stream" value="1" defaultChecked={x.stream} disabled={!canManage} className="accent-primary" /> {t("store.trackStream")}
                             </label>
-                            <span className="truncate">{x.name}</span>
+                            <span className="min-w-0 flex-1 truncate" title={x.master_name}>{x.master_name}</span>
                             {canManage && (
                               <span className="flex gap-1">
+                                {(x.status === "failed" || x.status === "uploading") && (
+                                  <SubmitButton size="sm" variant="outline" name="retry" value="1">
+                                    {t("store.trackRetry")}
+                                  </SubmitButton>
+                                )}
                                 <SubmitButton size="sm" variant="outline">
                                   {t("common.save")}
                                 </SubmitButton>
@@ -184,7 +203,14 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                     ))}
                   </ol>
                 )}
-                {canManage && ctx.can("org.files.manage") && <FileUpload orgId={ctx.org.id} entity="product_audio" entityId={p.id} />}
+                {tracks.some((x) => x.status === "ready") && (
+                  <p className="text-xs text-muted-foreground">
+                    {Object.keys(zips).length
+                      ? t("store.zipsReady", { list: (["mp3", "flac", "wav"] as const).flatMap((f) => (zips[f] ? [`${t.dynamic(`store.audioFormats.${f}`)} ${mb(zips[f]!.size)}`] : [])).join(" · ") })
+                      : t("store.zipsPreparing")}
+                  </p>
+                )}
+                {canManage && <AudioUpload productId={p.id} />}
               </FormCard>
 
               <FormCard id="downloads" title={t("store.downloads")} description={t("store.downloadsHint")}>

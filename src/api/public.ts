@@ -22,7 +22,8 @@ import { buyTickets, ticketsForBuyer } from "@/tickets/server"
 import { joinWaitlist, waitlistClaim } from "@/tickets/waitlist"
 import { cleanHtml } from "@/site/html"
 import { DELIVERIES, ORDER_STATUSES, PAYMENTS, priceCart, readShippingRates, type CatalogProduct } from "@/shop/fields"
-import { onlineReady, orderFiles, orderForBuyer, placeOrder, productTracks } from "@/shop/server"
+import { onlineReady, orderFiles, orderForBuyer, orderMusic, placeOrder } from "@/shop/server"
+import { playerTracks } from "@/shop/audio"
 import { ApiError, error, json, match, notFound, readInput, uuid } from "./core"
 
 type Org = { id: string; slug: string; name: string; logo_path: string | null; site_domain: string | null }
@@ -436,16 +437,16 @@ export const publicEndpoints: PublicEndpoint[] = [
     summary: "One product with its description",
     response: ShopProduct.extend({
       description: z.string().describe("HTML, already cleaned"),
-      tracks: z.array(z.object({ id: uuid, title: z.string(), stream_url: z.string().nullable().describe("Audio to play (a redirect to a short-lived link); null = buyers only") })).describe("Music for a player, in order"),
+      tracks: z.array(z.object({ id: uuid, title: z.string(), duration_seconds: z.number().int().nullable(), stream_url: z.string().nullable().describe("128 kbps MP3 to play (a redirect to a short-lived link); null = buyers only") })).describe("Music for a player, in order (converted tracks only)"),
     }),
     async handler({ org, params }) {
       const [p] = await shopCatalog(org.id, params.slug)
       if (!p) throw notFound()
-      const tracks = await productTracks(org.id, p.id)
+      const tracks = await playerTracks(org.id, p.id)
       return {
         ...shopProductOut(org, p),
         description: cleanHtml(p.description ?? ""),
-        tracks: tracks.map((x) => ({ id: x.id, title: x.title, stream_url: x.stream ? siteUrl(org.slug, `/shop/${p.slug}/track/${x.id}`, org.site_domain) : null })),
+        tracks: tracks.map((x) => ({ id: x.id, title: x.title, duration_seconds: x.duration, stream_url: x.stream ? siteUrl(org.slug, `/shop/${p.slug}/track/${x.id}`, org.site_domain) : null })),
       }
     },
   }),
@@ -526,6 +527,9 @@ export const publicEndpoints: PublicEndpoint[] = [
       items: z.array(z.object({ description: z.string(), quantity: z.number().int(), unit_amount: z.number().int() })),
       tracking: z.string().nullable(),
       downloads: z.array(z.object({ name: z.string(), url: z.string() })),
+      music: z
+        .array(z.object({ product_id: uuid, name: z.string(), album: z.array(z.object({ format: z.enum(["mp3", "flac", "wav"]), size: z.number().int(), url: z.string() })), tracks: z.array(z.object({ id: uuid, title: z.string(), files: z.array(z.object({ format: z.enum(["mp3", "flac", "wav"]), size: z.number().int(), url: z.string() })) })) }))
+        .describe("Paid music: the album as ZIP and single tracks in MP3 320 / FLAC / WAV (links redirect to short-lived files)"),
       invoice_url: z.string().nullable(),
       order_url: z.string(),
     }),
@@ -537,7 +541,9 @@ export const publicEndpoints: PublicEndpoint[] = [
         await reconcileOrder(id).catch((e) => console.error("reconcile", id, e))
         o = (await orderForBuyer(id, query.token))!
       }
-      const files = await orderFiles(o)
+      const [files, music] = await Promise.all([orderFiles(o), orderMusic(o)])
+      const audio = (product: string, f: string, track?: string) => siteUrl(org.slug, `/o/${id}/audio/${product}/${f}?k=${query.token}${track ? `&t=${track}` : ""}`, org.site_domain)
+      const fmt = (sizes: Partial<Record<"mp3" | "flac" | "wav", number>>, product: string, track?: string) => (["mp3", "flac", "wav"] as const).flatMap((f) => (sizes[f] ? [{ format: f, size: sizes[f]!, url: audio(product, f, track) }] : []))
       return {
         order_id: id,
         number: o.number,
@@ -549,6 +555,7 @@ export const publicEndpoints: PublicEndpoint[] = [
         items: o.pay_orders.pay_order_items.map((i) => ({ description: i.description, quantity: i.quantity, unit_amount: i.unit_amount })),
         tracking: o.tracking,
         downloads: files.map((f) => ({ name: f.name, url: siteUrl(org.slug, `/o/${id}/file/${f.id}?k=${query.token}`, org.site_domain) })),
+        music: music.map((m) => ({ product_id: m.productId, name: m.name, album: fmt(m.zips, m.productId), tracks: m.tracks.map((x) => ({ id: x.id, title: x.title, files: fmt(x.sizes, m.productId, x.id) })) })),
         invoice_url: o.invoice_id ? siteUrl(org.slug, `/o/${id}/invoice?k=${query.token}`, org.site_domain) : null,
         order_url: siteUrl(org.slug, `/o/${id}?k=${query.token}`, org.site_domain),
       }

@@ -3,6 +3,7 @@ import { deliverSoon } from "@/events/worker"
 import { imageUrl, removeImage } from "@/lib/images"
 import { DELIVERIES, MAIL_KINDS, ORDER_STATUSES, PAYMENTS, PRODUCT_KINDS, PRODUCT_STATUSES, readProduct, readShippingRates, readVariant, TAX_RATES } from "@/shop/fields"
 import { cancelOrder, ensureInvoice, mail, markOrderPaid, setOrderStatus } from "@/shop/server"
+import { deleteTrack, finishTrackUpload, productTrackList, startTrackUpload, updateTrack } from "@/shop/audio"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
 import { putImage, ts, type Db } from "./shared"
 
@@ -98,6 +99,8 @@ const getter = (o: Record<string, unknown>) => (k: string) => {
   const v = o[k]
   return v == null ? "" : typeof v === "boolean" ? (v ? "1" : "") : String(v)
 }
+const Track = z.object({ id: uuid, title: z.string(), position: z.number().int(), stream: z.boolean(), status: z.enum(["uploading", "pending", "processing", "ready", "failed"]), error: z.string().nullable(), file_name: z.string(), duration_seconds: z.number().int().nullable(), formats: z.record(z.string(), z.object({ size: z.number().int() })) })
+const trackOut = (x: Awaited<ReturnType<typeof productTrackList>>[number]) => ({ id: x.id, title: x.title, position: x.position, stream: x.stream, status: x.status as "ready", error: x.error, file_name: x.master_name, duration_seconds: x.duration_seconds, formats: Object.fromEntries(Object.entries(x.formats).map(([k, v]) => [k, { size: v!.size }])) })
 const invalid = (key: string) => new ApiError(422, key.split(".").pop()!.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`), key)
 // The API speaks cents; the shared parser reads form strings ("25,00").
 const asForm = (b: Record<string, unknown>) => ({ ...b, price: b.price_cents == null ? undefined : (Number(b.price_cents) / 100).toFixed(2).replace(".", ",") })
@@ -113,6 +116,9 @@ async function orderOf(db: Db, orgId: string, id: string) {
   return orderOut(data as unknown as OrderRow)
 }
 const conflictOrDb = (e: { code?: string; message: string }) => (e.code === "23505" ? new ApiError(409, "slug_taken", "Another product already has this slug.") : dbError(e))
+// Track helpers return message keys: not found → 404, the rest → 422 (store.audioTooBig → audio_too_big).
+const fail = (key: string) => (key === "errors.not_found" ? notFound() : invalid(key))
+
 // Order steps throw message keys; "store.orderCancelled" → 409 order_cancelled.
 const stepError = (e: unknown) => {
   const key = e instanceof Error ? e.message : ""
@@ -288,6 +294,82 @@ export const endpoints: Endpoint[] = [
       if (error) throw dbError(error)
       if (!count) throw notFound()
       return { ok: true }
+    },
+  }),
+
+  endpoint({
+    method: "GET",
+    path: "/shop/products/{id}/tracks",
+    permission: "shop.view",
+    tag: TAG,
+    summary: "List a product's music tracks",
+    description: "Tracks in order with their conversion status (`uploading` → `pending` → `processing` → `ready` | `failed`), duration and the formats made from the master (stream = 128 kbps MP3 for the shop's player; mp3 = 320 kbps, flac, wav = what buyers download). Album ZIPs are built once every track is ready.",
+    response: z.object({ tracks: z.array(Track), album_zips: z.record(z.string(), z.object({ size: z.number().int() })) }),
+    async handler({ db, orgId, params }) {
+      await productOf(db, orgId, params.id)
+      const { data } = await db.from("products").select("audio_zips").eq("id", params.id).eq("org_id", orgId).single()
+      const zips = (data?.audio_zips ?? {}) as Record<string, { size: number }>
+      return { tracks: (await productTrackList(db, orgId, params.id)).map(trackOut), album_zips: Object.fromEntries(Object.entries(zips).map(([k, v]) => [k, { size: v.size }])) }
+    },
+  }),
+  endpoint({
+    method: "POST",
+    path: "/shop/products/{id}/tracks",
+    permission: "shop.manage",
+    tag: TAG,
+    summary: "Add a music track (get an upload link)",
+    description: "Step 1 of 2: creates the track and returns `upload_url`, a one-hour link to PUT the lossless master to (WAV, AIFF or FLAC, up to 250 MB; the file body as is). Step 2: POST /shop/tracks/{id}/uploaded. The title is guessed from the file name when left out.",
+    body: z.object({ file_name: z.string().min(1).max(300), size: z.number().int().positive(), title: z.string().max(200).optional(), stream: z.boolean().optional().describe("Plays in the shop (default true); false = buyers only") }).strict(),
+    response: z.object({ id: uuid, upload_url: z.string() }),
+    status: 201,
+    async handler({ db, orgId, params, body }) {
+      const r = await startTrackUpload(db, orgId, params.id, { name: body.file_name, size: body.size })
+      if ("error" in r) throw r.error === "db" ? dbError(r.db!) : fail(String(r.error))
+      if (body.title || body.stream === false) await updateTrack(db, orgId, r.id!, { title: body.title || undefined, stream: body.stream })
+      return { id: r.id!, upload_url: r.uploadUrl! }
+    },
+  }),
+  endpoint({
+    method: "POST",
+    path: "/shop/tracks/{id}/uploaded",
+    permission: "shop.manage",
+    tag: TAG,
+    summary: "Finish a track upload (start the conversion)",
+    description: "Step 2 of 2 after the PUT to `upload_url`: checks the file arrived and queues the conversion (also re-runs a failed one). Poll GET /shop/products/{id}/tracks until `ready`.",
+    response: z.object({ ok: z.literal(true) }),
+    async handler({ db, orgId, params }) {
+      const r = await finishTrackUpload(db, orgId, params.id)
+      if ("error" in r) throw r.error === "db" ? dbError(r.db!) : fail(String(r.error))
+      return { ok: true as const }
+    },
+  }),
+  endpoint({
+    method: "PATCH",
+    path: "/shop/tracks/{id}",
+    permission: "shop.manage",
+    tag: TAG,
+    summary: "Change a track",
+    description: "Title, number (`position`) and whether it plays in the shop (`stream`). Title or order changes rebuild the album ZIPs.",
+    body: z.object({ title: z.string().max(200), position: z.number().int().min(0).max(999), stream: z.boolean() }).partial().strict(),
+    response: z.object({ ok: z.literal(true) }),
+    async handler({ db, orgId, params, body }) {
+      const r = await updateTrack(db, orgId, params.id, body)
+      if ("error" in r) throw r.error === "db" ? dbError(r.db!) : fail(String(r.error))
+      return { ok: true as const }
+    },
+  }),
+  endpoint({
+    method: "DELETE",
+    path: "/shop/tracks/{id}",
+    permission: "shop.manage",
+    tag: TAG,
+    summary: "Delete a track",
+    description: "Removes the track and all its audio files (master and formats); the album ZIPs are rebuilt without it. Buyers lose access to it too.",
+    response: z.object({ ok: z.literal(true) }),
+    async handler({ db, orgId, params }) {
+      const r = await deleteTrack(db, orgId, params.id)
+      if ("error" in r) throw r.error === "db" ? dbError(r.db!) : fail(String(r.error))
+      return { ok: true as const }
     },
   }),
 

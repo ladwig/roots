@@ -1,14 +1,17 @@
 import { notFound } from "next/navigation"
-import { CircleCheckIcon, DownloadIcon, FileTextIcon } from "lucide-react"
+import { CircleCheckIcon, DownloadIcon, FileTextIcon, MusicIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getT } from "@/i18n/server"
 import { param, sitePath } from "@/lib/url"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { reconcileOrder } from "@/payments/server"
-import { orderFiles, orderForBuyer } from "@/shop/server"
+import { orderFiles, orderForBuyer, orderMusic } from "@/shop/server"
 import { AutoRefresh } from "../../t/[order]/auto-refresh"
 import { getSite } from "../../data"
+
+const FORMATS = ["mp3", "flac", "wav"] as const
+const mb = (bytes: number) => `${Math.max(1, Math.round(bytes / 1024 / 1024))} MB`
 
 // The buyer's shop order (link from the payment success page / emails). Access = order id + secret token.
 export default async function BuyerOrder({ params, searchParams }: PageProps<"/s/[site]/o/[order]">) {
@@ -25,8 +28,9 @@ export default async function BuyerOrder({ params, searchParams }: PageProps<"/s
   const t = await getT()
   const cur = o.pay_orders.currency
   const paid = ["paid", "partially_refunded"].includes(o.pay_orders.status)
-  const [files, { data: bank }, { data: inv }] = await Promise.all([
+  const [files, music, { data: bank }, { data: inv }] = await Promise.all([
     orderFiles(o),
+    orderMusic(o),
     o.payment === "transfer" && !paid ? createAdminClient().from("org_billing").select("legal_name, iban, bic").eq("org_id", o.org_id).maybeSingle() : Promise.resolve({ data: null }),
     o.invoice_id ? createAdminClient().from("documents").select("status, number").eq("id", o.invoice_id).maybeSingle() : Promise.resolve({ data: null }),
   ])
@@ -95,6 +99,42 @@ export default async function BuyerOrder({ params, searchParams }: PageProps<"/s
         {o.tracking && <p>{t("store.trackingLine", { tracking: o.tracking })}</p>}
       </section>
 
+      {music.map((m) => (
+        // Bandcamp-style: the whole album as ZIP or single tracks, in every format (links are made fresh on each click).
+        <section key={m.productId} className="site-music-downloads grid gap-3 rounded-xl border p-4">
+          <h2 className="flex items-center gap-2 font-medium">
+            <MusicIcon className="size-4" aria-hidden /> {m.name}
+          </h2>
+          <div className="grid gap-1">
+            <p className="text-sm text-muted-foreground">{t("store.albumZip")}</p>
+            <div className="flex flex-wrap gap-2">
+              {FORMATS.map((f) =>
+                m.zips[f] ? (
+                  <Button key={f} render={<a href={withToken(`/o/${order}/audio/${m.productId}/${f}`)} />} nativeButton={false} size="sm">
+                    <DownloadIcon /> {t.dynamic(`store.audioFormats.${f}`)} · {mb(m.zips[f]!)}
+                  </Button>
+                ) : null,
+              )}
+              {!Object.keys(m.zips).length && <p className="text-sm text-muted-foreground">{t("store.zipsPreparing")}</p>}
+            </div>
+          </div>
+          <ol className="grid divide-y rounded-lg border text-sm">
+            {m.tracks.map((x, i) => (
+              <li key={x.id} className="flex flex-wrap items-center gap-2 px-3 py-2">
+                <span className="w-5 text-right text-xs text-muted-foreground tabular-nums">{i + 1}</span>
+                <span className="min-w-0 flex-1 truncate">{x.title}</span>
+                {FORMATS.map((f) =>
+                  x.sizes[f] ? (
+                    <a key={f} href={withToken(`/o/${order}/audio/${m.productId}/${f}`) + `&t=${x.id}`} className="rounded-md border px-2 py-0.5 text-xs hover:bg-muted">
+                      {t.dynamic(`store.audioFormats.${f}`)}
+                    </a>
+                  ) : null,
+                )}
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))}
       {files.length > 0 && (
         <section className="grid gap-2">
           <h2 className="font-medium">{t("store.downloads")}</h2>

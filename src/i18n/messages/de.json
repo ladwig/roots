@@ -701,7 +701,8 @@
       "products": "Produkte",
       "product_variants": "Produktvarianten",
       "shop_orders": "Shop-Bestellungen",
-      "shop_settings": "Shop-Einstellungen"
+      "shop_settings": "Shop-Einstellungen",
+      "product_tracks": "Musik-Titel"
     },
     "title": "Aktivität",
     "comment": "Kommentieren",
@@ -5811,8 +5812,8 @@
     "previous": "Vorheriger Titel",
     "next": "Nächster Titel",
     "buyersOnly": "nach dem Kauf",
-    "tracks": "Musik (Player)",
-    "tracksHint": "Audiodateien (MP3, M4A, OGG …) laden – sie erscheinen als Player auf der Produktseite. Nummer = Reihenfolge. Ohne Häkchen steht der Titel in der Liste, spielt aber nicht (die Musik gibt es dann über die Downloads).",
+    "tracks": "Musik",
+    "tracksHint": "Pro Titel das verlustfreie Master hochladen (WAV, AIFF oder FLAC). roots macht daraus die Player-Version für den Shop und für Käufer:innen MP3 320, FLAC und WAV – einzeln und als Album-ZIP. Nummer = Reihenfolge. Ohne Häkchen steht der Titel im Player, spielt aber nicht (nur nach dem Kauf).",
     "trackNumber": "Nr.",
     "trackTitle": "Titel",
     "trackStream": "im Shop abspielbar",
@@ -5825,6 +5826,30 @@
     "tabProduct": "Produkt",
     "tabVariants": "Varianten ({count})",
     "tabDigital": "Musik & Downloads",
-    "allEu": "EU (alle 27 Länder)"
+    "allEu": "EU (alle 27 Länder)",
+    "audioUpload": "Master hochladen",
+    "audioUploadHint": "WAV, AIFF oder FLAC, bis 250 MB pro Titel. Mehrere Dateien auf einmal möglich.",
+    "audioUploadFailed": "Hochladen fehlgeschlagen",
+    "audioNotConfigured": "Der Audio-Speicher ist noch nicht eingerichtet.",
+    "audioType": "Nur WAV, AIFF oder FLAC (verlustfrei).",
+    "audioTooBig": "Datei zu groß (max. {max} pro Titel).",
+    "audioMissing": "Die Datei ist nicht angekommen – bitte nochmal hochladen.",
+    "trackTitleRequired": "Der Titel fehlt.",
+    "trackRetry": "Nochmal umwandeln",
+    "trackStatus": {
+      "uploading": "Upload unvollständig",
+      "pending": "Wartet auf Umwandlung",
+      "processing": "Wird umgewandelt …",
+      "ready": "Fertig",
+      "failed": "Fehler"
+    },
+    "audioFormats": {
+      "mp3": "MP3 320",
+      "flac": "FLAC",
+      "wav": "WAV"
+    },
+    "zipsReady": "Album-ZIPs fertig: {list}",
+    "zipsPreparing": "Album-ZIPs werden erstellt …",
+    "albumZip": "Ganzes Album als ZIP"
   }
 }

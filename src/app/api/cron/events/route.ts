@@ -8,6 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { offerWaitlist } from "@/tickets/waitlist"
 import { fulfilPending } from "@/payments/server"
 import { checkDomains } from "@/domains/server"
+import { kickAudio } from "@/shop/audio"
 
 // Called by pg_cron when worker_due() says something is due, and hourly (or `npm run worker` locally). Protected by CRON_SECRET.
 // New step here = its due condition in public.worker_due(), else it only runs hourly.
@@ -31,6 +32,7 @@ export async function GET(request: Request) {
   await offerWaitlist().catch(console.error) // freed seats → next on the event waiting lists
   await createAdminClient().rpc("renew_rentals") // contracts that renew themselves (no notice) run on
   await fulfilPending().catch(console.error) // paid orders whose fulfilment crashed or failed
+  if ((await createAdminClient().rpc("audio_due")).data) kickAudio() // shop music: conversions / album ZIPs (own route with ffmpeg)
   // Empty the trash (soft-deleted rows past their retention).
   const { data: purged } = await createAdminClient().rpc("purge_deleted")
   await createAdminClient().rpc("purge_portal_tokens") // expired portal logins/sessions
