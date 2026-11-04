@@ -25,7 +25,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/shop/orde
   const page = pageParam(sp)
   let query = ctx.supabase
     .from("shop_orders")
-    .select("id, number, status, delivery, payment, name, placed_at, pay_orders!inner(status, amount_total, currency, customer_email)")
+    .select("id, number, status, delivery, payment, name, placed_at, pay_orders!inner(status, amount_total, currency, customer_email, pay_order_items(description, quantity, metadata))")
     .eq("org_id", ctx.org.id)
     .not("placed_at", "is", null) // online orders only count once paid (abandoned checkouts aren't orders)
     .order("placed_at", { ascending: false })
@@ -72,6 +72,12 @@ export default async function OrdersPage({ searchParams }: PageProps<"/shop/orde
               <Link href={`/shop/orders/${o.id}`} className="grid underline-offset-4 hover:underline">
                 <span className="font-medium">
                   #{o.number} · {o.name}
+                </span>
+                <span className="line-clamp-2 text-sm">
+                  {o.pay_orders.pay_order_items
+                    .filter((i) => !(i.metadata as Record<string, unknown> | null)?.shipping)
+                    .map((i) => `${i.quantity}× ${i.description}`)
+                    .join(", ")}
                 </span>
                 <span className="text-xs text-muted-foreground">{t.date(o.placed_at!, { dateStyle: "medium", timeStyle: "short" })}</span>
               </Link>
