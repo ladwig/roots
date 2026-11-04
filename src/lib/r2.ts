@@ -31,19 +31,24 @@ export async function removeKeys(keys: string[]) {
  * small. Returns the size.
  */
 export async function uploadStream(key: string, chunks: AsyncIterable<Uint8Array>, contentType: string): Promise<number> {
+  // Every request goes to a query-signed URL with a plain fetch: R2 needs a Content-Length on each part, which a
+  // header-signed Request (aws4fetch turns the body into a stream) doesn't carry on every runtime (Vercel → 411).
   const r2 = client()
-  const start = await r2.fetch(`${url(key)}?uploads`, { method: "POST", headers: { "content-type": contentType } })
+  const call = async (query: string, method: string, body?: Uint8Array | string, headers?: Record<string, string>) =>
+    fetch((await r2.sign(`${url(key)}?${query}`, { method, headers, aws: { signQuery: true } })).url, { method, body: body as BodyInit | undefined, headers })
+  const start = await call("uploads=", "POST", undefined, { "content-type": contentType })
   const uploadId = /<UploadId>([^<]+)<\/UploadId>/.exec(await start.text())?.[1]
   if (!start.ok || !uploadId) throw new Error(`r2 multipart start failed (${start.status})`)
+  const id = `uploadId=${encodeURIComponent(uploadId)}`
   const etags: string[] = []
   let size = 0
   let buf: Uint8Array[] = []
   let buffered = 0
   const flush = async () => {
-    const part = Buffer.concat(buf)
+    const part = new Uint8Array(Buffer.concat(buf))
     buf = []
     buffered = 0
-    const res = await r2.fetch(`${url(key)}?partNumber=${etags.length + 1}&uploadId=${encodeURIComponent(uploadId)}`, { method: "PUT", body: part })
+    const res = await call(`partNumber=${etags.length + 1}&${id}`, "PUT", part)
     if (!res.ok) throw new Error(`r2 part upload failed (${res.status})`)
     etags.push(res.headers.get("etag")!)
   }
@@ -56,11 +61,11 @@ export async function uploadStream(key: string, chunks: AsyncIterable<Uint8Array
     }
     if (buffered || !etags.length) await flush()
     const xml = `<CompleteMultipartUpload>${etags.map((e, i) => `<Part><PartNumber>${i + 1}</PartNumber><ETag>${e}</ETag></Part>`).join("")}</CompleteMultipartUpload>`
-    const done = await r2.fetch(`${url(key)}?uploadId=${encodeURIComponent(uploadId)}`, { method: "POST", body: xml })
+    const done = await call(id, "POST", xml)
     if (!done.ok) throw new Error(`r2 multipart complete failed (${done.status})`)
     return size
   } catch (e) {
-    await r2.fetch(`${url(key)}?uploadId=${encodeURIComponent(uploadId)}`, { method: "DELETE" }).catch(() => {})
+    await call(id, "DELETE").catch(() => {})
     throw e
   }
 }
