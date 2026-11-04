@@ -5643,7 +5643,7 @@
     "orderThanks": "Thanks for your order!",
     "orderMailed": "A confirmation is on its way to {email}.",
     "orderStatus": {
-      "new": "New",
+      "new": "To do",
       "ready": "Ready for pickup",
       "shipped": "Shipped",
       "completed": "Done",
