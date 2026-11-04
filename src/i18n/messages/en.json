@@ -4474,7 +4474,7 @@
     "next": "Next number",
     "yearlyReset": "Start at 1 every year",
     "preview": "Next: {example}",
-    "help": "Placeholders: {NNNN} running number (N count = digits), {YYYY} / {YY} year, {MM} month, {BYYYY} / {BY} birth year, {RAND6} 6 random characters. {N…} or {RAND…} is required.",
+    "help": "Placeholders: {NNNN} running number (N count = digits), {YYYY} / {YY} year, {MM} month, {BYYYY} / {BY} birth year, {RAND6} 6 random characters. {N…} or {RAND…} is required. Changes apply to new numbers only; numbers already issued never change.",
     "invalid": "The format needs {N} (running number) or {RAND6} (random); otherwise only A–Z, 0–9 and - _ / . #"
   },
   "reports": {

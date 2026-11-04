@@ -4474,7 +4474,7 @@
     "next": "Nächste Nummer",
     "yearlyReset": "Jedes Jahr bei 1 beginnen",
     "preview": "Nächste: {example}",
-    "help": "Platzhalter: {NNNN} laufende Nummer (Anzahl N = Stellen), {YYYY} / {YY} Jahr, {MM} Monat, {BYYYY} / {BY} Geburtsjahr, {RAND6} 6 Zufallszeichen. {N…} oder {RAND…} ist Pflicht.",
+    "help": "Platzhalter: {NNNN} laufende Nummer (Anzahl N = Stellen), {YYYY} / {YY} Jahr, {MM} Monat, {BYYYY} / {BY} Geburtsjahr, {RAND6} 6 Zufallszeichen. {N…} oder {RAND…} ist Pflicht. Änderungen gelten nur für neue Nummern, vergebene bleiben unverändert.",
     "invalid": "Das Format braucht {N} (laufende Nummer) oder {RAND6} (Zufall); sonst nur A–Z, 0–9 und - _ / . #"
   },
   "reports": {
