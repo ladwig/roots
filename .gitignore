@@ -45,3 +45,9 @@ next-env.d.ts
 # claude code
 .claude/settings.local.json
 .claude/worktrees/
+
+# UX audits: the rendered page and the screens show personal data of real orgs (keep them local)
+docs/audits/**/audit.html
+docs/audits/**/*.jpg
+docs/audits/**/*.png
+docs/audits/*.zip

@@ -1,0 +1,755 @@
+{
+  "audit": {
+    "title": "roots App – Querschnitt und Verwaltung mit Daten",
+    "auditor": "Claude (ux-audit skill)",
+    "date": "2026-11-02",
+    "user_goal": "Vorstand, Kassenwart und Power-User sollen in der Verwaltung ihres Vereins Mitglieder, Beiträge, Kontakte und Rechnungen finden, prüfen und ändern können, ohne Eingaben zu verlieren, ohne versehentlich Geld- oder E-Mail-Aktionen auszulösen und ohne zu raten, was ein Knopf tut.",
+    "summary": "Die App hat ein starkes, konsequent gebautes Fundament: ein Seitenkopf, eine Speicherleiste, ein Bestätigungsdialog und eine Listenkomponente für alle Module. Ein zweiter Durchgang mit einem Verein mit echten Daten zeigt das größte Risiko dort, wo es um Menschen und Geld geht: Kündigen, Pausieren, Mitgliedskarte neu ausstellen und „Erinnerung an alle Überfälligen“ laufen mit einem Klick, ohne Rückfrage, ohne Anzahl und ohne Vorschau. Außerdem gehen Eingaben verloren: Serverfehler leeren Formulare, Drawer schließen ohne Rückfrage, und eine Aktion in der rechten Spalte einer Detailseite verwirft ungespeicherte Änderungen links. Im Dark Mode sind Eingabefelder in Drawern unsichtbar, und die Kontakt-Detailseite läuft auf dem Desktop seitlich über. Zuerst beheben: Rückfragen mit Anzahl für Massen-E-Mails und Mitgliedschaftsänderungen, den Formularzustand bei Fehlern erhalten, das --input-Token im Dark Mode anheben.",
+    "things_that_work": [
+      "Eine Seitenanatomie für alle Module (PageHeader mit Bereichs-Icon, Brotkrumen, ⋯-Menü, eine primäre Schaltfläche): wer ein Modul kennt, kennt alle.",
+      "Die Leerzustände von Kontakte und Events erklären in einem Satz, wozu der Bereich da ist, und bieten die erste Aktion direkt an.",
+      "„Neuer Kontakt“ gruppiert Felder nach Thema (Person, Kontaktdaten, Adresse) und sagt vorab „Ein Name oder eine Firma reicht“: niedrige Einstiegshürde.",
+      "TypedInput gibt jedem Feldtyp die passende Handytastatur, Autofill, Formatierung beim Verlassen und eine Prüfung mit Begründung.",
+      "Löschen landet im Papierkorb, der Dialog nennt die Anzahl und die 30-Tage-Frist zum Wiederherstellen (TRUST.4 und TRUST.6).",
+      "Jeder Zustand steckt in der URL (Filter, Drawer, Seite): Zurück-Taste, Neuladen und geteilte Links funktionieren.",
+      "Navigation reagiert sofort: Spinner im Sidebar-Icon, Skeleton pro Bereich, Spinner im Speichern-Knopf.",
+      "Die Mitglieds-Detailseite rechnet das früheste Kündigungsdatum aus und nennt Frist und Grund („3 Monate Frist, zum Ende des Beitragszeitraums“).",
+      "Der Kopf von „Beiträge“ fasst die Lage in einer Zeile zusammen („Offen: 88,00 € · davon überfällig: 88,00 €“), und „Heute“ zeigt überfällige Beiträge als Summe.",
+      "Der Verlauf auf der Kontaktseite zeigt Notizen und Feldänderungen mit Person und Zeit (TRUST.5 Audit trail).",
+      "Die Handy-Karten der Beitragsliste sind gut lesbar: Name als Titel, darunter Fälligkeit, Betrag und Status mit Bezeichnung."
+    ],
+    "manual_follow_ups": [
+      "Tastaturreihenfolge und Fokusführung beim Öffnen und Schließen von Drawern (Fokus zurück auf die auslösende Zeile?).",
+      "Screenreader-Test der DataTable: auf dem Handy als Karten, ab md als Tabelle mit pro Zelle gestreckten Links.",
+      "Genaue Kontrastmessung aller Dark-Mode-Tokens (border, input, muted-foreground) gegen card, popover und background.",
+      "Prüfen, ob Toasts (sonner) von Screenreadern angesagt werden (aria-live) und lange genug stehen bleiben.",
+      "Sprachsteuerung (Voice Control, Dragon) mit den Ein-Tasten-Kürzeln N und /.",
+      "Verhalten der Speicherleiste bei der Browser-Zurück-Taste (popstate) in Seiten und Drawern.",
+      "Gesamte Mitglieds-Detailseite per Tastatur: Reihenfolge zwischen Hauptformular, SaveBar und den Formularen der rechten Spalte.",
+      "Kontrast der roten Status-Badges („Überfällig“) im Dark Mode messen."
+    ],
+    "next_steps": [
+      "Drei Kassenwarte ohne Einweisung bitten: überfällige Beiträge prüfen, einem Mitglied erinnern, einen Beitrag als bezahlt markieren und das rückgängig machen.",
+      "Mit einem Verein mit über 50 Kontakten das Blättern und „Alle auswählen“ im Browser nachprüfen."
+    ]
+  },
+  "screenshots": [
+    {
+      "id": "01-heute",
+      "path": "01-heute.jpg",
+      "sub_task": "Startseite „Heute“ einer neuen Org"
+    },
+    {
+      "id": "02-kontakte-leer",
+      "path": "02-kontakte-leer.jpg",
+      "sub_task": "Liste ohne Einträge (Kontakte)"
+    },
+    {
+      "id": "03-kontakt-neu",
+      "path": "03-kontakt-neu.jpg",
+      "sub_task": "Datensatz anlegen (Neuer Kontakt)"
+    },
+    {
+      "id": "04-events-leer",
+      "path": "04-events-leer.jpg",
+      "sub_task": "Liste mit Werkzeugleiste (Events)"
+    },
+    {
+      "id": "05-einstellungen",
+      "path": "05-einstellungen.jpg",
+      "sub_task": "Einstellungen öffnen"
+    },
+    {
+      "id": "06-drawer-mobil",
+      "path": "06-drawer-mobil.jpg",
+      "sub_task": "Schnell-Anlage im Drawer (Handy, Dark Mode)"
+    },
+    {
+      "id": "07-404",
+      "path": "07-404.jpg",
+      "sub_task": "Falscher Link / Fehlerseite"
+    },
+    {
+      "id": "08-heute-qs1",
+      "path": "08-heute-qs1.jpg",
+      "sub_task": "Startseite „Heute“ eines Vereins mit Daten"
+    },
+    {
+      "id": "09-mitglieder",
+      "path": "09-mitglieder.jpg",
+      "sub_task": "Mitgliederliste"
+    },
+    {
+      "id": "10-mitglied-detail",
+      "path": "10-mitglied-detail.jpg",
+      "sub_task": "Mitglied ansehen und ändern"
+    },
+    {
+      "id": "11-beitraege",
+      "path": "11-beitraege.jpg",
+      "sub_task": "Beiträge prüfen und einziehen"
+    },
+    {
+      "id": "12-beitraege-mobil",
+      "path": "12-beitraege-mobil.jpg",
+      "sub_task": "Beiträge auf dem Handy"
+    },
+    {
+      "id": "13-rechnungen",
+      "path": "13-rechnungen.jpg",
+      "sub_task": "Angebote und Rechnungen"
+    },
+    {
+      "id": "14-kontakt-detail",
+      "path": "14-kontakt-detail.jpg",
+      "sub_task": "Kontakt ansehen und ändern"
+    }
+  ],
+  "findings": [
+    {
+      "id": "kontakt-neu-eingaben-weg-bei-serverfehler",
+      "screenshot_id": "03-kontakt-neu",
+      "sub_task": "Datensatz anlegen (Neuer Kontakt)",
+      "title": "Ein Serverfehler beim Speichern leert das ganze Formular",
+      "heuristics": [
+        "Nielsen #9 (Help users recognise, diagnose, recover from errors)",
+        "Nielsen #3 (User control and freedom)",
+        "Shneiderman #5 (Prevent errors)"
+      ],
+      "severity": 3,
+      "what_we_see": "Server Actions melden Fehler mit back(path, { error }), also per redirect. In src/app/(app)/contacts/actions.ts:32 und :38 geht ein Fehler beim Anlegen (z. B. doppelte E-Mail) zurück auf /contacts/new: Das Formular wird neu gerendert und ist leer. Beim Bearbeiten (Zeile 48/50) kommen die alten Werte aus der Datenbank zurück, die Änderungen sind weg. Nur 5 Dateien nutzen useActionState, 34 nutzen die SaveBar mit diesem Muster.",
+      "why_it_matters": "Wer ein langes Formular (Kontakt mit Adresse, Bank, eigene Felder) ausfüllt und an einer Kleinigkeit scheitert, muss alles neu tippen. Für Ehrenamtliche ist das ein Abbruchgrund, und viele schließen daraus, dass die Software „nicht speichert“.",
+      "recommendation": "Bei Validierungs- und Eindeutigkeitsfehlern nicht umleiten, sondern über useActionState den Fehler plus die eingereichten Werte zurückgeben (oder FormData als defaultValues zurückspielen). Zuerst in den Create-Formularen (Kontakt, Event, Mitglied, Rechnung) umsetzen, dann im Edit-Pfad der SaveBar.",
+      "region": {
+        "x_pct": 22,
+        "y_pct": 20,
+        "w_pct": 61,
+        "h_pct": 78
+      }
+    },
+    {
+      "id": "drawer-schliesst-ohne-rueckfrage",
+      "screenshot_id": "06-drawer-mobil",
+      "sub_task": "Schnell-Anlage im Drawer (Handy, Dark Mode)",
+      "title": "Drawer mit ungespeicherten Änderungen schließt ohne Rückfrage",
+      "heuristics": [
+        "Nielsen #3 (User control and freedom)",
+        "Nielsen #5 (Error prevention)",
+        "Nielsen #4 (Consistency and standards)"
+      ],
+      "severity": 3,
+      "what_we_see": "Die SaveBar (src/components/save-bar.tsx:43-61) fragt nur bei Klicks auf a[href] und beim Neuladen nach. Ein UrlSheet schließt aber über das X, einen Klick auf den Hintergrund oder Escape (url-sheet.tsx:34-40, router.replace). Keiner dieser Wege geht über einen Link, also verschwinden die Eingaben ohne Rückfrage. Auf Seiten gilt dasselbe für die Zurück-Taste des Browsers.",
+      "why_it_matters": "Ein versehentlicher Tipp neben den Drawer reicht, und die Arbeit ist weg. Auf dem Handy liegt der abgedunkelte Hintergrund direkt neben den Feldern. Dieselbe Speicherleiste schützt Seiten, Drawer aber nicht: Das ist schwer vorherzusehen.",
+      "recommendation": "UrlSheet und UrlDialog sollen vor close() prüfen, ob ein Formular darin geändert wurde (z. B. ein data-dirty-Attribut, das die SaveBar am <form> setzt), und dann denselben Dialog wie die SaveBar zeigen. Bei der Gelegenheit window.confirm durch den App-eigenen Dialog ersetzen.",
+      "region": {
+        "x_pct": 88,
+        "y_pct": 1,
+        "w_pct": 10,
+        "h_pct": 5
+      }
+    },
+    {
+      "id": "drawer-dark-eingabefelder-unsichtbar",
+      "screenshot_id": "06-drawer-mobil",
+      "sub_task": "Schnell-Anlage im Drawer (Handy, Dark Mode)",
+      "title": "Im Dark Mode sind Eingabefelder in Drawern unsichtbar",
+      "heuristics": [
+        "WCAG 1.4.11 (Non-text Contrast)",
+        "Norman (Affordance)",
+        "A11Y.1 (Colour contrast)"
+      ],
+      "severity": 3,
+      "what_we_see": "Unter „Label“ und „Choices“ ist kein Feld zu erkennen, nur der Ziehgriff der Textarea. Gemessen: Rahmen des Inputs lab(14.16) = Hintergrund des Drawers lab(14.16). In src/app/theme.css stehen im Dark Mode --input und --popover beide auf oklch(0.26 0 0). Auf Karten (--card 0.20) liegt der Kontrast weit unter 3:1.",
+      "why_it_matters": "Ohne sichtbare Feldgrenze weiß niemand, wohin er tippen soll. Das betrifft jeden Drawer, Dialog und jedes Popover mit Formular im Dark Mode, und die App folgt standardmäßig dem System.",
+      "recommendation": "Im .dark-Block --input deutlich heller als --popover setzen (etwa oklch(0.40 0 0)) und gegen card, popover und background auf mindestens 3:1 messen. Die Änderung gehört in theme.css, nicht in einzelne Komponenten.",
+      "region": {
+        "x_pct": 27,
+        "y_pct": 9,
+        "w_pct": 70,
+        "h_pct": 38
+      }
+    },
+    {
+      "id": "fehlerseiten-fehlen",
+      "screenshot_id": "07-404",
+      "sub_task": "Falscher Link / Fehlerseite",
+      "title": "404 und Laufzeitfehler zeigen die nackte Next.js-Seite ohne Weg zurück",
+      "heuristics": [
+        "Nielsen #9 (Help users recognise, diagnose, recover from errors)",
+        "Nielsen #3 (User control and freedom)",
+        "Content design: Voice and tone fit the moment"
+      ],
+      "severity": 3,
+      "what_we_see": "/app/settings (ein naheliegender, abgeschnittener Link) zeigt „404 | This page could not be found.“ auf Schwarz: auf Englisch, ohne Sidebar und ohne Link. Im Projekt gibt es keine einzige not-found.tsx, error.tsx oder global-error.tsx, also endet auch jeder Serverfehler in einem Bereich in der Standard-Fehlerseite.",
+      "why_it_matters": "Eine Sackgasse: Ehrenamtliche finden ohne Navigation nicht zurück und halten die App für kaputt. Bei Laufzeitfehlern fehlt jede Möglichkeit, es erneut zu versuchen, und auf Deutsch steht nichts da.",
+      "recommendation": "src/app/(app)/not-found.tsx und error.tsx innerhalb der AppShell anlegen (übersetzter Text, „Zur Startseite“ und bei error.tsx „Erneut versuchen“ mit reset()). Dazu /settings auf /settings/general bzw. die erste erlaubte Unterseite umleiten.",
+      "region": {
+        "x_pct": 35,
+        "y_pct": 44,
+        "w_pct": 30,
+        "h_pct": 12
+      }
+    },
+    {
+      "id": "kontakte-loeschen-ohne-rueckgaengig",
+      "screenshot_id": "02-kontakte-leer",
+      "sub_task": "Liste ohne Einträge (Kontakte)",
+      "title": "Nach dem Löschen fehlt ein „Rückgängig“ direkt im Toast",
+      "heuristics": [
+        "Nielsen #3 (User control and freedom)",
+        "Shneiderman #6 (Permit easy reversal of actions)",
+        "TRUST.4 (Reversibility)"
+      ],
+      "severity": 2,
+      "what_we_see": "Löschen ist ein Soft Delete, und der Dialog sagt „30 Tage wiederherstellbar“. Danach erscheint aber nur der Toast „1 Eintrag in den Papierkorb verschoben.“ ohne Aktion (Notice in src/components/notice.tsx kennt nur Text). Zum Wiederherstellen muss man den Papierkorb im ⋯-Menü der Liste finden.",
+      "why_it_matters": "Die Technik für Undo ist schon da, der Weg dorthin aber versteckt. Ein „Rückgängig“ im Toast macht den Bestätigungsdialog für Einzel-Löschungen fast überflüssig und senkt die Angst vor Fehlklicks.",
+      "recommendation": "back() um ein optionales undo-Ziel ergänzen (z. B. ?undo=<table>:<id>) und in Notice als toast.success(text, { action: { label: \"Rückgängig\", onClick: restore } }) zeigen, das restore_deleted aufruft.",
+      "region": {
+        "x_pct": 85,
+        "y_pct": 14,
+        "w_pct": 13,
+        "h_pct": 5
+      }
+    },
+    {
+      "id": "kontakt-neu-fehler-nur-als-toast",
+      "screenshot_id": "03-kontakt-neu",
+      "sub_task": "Datensatz anlegen (Neuer Kontakt)",
+      "title": "Serverfehler erscheinen nur als Toast, weit weg vom betroffenen Feld",
+      "heuristics": [
+        "Nielsen #9 (Help users recognise, diagnose, recover from errors)",
+        "WCAG 3.3.1 (Error Identification)",
+        "Gestalt (Proximity)"
+      ],
+      "severity": 2,
+      "what_we_see": "Fehler wie „E-Mail schon vergeben“ kommen über ?error= als sonner-Toast (8 Sekunden, unten rechts). Das betroffene Feld wird weder markiert (aria-invalid) noch fokussiert. Nur Prüfungen im Browser (TypedInput) stehen am Feld.",
+      "why_it_matters": "In langen Formularen muss man selbst suchen, welches Feld gemeint ist, und nach 8 Sekunden ist der Hinweis weg. Screenreader-Nutzer erfahren nicht, wo der Fehler sitzt.",
+      "recommendation": "Mit dem Wechsel auf useActionState (siehe den Befund zum geleerten Formular) Feldfehler als { field, message } zurückgeben, am Feld unter dem Input zeigen, aria-invalid setzen und das erste fehlerhafte Feld fokussieren. Den Toast nur für Fehler ohne Feldbezug behalten.",
+      "region": {
+        "x_pct": 88,
+        "y_pct": 94,
+        "w_pct": 11,
+        "h_pct": 5
+      }
+    },
+    {
+      "id": "pager-neuer-aelter-bei-alphabet",
+      "screenshot_id": "02-kontakte-leer",
+      "sub_task": "Liste ohne Einträge (Kontakte)",
+      "title": "Blättern heißt „Neuer / Älter“, auch in alphabetischen Listen",
+      "heuristics": [
+        "Nielsen #2 (Match between system and the real world)",
+        "Content design: Specific, not generic",
+        "Gerhardt-Powals #2 (Reduce uncertainty)"
+      ],
+      "severity": 2,
+      "what_we_see": "Alle 17 Pager nutzen common.newer/common.older („Neuer“ / „Älter“). Kontakte sind aber nach Nachname sortiert (contacts/page.tsx:47). Es gibt weder Seitenzahl noch Gesamtzahl, nur diese zwei Knöpfe.",
+      "why_it_matters": "„Älter“ in einer A–Z-Liste stimmt nicht. Power-User mit großen Listen wissen nicht, wie viele Einträge es gibt und auf welcher Seite sie stehen.",
+      "recommendation": "Labels neutral machen („Zurück“ / „Weiter“) und eine Zeile „51–100 von 340“ ergänzen. Die Gesamtzahl gibt es günstig über count: \"estimated\" in derselben Abfrage.",
+      "region": {
+        "x_pct": 22,
+        "y_pct": 22,
+        "w_pct": 76,
+        "h_pct": 36
+      }
+    },
+    {
+      "id": "bulk-auswahl-nur-aktuelle-seite",
+      "screenshot_id": "02-kontakte-leer",
+      "sub_task": "Liste ohne Einträge (Kontakte)",
+      "title": "„Alle auswählen“ wählt nur die 50 Zeilen der aktuellen Seite",
+      "heuristics": [
+        "Shneiderman #2 (Seek universal usability)",
+        "Nielsen #7 (Flexibility and efficiency of use)",
+        "TRUST.6 (Volume signposting)"
+      ],
+      "severity": 2,
+      "what_we_see": "Das Kästchen im Tabellenkopf (bulk-bar.tsx:27-31) hakt nur die sichtbaren Zeilen an. Ein Angebot wie „Alle 340 Treffer auswählen“ fehlt, also lassen sich gefilterte Mengen (z. B. Tag „Vorstand“) nicht in einem Schritt taggen, exportieren oder löschen.",
+      "why_it_matters": "Power-User müssen Seite für Seite dieselbe Aktion wiederholen und wissen nicht sicher, ob sie alles erwischt haben.",
+      "recommendation": "Wenn alle Zeilen einer Seite angehakt sind und es eine nächste Seite gibt, in der BulkBar „Alle N Treffer auswählen“ anbieten. Dann statt ids die aktuellen Filter (q, tag, status) an die Server Action schicken, und der Bestätigungsdialog nennt N.",
+      "region": {
+        "x_pct": 22,
+        "y_pct": 22,
+        "w_pct": 76,
+        "h_pct": 36
+      }
+    },
+    {
+      "id": "bestaetigung-fokus-auf-loeschen",
+      "screenshot_id": "02-kontakte-leer",
+      "sub_task": "Liste ohne Einträge (Kontakte)",
+      "title": "Im Löschdialog liegt der Fokus auf dem roten Knopf",
+      "heuristics": [
+        "Nielsen #5 (Error prevention)",
+        "Fitts's Law",
+        "WAI-ARIA APG (Alert dialog: focus least destructive action)"
+      ],
+      "severity": 2,
+      "what_we_see": "ConfirmHost (confirm-submit.tsx:53) setzt autoFocus auf den destruktiven Knopf. Wer im ⋯-Menü „In den Papierkorb“ mit Enter auswählt und noch einmal Enter drückt, hat schon bestätigt.",
+      "why_it_matters": "Der Dialog soll Fehlgriffe abfangen, aber ein doppeltes Enter oder ein schnelles Antippen geht direkt durch. Bei „Wirklich löschen?“ (nicht rückgängig zu machen) ist das riskant.",
+      "recommendation": "autoFocus auf „Abbrechen“ legen und den Löschknopf weiterhin rot beschriften. Für Einzel-Löschungen mit Undo-Toast (siehe den Befund zu „Rückgängig“) kann der Dialog ganz entfallen.",
+      "region": {
+        "x_pct": 85,
+        "y_pct": 14,
+        "w_pct": 5,
+        "h_pct": 5
+      }
+    },
+    {
+      "id": "kontakte-leer-import-erwaehnt-nicht-angeboten",
+      "screenshot_id": "02-kontakte-leer",
+      "sub_task": "Liste ohne Einträge (Kontakte)",
+      "title": "Der Leerzustand nennt „Liste importieren“, bietet es aber nicht an",
+      "heuristics": [
+        "FTU.4 (Empty states do work)",
+        "Nielsen #6 (Recognition rather than recall)",
+        "Fogg (Ability: reduce steps)"
+      ],
+      "severity": 2,
+      "what_we_see": "Der Text endet mit „Add the first one or import a list.“, darunter steht aber nur „+ New contact“. Der Import liegt im ⋯-Menü oben rechts, ohne Hinweis darauf.",
+      "why_it_matters": "Vereine haben fast immer schon eine Excel-Mitgliederliste. Der Import ist der wichtigste erste Schritt und wird genau dort versteckt, wo der Text ihn verspricht.",
+      "recommendation": "Im Leerzustand eine zweite Schaltfläche (outline) „Liste importieren“ neben „Neuer Kontakt“ setzen, die den Import-Drawer öffnet. Dasselbe in jedem Leerzustand, dessen Modul einen Import hat.",
+      "region": {
+        "x_pct": 44,
+        "y_pct": 34,
+        "w_pct": 32,
+        "h_pct": 20
+      }
+    },
+    {
+      "id": "heute-neue-org-ohne-naechsten-schritt",
+      "screenshot_id": "01-heute",
+      "sub_task": "Startseite „Heute“ einer neuen Org",
+      "title": "Eine neue Org landet auf vier leeren Karten ohne nächsten Schritt",
+      "heuristics": [
+        "FTU.1 (Next action obvious)",
+        "FTU.4 (Empty states do work)",
+        "Fogg (Prompt unclear)"
+      ],
+      "severity": 2,
+      "what_we_see": "„Heute“ zeigt bei einer leeren Org „No open tasks“, „No events planned“, „Nothing overdue“ und „All read“. Nichts davon führt zu einer Aktion. Der einzige Einstieg sind die Sprout-Vorschläge, die einen eigenen KI-Schlüssel voraussetzen.",
+      "why_it_matters": "Der erste Eindruck ist ein Raster aus „nichts“. Ehrenamtliche ohne Einweisung wissen nicht, ob sie mit Kontakten, Mitgliedern oder der Website anfangen sollen, und 14 Module in der Sidebar machen die Wahl nicht leichter.",
+      "recommendation": "Solange die Org kaum Daten hat, oben auf „Heute“ eine Checkliste „Erste Schritte“ zeigen (Logo und Name, Kontakte importieren, Team einladen, erstes Event), deren Punkte sich selbst abhaken und die danach verschwindet. Leere Karten bekommen einen Link zur ersten Aktion („Event anlegen“).",
+      "region": {
+        "x_pct": 22,
+        "y_pct": 35,
+        "w_pct": 76,
+        "h_pct": 28
+      }
+    },
+    {
+      "id": "sidebar-vierzehn-module-flach",
+      "screenshot_id": "01-heute",
+      "sub_task": "Startseite „Heute“ einer neuen Org",
+      "title": "14 Module stehen ungruppiert in einer Liste unter „Modules“",
+      "heuristics": [
+        "Hick's Law",
+        "Miller's Law",
+        "Gestalt (Proximity)"
+      ],
+      "severity": 2,
+      "what_we_see": "Die Sidebar listet Contacts, Memberships, Events, Shifts, People, Courses, Finance, Communication, Automations, Projects, Rentals, Knowledge, Reports und Website gleichrangig unter der Überschrift „Modules“. Jede Org bekommt derzeit jedes Modul.",
+      "why_it_matters": "Eine Kassenwartin, die nur Beiträge braucht, muss jedes Mal 14 Einträge überfliegen. „Modules“ ist außerdem ein technisches Wort, das den Nutzern nichts sagt.",
+      "recommendation": "In wenige Gruppen mit sprechenden Überschriften teilen (z. B. Menschen: Kontakte, Mitglieder, Personal · Veranstalten: Events, Schichten, Kurse, Vermietung · Geld: Finanzen, Berichte · Außenwirkung: Kommunikation, Website · Werkzeuge: Projekte, Wissen, Automationen). Mittelfristig Module pro Person ausblenden lassen.",
+      "region": {
+        "x_pct": 0,
+        "y_pct": 17,
+        "w_pct": 20,
+        "h_pct": 61
+      }
+    },
+    {
+      "id": "events-leer-werkzeugleiste-ohne-funktion",
+      "screenshot_id": "04-events-leer",
+      "sub_task": "Liste mit Werkzeugleiste (Events)",
+      "title": "Suche, Segmente und Filter stehen über einer Liste, die noch nie Daten hatte",
+      "heuristics": [
+        "Nielsen #8 (Aesthetic and minimalist design)",
+        "COG.1 (Decision count)",
+        "Nielsen #4 (Consistency and standards)"
+      ],
+      "severity": 1,
+      "what_we_see": "Events zeigt bei null Events „Search…“, „Upcoming · Past · All“ und „Status ▾“ über dem Leerzustand. Kontakte blendet die Werkzeugleiste im selben Fall aus.",
+      "why_it_matters": "Bedienelemente ohne Wirkung lenken vom einzigen sinnvollen Schritt („New event“) ab, und dass sich zwei Module gleich verhalten sollten, es aber nicht tun, verunsichert.",
+      "recommendation": "Die Werkzeugleiste ausblenden, solange die Org im Bereich noch nie einen Datensatz hatte (dieselbe Bedingung, die den EmptyState wählt), und das als Regel in /style/app festhalten.",
+      "region": {
+        "x_pct": 22,
+        "y_pct": 21,
+        "w_pct": 51,
+        "h_pct": 6
+      }
+    },
+    {
+      "id": "einstellungen-profil-statt-org",
+      "screenshot_id": "05-einstellungen",
+      "sub_task": "Einstellungen öffnen",
+      "title": "„Settings“ öffnet das persönliche Profil, Org und Person sind vermischt",
+      "heuristics": [
+        "Nielsen #2 (Match between system and the real world)",
+        "Gestalt (Common region)",
+        "Nielsen #4 (Consistency and standards)"
+      ],
+      "severity": 2,
+      "what_we_see": "Der Knopf „Settings“ in der oberen Leiste neben dem Org-Namen führt zu /settings/profile. In der Seitennavigation stehen persönliche Einträge (Profile, darin Language, Appearance, Notifications) und Org-Einträge (General, Team, Roles, Modules, Integrations, API) ohne Trennung untereinander.",
+      "why_it_matters": "Wer neben dem Vereinsnamen auf „Einstellungen“ klickt, erwartet die Vereinseinstellungen. Ohne Trennung ist unklar, was nur mich betrifft und was alle im Verein.",
+      "recommendation": "Die Seitennavigation in zwei beschriftete Gruppen teilen („Mein Konto“: Profil, Benachrichtigungen · „Verein“: Allgemein, Team, Rollen …). Der Knopf in der Org-Leiste öffnet „Verein › Allgemein“, „Profil“ bleibt im Benutzermenü unten links.",
+      "region": {
+        "x_pct": 22,
+        "y_pct": 9,
+        "w_pct": 16,
+        "h_pct": 46
+      }
+    },
+    {
+      "id": "einstellungen-profil-eigene-speicherknoepfe",
+      "screenshot_id": "05-einstellungen",
+      "sub_task": "Einstellungen öffnen",
+      "title": "Das Profil hat eigene „Upload“- und „Save“-Knöpfe statt der Speicherleiste",
+      "heuristics": [
+        "Nielsen #4 (Consistency and standards)",
+        "Shneiderman #1 (Strive for consistency)"
+      ],
+      "severity": 1,
+      "what_we_see": "Unter „Profile picture“ steht ein eigener „Upload“-Knopf, unter „Name“ ein gefüllter „Save“-Knopf. Sprache und Aussehen speichern dagegen sofort. Überall sonst gilt: keine Speichern-Knöpfe, die SaveBar erscheint bei Änderungen.",
+      "why_it_matters": "Drei Speicherarten auf einer Seite: Wer ein Bild auswählt und dann den Namen speichert, kann annehmen, das Bild sei mitgespeichert.",
+      "recommendation": "Bild und Name in ein Formular mit <SaveBar /> legen oder das Bild nach der Auswahl sofort hochladen, wie ImageForm es anderswo tut. Gefüllte Knöpfe nur für die eine primäre Aktion verwenden.",
+      "region": {
+        "x_pct": 39,
+        "y_pct": 31,
+        "w_pct": 30,
+        "h_pct": 23
+      }
+    },
+    {
+      "id": "drawer-mobil-nicht-vollbreit",
+      "screenshot_id": "06-drawer-mobil",
+      "sub_task": "Schnell-Anlage im Drawer (Handy, Dark Mode)",
+      "title": "Drawer sind auf dem Handy nur 75 % breit statt vollbreit",
+      "heuristics": [
+        "Fitts's Law",
+        "Jakob's Law",
+        "Nielsen #4 (Consistency and standards)"
+      ],
+      "severity": 2,
+      "what_we_see": "Bei 375 px Breite misst der Drawer 281 px. In ui/sheet.tsx gewinnt data-[side=right]:w-3/4 gegen das w-full aus UrlSheet (url-sheet.tsx:43), weil der Varianten-Selektor spezifischer ist. Laut Styleguide sollen Drawer auf Handys die volle Breite haben.",
+      "why_it_matters": "Formularfelder werden schmaler, Labels brechen um, und der 94 px breite abgedunkelte Streifen ist eine große Fläche, die beim Antippen den Drawer schließt und damit Eingaben verwirft (siehe den Befund zum Schließen ohne Rückfrage).",
+      "recommendation": "In UrlSheet data-[side=right]:w-full statt w-full setzen (gleiche Spezifität) und bei 375 px prüfen.",
+      "region": {
+        "x_pct": 0,
+        "y_pct": 0,
+        "w_pct": 25,
+        "h_pct": 100
+      }
+    },
+    {
+      "id": "drawer-feld-auswahl-immer-sichtbar",
+      "screenshot_id": "06-drawer-mobil",
+      "sub_task": "Schnell-Anlage im Drawer (Handy, Dark Mode)",
+      "title": "„Choices“ ist sichtbar, auch wenn der Typ „Text“ gewählt ist",
+      "heuristics": [
+        "Progressive disclosure (Reveal on intent)",
+        "COG.4 (Reading load)",
+        "Krug (Don't make me think)"
+      ],
+      "severity": 1,
+      "what_we_see": "Im Drawer „New field · Contacts“ steht bei Typ „Text“ eine große Textarea „Choices“ mit dem Hinweis „Only for type ‘Choice’: one per line.“ Der Speichern-Knopf heißt „New field“ statt „Feld anlegen“.",
+      "why_it_matters": "Man liest ein Feld, das man nicht braucht, und muss selbst entscheiden, ob es ausgefüllt werden muss. „New field“ als Knopf klingt nach einem weiteren neuen Feld, nicht nach Bestätigen.",
+      "recommendation": "Die Textarea nur bei Typ „Auswahl“ einblenden (kleiner Client-Schalter am Select) und den Knopf mit SaveBar label=\"Feld anlegen\" beschriften, wie bei „Kontakt anlegen“.",
+      "region": {
+        "x_pct": 27,
+        "y_pct": 30,
+        "w_pct": 70,
+        "h_pct": 20
+      }
+    },
+    {
+      "id": "kuerzel-n-einzeltaste",
+      "screenshot_id": "02-kontakte-leer",
+      "sub_task": "Liste ohne Einträge (Kontakte)",
+      "title": "Die Kürzel N und / sind unsichtbar und lassen sich nicht abschalten",
+      "heuristics": [
+        "WCAG 2.1.4 (Character Key Shortcuts)",
+        "Nielsen #7 (Flexibility and efficiency of use)",
+        "Tognazzini (Learnability)"
+      ],
+      "severity": 2,
+      "what_we_see": "Shortcuts (src/components/shortcuts.tsx) löst bei N die primäre Schaltfläche aus und fokussiert bei / die Suche. Weder der Knopf „+ New contact“ noch die Suche zeigen das Kürzel an, und eine Übersicht gibt es nicht. Einzeltasten-Kürzel ohne Modifier lassen sich nicht abschalten.",
+      "why_it_matters": "Power-User profitieren nur, wenn sie die Kürzel kennen. Wer Sprachsteuerung nutzt, löst mit einem gesprochenen „n“ versehentlich „Neu“ aus, und genau dafür gilt WCAG 2.1.4.",
+      "recommendation": "Das Kürzel im Tooltip zeigen (<kbd>N</kbd> neben „Neuer Kontakt“, <kbd>/</kbd> als Platzhalter-Ende der Suche), mit ? eine kleine Übersicht öffnen und im Profil einen Schalter „Tastenkürzel“ anbieten.",
+      "region": {
+        "x_pct": 88,
+        "y_pct": 14,
+        "w_pct": 10,
+        "h_pct": 5
+      }
+    },
+    {
+      "id": "heute-cmdk-auch-auf-windows",
+      "screenshot_id": "01-heute",
+      "sub_task": "Startseite „Heute“ einer neuen Org",
+      "title": "Die Suche zeigt „⌘K“ auch unter Windows und Linux",
+      "heuristics": [
+        "Jakob's Law",
+        "Nielsen #2 (Match between system and the real world)"
+      ],
+      "severity": 1,
+      "what_we_see": "In der Sidebar steht fest „⌘K“ (command-search.tsx:89 und Tooltip Zeile 86), obwohl der Handler auch Strg+K annimmt.",
+      "why_it_matters": "Vereinsrechner laufen oft mit Windows: Das Mac-Symbol sagt dort nichts, und die schnelle Suche bleibt unentdeckt.",
+      "recommendation": "Die Plattform im Client prüfen (navigator.platform bzw. userAgentData) und „Strg K“ zeigen, wenn es kein Mac ist.",
+      "region": {
+        "x_pct": 0,
+        "y_pct": 1,
+        "w_pct": 20,
+        "h_pct": 4
+      }
+    },
+    {
+      "id": "mitglied-kuendigen-ohne-rueckfrage",
+      "screenshot_id": "10-mitglied-detail",
+      "sub_task": "Mitglied ansehen und ändern",
+      "title": "Kündigen, Pausieren und „Neue Karte“ laufen ohne Rückfrage",
+      "heuristics": [
+        "Nielsen #5 (Error prevention)",
+        "TRUST.1 (Preview before commit)",
+        "TRUST.4 (Reversibility)"
+      ],
+      "severity": 3,
+      "what_we_see": "In der rechten Spalte der Mitglieds-Detailseite sind „Neue Karte (alte wird ungültig)“, „Pausieren“ und „Kündigen“ einfache SubmitButtons ohne data-confirm (src/app/(app)/members/[id]/page.tsx:107-112, 186-196, 208-213). Ein Klick beendet die Mitgliedschaft zum vorgeschlagenen Datum oder macht die gedruckte Karte sofort ungültig.",
+      "why_it_matters": "Diese Aktionen betreffen eine echte Person: Beiträge werden anders berechnet, und eine ungültige Karte fällt erst am Einlass auf. Die Knöpfe sitzen in einer Spalte mit harmlosen Aktionen wie „Karte drucken“ und sehen genauso aus.",
+      "recommendation": "data-confirm mit konkretem Text setzen, z. B. „Mitgliedschaft von Erika Muster zum 31.12.2027 kündigen?“ und „Neue Karte ausstellen? Die gedruckte Karte Nr. 1 funktioniert dann nicht mehr.“ Für „Kündigen“ zusätzlich die Hinweiszeile nutzen, um Folgen für offene Beiträge zu nennen.",
+      "region": {
+        "x_pct": 70,
+        "y_pct": 26,
+        "w_pct": 28,
+        "h_pct": 53
+      }
+    },
+    {
+      "id": "beitraege-erinnerung-alle-ohne-rueckfrage",
+      "screenshot_id": "11-beitraege",
+      "sub_task": "Beiträge prüfen und einziehen",
+      "title": "„Erinnerung an alle Überfälligen“ verschickt sofort, ohne Anzahl und Vorschau",
+      "heuristics": [
+        "TRUST.6 (Volume signposting)",
+        "TRUST.1 (Preview before commit)",
+        "Nielsen #5 (Error prevention)"
+      ],
+      "severity": 3,
+      "what_we_see": "Der erste Knopf im Kopf von „Beiträge“ ist ein Formular mit sendReminders ohne Bestätigung (src/app/(app)/members/dues/page.tsx:76-79). Ein Klick schickt allen Mitgliedern mit überfälligem Beitrag eine E-Mail. Genauso direkt laufen „Als eingezogen markieren“ für einen SEPA-Lauf (Zeile 171-174) und die Massenaktion „bezahlt“ in der Auswahlleiste (Zeile 230).",
+      "why_it_matters": "E-Mails an Mitglieder lassen sich nicht zurückholen, und eine falsche Mahnung an zahlende Mitglieder kostet Vertrauen in den Vorstand. Bei Geldstatus fehlt jede Möglichkeit, die Zahl vor dem Klick zu prüfen. MCP und Sprout behandeln E-Mails und Geld bereits als gefährliche Aktionen, die App selbst nicht.",
+      "recommendation": "data-confirm mit Anzahl und Summe setzen („2 Mitglieder an 88,00 € erinnern?“), im Hinweis eine Vorschau der Mail verlinken und die Uhrzeit der letzten Erinnerung nennen. „Als eingezogen markieren“ und die Massenaktion „bezahlt“ bekommen dieselbe Rückfrage mit Anzahl und Summe.",
+      "region": {
+        "x_pct": 22,
+        "y_pct": 23,
+        "w_pct": 19,
+        "h_pct": 4
+      }
+    },
+    {
+      "id": "mitglied-seitenaktion-verwirft-hauptformular",
+      "screenshot_id": "10-mitglied-detail",
+      "sub_task": "Mitglied ansehen und ändern",
+      "title": "Eine Aktion rechts verwirft ungespeicherte Änderungen im Formular links",
+      "heuristics": [
+        "Nielsen #3 (User control and freedom)",
+        "Gestalt (Common region)",
+        "Shneiderman #8 (Reduce short-term memory load)"
+      ],
+      "severity": 2,
+      "what_we_see": "Die Detailseite hat links ein Formular mit SaveBar (Mitgliedsart, Beitrag, SEPA) und rechts eigene Formulare (Karte, Beitrag als bezahlt markieren, Pausieren, Kündigen). Deren Absenden leitet per back() auf dieselbe Seite um. Die SaveBar warnt nur bei Links, also gehen geänderte Felder links ohne Hinweis verloren.",
+      "why_it_matters": "Typischer Ablauf eines Kassenwarts: IBAN eintragen, dann rechts den Beitrag als bezahlt markieren, und die IBAN ist weg. Erst später fällt auf, dass das Mandat fehlt.",
+      "recommendation": "Die SaveBar soll auch auf das submit-Ereignis anderer Formulare der Seite hören und dann fragen („Ungespeicherte Änderungen zuerst speichern?“ mit Speichern / Verwerfen). Alternativ die Aktionen der rechten Spalte deaktivieren, solange links etwas geändert ist, mit dem Tooltip „Erst speichern“.",
+      "region": {
+        "x_pct": 22,
+        "y_pct": 24,
+        "w_pct": 46,
+        "h_pct": 76
+      }
+    },
+    {
+      "id": "mitglied-wieder-offen-wirkt-wie-status",
+      "screenshot_id": "10-mitglied-detail",
+      "sub_task": "Mitglied ansehen und ändern",
+      "title": "„Wieder offen“ neben „Bezahlt“ liest sich wie ein zweiter Status",
+      "heuristics": [
+        "Content design: Specific, not generic",
+        "Norman (Signifier)",
+        "Gestalt (Proximity)"
+      ],
+      "severity": 2,
+      "what_we_see": "In der Karte „Beiträge“ steht hinter dem grünen Badge „Bezahlt“ der ghost-Knopf „Wieder offen“ ohne Rahmen. Optisch ist das eine Textzeile „Bezahlt … Wieder offen“, kein Knopf.",
+      "why_it_matters": "Man liest, der Beitrag sei bezahlt und wieder offen, und weiß nicht, welcher Zustand gilt. Wer es als Knopf erkennt, setzt mit einem Klick Geld zurück auf offen.",
+      "recommendation": "Als Verb beschriften („Als offen markieren“), als outline-Knopf darstellen oder in ein ⋯-Menü pro Beitrag verschieben. Dasselbe Wording in der Beitragsliste verwenden.",
+      "region": {
+        "x_pct": 71,
+        "y_pct": 90,
+        "w_pct": 27,
+        "h_pct": 6
+      }
+    },
+    {
+      "id": "kontakt-detail-rechte-spalte-laeuft-ueber",
+      "screenshot_id": "14-kontakt-detail",
+      "sub_task": "Kontakt ansehen und ändern",
+      "title": "Die rechte Spalte der Kontaktseite ragt über den Rand und schneidet ab",
+      "heuristics": [
+        "Nielsen #8 (Aesthetic and minimalist design)",
+        "WCAG 1.4.10 (Reflow)",
+        "Gestalt (Closure)"
+      ],
+      "severity": 2,
+      "what_we_see": "Bei 1280 px Fenster ist die Seite 1302 px breit. Die Karten „Teamzugang“, „Mitgliedschaften“ und „Tickets“ sind 406 px breit, die Spalte nur 352 px (RecordLayout minmax(0,22rem)). Die Badges „Gültig“ und die rechten Kartenränder sind abgeschnitten, und es gibt eine waagerechte Scrollleiste.",
+      "why_it_matters": "Auf der meistbesuchten Detailseite fehlen Statusangaben am Rand, und die Seite wirkt kaputt. Auf Laptops mit offener Sidebar und Sprout-Panel wird es schlimmer.",
+      "recommendation": "Das Element finden, das min-content über 22rem treibt (wahrscheinlich eine flex-Zeile mit nicht kürzbarem Text in „Teamzugang“), und dort min-w-0 und truncate setzen. In RecordLayout zusätzlich overflow-hidden auf das aside und einen Test bei 1280 px mit offenem Sprout ergänzen.",
+      "region": {
+        "x_pct": 69,
+        "y_pct": 22,
+        "w_pct": 31,
+        "h_pct": 74
+      }
+    },
+    {
+      "id": "rechnungen-entwuerfe-ohne-titel",
+      "screenshot_id": "13-rechnungen",
+      "sub_task": "Angebote und Rechnungen",
+      "title": "Entwürfe heißen alle „Entwurf“ und sind nicht zu unterscheiden",
+      "heuristics": [
+        "Gerhardt-Powals #5 (Use names conceptually related to function)",
+        "Nielsen #6 (Recognition rather than recall)",
+        "Gestalt (Similarity)"
+      ],
+      "severity": 2,
+      "what_we_see": "In der Spalte „Nummer“, der Titelspalte der Liste, steht bei drei Zeilen nur „Entwurf“. Zwei davon haben denselben Empfänger und denselben Betrag, einer hat keinen Empfänger und 0,00 €. Ein Datum fehlt bei allen Entwürfen. Auf dem Handy wird diese Spalte zum Kartentitel.",
+      "why_it_matters": "Wer an einem Entwurf weiterarbeiten will, muss raten oder jeden öffnen. Doppelte Entwürfe bleiben liegen und werden versehentlich doppelt ausgestellt.",
+      "recommendation": "Für Entwürfe einen sprechenden Titel zeigen (Betreff oder erste Position, sonst „Entwurf vom 10.10.2026“) und im Datum das Erstelldatum in grau. Leere Entwürfe (kein Empfänger, 0,00 €) in der Liste als „leer“ kennzeichnen und beim Verlassen eines leeren Entwurfs anbieten, ihn zu verwerfen.",
+      "region": {
+        "x_pct": 22,
+        "y_pct": 34,
+        "w_pct": 16,
+        "h_pct": 36
+      }
+    },
+    {
+      "id": "kontakt-geburtstag-in-der-zukunft",
+      "screenshot_id": "14-kontakt-detail",
+      "sub_task": "Kontakt ansehen und ändern",
+      "title": "Ein Geburtstag in der Zukunft wird ohne Hinweis gespeichert",
+      "heuristics": [
+        "Nielsen #5 (Error prevention)",
+        "Shneiderman #5 (Prevent errors)"
+      ],
+      "severity": 2,
+      "what_we_see": "Ein Kontakt hat als Geburtstag ein Datum in der Zukunft, nach dem Tag, an dem er angelegt wurde. Das Datumsfeld (TypedInput kind=\"date\" in contact-form.tsx) hat kein max, und der Server prüft das Datum nicht auf Plausibilität.",
+      "why_it_matters": "Altersabhängige Dinge (Jugendbeiträge, Briefe mit {Alter}, Geburtstagslisten, SEPA-Mandate Minderjähriger) rechnen dann mit falschen Werten, ohne dass es jemandem auffällt.",
+      "recommendation": "max auf heute setzen und in fields.ts Daten in der Zukunft oder vor 1900 ablehnen („Geburtstag liegt in der Zukunft“). Dieselbe Regel gilt für Import und API, weil alle fields.ts nutzen.",
+      "region": {
+        "x_pct": 23,
+        "y_pct": 52,
+        "w_pct": 15,
+        "h_pct": 6
+      }
+    },
+    {
+      "id": "beitraege-mobil-fuenf-knoepfe-im-kopf",
+      "screenshot_id": "12-beitraege-mobil",
+      "sub_task": "Beiträge auf dem Handy",
+      "title": "Auf dem Handy füllen fünf Knöpfe den Kopf der Beitragsseite",
+      "heuristics": [
+        "COG.2 (Primary action count)",
+        "Hick's Law",
+        "Fitts's Law"
+      ],
+      "severity": 2,
+      "what_we_see": "Unter dem Titel brechen „Erinnerung an alle Überfälligen“, „Umlage“, „SEPA-Lastschrift“, ⋯ und „Beiträge erzeugen“ auf zwei Zeilen um. Ganz oben und am größten steht der E-Mail-Versand an alle.",
+      "why_it_matters": "Am Handy schaut man meist nur nach, wer noch nicht bezahlt hat. Die Liste rutscht nach unten, und die folgenreichste Aktion ist am leichtesten zu treffen.",
+      "recommendation": "Auf kleinen Bildschirmen nur die primäre Aktion zeigen und „Erinnerung“, „Umlage“ und „SEPA-Lastschrift“ ins ⋯-Menü legen (die Erinnerung als letzten Eintrag mit Rückfrage). Ab md bleibt die Leiste wie heute.",
+      "region": {
+        "x_pct": 4,
+        "y_pct": 21,
+        "w_pct": 92,
+        "h_pct": 9
+      }
+    },
+    {
+      "id": "begriffe-uneinheitlich",
+      "screenshot_id": "08-heute-qs1",
+      "sub_task": "Journey-level",
+      "title": "Derselbe Ort heißt an verschiedenen Stellen unterschiedlich",
+      "heuristics": [
+        "Content design: Consistent terminology",
+        "Nielsen #4 (Consistency and standards)",
+        "Nielsen #2 (Match between system and the real world)"
+      ],
+      "severity": 2,
+      "what_we_see": "Die Sidebar sagt „Start“, die Seite „Heute“. Die Sidebar sagt „Veranstaltungen“, der Sprout-Vorschlag „Hilf mir, ein Event anzulegen“. Sidebar und Brotkrumen sagen „Mitgliedschaften“, die Seite „Mitglieder“. Die Sidebar sagt „Rechnungen“, die Seite „Angebote & Rechnungen“.",
+      "why_it_matters": "Wer nach Anleitung „geh auf Mitglieder“ oder „leg ein Event an“ sucht, findet das Wort nicht in der Navigation. Für Ehrenamtliche, die die App selten öffnen, ist die Wiedererkennung des Wortes der wichtigste Wegweiser.",
+      "recommendation": "Pro Bereich ein Wort festlegen und überall verwenden (z. B. „Heute“ in Sidebar und Titel, „Veranstaltung“ statt „Event“ in allen deutschen Texten, „Mitglieder“ als Bereichsname). Eine kurze Begriffsliste in docs/design ablegen und neue Texte daran prüfen.",
+      "region": {
+        "x_pct": 0,
+        "y_pct": 7,
+        "w_pct": 70,
+        "h_pct": 23
+      }
+    },
+    {
+      "id": "mitglied-zahlungsart-abgeschnitten",
+      "screenshot_id": "10-mitglied-detail",
+      "sub_task": "Mitglied ansehen und ändern",
+      "title": "Die voreingestellte Zahlungsart ist im Feld abgeschnitten",
+      "heuristics": [
+        "Nielsen #1 (Visibility of system status)",
+        "Gerhardt-Powals #2 (Reduce uncertainty)"
+      ],
+      "severity": 1,
+      "what_we_see": "Das Feld „Zahlungsart“ zeigt „Überweisung (automatisch, kein |“. Der Rest der Option ist abgeschnitten, und es bleibt unklar, was „automatisch“ hier heißt.",
+      "why_it_matters": "Die Zahlungsart entscheidet, ob ein Beitrag per Lastschrift eingezogen wird. Ein halber Satz an dieser Stelle verunsichert genau bei Geld.",
+      "recommendation": "Die Option kurz beschriften („Überweisung (Standard)“) und die Erklärung („kein Mandat hinterlegt“) als Hinweis unter das Feld setzen, oder das Feld über die volle Breite gehen lassen.",
+      "region": {
+        "x_pct": 23,
+        "y_pct": 75,
+        "w_pct": 22,
+        "h_pct": 5
+      }
+    },
+    {
+      "id": "mitglieder-nummern-zwei-formate",
+      "screenshot_id": "09-mitglieder",
+      "sub_task": "Mitgliederliste",
+      "title": "Mitgliedsnummern stehen in zwei Formaten nebeneinander",
+      "heuristics": [
+        "Nielsen #4 (Consistency and standards)",
+        "Gerhardt-Powals #6 (Group data in consistently meaningful ways)"
+      ],
+      "severity": 1,
+      "what_we_see": "„Nr. 1“ steht neben „Nr. WNRP2“ und „Nr. JXV2F“. Bestehende Nummern behalten beim Ändern des Nummernformats ihr altes Format (Trigger in 20261013220000_number_ranges_generic.sql).",
+      "why_it_matters": "Gemischte Formate sehen nach Fehler aus und machen Sortieren und mündliches Nachfragen am Einlass schwerer („Ihre Nummer?“).",
+      "recommendation": "Beim Ändern des Formats in den Einstellungen sagen, dass bestehende Nummern bleiben, und optional „Bestehende Mitglieder neu nummerieren“ anbieten, mit Rückfrage und Hinweis auf gedruckte Karten.",
+      "region": {
+        "x_pct": 25,
+        "y_pct": 37,
+        "w_pct": 12,
+        "h_pct": 20
+      }
+    },
+    {
+      "id": "mitglied-kartentext-grammatik",
+      "screenshot_id": "10-mitglied-detail",
+      "sub_task": "Mitglied ansehen und ändern",
+      "title": "Der Hinweis zur Mitgliedskarte sagt „ihn“ statt „sie“",
+      "heuristics": [
+        "Content design: Plain language",
+        "Liking (Cialdini)"
+      ],
+      "severity": 1,
+      "what_we_see": "„Das Mitglied sieht die Karte auch im Mitgliederbereich … und kann ihn dort selbst drucken.“ Das Pronomen bezieht sich auf die Karte.",
+      "why_it_matters": "Kleine Sprachfehler senken das Vertrauen in eine Software, die mit Mitgliedsdaten und Geld arbeitet.",
+      "recommendation": "„… und kann sie dort selbst drucken.“ In de.json unter membership.cardHint korrigieren.",
+      "region": {
+        "x_pct": 71,
+        "y_pct": 27,
+        "w_pct": 27,
+        "h_pct": 9
+      }
+    }
+  ]
+}
