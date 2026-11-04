@@ -6023,6 +6023,12 @@
       "other": "{count} pieces"
     },
     "orderReceived": "Received",
-    "resendMailTitle": "Send mail again"
+    "resendMailTitle": "Send mail again",
+    "invoicePaid": {
+      "online": "Already paid online on {date} – thank you.",
+      "transfer": "Already paid by bank transfer on {date} – thank you.",
+      "cash": "Already paid in cash on {date} – thank you.",
+      "card": "Already paid by card on {date} – thank you."
+    }
   }
 }

@@ -6023,6 +6023,12 @@
       "other": "{count} Stück"
     },
     "orderReceived": "Eingegangen",
-    "resendMailTitle": "Mail erneut senden"
+    "resendMailTitle": "Mail erneut senden",
+    "invoicePaid": {
+      "online": "Bereits online bezahlt am {date} – vielen Dank.",
+      "transfer": "Bereits per Überweisung bezahlt am {date} – vielen Dank.",
+      "cash": "Bereits bar bezahlt am {date} – vielen Dank.",
+      "card": "Bereits mit Karte bezahlt am {date} – vielen Dank."
+    }
   }
 }

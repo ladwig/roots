@@ -178,13 +178,19 @@ export async function placeOrder(p: PlaceInput) {
 // ---------- after placing / paying ----------
 
 const ORDER_COLS =
-  "id, org_id, order_id, number, token, status, delivery, payment, name, phone, company, street, postal_code, city, country, shipping_name, shipping_cents, note, tracking, contact_id, invoice_id, invoice_error, created_at, pay_orders!inner(status, amount_total, currency, customer_email, customer_name, expires_at, paid_at, pay_order_items(id, description, quantity, refunded_quantity, unit_amount, source_id, metadata), pay_payments(amount, status, pay_refunds(amount, status, reason, created_at))), orgs!inner(slug, name, logo_path, site_domain)"
+  "id, org_id, order_id, number, token, status, delivery, payment, name, phone, company, street, postal_code, city, country, shipping_name, shipping_cents, note, tracking, contact_id, invoice_id, invoice_error, created_at, pay_orders!inner(status, amount_total, currency, customer_email, customer_name, expires_at, paid_at, pay_order_items(id, description, quantity, refunded_quantity, unit_amount, source_id, metadata), pay_payments(amount, status, provider, pay_refunds(amount, status, reason, created_at))), orgs!inner(slug, name, logo_path, site_domain)"
 
 async function loadOrder(orderId: string) {
   const { data } = await db().from("shop_orders").select(ORDER_COLS).eq("order_id", orderId).maybeSingle()
   return data
 }
 type Order = NonNullable<Awaited<ReturnType<typeof loadOrder>>>
+
+/** How a paid order was paid, for the invoice: cash / transfer by hand, online checkout, else a card terminal at pickup. */
+const paidVia = (o: Order) => {
+  const p = o.pay_orders.pay_payments.find((x) => x.status === "succeeded")?.provider
+  return p === "cash" ? "cash" : p === "transfer" ? "transfer" : o.payment === "online" ? "online" : "card"
+}
 
 /** Transfer / pay-on-pickup orders right after placing: contact, invoice (transfer: now, to pay against), mail, event. */
 async function placed(orderId: string) {
@@ -308,7 +314,11 @@ export async function ensureInvoice(orderId: string, force = false) {
         tax_mode: small ? "small_business" : "standard",
         currency: o.pay_orders.currency,
         intro: b?.invoice_intro ?? null,
-        outro: b?.invoice_outro ?? null,
+        // Paid already (online, or by hand before the invoice): the invoice says so, frozen with it.
+        outro:
+          [paid && o.pay_orders.paid_at ? t.dynamic(`store.invoicePaid.${paidVia(o)}`, { date: t.date(o.pay_orders.paid_at, { dateStyle: "medium" }) }) : null, b?.invoice_outro]
+            .filter(Boolean)
+            .join("\n\n") || null,
         service_from: (o.pay_orders.paid_at ?? o.created_at).slice(0, 10), // the sale's day, also when issued later
         due_date: paid ? null : o.pay_orders.expires_at ? o.pay_orders.expires_at.slice(0, 10) : addDays(today(), 14),
         notes: t("store.invoiceNote", { number: String(o.number) }),
