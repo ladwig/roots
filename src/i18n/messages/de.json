@@ -1902,7 +1902,7 @@
     "shortInvoices": "Rechnungen bis 250 € ohne Adresse erlauben",
     "shortInvoicesHint": "Kleinbetragsrechnung (§ 33 UStDV): bis 250 € brutto darf die Anschrift der Käufer:in fehlen – z. B. bei Shop-Bestellungen zur Abholung.",
     "cancelsNumber": "Storniert Rechnung {number} →",
-    "fromShopOrder": "Aus Shop-Bestellung #{number} – bezahlt, erstattet und storniert wird dort →",
+    "fromShopOrder": "Shop-Bestellung #{number}",
     "confirmCancel": "Stornorechnung erstellen? Sie bekommt eine eigene Nummer und negative Beträge, diese Rechnung gilt dann als storniert. Für eine Korrektur danach eine neue Rechnung ausstellen."
   },
   "guestlists": {

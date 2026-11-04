@@ -1902,7 +1902,7 @@
     "shortInvoices": "Allow invoices up to €250 without an address",
     "shortInvoicesHint": "Small-amount invoice (§ 33 UStDV): up to €250 gross the buyer's address may be missing – e.g. for shop orders picked up in person.",
     "cancelsNumber": "Cancels invoice {number} →",
-    "fromShopOrder": "From shop order #{number} – paid, refunded and cancelled there →",
+    "fromShopOrder": "Shop order #{number}",
     "confirmCancel": "Create a cancellation invoice? It gets its own number and negative amounts, and this invoice counts as cancelled. For a correction, issue a new invoice afterwards."
   },
   "guestlists": {
