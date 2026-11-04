@@ -35,16 +35,5 @@ export function convertArgs(input: string, out: (f: Format) => string, tags: Rec
   return { formats: outputs.map(([f]) => f), args: ["-i", input, ...outputs.flatMap(([f, codec]) => ["-map", "0:a:0", "-map_metadata", "-1", ...meta, ...codec, out(f)])] }
 }
 
-/**
- * A track title from a master's file name: the " - " parts without side/track codes (A1, 01), brackets and "Master",
- * technical parts with underscores dropped, the last one left wins. "objects_LENGUA001 - A1 Npoint_O - Gasp Master
- * (24, 44.1).wav" → "Gasp"; "B2 - Stigma - Npoint_O_Arclab_MSTR_4424.wav" → "Stigma".
- */
-export function titleFromFile(name: string) {
-  const base = name.replace(/\.[a-z0-9]+$/i, "")
-  const parts = base
-    .split(/\s+-\s+/)
-    .map((p) => p.replace(/\([^)]*\)/g, "").replace(/\b(master|mstr)\b\s*\d*/gi, "").replace(/^\s*([A-D]\d{1,2}|\d{1,3})\b[\s._-]*/i, "").replace(/\s+/g, " ").trim())
-    .filter((p) => p && !p.includes("_"))
-  return parts.pop() || base
-}
+/** A new track's title: the file name without its extension (the org edits it in the App). */
+export const titleFromFile = (name: string) => name.replace(/\.[a-z0-9]+$/i, "").trim() || name
