@@ -5993,6 +5993,7 @@
       "other": "{count} Stück"
     },
     "orderReceived": "Eingegangen",
-    "resendMailTitle": "Mail erneut senden"
+    "resendMailTitle": "Mail erneut senden",
+    "releaseLaterMail": "{name} erscheint am {date}. An dem Tag schalten wir deine Downloads frei und schicken dir eine kurze Nachricht."
   }
 }

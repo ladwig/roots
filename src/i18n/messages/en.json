@@ -5993,6 +5993,7 @@
       "other": "{count} pieces"
     },
     "orderReceived": "Received",
-    "resendMailTitle": "Send mail again"
+    "resendMailTitle": "Send mail again",
+    "releaseLaterMail": "{name} comes out on {date}. On that day we unlock your downloads and send you a short note."
   }
 }
