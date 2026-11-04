@@ -70,17 +70,29 @@ export default async function OrdersPage({ searchParams }: PageProps<"/shop/orde
             header: t("store.order"),
             cell: (o) => (
               <Link href={`/shop/orders/${o.id}`} className="grid underline-offset-4 hover:underline">
-                <span className="font-medium">
-                  #{o.number} · {o.name}
-                </span>
-                <span className="line-clamp-2 text-sm">
-                  {o.pay_orders.pay_order_items
-                    .filter((i) => !(i.metadata as Record<string, unknown> | null)?.shipping)
-                    .map((i) => `${i.quantity}× ${i.description}`)
-                    .join(", ")}
-                </span>
+                <span className="font-medium">#{o.number}</span>
                 <span className="text-xs text-muted-foreground">{t.date(o.placed_at!, { dateStyle: "medium", timeStyle: "short" })}</span>
               </Link>
+            ),
+          },
+          {
+            header: t("store.items"),
+            cell: (o) => (
+              <span className="line-clamp-2">
+                {o.pay_orders.pay_order_items
+                  .filter((i) => !(i.metadata as Record<string, unknown> | null)?.shipping)
+                  .map((i) => `${i.quantity}× ${i.description}`)
+                  .join(", ")}
+              </span>
+            ),
+          },
+          {
+            header: t("store.buyer"),
+            cell: (o) => (
+              <span className="grid">
+                <span>{o.name}</span>
+                {o.pay_orders.customer_email && <span className="text-xs text-muted-foreground">{o.pay_orders.customer_email}</span>}
+              </span>
             ),
           },
           { header: t("store.total"), cell: (o) => t.money(o.pay_orders.amount_total, o.pay_orders.currency) },
