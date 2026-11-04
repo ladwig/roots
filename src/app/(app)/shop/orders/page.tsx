@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { pageParam, param, withParams } from "@/lib/url"
+import { cn } from "@/lib/utils"
 import { missingInvoices } from "@/shop/server"
 import { issueMissingInvoicesAction } from "../actions"
 
@@ -83,7 +84,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/shop/orde
             cell: (o) => (
               <span className="grid">
                 <span>{t.dynamic(`store.payments.${o.payment}`)}</span>
-                <span className="text-xs text-muted-foreground">{t.dynamic(`payments.statuses.${o.pay_orders.status}`)}</span>
+                <span className={cn("text-xs", paid(o.pay_orders.status) || o.status === "cancelled" ? "text-muted-foreground" : "font-medium text-destructive")}>{t.dynamic(`payments.statuses.${o.pay_orders.status}`)}</span>
               </span>
             ),
           },
@@ -92,7 +93,6 @@ export default async function OrdersPage({ searchParams }: PageProps<"/shop/orde
             cell: (o) => (
               <span className="flex flex-wrap gap-1">
                 <Badge variant={o.status === "cancelled" ? "destructive" : o.status === "new" ? "default" : "secondary"}>{t.dynamic(`store.orderStatus.${o.status}`)}</Badge>
-                {o.status !== "cancelled" && <Badge variant={paid(o.pay_orders.status) ? "secondary" : "outline"}>{paid(o.pay_orders.status) ? t("store.paid") : t("store.unpaid")}</Badge>}
               </span>
             ),
           },
