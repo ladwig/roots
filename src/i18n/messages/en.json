@@ -5902,7 +5902,7 @@
     "releaseInvalid": "The release date is invalid.",
     "releaseNote": "Out on {date}. You can order now – downloads are available from the release day.",
     "releaseShort": "Out {date}",
-    "releaseLater": "{name} comes out on {date} – your downloads unlock here then and you'll get a mail.",
+    "releaseLater": "{name} comes out on {date}. We'll let you know again then.",
     "orMore": "{price} or more",
     "yourPrice": "Your price",
     "atLeast": "at least {price}",
@@ -5993,7 +5993,6 @@
       "other": "{count} pieces"
     },
     "orderReceived": "Received",
-    "resendMailTitle": "Send mail again",
-    "releaseLaterMail": "{name} comes out on {date}. We'll let you know again then."
+    "resendMailTitle": "Send mail again"
   }
 }

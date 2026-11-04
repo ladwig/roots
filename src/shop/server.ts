@@ -388,7 +388,7 @@ function mailMessage(kind: MailKind, o: Order, t: T, custom: string | null, bank
   // Pre-orders: say when the digital part comes (the "released" mail follows on the day).
   if (kind === "confirmation" || kind === "paid")
     for (const p of later) {
-      const line = t("store.releaseLaterMail", { name: p.name, date: t.date(p.release_at, { dateStyle: "long" }) })
+      const line = t("store.releaseLater", { name: p.name, date: t.date(p.release_at, { dateStyle: "long" }) })
       parts.push(md(`<p>${esc(line)}</p>`, line))
     }
   return { html: parts.map((p) => p.html).join(""), text: parts.map((p) => p.text).join("\n\n") }

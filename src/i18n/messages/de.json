@@ -5902,7 +5902,7 @@
     "releaseInvalid": "Das Erscheinungsdatum ist ungültig.",
     "releaseNote": "Erscheint am {date}. Du kannst jetzt schon bestellen – Downloads gibt es ab dem Erscheinungstag.",
     "releaseShort": "Erscheint {date}",
-    "releaseLater": "{name} erscheint am {date} – deine Downloads werden dann hier freigeschaltet und du bekommst eine Mail.",
+    "releaseLater": "{name} erscheint am {date}. Du wirst dazu nochmals benachrichtigt.",
     "orMore": "{price} oder mehr",
     "yourPrice": "Dein Preis",
     "atLeast": "mindestens {price}",
@@ -5993,7 +5993,6 @@
       "other": "{count} Stück"
     },
     "orderReceived": "Eingegangen",
-    "resendMailTitle": "Mail erneut senden",
-    "releaseLaterMail": "{name} erscheint am {date}. Du wirst dazu nochmals benachrichtigt."
+    "resendMailTitle": "Mail erneut senden"
   }
 }
