@@ -181,7 +181,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
                           <Input name="position" type="number" defaultValue={x.position || i + 1} aria-label={t("store.trackNumber")} disabled={!canManage} />
                           <Input name="title" defaultValue={x.title} maxLength={200} aria-label={t("store.trackTitle")} disabled={!canManage} />
                           <span className="col-span-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                            <Badge variant={x.status === "ready" ? "secondary" : x.status === "failed" ? "destructive" : "outline"}>{t.dynamic(`store.trackStatus.${x.status}`)}</Badge>
+                            {x.status !== "ready" && <Badge variant={x.status === "failed" ? "destructive" : "outline"}>{t.dynamic(`store.trackStatus.${x.status}`)}</Badge>}
                             {x.duration_seconds ? <span className="tabular-nums">{clock(x.duration_seconds)}</span> : null}
                             {x.status === "ready" && <span>{(["wav", "mp3"] as const).flatMap((f) => (x.formats[f] ? [`${t.dynamic(`store.audioFormats.${f}`)} ${mb(x.formats[f]!.size)}`] : [])).join(" · ")}</span>}
                             {x.status === "failed" && x.error && <span className="w-full truncate text-destructive" title={x.error}>{x.error}</span>}
