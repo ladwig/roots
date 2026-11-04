@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { getT } from "@/i18n/server"
 import { imageUrl, imageUrlOn } from "@/lib/images"
@@ -67,13 +68,15 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
           {p.images.length > 0 ? <Gallery images={p.images.map((x) => imageUrl(x)!)} alt={p.name} /> : <div className="aspect-square rounded-xl border bg-muted" />}
         </div>
         <div className="grid content-start gap-4">
-          <h1 className="font-heading text-3xl font-semibold">{p.name}</h1>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <h1 className="font-heading text-3xl font-semibold">{p.name}</h1>
+            {p.release_at && <Badge variant="secondary" className="site-release">{t("store.releaseShort", { date: t.date(p.release_at, { dateStyle: "medium" }) })}</Badge>}
+          </div>
           <p className="text-xl">{priceLabel(p, t)}</p>
           <p className="text-xs text-muted-foreground">
             {small ? t("store.smallBusinessShort") : Number(p.tax_rate) > 0 ? t("store.vatRate", { rate: Number(p.tax_rate) }) : t("store.vatNone")}
             {p.kind !== "digital" && ` · ${t("store.plusShipping")}`}
           </p>
-          {p.release_at && <p className="site-release rounded-lg bg-muted px-3 py-2 text-sm">{t("store.releaseNote", { date: t.date(p.release_at, { dateStyle: "long" }) })}</p>}
           {tracks.length > 0 && (
             <MusicPlayer
               tracks={tracks.map((x) => ({ id: x.id, title: x.title, duration: x.duration, src: x.stream ? sitePath(site, `/shop/${slug}/track/${x.id}`) : null, buy: !gone && !!p.tracks?.some((b) => b.id === x.id) }))}

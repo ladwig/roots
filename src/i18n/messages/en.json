@@ -5930,7 +5930,6 @@
     "releaseOn": "Release date (optional)",
     "releaseHint": "For pre-orders: sells normally until then; downloads and music unlock on the day – buyers get a mail then.",
     "releaseInvalid": "The release date is invalid.",
-    "releaseNote": "Out on {date}. You can order now – downloads are available from the release day.",
     "releaseShort": "Out {date}",
     "releaseLater": "{name} comes out on {date}. We'll let you know again then.",
     "orMore": "{price} or more",

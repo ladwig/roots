@@ -5930,7 +5930,6 @@
     "releaseOn": "Erscheint am (optional)",
     "releaseHint": "Für Vorbestellungen: bis dahin normal kaufbar, Downloads und Musik werden an dem Tag freigeschaltet – Käufer:innen bekommen dann eine Mail.",
     "releaseInvalid": "Das Erscheinungsdatum ist ungültig.",
-    "releaseNote": "Erscheint am {date}. Du kannst jetzt schon bestellen – Downloads gibt es ab dem Erscheinungstag.",
     "releaseShort": "Erscheint {date}",
     "releaseLater": "{name} erscheint am {date}. Du wirst dazu nochmals benachrichtigt.",
     "orMore": "{price} oder mehr",
