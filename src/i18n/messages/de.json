@@ -1005,7 +1005,8 @@
     },
     "sources": {
       "test": "Testzahlung",
-      "tickets": "Tickets"
+      "tickets": "Tickets",
+      "shop": "Shop"
     },
     "order": "Bestellung",
     "items": "Positionen",
@@ -1816,7 +1817,6 @@
     "toInvoice": "In Rechnung umwandeln",
     "duplicate": "Duplizieren",
     "cancel": "Stornieren",
-    "cancelHint": "Erstellt eine Stornorechnung mit eigener Nummer und negativen Beträgen; die Rechnung wird als storniert markiert. Für eine Korrektur danach eine neue Rechnung ausstellen.",
     "statusDone": {
       "sent": "Status geändert.",
       "paid": "Als bezahlt markiert.",
@@ -1896,12 +1896,14 @@
       "cancellation": "Stornonr."
     },
     "cancelsInvoice": "Storno zu Rechnung",
-    "cancels": "Storniert die Rechnung →",
     "cancelled": "Stornorechnung erstellt.",
     "pdfDownload": "PDF herunterladen",
     "grossPricesNote": "Alle Preise inkl. MwSt.",
     "shortInvoices": "Rechnungen bis 250 € ohne Adresse erlauben",
-    "shortInvoicesHint": "Kleinbetragsrechnung (§ 33 UStDV): bis 250 € brutto darf die Anschrift der Käufer:in fehlen – z. B. bei Shop-Bestellungen zur Abholung."
+    "shortInvoicesHint": "Kleinbetragsrechnung (§ 33 UStDV): bis 250 € brutto darf die Anschrift der Käufer:in fehlen – z. B. bei Shop-Bestellungen zur Abholung.",
+    "cancelsNumber": "Storniert Rechnung {number} →",
+    "fromShopOrder": "Aus Shop-Bestellung #{number} – bezahlt, erstattet und storniert wird dort →",
+    "confirmCancel": "Stornorechnung erstellen? Sie bekommt eine eigene Nummer und negative Beträge, diese Rechnung gilt dann als storniert. Für eine Korrektur danach eine neue Rechnung ausstellen."
   },
   "guestlists": {
     "nav": "Gästelisten",

@@ -2,7 +2,7 @@ import Link from "next/link"
 import { ActionsMenu, MenuDownload, MenuSeparator, MenuSubmit } from "@/components/actions-menu"
 import { Page, PageHeader } from "@/components/page"
 import { notFound } from "next/navigation"
-import { CopyIcon, FileDownIcon, FileOutputIcon, PrinterIcon, Trash2Icon } from "lucide-react"
+import { BanIcon, CopyIcon, FileDownIcon, FileOutputIcon, PrinterIcon, Trash2Icon } from "lucide-react"
 import { Notice } from "@/components/notice"
 import { SubmitButton } from "@/components/submit-button"
 import { Badge } from "@/components/ui/badge"
@@ -39,7 +39,14 @@ export default async function DocumentPage({ params, searchParams }: PageProps<"
       : Promise.resolve({ data: [] }),
   ])
   if (!doc) notFound()
+  // A shop invoice follows its order (paid / refunded / cancelled there); the cancelled invoice's number for the link.
+  const [{ data: shopOrder }, { data: source }] = await Promise.all([
+    doc.kind === "invoice" && ctx.modules.has("shop") ? ctx.supabase.from("shop_orders").select("id, number").eq("org_id", ctx.org.id).eq("invoice_id", doc.id).maybeSingle() : Promise.resolve({ data: null }),
+    doc.source_id ? ctx.supabase.from("documents").select("number").eq("id", doc.source_id).eq("org_id", ctx.org.id).maybeSingle() : Promise.resolve({ data: null }),
+  ])
   const draft = doc.status === "draft"
+  // Shop invoices are cancelled with their order (Stornieren / Erstatten there), never on their own.
+  const canCancel = canManage && !shopOrder && doc.kind === "invoice" && (doc.status === "sent" || doc.status === "paid")
   const items = [...doc.document_items].sort((a, b) => a.position - b.position)
   const person = (c: { first_name: string | null; last_name: string | null }) => [c.first_name, c.last_name].filter(Boolean).join(" ")
   const pickable: EditorContact[] = (contacts ?? []).map((c) => ({
@@ -71,11 +78,16 @@ export default async function DocumentPage({ params, searchParams }: PageProps<"
           </Badge>
         }
         meta={
-          doc.source_id && (
+          (doc.source_id && (
             <Link href={`/invoices/${doc.source_id}`} className="underline underline-offset-4">
-              {t(doc.kind === "cancellation" ? "invoices.cancels" : "invoices.fromSource")}
+              {doc.kind === "cancellation" ? t("invoices.cancelsNumber", { number: source?.number ?? "" }) : t("invoices.fromSource")}
             </Link>
-          )
+          )) ||
+          (shopOrder && (
+            <Link href={`/shop/orders/${shopOrder.id}`} className="underline underline-offset-4">
+              {t("invoices.fromShopOrder", { number: String(shopOrder.number) })}
+            </Link>
+          ))
         }
         actions={
           <Button render={<a href={`/print/documents/${doc.id}`} target="_blank" rel="noreferrer" />} nativeButton={false} size="sm" variant="outline">
@@ -87,6 +99,14 @@ export default async function DocumentPage({ params, searchParams }: PageProps<"
             <MenuDownload href={`/print/documents/${doc.id}/pdf`} icon={<FileDownIcon />}>
               {t("invoices.pdfDownload")}
             </MenuDownload>
+            {canCancel && (
+              <>
+                <MenuSeparator />
+                <MenuSubmit form="cancel-invoice" icon={<BanIcon />} destructive confirm="invoices.confirmCancel">
+                  {t("invoices.cancel")}
+                </MenuSubmit>
+              </>
+            )}
             {draft && canManage && (
               <>
                 <MenuSeparator />
@@ -98,6 +118,11 @@ export default async function DocumentPage({ params, searchParams }: PageProps<"
           </ActionsMenu>
         }
       />
+      {canCancel && (
+        <form id="cancel-invoice" action={cancelInvoice} hidden>
+          <input type="hidden" name="id" value={doc.id} />
+        </form>
+      )}
       {draft && canManage && (
         <form id="delete-draft" action={deleteDraft} hidden>
           <input type="hidden" name="id" value={doc.id} />
@@ -156,8 +181,8 @@ export default async function DocumentPage({ params, searchParams }: PageProps<"
           </ol>
           {canManage && (
             <div className="flex flex-wrap gap-2">
-              {doc.kind === "invoice" && doc.status === "sent" && status("paid", t("invoices.markPaid"), "default")}
-              {doc.kind === "invoice" && doc.status === "paid" && status("sent", t("invoices.markUnpaid"))}
+              {doc.kind === "invoice" && !shopOrder && doc.status === "sent" && status("paid", t("invoices.markPaid"), "default")}
+              {doc.kind === "invoice" && !shopOrder && doc.status === "paid" && status("sent", t("invoices.markUnpaid"))}
               {doc.kind === "quote" && doc.status === "sent" && status("accepted", t("invoices.markAccepted"))}
               {doc.kind === "quote" && doc.status === "sent" && status("declined", t("invoices.markDeclined"))}
               {doc.kind === "quote" && doc.status !== "declined" && (
@@ -176,17 +201,6 @@ export default async function DocumentPage({ params, searchParams }: PageProps<"
                     <CopyIcon /> {t("invoices.duplicate")}
                   </SubmitButton>
                 </form>
-              )}
-              {doc.kind === "invoice" && (doc.status === "sent" || doc.status === "paid") && (
-                <div className="grid gap-1 rounded-lg border border-destructive/30 p-2">
-                  <form action={cancelInvoice}>
-                    <input type="hidden" name="id" value={doc.id} />
-                    <SubmitButton size="sm" variant="destructive">
-                      {t("invoices.cancel")}
-                    </SubmitButton>
-                  </form>
-                  <p className="max-w-xs text-xs text-muted-foreground">{t("invoices.cancelHint")}</p>
-                </div>
               )}
             </div>
           )}
