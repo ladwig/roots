@@ -2875,14 +2875,10 @@
       "campaign": "Kampagne",
       "automation": "Automation",
       "workflow": "Workflow",
-      "test": "Test-Mail",
       "invoice": "Rechnung",
       "letter": "Brief",
       "other": "Sonstige",
       "shop": "Shop",
-      "portal": {
-        "login": "Login-Link (Mitgliederbereich)"
-      },
       "form": {
         "confirmation": "Formular-Bestätigung"
       },
@@ -2896,7 +2892,7 @@
       }
     },
     "kind": "Art",
-    "logHint": "Alle E-Mails, die in eurem Namen rausgehen – Kampagnen, Automationen, Shop, Tickets, Rechnungen, Logins. Ohne Inhalt; System-Mails werden 90 Tage aufbewahrt.",
+    "logHint": "Alle E-Mails, die in eurem Namen rausgehen – Kampagnen, Automationen, Shop, Tickets, Rechnungen. Ohne Inhalt; System-Mails werden 90 Tage aufbewahrt.",
     "logSearch": "Empfänger:in oder Betreff",
     "logViews": {
       "all": "Alle",

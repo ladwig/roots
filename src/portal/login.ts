@@ -33,7 +33,7 @@ export async function sendLoginLink(org: { id: string; name: string; site_domain
           .split("\n")
           .map((l) => (l === link ? `<p><a href="${link}" style="display:inline-block;padding:10px 16px;background:#15803d;color:#fff;border-radius:8px;text-decoration:none">${t("portal.mailButton")}</a></p>` : `<p style="margin:0 0 8px">${l.replace(/[<>&]/g, "")}</p>`))
           .join("")}</div>`,
-      }, { kind: "portal.login" }).catch((e) => (console.error(e), false))
+      }, false).catch((e) => (console.error(e), false))
     }
   }
   return true

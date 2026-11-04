@@ -80,5 +80,5 @@ export async function testEventMail(orgId: string, org: MailOrg, template: Templ
   const t = await orgT(orgId)
   const ev = { title: t("email.eventMail.sampleEvent"), starts_at: new Date(Date.now() + 7 * 86_400_000).toISOString(), venue_name: t("email.eventMail.sampleVenue"), venue_address: null }
   const mail = renderEventMail(t, template, eventMailVars(t, "ticket", ev, org.name, { name, email: to, count: 2, link: siteUrl(org.slug, "", org.site_domain) }), org)
-  return sendOrgEmail(orgId, { to, ...mail, subject: `[Test] ${mail.subject}` }, { kind: "test" })
+  return sendOrgEmail(orgId, { to, ...mail, subject: `[Test] ${mail.subject}` }, false)
 }

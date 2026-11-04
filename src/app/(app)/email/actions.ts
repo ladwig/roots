@@ -57,7 +57,7 @@ export async function saveCampaign(fd: FormData) {
       unsubscribeUrl: `${APP_URL}/u/test`,
       unsubscribeLabel: t("email.unsubscribe"),
     })
-    const ok = await sendOrgEmail(ctx.org.id, { to: ctx.email, ...mail, subject: `[Test] ${mail.subject}` }, { kind: "test" }).catch(() => false)
+    const ok = await sendOrgEmail(ctx.org.id, { to: ctx.email, ...mail, subject: `[Test] ${mail.subject}` }, false).catch(() => false)
     back(here, ok ? { ok: t("email.testSent", { email: ctx.email }) } : { error: t("email.noProvider") })
   }
   if (intent === "send" || intent === "schedule") {

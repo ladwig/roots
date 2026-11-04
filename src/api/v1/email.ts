@@ -292,7 +292,7 @@ export const endpoints: Endpoint[] = [
         unsubscribeUrl: `${APP_URL}/u/test`,
         unsubscribeLabel: t("email.unsubscribe"),
       })
-      const sent = await sendOrgEmail(orgId, { to: body.to, ...mail, subject: `[Test] ${mail.subject}` }, { kind: "test" }).catch(() => false)
+      const sent = await sendOrgEmail(orgId, { to: body.to, ...mail, subject: `[Test] ${mail.subject}` }, false).catch(() => false)
       if (!sent) throw new ApiError(422, "no_provider", "The email could not be sent (no email provider configured or the provider refused it).")
       return { ok: true as const }
     },

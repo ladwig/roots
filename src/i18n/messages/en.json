@@ -2875,14 +2875,10 @@
       "campaign": "Campaign",
       "automation": "Automation",
       "workflow": "Workflow",
-      "test": "Test mail",
       "invoice": "Invoice",
       "letter": "Letter",
       "other": "Other",
       "shop": "Shop",
-      "portal": {
-        "login": "Login link (member area)"
-      },
       "form": {
         "confirmation": "Form confirmation"
       },
@@ -2896,7 +2892,7 @@
       }
     },
     "kind": "Kind",
-    "logHint": "Every email sent in your name – campaigns, automations, shop, tickets, invoices, logins. Without content; system mails are kept for 90 days.",
+    "logHint": "Every email sent in your name – campaigns, automations, shop, tickets, invoices. Without content; system mails are kept for 90 days.",
     "logSearch": "Recipient or subject",
     "logViews": {
       "all": "All",
