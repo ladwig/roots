@@ -407,7 +407,7 @@ export async function mail(kind: MailKind, orderId: string, storno?: string | nu
   ])
   const template = org?.org_modules.length ? (org.email_templates[0] ?? null) : null
   const link = orderLink(o)
-  const vars = { number: String(o.number), name: o.name }
+  const vars = { number: String(o.number), name: o.name, org: o.orgs.name }
   const mailVars = {
     name: o.name,
     email: to,
