@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import type { T } from "@/i18n/translate"
 import type { getContext } from "@/lib/context"
 import { formatMoney } from "@/lib/inputs"
+import { cn } from "@/lib/utils"
 
 type Ctx = Awaited<ReturnType<typeof getContext>>
 type Change = { table_name?: string; row_id?: string; at: string; actor_id: string | null; action: string; old: unknown; new: unknown; via: string | null }
@@ -167,11 +168,16 @@ function CommentView({ t, c, mine, back, actions, fileOf, upload }: { t: T; c: C
   const attached = c.file_ids.map(fileOf).filter((f) => !!f)
   const images = attached.filter((f) => f.mime.startsWith("image/"))
   const others = attached.filter((f) => !f.mime.startsWith("image/"))
+  // Own comments: pencil + bin top right. Editing (a <details>, no JS) swaps the text for the comment box.
   return (
-    <div className="group grid gap-2 rounded-lg bg-muted px-3 py-2">
-      {c.body && <p className="break-words whitespace-pre-wrap">{c.body}</p>}
+    <div className={cn("relative grid gap-2 rounded-lg bg-muted px-3 py-2 [&:has(details[open])_[data-view]]:hidden", mine && "pr-16")}>
+      {c.body && (
+        <p data-view className="break-words whitespace-pre-wrap">
+          {c.body}
+        </p>
+      )}
       {images.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div data-view className="flex flex-wrap gap-2">
           {images.map((f) => (
             <a key={f.id} href={`/files/${f.id}`} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-md border bg-background">
               {/* eslint-disable-next-line @next/next/no-img-element -- private file behind a short signed URL */}
@@ -181,7 +187,7 @@ function CommentView({ t, c, mine, back, actions, fileOf, upload }: { t: T; c: C
         </div>
       )}
       {others.length > 0 && (
-        <ul className="grid gap-1">
+        <ul data-view className="grid gap-1">
           {others.map((f) => (
             <li key={f.id}>
               <a href={`/files/${f.id}`} target="_blank" rel="noreferrer" className="inline-flex max-w-full items-center gap-1 text-primary underline-offset-4 hover:underline">
@@ -193,25 +199,34 @@ function CommentView({ t, c, mine, back, actions, fileOf, upload }: { t: T; c: C
         </ul>
       )}
       {mine && (
-        <div className="flex items-center gap-1">
-          <details className="grid flex-1 gap-2 [&[open]>summary]:hidden">
-            <summary className="inline-flex w-fit cursor-pointer list-none items-center gap-1 rounded-md px-1.5 py-1 text-xs text-muted-foreground hover:bg-background hover:text-foreground">
-              <PencilIcon className="size-3.5" aria-hidden />
-              {t("activity.edit")}
-            </summary>
+        <>
+          <details className="group/edit">
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <summary
+                    aria-label={t("activity.edit")}
+                    className="absolute top-1 right-9 grid size-7 cursor-pointer list-none place-items-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground group-open/edit:bg-background group-open/edit:text-foreground [&::-webkit-details-marker]:hidden"
+                  />
+                }
+              >
+                <PencilIcon className="size-3.5" aria-hidden />
+              </TooltipTrigger>
+              <TooltipContent>{t("activity.edit")}</TooltipContent>
+            </Tooltip>
             <CommentForm action={actions.edit} entity={c.entity} entityId={c.entity_id} back={back} files={upload} edit={{ id: c.id, body: c.body, files: attached.map((f) => ({ id: f.id, name: f.name })) }} />
           </details>
-          <form action={actions.remove} className="self-start">
+          <form action={actions.remove} className="absolute top-1 right-1">
             <input type="hidden" name="id" value={c.id} />
             <input type="hidden" name="back" value={back} />
             <Tooltip>
-              <TooltipTrigger render={<SubmitButton variant="ghost" size="icon-xs" aria-label={t("activity.delete")} data-confirm="activity.confirmDelete" />}>
+              <TooltipTrigger render={<SubmitButton variant="ghost" size="icon-sm" aria-label={t("activity.delete")} data-confirm="activity.confirmDelete" className="text-muted-foreground" />}>
                 <Trash2Icon />
               </TooltipTrigger>
               <TooltipContent>{t("activity.delete")}</TooltipContent>
             </Tooltip>
           </form>
-        </div>
+        </>
       )}
     </div>
   )

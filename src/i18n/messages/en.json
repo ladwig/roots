@@ -3580,7 +3580,16 @@
         "label": "not clocked out",
         "hint": "Running for over 16 hours – probably forgot to clock out."
       }
-    }
+    },
+    "person": "Person",
+    "project": "Project",
+    "noProject": "No project",
+    "task": "Task",
+    "noTask": "No particular task",
+    "clockInProject": "Clock in on project",
+    "runningOn": "Running on {project} since {time} – clocking out ends it.",
+    "clockHintProject": "Clocking in starts the time on this project.",
+    "projectTotal": "Time on the project"
   },
   "hr": {
     "nav": "People",
@@ -4848,7 +4857,8 @@
       "list": "List",
       "calendar": "Calendar",
       "overview": "Overview",
-      "timeline": "Timeline"
+      "timeline": "Timeline",
+      "time": "Time"
     },
     "search": "Search tasks",
     "assignee": "Assignee",

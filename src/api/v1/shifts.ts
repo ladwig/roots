@@ -139,6 +139,8 @@ const hhmm = (t: string) => t.slice(0, 5)
 const thisMonth = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" }).slice(0, 7)
 
 const TimeEntry = z.object({
+  project_id: uuid.nullable(),
+  task_id: uuid.nullable(),
   id: uuid,
   staff_id: uuid,
   shift_id: uuid.nullable(),
@@ -153,8 +155,8 @@ const TimeEntry = z.object({
   created_at: ts,
   updated_at: ts,
 })
-const ENTRY_COLS = "id, staff_id, shift_id, started_at, ended_at, break_minutes, note, approved_at, created_at, updated_at"
-const EntryInput = z.object({ ended_at: iso.nullable(), break_minutes: z.number().int().min(0).max(1440).nullable(), note: z.string().max(500).nullable() }).partial()
+const ENTRY_COLS = "id, staff_id, shift_id, project_id, task_id, started_at, ended_at, break_minutes, note, approved_at, created_at, updated_at"
+const EntryInput = z.object({ project_id: uuid.nullable().describe("The project this time was spent on (projects module)"), task_id: uuid.nullable().describe("A task of that project (sets the project when left out)"), ended_at: iso.nullable(), break_minutes: z.number().int().min(0).max(1440).nullable(), note: z.string().max(500).nullable() }).partial()
 type EntryRow = { id: string; staff_id: string; started_at: string; ended_at: string | null; break_minutes: number | null }
 function entriesOut<R extends EntryRow>(rows: R[]) {
   const byStaff = new Map<string, R[]>()
@@ -166,8 +168,10 @@ function entriesOut<R extends EntryRow>(rows: R[]) {
   })
 }
 // Same check as the App (src/shifts/time.ts); ISO strings normalised.
-function entryRow(b: { started_at?: string; ended_at?: string | null; break_minutes?: number | null; note?: string | null }) {
+function entryRow(b: { started_at?: string; ended_at?: string | null; break_minutes?: number | null; note?: string | null; project_id?: string | null; task_id?: string | null }) {
   const row = {
+    ...(b.project_id !== undefined ? { project_id: b.project_id } : {}),
+    ...(b.task_id !== undefined ? { task_id: b.task_id } : {}),
     ...(b.started_at !== undefined ? { started_at: new Date(b.started_at).toISOString() } : {}),
     ...(b.ended_at !== undefined ? { ended_at: b.ended_at ? new Date(b.ended_at).toISOString() : null } : {}),
     ...(b.break_minutes !== undefined ? { break_minutes: b.break_minutes } : {}),
@@ -649,6 +653,7 @@ export const endpoints: Endpoint[] = [
     description: "Worked periods (with or without a shift). `net_minutes` = presence minus break; `break_minutes` null = automatic legal break (6 h → 30 min, 9 h → 45 min). `warnings` are German working-time rules (never blocking).",
     query: page.extend({
       staff_id: uuid.optional(),
+      project_id: uuid.optional().describe("Only time on this project"),
       from: iso.optional().describe("Started at or after"),
       to: iso.optional().describe("Started before"),
       approved: z.enum(["true", "false"]).optional(),
@@ -657,6 +662,7 @@ export const endpoints: Endpoint[] = [
     async handler({ db, orgId, query }) {
       let q = db.from("time_entries").select(ENTRY_COLS).eq("org_id", orgId).order("started_at").range(query.offset, query.offset + query.limit)
       if (query.staff_id) q = q.eq("staff_id", query.staff_id)
+      if (query.project_id) q = q.eq("project_id", query.project_id)
       if (query.from) q = q.gte("started_at", query.from)
       if (query.to) q = q.lt("started_at", query.to)
       if (query.approved) q = query.approved === "true" ? q.not("approved_at", "is", null) : q.is("approved_at", null)

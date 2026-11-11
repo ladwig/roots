@@ -2383,14 +2383,14 @@ isOneToOne: false
                   ]
                 },"time_entries": {
                   Row: {
-                    "approved_at": string | null,"approved_by": string | null,"break_minutes": number | null,"created_at": string,"created_by": string | null,"ended_at": string | null,"id": string,"note": string | null,"org_id": string,"shift_id": string | null,"staff_id": string,"started_at": string,"updated_at": string,"updated_by": string | null
+                    "approved_at": string | null,"approved_by": string | null,"break_minutes": number | null,"created_at": string,"created_by": string | null,"ended_at": string | null,"id": string,"note": string | null,"org_id": string,"project_id": string | null,"shift_id": string | null,"staff_id": string,"started_at": string,"task_id": string | null,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "approved_at"?: string | null,"approved_by"?: string | null,"break_minutes"?: number | null,"created_at"?: string,"created_by"?: string | null,"ended_at"?: string | null,"id"?: string,"note"?: string | null,"org_id": string,"shift_id"?: string | null,"staff_id": string,"started_at": string,"updated_at"?: string,"updated_by"?: string | null
+                    "approved_at"?: string | null,"approved_by"?: string | null,"break_minutes"?: number | null,"created_at"?: string,"created_by"?: string | null,"ended_at"?: string | null,"id"?: string,"note"?: string | null,"org_id": string,"project_id"?: string | null,"shift_id"?: string | null,"staff_id": string,"started_at": string,"task_id"?: string | null,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "approved_at"?: string | null,"approved_by"?: string | null,"break_minutes"?: number | null,"created_at"?: string,"created_by"?: string | null,"ended_at"?: string | null,"id"?: string,"note"?: string | null,"org_id"?: string,"shift_id"?: string | null,"staff_id"?: string,"started_at"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "approved_at"?: string | null,"approved_by"?: string | null,"break_minutes"?: number | null,"created_at"?: string,"created_by"?: string | null,"ended_at"?: string | null,"id"?: string,"note"?: string | null,"org_id"?: string,"project_id"?: string | null,"shift_id"?: string | null,"staff_id"?: string,"started_at"?: string,"task_id"?: string | null,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -2398,6 +2398,12 @@ isOneToOne: false
       columns: ["org_id"]
 isOneToOne: false
       referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "time_entries_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "time_entries_shift_id_fkey"
@@ -2410,6 +2416,12 @@ isOneToOne: false
       columns: ["staff_id"]
 isOneToOne: false
       referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "time_entries_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
       referencedColumns: ["id"]
     }
                   ]

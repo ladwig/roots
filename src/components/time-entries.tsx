@@ -12,10 +12,11 @@ import { toLocalInput, type monthOf } from "@/lib/time"
 import { minutes, warnings, type Entry } from "@/shifts/time"
 import { deleteEntry, saveEntry } from "@/app/(app)/shifts/time-actions"
 import { DateInput } from "@/components/date-input"
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 
 // Time tracking screens: own entries ("Meine Schichten") and one person's month (Stunden › Name).
-export type TimeRow = Entry & { note: string | null; approved_at: string | null; shift_id: string | null; shifts?: { title: string | null; positions: { name: string } | null } | null }
-export const TIME_COLS = "id, started_at, ended_at, break_minutes, note, approved_at, shift_id, shifts(title, positions(name))"
+export type TimeRow = Entry & { note: string | null; approved_at: string | null; shift_id: string | null; staff_id: string; project_id: string | null; task_id: string | null; shifts?: { title: string | null; positions: { name: string } | null } | null; projects?: { name: string } | null; tasks?: { title: string } | null }
+export const TIME_COLS = "id, started_at, ended_at, break_minutes, note, approved_at, shift_id, staff_id, project_id, task_id, shifts(title, positions(name)), projects(name), tasks(title)"
 
 export { monthOf } from "@/lib/time"
 
@@ -36,10 +37,11 @@ export async function MonthNav({ month, href }: { month: ReturnType<typeof month
 
 export const hoursText = (t: Awaited<ReturnType<typeof getT>>, min: number) => `${t.number(min / 60, { maximumFractionDigits: 2 })} h`
 
-/** Entries of one person with net time, break (auto/manual), approval and law warnings. Rows open `?edit=<id>`. */
-export async function TimeEntryList({ rows, editHref }: { rows: TimeRow[]; editHref: (id: string) => string | null }) {
+/** Entries with net time, break (auto/manual), approval and law warnings (`people`: several persons, adds a column). Rows open `editHref`. */
+export async function TimeEntryList({ rows, editHref, people, hideProject }: { rows: TimeRow[]; editHref: (id: string) => string | null; people?: Map<string, string>; hideProject?: boolean }) {
   const t = await getT()
-  const warn = warnings(rows)
+  // Law warnings are per person (breaks, rest between days).
+  const warn = people ? new Map([...new Set(rows.map((r) => r.staff_id))].flatMap((sid) => [...warnings(rows.filter((r) => r.staff_id === sid))])) : warnings(rows)
   const time = (iso: string) => t.date(iso, { hour: "2-digit", minute: "2-digit" })
   return (
     <DataTable
@@ -61,6 +63,7 @@ export async function TimeEntryList({ rows, editHref }: { rows: TimeRow[]; editH
             )
           },
         },
+        ...(people ? [{ header: t("time.person"), cell: (r: TimeRow) => people.get(r.staff_id) ?? "–" }] : []),
         { header: t("time.span"), cell: (r) => `${time(r.started_at)}–${r.ended_at ? time(r.ended_at) : "…"}`, className: "tabular-nums" },
         {
           header: t("time.break"),
@@ -71,7 +74,7 @@ export async function TimeEntryList({ rows, editHref }: { rows: TimeRow[]; editH
           className: "tabular-nums",
         },
         { header: t("time.net"), cell: (r) => (r.ended_at ? hoursText(t, minutes(r).net) : <Badge>{t("time.running")}</Badge>), className: "tabular-nums" },
-        { header: t("time.what"), cell: (r) => [r.shifts?.positions?.name ?? r.shifts?.title, r.note].filter(Boolean).join(" · ") || "–" },
+        { header: t("time.what"), cell: (r) => [r.shifts?.positions?.name ?? r.shifts?.title, !hideProject && r.projects?.name, r.tasks?.title, r.note].filter(Boolean).join(" · ") || "–" },
         {
           header: t("time.status"),
           cell: (r) => (
@@ -90,15 +93,57 @@ export async function TimeEntryList({ rows, editHref }: { rows: TimeRow[]; editH
   )
 }
 
-/** New/edit form for the drawer. `staffId` only when someone with manage/approve adds an entry for a person. */
-export async function TimeEntryForm({ entry, staffId, returnTo, canDelete }: { entry?: TimeRow | null; staffId?: string; returnTo: string; canDelete: boolean }) {
+/**
+ * New/edit form for the drawer. `staffId` only when someone with manage/approve adds an entry for a person (`staff`: let
+ * them pick). `projects`: a project picker (projects module on); `projectId`: fixed project with its `tasks` to pick.
+ */
+export async function TimeEntryForm({ entry, staffId, staff, returnTo, canDelete, projects, projectId, tasks }: { entry?: TimeRow | null; staffId?: string; staff?: { id: string; name: string }[]; returnTo: string; canDelete: boolean; projects?: { id: string; name: string }[]; projectId?: string; tasks?: { id: string; title: string }[] }) {
   const t = await getT()
   return (
     <div className="grid gap-6">
       <form action={saveEntry} className="grid gap-4">
         {entry && <input type="hidden" name="id" value={entry.id} />}
-        {staffId && <input type="hidden" name="staff" value={staffId} />}
+        {staffId && !staff && <input type="hidden" name="staff" value={staffId} />}
         <input type="hidden" name="return" value={returnTo} />
+        {projectId && <input type="hidden" name="project_id" value={projectId} />}
+        {staff && !entry && (
+          <div className="grid gap-2">
+            <Label htmlFor="te-staff">{t("time.person")}</Label>
+            <NativeSelect id="te-staff" name="staff" defaultValue={staffId ?? ""} className="w-full">
+              {staff.map((s) => (
+                <NativeSelectOption key={s.id} value={s.id}>
+                  {s.name}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </div>
+        )}
+        {projects && !projectId && (
+          <div className="grid gap-2">
+            <Label htmlFor="te-project">{t("time.project")}</Label>
+            <NativeSelect id="te-project" name="project_id" defaultValue={entry?.project_id ?? ""} className="w-full">
+              <NativeSelectOption value="">{t("time.noProject")}</NativeSelectOption>
+              {projects.map((p) => (
+                <NativeSelectOption key={p.id} value={p.id}>
+                  {p.name}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </div>
+        )}
+        {tasks && tasks.length > 0 && (
+          <div className="grid gap-2">
+            <Label htmlFor="te-task">{t("time.task")}</Label>
+            <NativeSelect id="te-task" name="task_id" defaultValue={entry?.task_id ?? ""} className="w-full">
+              <NativeSelectOption value="">{t("time.noTask")}</NativeSelectOption>
+              {tasks.map((x) => (
+                <NativeSelectOption key={x.id} value={x.id}>
+                  {x.title}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </div>
+        )}
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-2">
             <Label htmlFor="te-start">{t("time.start")}</Label>

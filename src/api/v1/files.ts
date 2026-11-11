@@ -38,8 +38,8 @@ async function getFile(db: Db, orgId: string, id: string, deleted = false) {
 }
 
 // Records files can be attached to (`entity` = table). The record must belong to the org.
-const ENTITIES = ["contacts", "memberships", "events", "documents"] as const
-const Entity = z.enum(ENTITIES).describe("Table of the record: contacts, memberships, events or documents (invoices)")
+const ENTITIES = ["contacts", "memberships", "events", "documents", "projects"] as const
+const Entity = z.enum(ENTITIES).describe("Table of the record: contacts, memberships, events, documents (invoices) or projects (the project's documents, also where comment attachments go)")
 async function checkEntity(db: Db, orgId: string, entity: (typeof ENTITIES)[number], id: string) {
   const { data } = await db.from(entity).select("id").eq("id", id).eq("org_id", orgId).maybeSingle()
   if (!data) throw new ApiError(422, "invalid_reference", `entity_id is not a record in ${entity} of this organisation.`)

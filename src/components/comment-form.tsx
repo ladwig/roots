@@ -13,6 +13,7 @@ type Recognition = { lang: string; continuous: boolean; interimResults: boolean;
 type RecognitionCtor = new () => Recognition
 const speech = () => (typeof window === "undefined" ? null : ((window as unknown as { SpeechRecognition?: RecognitionCtor; webkitSpeechRecognition?: RecognitionCtor }).SpeechRecognition ?? (window as unknown as { webkitSpeechRecognition?: RecognitionCtor }).webkitSpeechRecognition ?? null))
 const noop = () => () => {}
+const joined = (a: string, b: string) => (a && !/\s$/.test(a) ? `${a} ` : a) + b.trim()
 
 /**
  * Comment box: text, dictation (the browser's own speech recognition, where it has one: Chrome, Edge, Safari) and
@@ -24,6 +25,7 @@ export function CommentForm({ action, entity, entityId, back, files, edit }: { a
   const [text, setText] = useState(edit?.body ?? "")
   const [attached, setAttached] = useState<{ id: string; name: string }[]>(edit?.files ?? [])
   const [listening, setListening] = useState(false)
+  const [interim, setInterim] = useState("") // what is being said right now (not final yet), shown live
   const [uploading, startUpload] = useTransition()
   const rec = useRef<Recognition | null>(null)
   const picker = useRef<HTMLInputElement>(null)
@@ -36,13 +38,21 @@ export function CommentForm({ action, entity, entityId, back, files, edit }: { a
     const r = new Ctor()
     r.lang = document.documentElement.lang || "de-DE"
     r.continuous = true
-    r.interimResults = false
+    r.interimResults = true
     r.onresult = (e) => {
       let said = ""
-      for (let i = e.resultIndex; i < e.results.length; i++) if (e.results[i].isFinal) said += e.results[i][0].transcript
-      if (said.trim()) setText((v) => (v && !/\s$/.test(v) ? `${v} ` : v) + said.trim())
+      let now = ""
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) said += e.results[i][0].transcript
+        else now += e.results[i][0].transcript
+      }
+      if (said.trim()) setText((v) => joined(v, said))
+      setInterim(now.trim())
     }
-    r.onend = r.onerror = () => setListening(false)
+    r.onend = r.onerror = () => {
+      setListening(false)
+      setInterim("")
+    }
     rec.current = r
     r.start()
     setListening(true)
@@ -78,7 +88,7 @@ export function CommentForm({ action, entity, entityId, back, files, edit }: { a
       <input type="hidden" name="back" value={back} />
       {edit && <input type="hidden" name="id" value={edit.id} />}
       <input type="hidden" name="file_ids" value={attached.map((a) => a.id).join(",")} />
-      <Textarea name="body" value={text} onChange={(e) => setText(e.target.value)} maxLength={10000} rows={3} autoFocus={!!edit} placeholder={t(listening ? "activity.listening" : "activity.placeholder")} aria-label={t("activity.placeholder")} />
+      <Textarea name="body" value={interim ? joined(text, interim) : text} onChange={(e) => (setText(e.target.value), setInterim(""))} maxLength={10000} rows={3} autoFocus={!!edit} placeholder={t(listening ? "activity.listening" : "activity.placeholder")} aria-label={t("activity.placeholder")} />
       {attached.length > 0 && (
         <ul className="flex flex-wrap gap-1">
           {attached.map((a) => (

@@ -23,8 +23,9 @@ import { LinkPicker } from "../link-picker"
 import { ProjectFields } from "../project-form"
 import { TASK_VIEWS, TasksView, type TaskView } from "../tasks-view"
 import { ViewSegments } from "../view-segments"
+import { canTrackTime, ProjectTime } from "./time-view"
 
-const VIEWS = ["overview", ...TASK_VIEWS] as const
+const VIEWS = ["overview", ...TASK_VIEWS, "time"] as const
 
 // One project: overview = the activity (comments with dictation + attachments, changes of the project and its tasks)
 // with a side column (progress, description, details incl. custom fields, documents, links), and its tasks as board,
@@ -36,7 +37,8 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
   const t = await getT()
   const sp = await searchParams
   const canManage = ctx.can("projects.manage")
-  const view = VIEWS.find((v) => v === param(sp, "view")) ?? "overview"
+  const views = canTrackTime(ctx) ? VIEWS : VIEWS.filter((v) => v !== "time")
+  const view = views.find((v) => v === param(sp, "view")) ?? "overview"
   const base = `/projects/${id}`
   const [basics, { data: p }, defs, taskDefs, { data: links }, { data: taskRows }] = await Promise.all([
     projectBasics(ctx),
@@ -57,7 +59,7 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
   const linked = view === "overview" ? await linkedRecords(ctx.supabase, ctx.org.id, links ?? []) : []
 
   return (
-    <Page className={view === "overview" ? undefined : "max-w-none"}>
+    <Page className={view === "overview" || view === "time" ? undefined : "max-w-none"}>
       <PageHeader
         crumbs={[{ href: "/projects", label: t("projects.title") }, { label: p.name }]}
         title={
@@ -68,7 +70,7 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
         }
         badge={status && <Badge variant={status.is_done ? "secondary" : "outline"}>{status.name}</Badge>}
         meta={[lead && t("projects.leadBy", { name: lead }), period].filter(Boolean).join(" · ") || undefined}
-        actions={<ViewSegments t={t} sp={sp} views={VIEWS} current={view} />}
+        actions={<ViewSegments t={t} sp={sp} views={views} current={view} />}
         menu={
           canManage && (
             <ActionsMenu>
@@ -176,6 +178,8 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
             </FormCard>
           </RecordLayout>
         </>
+      ) : view === "time" ? (
+        <ProjectTime ctx={ctx} t={t} sp={sp} base={base} projectId={p.id} />
       ) : (
         <>
           <Notice error={!param(sp, "task") ? param(sp, "error") : undefined} ok={!param(sp, "task") ? param(sp, "ok") : undefined} />

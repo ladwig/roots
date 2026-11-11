@@ -3580,7 +3580,16 @@
         "label": "nicht ausgestempelt",
         "hint": "Läuft seit über 16 Stunden – wahrscheinlich vergessen auszustempeln."
       }
-    }
+    },
+    "person": "Person",
+    "project": "Projekt",
+    "noProject": "Kein Projekt",
+    "task": "Aufgabe",
+    "noTask": "Keine bestimmte Aufgabe",
+    "clockInProject": "Auf Projekt einstempeln",
+    "runningOn": "Läuft gerade auf {project} seit {time} – Ausstempeln beendet das.",
+    "clockHintProject": "Einstempeln startet die Zeit auf diesem Projekt.",
+    "projectTotal": "Zeit auf dem Projekt"
   },
   "hr": {
     "nav": "Personal",
@@ -4848,7 +4857,8 @@
       "list": "Liste",
       "calendar": "Kalender",
       "overview": "Übersicht",
-      "timeline": "Zeitachse"
+      "timeline": "Zeitachse",
+      "time": "Zeit"
     },
     "search": "Aufgaben suchen",
     "assignee": "Zuständig",

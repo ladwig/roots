@@ -13,7 +13,7 @@ import { entryProblem } from "@/shifts/time"
 const UUID = /^[0-9a-f-]{36}$/
 const ret = (fd: FormData, fallback: string) => {
   const r = String(fd.get("return") ?? "")
-  return r.startsWith("/shifts") ? r : fallback
+  return r.startsWith("/shifts") || r.startsWith("/projects/") ? r : fallback
 }
 const without = (path: string, ...keys: string[]) => {
   const u = new URL(path, "http://x")
@@ -35,16 +35,23 @@ async function me() {
   return { ctx, t, staffId: staffId as string }
 }
 
-/** Clock in/out without a shift. */
+// Project (and task) of an entry, when the form has the picker: "" = none.
+const projectOf = (fd: FormData) =>
+  fd.has("project_id") || fd.has("task_id")
+    ? { project_id: UUID.test(String(fd.get("project_id") ?? "")) ? String(fd.get("project_id")) : null, task_id: UUID.test(String(fd.get("task_id") ?? "")) ? String(fd.get("task_id")) : null }
+    : {}
+
+/** Clock in/out without a shift (optionally on a project). */
 export async function clock(fd: FormData) {
   const { ctx, t, staffId } = await me()
+  const here = ret(fd, "/shifts/me")
   const { data: running } = await ctx.supabase.from("time_entries").select("id, started_at").eq("staff_id", staffId).is("ended_at", null).maybeSingle()
   const now = new Date()
   const { error } = running
     ? await ctx.supabase.from("time_entries").update({ ended_at: new Date(Math.max(now.getTime(), new Date(running.started_at).getTime() + 60_000)).toISOString() }).eq("id", running.id)
-    : await ctx.supabase.from("time_entries").insert({ org_id: ctx.org.id, staff_id: staffId, started_at: now.toISOString(), note: String(fd.get("note") ?? "").trim().slice(0, 500) || null })
-  if (error) back("/shifts/me", { error: dbError(t, error) })
-  back("/shifts/me", { ok: t(running ? "time.clockedOut" : "time.clockedIn") })
+    : await ctx.supabase.from("time_entries").insert({ org_id: ctx.org.id, staff_id: staffId, started_at: now.toISOString(), note: String(fd.get("note") ?? "").trim().slice(0, 500) || null, ...projectOf(fd) })
+  if (error) back(here, { error: dbError(t, error) })
+  back(here, { ok: t(running ? "time.clockedOut" : "time.clockedIn") })
 }
 
 /** Create/edit an entry. Managers may pick the person (`staff`); everyone else edits their own (RLS). */
@@ -66,6 +73,7 @@ export async function saveEntry(fd: FormData) {
     ended_at: ended?.toISOString() ?? null,
     break_minutes: brk === "" ? null : Math.max(0, Math.round(Number(brk)) || 0),
     note: String(fd.get("note") ?? "").trim().slice(0, 500) || null,
+    ...projectOf(fd),
   }
   const problem = !started || (endedRaw && !ended) ? "errors.invalid_input" : entryProblem(row)
   if (problem) back(here, { error: t.dynamic(problem) })

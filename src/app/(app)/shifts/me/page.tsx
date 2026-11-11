@@ -7,6 +7,7 @@ import { ShiftSelfView } from "@/components/shift-self-view"
 import { SubmitButton } from "@/components/submit-button"
 import { hoursText, MonthNav, monthOf, TIME_COLS, TimeEntryForm, TimeEntryList, type TimeRow } from "@/components/time-entries"
 import { Button } from "@/components/ui/button"
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { UrlSheet } from "@/components/url-sheet"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
@@ -30,10 +31,13 @@ export default async function MyShifts({ searchParams }: PageProps<"/shifts/me">
         <EmptyState area="shifts" title={t("shifts.notInTeam")} />
       </Page>
     )
-  const [data, { data: rows }, { data: running }] = await Promise.all([
+  const withProjects = ctx.modules.has("projects") && (ctx.can("projects.view") || ctx.can("projects.manage"))
+  const [data, { data: rows }, { data: running }, { data: projects }] = await Promise.all([
     selfView(staffId),
     ctx.supabase.from("time_entries").select(TIME_COLS).eq("staff_id", staffId).gte("started_at", month.from).lt("started_at", month.to).order("started_at"),
     ctx.supabase.from("time_entries").select("id, started_at").eq("staff_id", staffId).is("ended_at", null).maybeSingle(),
+    // ponytail: open projects for the pickers (tens per org); a search picker if that grows
+    withProjects ? ctx.supabase.from("projects").select("id, name").eq("org_id", ctx.org.id).is("deleted_at", null).is("completed_at", null).order("name").limit(300) : Promise.resolve({ data: null }),
   ])
   const entries = (rows ?? []) as TimeRow[]
   const editId = param(sp, "edit")
@@ -54,7 +58,17 @@ export default async function MyShifts({ searchParams }: PageProps<"/shifts/me">
           <MonthNav month={month} href={(m) => `/shifts/me?month=${m}`} />
         </div>
         <div className="flex flex-wrap items-center gap-3 rounded-lg border p-4">
-          <form action={clock}>
+          <form action={clock} className="flex flex-wrap items-center gap-2">
+            {!running && projects && projects.length > 0 && (
+              <NativeSelect name="project_id" defaultValue="" aria-label={t("time.project")} size="sm">
+                <NativeSelectOption value="">{t("time.noProject")}</NativeSelectOption>
+                {projects.map((p) => (
+                  <NativeSelectOption key={p.id} value={p.id}>
+                    {p.name}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            )}
             <SubmitButton variant={running ? "default" : "outline"}>{running ? t("time.clockOut") : t("time.clockIn")}</SubmitButton>
           </form>
           <p className="text-sm text-muted-foreground">
@@ -73,7 +87,7 @@ export default async function MyShifts({ searchParams }: PageProps<"/shifts/me">
       {(param(sp, "new") === "time" || (editing && !editing.approved_at)) && (
         <UrlSheet params={["new", "edit"]} title={editing ? t("time.edit") : t("time.add")}>
           <Notice error={param(sp, "error")} />
-          <TimeEntryForm entry={editing} returnTo={here} canDelete />
+          <TimeEntryForm entry={editing} returnTo={here} canDelete projects={projects ?? undefined} />
         </UrlSheet>
       )}
     </Page>
