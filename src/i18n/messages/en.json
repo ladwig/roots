@@ -296,7 +296,8 @@
     "invitesEmpty": "No open invites.",
     "emptyMembers": "No members yet.",
     "expiresHeader": "Expires",
-    "inviteMailFailed": "The invitation couldn't be emailed. Please send the link below yourself."
+    "inviteMailFailed": "The invitation couldn't be emailed. Please send the link below yourself.",
+    "inviteSent": "Invitation sent to {email}. You can also pass on the link yourself – it works once and expires in 7 days."
   },
   "roles": {
     "intro": "Roles are set by the platform. Here you can see what each role may do.",

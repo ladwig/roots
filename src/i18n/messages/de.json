@@ -296,7 +296,8 @@
     "invitesEmpty": "Keine offenen Einladungen.",
     "emptyMembers": "Noch keine Mitglieder.",
     "expiresHeader": "Läuft ab",
-    "inviteMailFailed": "Die Einladung konnte nicht per E-Mail verschickt werden. Schick den Link unten selbst weiter."
+    "inviteMailFailed": "Die Einladung konnte nicht per E-Mail verschickt werden. Schick den Link unten selbst weiter.",
+    "inviteSent": "Einladung an {email} verschickt. Du kannst den Link auch selbst weitergeben – er funktioniert einmal und läuft in 7 Tagen ab."
   },
   "roles": {
     "intro": "Rollen werden von der Plattform festgelegt. Hier siehst du, was jede Rolle darf.",
