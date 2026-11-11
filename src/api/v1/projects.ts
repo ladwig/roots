@@ -3,7 +3,7 @@ import { messages } from "@/i18n/config"
 import { createT } from "@/i18n/translate"
 import { loadFields, readCustomObject, type CustomEntity, type CustomValue } from "@/lib/custom-fields"
 import { STATUS_COLORS } from "@/projects/fields"
-import { addComment, addLink, COMMENT_ENTITIES, createProject, createTask, LINK_ENTITIES, linkedRecords, moveProject, moveTask, PROJECT_COLS, saveStatus, setAssignees, TASK_COLS, updateProject, updateTask, type ProjectFail } from "@/projects/server"
+import { addComment, addLink, COMMENT_ENTITIES, createProject, createTask, LINK_ENTITIES, linkedRecords, moveProject, moveTask, PROJECT_COLS, saveStatus, setAssignees, TASK_COLS, updateProject, updateTask, type ProjectFail, editComment, removeComment } from "@/projects/server"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
 import { day, ts, type Db } from "./shared"
 
@@ -94,7 +94,8 @@ const ProjectInput = z.object({
   end_on: day.nullable(),
   custom: Custom,
 })
-const Comment = z.object({ id: uuid, entity: z.enum(COMMENT_ENTITIES), entity_id: uuid, body: z.string(), created_by: uuid.nullable(), created_at: ts })
+const Comment = z.object({ id: uuid, entity: z.enum(COMMENT_ENTITIES), entity_id: uuid, body: z.string(), file_ids: z.array(uuid).describe("Attached files (GET /files/{id})"), created_by: uuid.nullable(), created_at: ts, updated_at: ts })
+const COMMENT_COLS = "id, entity, entity_id, body, file_ids, created_by, created_at, updated_at"
 const projectFields = (b: Partial<z.infer<typeof ProjectInput>>) => ({
   name: b.name,
   description: b.description,
@@ -415,7 +416,7 @@ export const endpoints: Endpoint[] = [
     query: z.object({ entity: z.enum(COMMENT_ENTITIES), entity_id: uuid }),
     response: z.object({ data: z.array(Comment) }),
     async handler({ db, orgId, query }) {
-      const { data } = await db.from("comments").select("id, entity, entity_id, body, created_by, created_at").eq("org_id", orgId).eq("entity", query.entity).eq("entity_id", query.entity_id).order("created_at", { ascending: false }).limit(200)
+      const { data } = await db.from("comments").select(COMMENT_COLS).eq("org_id", orgId).eq("entity", query.entity).eq("entity_id", query.entity_id).order("created_at", { ascending: false }).limit(200)
       return { data: (data ?? []) as z.infer<typeof Comment>[] }
     },
   }),
@@ -425,27 +426,42 @@ export const endpoints: Endpoint[] = [
     permission: "projects.view",
     tag: TAG,
     summary: "Comment on a project or task",
-    description: "Plain text, shown in the record's activity in the App, attributed to the key's creator / the connected person.",
-    body: z.object({ entity: z.enum(COMMENT_ENTITIES), entity_id: uuid, body: z.string().min(1).max(10_000) }).strict(),
+    description: "Plain text and/or attached files (`file_ids`: files of the org, e.g. uploaded to the project via POST /files/upload-link), shown in the record's activity in the App (a project's activity also shows its tasks' comments), attributed to the key's creator / the connected person.",
+    body: z.object({ entity: z.enum(COMMENT_ENTITIES), entity_id: uuid, body: z.string().max(10_000).default(""), file_ids: z.array(uuid).max(20).default([]) }).strict(),
     response: Comment,
     status: 201,
     async handler({ db, orgId, body }) {
-      const r = await addComment(db, orgId, body.entity, body.entity_id, body.body)
+      const r = await addComment(db, orgId, body.entity, body.entity_id, body.body, body.file_ids)
       if ("error" in r) fail(r.db?.message === "not_allowed" ? { error: "errors.not_allowed" } : r)
-      return (await db.from("comments").select("id, entity, entity_id, body, created_by, created_at").eq("id", r.id).single()).data as z.infer<typeof Comment>
+      return (await db.from("comments").select(COMMENT_COLS).eq("id", r.id).single()).data as z.infer<typeof Comment>
+    },
+  }),
+  endpoint({
+    method: "PATCH",
+    path: "/comments/{id}",
+    permission: "projects.view",
+    tag: TAG,
+    summary: "Edit a comment",
+    description: "Only the comment's author (the key's creator / the connected person) can edit it; attachments stay.",
+    body: z.object({ body: z.string().max(10_000) }).strict(),
+    response: Comment,
+    async handler({ db, orgId, params, body }) {
+      const r = await editComment(db, orgId, params.id, body.body)
+      if ("error" in r) fail(r)
+      return (await db.from("comments").select(COMMENT_COLS).eq("id", params.id).single()).data as z.infer<typeof Comment>
     },
   }),
   endpoint({
     method: "DELETE",
     path: "/comments/{id}",
-    permission: "projects.manage",
+    permission: "projects.view",
     tag: TAG,
     summary: "Delete a comment",
+    description: "Only the comment's author can delete it. Attached files stay in the project's documents.",
     response: z.object({ id: uuid }),
     async handler({ db, orgId, params }) {
-      const { error, count } = await db.from("comments").delete({ count: "exact" }).eq("id", params.id).eq("org_id", orgId)
-      if (error) throw dbError(error)
-      if (!count) throw notFound()
+      const r = await removeComment(db, orgId, params.id)
+      if ("error" in r) throw r.db ? dbError(r.db) : notFound()
       return { id: params.id }
     },
   }),

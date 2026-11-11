@@ -43,3 +43,10 @@ test("custom field values", () => {
   assert.equal(fieldKey("Mitglieds-Nr. (alt)"), "mitglieds_nr_alt")
   assert.equal(fieldKey("1. Größe"), "groesse")
 })
+
+test("custom field money: euros, German format", () => {
+  const def = { key: "k", label: "Wert", type: "money", options: [], required: false }
+  assert.deepEqual(parseValue(def, "1.234,50 €"), { value: 1234.5 })
+  assert.deepEqual(parseValue(def, "12"), { value: 12 })
+  assert.deepEqual(parseValue(def, "abc"), { error: "errors.invalid_number" })
+})

@@ -1,18 +1,26 @@
-import { Trash2Icon } from "lucide-react"
+import Link from "next/link"
+import { CheckSquareIcon, PaperclipIcon, PencilIcon, Trash2Icon } from "lucide-react"
+import { CommentForm } from "@/components/comment-form"
 import { SubmitButton } from "@/components/submit-button"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { T } from "@/i18n/translate"
 import type { getContext } from "@/lib/context"
+import { formatMoney } from "@/lib/inputs"
 
 type Ctx = Awaited<ReturnType<typeof getContext>>
-type Change = { at: string; actor_id: string | null; action: string; old: unknown; new: unknown; via: string | null }
-type Entry = { key: string; at: string; by: string | null; comment: { id: string; body: string; created_by: string | null } | null; diff: { label: string; from: string; to: string }[] | null; created: boolean; via: string | null }
+type Change = { table_name?: string; row_id?: string; at: string; actor_id: string | null; action: string; old: unknown; new: unknown; via: string | null }
+type Comment = { id: string; body: string; created_at: string; updated_at: string; created_by: string | null; file_ids: string[]; entity: string; entity_id: string }
+type Diff = { label: string; from: string; to: string }
+type Entry = { key: string; at: string; by: string | null; task: { id: string; title: string } | null; comment: Comment | null; diff: Diff[] | null; event: "created" | "trashed" | null; via: string | null }
+type Fields = { fields: Record<string, string>; show?: Record<string, (v: unknown) => string>; defs?: { key: string; label: string; type?: string }[] }
 
 /**
- * Comments + change history of one record, newest first (projects and tasks; the `comments` table + record_changes()).
- * `fields` = the columns people know, with their labels; custom fields show by their label. Everyone who sees the record
- * may comment; own comments (or all, with `canModerate`) can be removed. Forms post to the given actions with `back`.
+ * Comments + change history of one record, newest first (the `comments` table + the audit log). A project's feed
+ * also shows its tasks: their changes and comments, each marked with the task (`tasks`: how to label task fields,
+ * link to a task). `fields` = the columns people know, with their labels; custom fields show by their label.
+ * Everyone who sees the record may comment (text, dictation, attachments into `upload`); only the author edits or
+ * removes a comment. Forms post to the given actions with `back`.
  */
 export async function ActivityFeed({
   ctx,
@@ -23,8 +31,9 @@ export async function ActivityFeed({
   fields,
   defs = [],
   show = {},
+  tasks,
+  upload,
   actions,
-  canModerate,
 }: {
   ctx: Ctx
   t: T
@@ -32,24 +41,39 @@ export async function ActivityFeed({
   entityId: string
   back: string
   fields: Record<string, string>
-  defs?: { key: string; label: string }[]
+  defs?: { key: string; label: string; type?: string }[]
   show?: Record<string, (v: unknown) => string> // column → how to show a value (ids → names)
-  actions: { add: (fd: FormData) => Promise<void>; remove: (fd: FormData) => Promise<void> }
-  canModerate: boolean
+  tasks?: Fields & { href: (id: string) => string }
+  upload?: { entity: string; entityId: string } | null // where attachments go (the project's files); null = no attachments
+  actions: { add: (fd: FormData) => Promise<void>; edit: (fd: FormData) => Promise<void>; remove: (fd: FormData) => Promise<void> }
 }) {
-  const [{ data: comments }, { data: changes }] = await Promise.all([
-    ctx.supabase.from("comments").select("id, body, created_at, created_by").eq("org_id", ctx.org.id).eq("entity", entity).eq("entity_id", entityId).order("created_at", { ascending: false }).limit(200),
-    ctx.supabase.rpc("record_changes", { p_table: entity, p_id: entityId }),
+  const withTasks = entity === "projects" && !!tasks
+  const COLS = "id, body, created_at, updated_at, created_by, file_ids, entity, entity_id"
+  const [{ data: own }, { data: changes }, { data: taskRows }] = await Promise.all([
+    ctx.supabase.from("comments").select(COLS).eq("org_id", ctx.org.id).eq("entity", entity).eq("entity_id", entityId).order("created_at", { ascending: false }).limit(200),
+    withTasks ? ctx.supabase.rpc("project_changes", { p_id: entityId }) : ctx.supabase.rpc("record_changes", { p_table: entity, p_id: entityId }),
+    withTasks ? ctx.supabase.from("tasks").select("id, title").eq("org_id", ctx.org.id).eq("project_id", entityId).limit(1000) : Promise.resolve({ data: [] as { id: string; title: string }[] }),
   ])
-  const ids = [...new Set([...(comments ?? []).map((c) => c.created_by), ...((changes ?? []) as Change[]).map((c) => c.actor_id)].filter((v): v is string => !!v))]
-  const { data: people } = ids.length ? await ctx.supabase.from("profiles").select("id, full_name, email").in("id", ids) : { data: [] }
+  const taskIds = (taskRows ?? []).map((x) => x.id)
+  const { data: taskComments } = taskIds.length
+    ? await ctx.supabase.from("comments").select(COLS).eq("org_id", ctx.org.id).eq("entity", "tasks").in("entity_id", taskIds).order("created_at", { ascending: false }).limit(200)
+    : { data: [] as Comment[] }
+  const comments = [...(own ?? []), ...(taskComments ?? [])] as Comment[]
+  const log = (changes ?? []) as Change[]
+  const people = [...new Set([...comments.map((c) => c.created_by), ...log.map((c) => c.actor_id)].filter((v): v is string => !!v))]
+  const fileIds = [...new Set(comments.flatMap((c) => c.file_ids))]
+  const [{ data: profiles }, { data: files }] = await Promise.all([
+    people.length ? ctx.supabase.from("profiles").select("id, full_name, email").in("id", people) : Promise.resolve({ data: [] as { id: string; full_name: string | null; email: string | null }[] }),
+    fileIds.length ? ctx.supabase.from("files").select("id, name, mime").eq("org_id", ctx.org.id).in("id", fileIds) : Promise.resolve({ data: [] as { id: string; name: string; mime: string }[] }),
+  ])
   const who = (id: string | null) => {
-    const p = people?.find((x) => x.id === id)
+    const p = profiles?.find((x) => x.id === id)
     return p?.full_name || p?.email || t("activity.someone")
   }
-  const fmt = (v: unknown, key?: string): string => {
-    if (key && show[key]) return show[key](v)
+  const fmt = (v: unknown, key?: string, f: Fields = { fields, show, defs }, type?: string): string => {
+    if (key && f.show?.[key]) return f.show[key](v)
     if (v === null || v === undefined || v === "" || (Array.isArray(v) && !v.length)) return "–"
+    if (type === "money" && typeof v === "number") return `${formatMoney(Math.round(v * 100))} €`
     if (Array.isArray(v)) return v.map((x) => (typeof x === "object" ? "…" : String(x))).join(", ")
     if (typeof v === "boolean") return v ? "✓" : "✗"
     if (typeof v === "object") return "…"
@@ -59,72 +83,69 @@ export async function ActivityFeed({
     const plain = s.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
     return plain.length > 80 ? `${plain.slice(0, 80)}…` : plain
   }
-  const diff = (o: unknown, n: unknown) => {
+  const diff = (o: unknown, n: unknown, f: Fields) => {
     const a = (o ?? {}) as Record<string, unknown>
     const b = (n ?? {}) as Record<string, unknown>
-    const out: { label: string; from: string; to: string }[] = []
-    for (const [key, label] of Object.entries(fields))
+    const out: Diff[] = []
+    for (const [key, label] of Object.entries(f.fields))
       if (key in a || key in b) {
-        const from = fmt(a[key], key)
-        const to = fmt(b[key], key)
+        const from = fmt(a[key], key, f)
+        const to = fmt(b[key], key, f)
         if (from !== to) out.push({ label, from, to })
       }
     const ac = (a.custom ?? {}) as Record<string, unknown>
     const bc = (b.custom ?? {}) as Record<string, unknown>
     for (const key of new Set([...Object.keys(ac), ...Object.keys(bc)])) {
-      const from = fmt(ac[key])
-      const to = fmt(bc[key])
-      if (from !== to) out.push({ label: defs.find((d) => d.key === key)?.label ?? key, from, to })
+      const def = f.defs?.find((d) => d.key === key)
+      const from = fmt(ac[key], undefined, f, def?.type)
+      const to = fmt(bc[key], undefined, f, def?.type)
+      if (from !== to) out.push({ label: def?.label ?? key, from, to })
     }
     return out
   }
+  const titleOf = (c: Change) => String(((c.new ?? c.old) as { title?: string } | null)?.title ?? "")
+  const taskOf = (id: string) => ({ id, title: taskRows?.find((x) => x.id === id)?.title ?? "…" })
   const feed: Entry[] = [
-    ...(comments ?? []).map((c): Entry => ({ key: c.id, at: c.created_at, by: c.created_by, comment: c, diff: null, created: false, via: null })),
-    ...((changes ?? []) as Change[]).flatMap((c, i): Entry[] => {
-      if (c.action === "insert") return [{ key: `c${i}`, at: c.at, by: c.actor_id, comment: null, diff: null, created: true, via: c.via }]
-      const d = c.action === "update" ? diff(c.old, c.new) : []
-      return d.length ? [{ key: `c${i}`, at: c.at, by: c.actor_id, comment: null, diff: d, created: false, via: c.via }] : []
+    ...comments.map((c): Entry => ({ key: c.id, at: c.created_at, by: c.created_by, task: c.entity === "tasks" && withTasks ? taskOf(c.entity_id) : null, comment: c, diff: null, event: null, via: null })),
+    ...log.flatMap((c, i): Entry[] => {
+      const isTask = withTasks && c.table_name === "tasks"
+      const task = isTask ? { id: c.row_id!, title: titleOf(c) } : null
+      const base = { key: `c${i}`, at: c.at, by: c.actor_id, task, comment: null, via: c.via }
+      if (c.action === "insert") return [{ ...base, diff: null, event: "created" }]
+      if (c.action !== "update") return []
+      const o = (c.old ?? {}) as { deleted_at?: string | null }
+      const nw = (c.new ?? {}) as { deleted_at?: string | null }
+      if (nw.deleted_at && !o.deleted_at) return [{ ...base, diff: null, event: "trashed" }]
+      const d = diff(c.old, c.new, isTask ? tasks! : { fields, show, defs })
+      return d.length ? [{ ...base, diff: d, event: null }] : []
     }),
   ].sort((a, b) => b.at.localeCompare(a.at))
+  const fileOf = (id: string) => files?.find((f) => f.id === id)
 
   return (
-    <div className="grid gap-4">
-      <form action={actions.add} className="grid gap-2">
-        <input type="hidden" name="entity" value={entity} />
-        <input type="hidden" name="entity_id" value={entityId} />
-        <input type="hidden" name="back" value={back} />
-        <Textarea name="body" required maxLength={10000} rows={2} placeholder={t("activity.placeholder")} aria-label={t("activity.placeholder")} />
-        <SubmitButton size="sm" variant="outline" className="justify-self-start">
-          {t("activity.comment")}
-        </SubmitButton>
-      </form>
+    <div className="grid gap-5">
+      <CommentForm action={actions.add} entity={entity} entityId={entityId} back={back} files={upload && ctx.can("org.files.manage") ? { orgId: ctx.org.id, ...upload } : undefined} />
       {feed.length > 0 && (
-        <ol className="grid gap-3 border-l pl-4">
+        <ol className="grid gap-4 border-l pl-4">
           {feed.map((e) => (
             <li key={e.key} className="relative grid gap-1 text-sm">
-              <span className="absolute top-1.5 -left-[1.3rem] size-2 rounded-full bg-border" aria-hidden />
-              <span className="text-xs text-muted-foreground">
-                {t.date(e.at, { dateStyle: "medium", timeStyle: "short" })} · {who(e.by)}
-                {e.via && ` · ${e.via.startsWith("oauth:") ? t("activity.viaAi") : t("activity.viaApi")}`}
+              <span className={e.comment ? "absolute top-1.5 -left-[1.3rem] size-2 rounded-full bg-primary" : "absolute top-1.5 -left-[1.3rem] size-2 rounded-full bg-border"} aria-hidden />
+              <span className="flex flex-wrap items-center gap-x-1 text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">{who(e.by)}</span>
+                <span>· {t.date(e.at, { dateStyle: "medium", timeStyle: "short" })}</span>
+                {e.via && <span>· {e.via.startsWith("oauth:") ? t("activity.viaAi") : t("activity.viaApi")}</span>}
+                {e.comment && e.comment.updated_at > e.comment.created_at && Date.parse(e.comment.updated_at) - Date.parse(e.comment.created_at) > 2000 && <span>· {t("activity.edited")}</span>}
+                {e.task && tasks && (
+                  <Link href={tasks.href(e.task.id)} className="inline-flex min-w-0 items-center gap-1 underline-offset-4 hover:underline">
+                    · <CheckSquareIcon className="size-3 shrink-0" aria-hidden />
+                    <span className="truncate">{e.task.title}</span>
+                  </Link>
+                )}
               </span>
               {e.comment ? (
-                <div className="flex items-start gap-2">
-                  <p className="flex-1 rounded-lg bg-muted px-3 py-2 break-words whitespace-pre-wrap">{e.comment.body}</p>
-                  {(canModerate || e.comment.created_by === ctx.userId) && (
-                    <form action={actions.remove}>
-                      <input type="hidden" name="id" value={e.comment.id} />
-                      <input type="hidden" name="back" value={back} />
-                      <Tooltip>
-                        <TooltipTrigger render={<SubmitButton variant="ghost" size="icon-sm" aria-label={t("activity.delete")} />}>
-                          <Trash2Icon />
-                        </TooltipTrigger>
-                        <TooltipContent>{t("activity.delete")}</TooltipContent>
-                      </Tooltip>
-                    </form>
-                  )}
-                </div>
-              ) : e.created ? (
-                <p>{t("activity.created")}</p>
+                <CommentView t={t} c={e.comment} mine={e.comment.created_by === ctx.userId} back={back} actions={actions} fileOf={fileOf} />
+              ) : e.event ? (
+                <p>{t(e.task ? (e.event === "created" ? "activity.taskCreated" : "activity.taskTrashed") : e.event === "created" ? "activity.created" : "activity.trashed")}</p>
               ) : (
                 <ul className="grid gap-0.5">
                   {e.diff?.map((d) => (
@@ -137,6 +158,67 @@ export async function ActivityFeed({
             </li>
           ))}
         </ol>
+      )}
+    </div>
+  )
+}
+
+function CommentView({ t, c, mine, back, actions, fileOf }: { t: T; c: Comment; mine: boolean; back: string; actions: { edit: (fd: FormData) => Promise<void>; remove: (fd: FormData) => Promise<void> }; fileOf: (id: string) => { id: string; name: string; mime: string } | undefined }) {
+  const attached = c.file_ids.map(fileOf).filter((f) => !!f)
+  const images = attached.filter((f) => f.mime.startsWith("image/"))
+  const others = attached.filter((f) => !f.mime.startsWith("image/"))
+  return (
+    <div className="group grid gap-2 rounded-lg bg-muted px-3 py-2">
+      {c.body && <p className="break-words whitespace-pre-wrap">{c.body}</p>}
+      {images.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {images.map((f) => (
+            <a key={f.id} href={`/files/${f.id}`} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-md border bg-background">
+              {/* eslint-disable-next-line @next/next/no-img-element -- private file behind a short signed URL */}
+              <img src={`/files/${f.id}`} alt={f.name} loading="lazy" className="size-24 object-cover" />
+            </a>
+          ))}
+        </div>
+      )}
+      {others.length > 0 && (
+        <ul className="grid gap-1">
+          {others.map((f) => (
+            <li key={f.id}>
+              <a href={`/files/${f.id}`} target="_blank" rel="noreferrer" className="inline-flex max-w-full items-center gap-1 text-primary underline-offset-4 hover:underline">
+                <PaperclipIcon className="size-3.5 shrink-0" aria-hidden />
+                <span className="truncate">{f.name}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+      {mine && (
+        <div className="flex items-center gap-1">
+          <details className="grid flex-1 gap-2 [&[open]>summary]:hidden">
+            <summary className="inline-flex w-fit cursor-pointer list-none items-center gap-1 rounded-md px-1.5 py-1 text-xs text-muted-foreground hover:bg-background hover:text-foreground">
+              <PencilIcon className="size-3.5" aria-hidden />
+              {t("activity.edit")}
+            </summary>
+            <form action={actions.edit} className="grid gap-2">
+              <input type="hidden" name="id" value={c.id} />
+              <input type="hidden" name="back" value={back} />
+              <Textarea name="body" defaultValue={c.body} maxLength={10000} rows={3} aria-label={t("activity.edit")} className="bg-background" />
+              <SubmitButton size="sm" variant="outline" className="justify-self-start">
+                {t("common.save")}
+              </SubmitButton>
+            </form>
+          </details>
+          <form action={actions.remove} className="self-start">
+            <input type="hidden" name="id" value={c.id} />
+            <input type="hidden" name="back" value={back} />
+            <Tooltip>
+              <TooltipTrigger render={<SubmitButton variant="ghost" size="icon-xs" aria-label={t("activity.delete")} data-confirm="activity.confirmDelete" />}>
+                <Trash2Icon />
+              </TooltipTrigger>
+              <TooltipContent>{t("activity.delete")}</TooltipContent>
+            </Tooltip>
+          </form>
+        </div>
       )}
     </div>
   )

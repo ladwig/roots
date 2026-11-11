@@ -202,12 +202,37 @@ export async function addLink(db: Db, orgId: string, projectId: string, entity: 
 
 // ---------- comments (projects, tasks) ----------
 
+const UUID = /^[0-9a-f-]{36}$/
+
 export const COMMENT_ENTITIES = ["projects", "tasks"] as const
 
-export async function addComment(db: Db, orgId: string, entity: string, entityId: string, body: string): Promise<ProjectFail | { id: string }> {
+export async function addComment(db: Db, orgId: string, entity: string, entityId: string, body: string, fileIds: string[] = []): Promise<ProjectFail | { id: string }> {
   const text = body.replace(/\r\n/g, "\n").trim().slice(0, 10_000)
-  if (!text) return { error: "projects.commentEmpty" }
+  const files = [...new Set(fileIds.filter((f) => UUID.test(f)))].slice(0, 20)
+  if (!text && !files.length) return { error: "projects.commentEmpty" }
   if (!(COMMENT_ENTITIES as readonly string[]).includes(entity)) return { error: "errors.invalid_input" }
-  const { data, error } = await db.from("comments").insert({ org_id: orgId, entity, entity_id: entityId, body: text }).select("id").single()
+  if (files.length) {
+    const { count } = await db.from("files").select("id", { count: "exact", head: true }).eq("org_id", orgId).in("id", files)
+    if (count !== files.length) return { error: "errors.not_allowed" }
+  }
+  const { data, error } = await db.from("comments").insert({ org_id: orgId, entity, entity_id: entityId, body: text, file_ids: files }).select("id").single()
   return error || !data ? dbFail(error ?? { message: "insert failed" }) : { id: data.id }
+}
+
+/** Only the author changes or removes a comment (RLS in the App; the API's service client checks it here). */
+export async function editComment(db: Db, orgId: string, id: string, body: string): Promise<ProjectFail | { id: string }> {
+  const text = body.replace(/\r\n/g, "\n").trim().slice(0, 10_000)
+  const { data: me } = await db.rpc("actor")
+  const { data: c } = await db.from("comments").select("file_ids").eq("id", id).eq("org_id", orgId).eq("created_by", me ?? "").maybeSingle()
+  if (!c) return { error: "errors.not_allowed" }
+  if (!text && !c.file_ids.length) return { error: "projects.commentEmpty" }
+  const { error } = await db.from("comments").update({ body: text }).eq("id", id).eq("org_id", orgId).eq("created_by", me ?? "")
+  return error ? dbFail(error) : { id }
+}
+
+export async function removeComment(db: Db, orgId: string, id: string): Promise<ProjectFail | { id: string }> {
+  const { data: me } = await db.rpc("actor")
+  const { error, count } = await db.from("comments").delete({ count: "exact" }).eq("id", id).eq("org_id", orgId).eq("created_by", me ?? "")
+  if (error) return dbFail(error)
+  return count ? { id } : { error: "errors.not_allowed" }
 }

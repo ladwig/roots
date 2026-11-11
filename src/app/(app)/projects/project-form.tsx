@@ -11,24 +11,29 @@ import { DateInput } from "@/components/date-input"
 
 export type ProjectValues = { name: string; description: string; color: string; status_id: string; lead_id: string | null; start_on: string | null; end_on: string | null; custom: unknown }
 
-/** The project's fields in two cards (description, details): for /projects/new and the project page (inside its form). */
-export function ProjectFields({ t, p, statuses, team, defs, disabled }: { t: T; p?: ProjectValues; statuses: { id: string; name: string }[]; team: { id: string; name: string }[]; defs: FieldDef[]; disabled?: boolean }) {
+/**
+ * The project's fields in two cards: /projects/new (name + description, details) and the project page's side column
+ * (`sidebar`: the name is edited in the title, description and details stacked narrow; inside its form).
+ */
+export function ProjectFields({ t, p, statuses, team, defs, disabled, sidebar }: { t: T; p?: ProjectValues; statuses: { id: string; name: string }[]; team: { id: string; name: string }[]; defs: FieldDef[]; disabled?: boolean; sidebar?: boolean }) {
   return (
     <>
-      <FormCard id="project" title={t("projects.project")}>
+      <FormCard id={sidebar ? "description" : "project"} title={t(sidebar ? "projects.description" : "projects.project")}>
         <fieldset disabled={disabled} className="grid gap-4">
+          {!sidebar && (
           <div className="grid gap-2">
             <Label htmlFor="pj-name">{t("projects.name")}</Label>
             <Input id="pj-name" name="name" defaultValue={p?.name} maxLength={200} required autoFocus={!p} className="text-base font-medium" />
           </div>
+          )}
           <div className="grid gap-2">
-            <Label htmlFor="pj-desc">{t("projects.description")}</Label>
+            <Label htmlFor="pj-desc" className={sidebar ? "sr-only" : undefined}>{t("projects.description")}</Label>
             <RichTextEditor id="pj-desc" name="description" defaultValue={p?.description ?? ""} disabled={disabled} />
           </div>
         </fieldset>
       </FormCard>
       <FormCard id="details" title={t("projects.details")}>
-        <fieldset disabled={disabled} className="grid gap-4 sm:grid-cols-2">
+        <fieldset disabled={disabled} className={sidebar ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"}>
           <div className="grid gap-2">
             <Label htmlFor="pj-status">{t("projects.status")}</Label>
             <NativeSelect id="pj-status" name="status_id" defaultValue={p?.status_id ?? statuses[0]?.id} className="w-full">
@@ -58,7 +63,7 @@ export function ProjectFields({ t, p, statuses, team, defs, disabled }: { t: T; 
             <Label htmlFor="pj-end">{t("projects.end")}</Label>
             <DateInput id="pj-end" name="end_on" type="date" defaultValue={p?.end_on ?? ""} />
           </div>
-          <fieldset className="grid gap-2 sm:col-span-2">
+          <fieldset className={sidebar ? "grid gap-2" : "grid gap-2 sm:col-span-2"}>
             <legend className="mb-2 text-sm font-medium">{t("projects.color")}</legend>
             <div className="flex gap-1">
               {PICKABLE_COLORS.map((c) => (
@@ -71,7 +76,7 @@ export function ProjectFields({ t, p, statuses, team, defs, disabled }: { t: T; 
           </fieldset>
         </fieldset>
         <fieldset disabled={disabled}>
-          <CustomFieldInputs defs={defs} values={(p?.custom ?? {}) as CustomValues} idPrefix="pj-custom" />
+          <CustomFieldInputs defs={defs} values={(p?.custom ?? {}) as CustomValues} idPrefix="pj-custom" single={sidebar} />
         </fieldset>
       </FormCard>
     </>

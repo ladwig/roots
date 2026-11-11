@@ -8,7 +8,7 @@ import type { getContext } from "@/lib/context"
 import { loadFields } from "@/lib/custom-fields"
 import { projectBasics } from "@/projects/load"
 import { TASK_COLS } from "@/projects/server"
-import { addCommentAction, deleteCommentAction } from "./actions"
+import { addCommentAction, deleteCommentAction, editCommentAction } from "./actions"
 import { TaskEditor, taskMeta } from "./task-editor"
 
 type Ctx = Awaited<ReturnType<typeof getContext>>
@@ -58,8 +58,8 @@ export async function TaskDrawer({ ctx, t, id, back, basics, error, ok }: { ctx:
           entityId={task.id}
           back={here}
           defs={defs}
-          canModerate={canManage}
-          actions={{ add: addCommentAction, remove: deleteCommentAction }}
+          actions={{ add: addCommentAction, edit: editCommentAction, remove: deleteCommentAction }}
+          upload={task.project_id ? { entity: "projects", entityId: task.project_id } : null}
           fields={{
             title: t("projects.taskTitle"),
             status_id: t("projects.status"),

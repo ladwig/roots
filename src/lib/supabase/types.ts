@@ -231,14 +231,14 @@ isOneToOne: true
                   ]
                 },"comments": {
                   Row: {
-                    "body": string,"created_at": string,"created_by": string | null,"entity": string,"entity_id": string,"id": string,"org_id": string,"updated_at": string,"updated_by": string | null
+                    "body": string,"created_at": string,"created_by": string | null,"entity": string,"entity_id": string,"file_ids": (string)[],"id": string,"org_id": string,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "body": string,"created_at"?: string,"created_by"?: string | null,"entity": string,"entity_id": string,"id"?: string,"org_id": string,"updated_at"?: string,"updated_by"?: string | null
+                    "body": string,"created_at"?: string,"created_by"?: string | null,"entity": string,"entity_id": string,"file_ids"?: (string)[],"id"?: string,"org_id": string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "body"?: string,"created_at"?: string,"created_by"?: string | null,"entity"?: string,"entity_id"?: string,"id"?: string,"org_id"?: string,"updated_at"?: string,"updated_by"?: string | null
+                    "body"?: string,"created_at"?: string,"created_by"?: string | null,"entity"?: string,"entity_id"?: string,"file_ids"?: (string)[],"id"?: string,"org_id"?: string,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -2859,6 +2859,11 @@ isOneToOne: false
                            },
 "org_alive":
 { Args: { "p_org": string }; Returns: boolean
+                           },
+"project_changes":
+{ Args: { "p_id": string }; Returns: {
+              "action": string,"actor_id": string,"at": string,"new": Json,"old": Json,"row_id": string,"table_name": string,"via": string
+            }[]
                            },
 "public_form":
 { Args: { "p_org": string,"p_slug": string }; Returns: Json

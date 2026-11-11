@@ -9,7 +9,7 @@ import { requirePerm } from "@/lib/context"
 import { back } from "@/lib/url"
 import { parseTags } from "@/app/(app)/contacts/fields"
 import { loadFields, readCustom } from "@/lib/custom-fields"
-import { addComment, addLink, createProject, createTask, moveProject, moveTask, saveStatus, setAssignees, updateProject, updateTask, type ProjectFail, type Scope } from "@/projects/server"
+import { addComment, addLink, editComment, removeComment, createProject, createTask, moveProject, moveTask, saveStatus, setAssignees, updateProject, updateTask, type ProjectFail, type Scope } from "@/projects/server"
 
 const UUID = /^[0-9a-f-]{36}$/
 const SETUP = "/projects/settings"
@@ -155,7 +155,7 @@ const readProjectForm = async (ctx: Awaited<ReturnType<typeof manager>>["ctx"], 
   return {
     c,
     input: {
-      name: String(fd.get("name") ?? ""),
+      name: fd.has("name") ? String(fd.get("name")) : undefined,
       description: String(fd.get("description") ?? ""),
       color: String(fd.get("color") ?? "blue"),
       start_on: String(fd.get("start_on") ?? "") || null,
@@ -172,7 +172,7 @@ export async function createProjectAction(fd: FormData) {
   const from = backTo(fd, "/projects/new")
   const { c, input } = await readProjectForm(ctx, fd)
   if ("error" in c) back(from, { error: `${c.field}: ${t.dynamic(c.error)}` })
-  const r = await createProject(ctx.supabase, ctx.org.id, { ...input, custom: c.custom })
+  const r = await createProject(ctx.supabase, ctx.org.id, { ...input, name: input.name ?? "", custom: c.custom })
   if ("error" in r) back(from, { error: message(t, r) })
   back(`/projects/${r.id}`, { ok: t("projects.projectCreated") })
 }
@@ -233,13 +233,27 @@ async function viewer() {
 export async function addCommentAction(fd: FormData) {
   const { ctx, t } = await viewer()
   const to = backTo(fd, "/projects")
-  const r = await addComment(ctx.supabase, ctx.org.id, String(fd.get("entity") ?? ""), id(fd, "entity_id") ?? "", String(fd.get("body") ?? ""))
+  const files = String(fd.get("file_ids") ?? "").split(",").filter(Boolean)
+  const r = await addComment(ctx.supabase, ctx.org.id, String(fd.get("entity") ?? ""), id(fd, "entity_id") ?? "", String(fd.get("body") ?? ""), files)
   back(to, "error" in r ? { error: message(t, r) } : {})
+}
+
+export async function editCommentAction(fd: FormData) {
+  const { ctx, t } = await viewer()
+  const r = await editComment(ctx.supabase, ctx.org.id, id(fd, "id") ?? "", String(fd.get("body") ?? ""))
+  back(backTo(fd, "/projects"), "error" in r ? { error: message(t, r) } : {})
 }
 
 export async function deleteCommentAction(fd: FormData) {
   const { ctx, t } = await viewer()
-  const to = backTo(fd, "/projects")
-  const { error, count } = await ctx.supabase.from("comments").delete({ count: "exact" }).eq("id", id(fd, "id") ?? "").eq("org_id", ctx.org.id)
-  back(to, error || !count ? { error: error ? dbError(t, error) : t("errors.not_allowed") } : {})
+  const r = await removeComment(ctx.supabase, ctx.org.id, id(fd, "id") ?? "")
+  back(backTo(fd, "/projects"), "error" in r ? { error: message(t, r) } : {})
+}
+
+/** The project's name, edited in the page header (saves on blur / Enter). */
+export async function renameProjectAction(projectId: string, name: string): Promise<{ error?: string }> {
+  const { ctx, t } = await manager()
+  if (!UUID.test(projectId)) return { error: t("errors.invalid_input") }
+  const r = await updateProject(ctx.supabase, ctx.org.id, projectId, { name })
+  return "error" in r ? { error: message(t, r) } : {}
 }

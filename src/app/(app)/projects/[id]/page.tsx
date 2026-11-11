@@ -17,7 +17,8 @@ import { param, type SearchParams } from "@/lib/url"
 import { DOT } from "@/projects/fields"
 import { projectBasics } from "@/projects/load"
 import { linkedRecords, PROJECT_COLS } from "@/projects/server"
-import { addCommentAction, deleteCommentAction, removeLinkAction, trashProjectAction, updateProjectAction } from "../actions"
+import { addCommentAction, deleteCommentAction, editCommentAction, removeLinkAction, trashProjectAction, updateProjectAction } from "../actions"
+import { InlineTitle } from "../inline-title"
 import { LinkPicker } from "../link-picker"
 import { ProjectFields } from "../project-form"
 import { TASK_VIEWS, TasksView, type TaskView } from "../tasks-view"
@@ -25,8 +26,9 @@ import { ViewSegments } from "../view-segments"
 
 const VIEWS = ["overview", ...TASK_VIEWS] as const
 
-// One project: overview (description, details, custom fields, links, files, activity) and its tasks as board, list,
-// timeline or calendar (?view=…). Fields save with the SaveBar; links, files and comments at once.
+// One project: overview = the activity (comments with dictation + attachments, changes of the project and its tasks)
+// with a side column (progress, description, details incl. custom fields, documents, links), and its tasks as board,
+// list, timeline or calendar (?view=…). The name saves in the title, fields with the SaveBar, the rest at once.
 export default async function ProjectPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<SearchParams> }) {
   const { id } = await params
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound()
@@ -36,10 +38,11 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
   const canManage = ctx.can("projects.manage")
   const view = VIEWS.find((v) => v === param(sp, "view")) ?? "overview"
   const base = `/projects/${id}`
-  const [basics, { data: p }, defs, { data: links }, { data: taskRows }] = await Promise.all([
+  const [basics, { data: p }, defs, taskDefs, { data: links }, { data: taskRows }] = await Promise.all([
     projectBasics(ctx),
     ctx.supabase.from("projects").select(PROJECT_COLS).eq("id", id).eq("org_id", ctx.org.id).is("deleted_at", null).maybeSingle(),
     loadFields(ctx.supabase, ctx.org.id, "projects"),
+    loadFields(ctx.supabase, ctx.org.id, "tasks"),
     ctx.supabase.from("project_links").select("id, entity, entity_id").eq("project_id", id).eq("org_id", ctx.org.id).order("created_at"),
     ctx.supabase.from("tasks").select("completed_at, due_on").eq("project_id", id).eq("org_id", ctx.org.id).is("deleted_at", null).limit(5000),
   ])
@@ -60,7 +63,7 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
         title={
           <span className="inline-flex items-center gap-2">
             <span className="size-3 shrink-0 rounded-full" style={{ background: DOT[p.color] ?? DOT.gray }} aria-hidden />
-            {p.name}
+            <InlineTitle id={p.id} name={p.name} disabled={!canManage} />
           </span>
         }
         badge={status && <Badge variant={status.is_done ? "secondary" : "outline"}>{status.name}</Badge>}
@@ -100,6 +103,14 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
                     </Link>
                   </div>
                 </FormCard>
+                <form action={updateProjectAction} className="grid gap-6">
+                  <input type="hidden" name="id" value={p.id} />
+                  <ProjectFields t={t} p={p} statuses={basics.projectStatuses} team={basics.team} defs={defs} disabled={!canManage} sidebar />
+                  {canManage && <SaveBar />}
+                </form>
+                <FormCard id="files" title={t("files.title")}>
+                  <FileList ctx={ctx} entity="projects" entityId={p.id} back={base} />
+                </FormCard>
                 <FormCard id="links" title={t("projects.links")} description={t("projects.linksHint")}>
                   {linked.length > 0 && (
                     <ul className="grid gap-1">
@@ -124,17 +135,9 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
                   )}
                   {canManage && <LinkPicker projectId={p.id} />}
                 </FormCard>
-                <FormCard id="files" title={t("files.title")}>
-                  <FileList ctx={ctx} entity="projects" entityId={p.id} back={base} />
-                </FormCard>
               </>
             }
           >
-            <form action={updateProjectAction} className="grid gap-6">
-              <input type="hidden" name="id" value={p.id} />
-              <ProjectFields t={t} p={p} statuses={basics.projectStatuses} team={basics.team} defs={defs} disabled={!canManage} />
-              {canManage && <SaveBar />}
-            </form>
             <FormCard id="activity" title={t("activity.title")}>
               <ActivityFeed
                 ctx={ctx}
@@ -143,8 +146,20 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
                 entityId={p.id}
                 back={base}
                 defs={defs}
-                canModerate={canManage}
-                actions={{ add: addCommentAction, remove: deleteCommentAction }}
+                actions={{ add: addCommentAction, edit: editCommentAction, remove: deleteCommentAction }}
+                upload={{ entity: "projects", entityId: p.id }}
+                tasks={{
+                  href: (taskId) => `${base}?view=list&task=${taskId}`,
+                  fields: {
+                    title: t("projects.taskTitle"),
+                    status_id: t("projects.status"),
+                    start_on: t("projects.start"),
+                    due_on: t("projects.due"),
+                    tags: t("projects.tags"),
+                  },
+                  show: { status_id: (v) => basics.statuses.find((x) => x.id === v)?.name ?? "–" },
+                  defs: taskDefs,
+                }}
                 fields={{
                   name: t("projects.name"),
                   status_id: t("projects.status"),

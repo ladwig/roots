@@ -1,10 +1,11 @@
 // Custom fields (generic). Definitions: public.custom_fields (per org + entity); values: the entity's `custom` jsonb.
 // One validator for every way data comes in (form, CSV import, API), so values always have the right shape.
 // New entity: add it to the DB check on custom_fields.entity, give its table a `custom jsonb` column, add it below.
+import { formatMoney, moneyCents } from "./inputs.ts"
 
 export const CUSTOM_ENTITIES = { contacts: { module: "crm" }, events: { module: "events" }, memberships: { module: "members" }, rental_objects: { module: "rentals" }, rentals: { module: "rentals" }, projects: { module: "projects" }, tasks: { module: "projects" } } as const
 export type CustomEntity = keyof typeof CUSTOM_ENTITIES
-export const FIELD_TYPES = ["text", "number", "date", "boolean", "select", "email", "url"] as const
+export const FIELD_TYPES = ["text", "number", "money", "date", "boolean", "select", "email", "url"] as const
 export type FieldType = (typeof FIELD_TYPES)[number]
 export type FieldDef = { key: string; label: string; type: string; options: string[]; required: boolean }
 export type CustomValue = string | number | boolean
@@ -28,6 +29,11 @@ export function parseValue(def: FieldDef, raw: string): { value?: CustomValue; e
       // German "1.234,5" and plain "1234.5"
       const n = Number(/,\d+$/.test(v) ? v.replace(/\./g, "").replace(",", ".") : v)
       return Number.isFinite(n) ? { value: n } : { error: "errors.invalid_number" }
+    }
+    case "money": {
+      // euros as a number ("1.234,50 €" → 1234.5)
+      const c = moneyCents(v.replace(/\s*€$/, ""))
+      return c === null ? { error: "errors.invalid_number" } : { value: c / 100 }
     }
     case "date": {
       const de = v.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/)
@@ -70,8 +76,9 @@ export const readCustomObject = (defs: FieldDef[], values: Record<string, Custom
     return v == null ? "" : typeof v === "boolean" ? (v ? "1" : "") : String(v)
   })
 
-// Stored value → text for inputs / display.
-export const formatValue = (v: CustomValue | undefined) => (v === undefined ? "" : typeof v === "boolean" ? (v ? "1" : "") : String(v))
+// Stored value → text for inputs / display (money as "1.234,50").
+export const formatValue = (v: CustomValue | undefined, type?: string) =>
+  v === undefined ? "" : typeof v === "boolean" ? (v ? "1" : "") : type === "money" && typeof v === "number" ? formatMoney(Math.round(v * 100)) : String(v)
 
 // "Mitglieds-Nr." → "mitglieds_nr" (key for a new field)
 export const fieldKey = (label: string) =>

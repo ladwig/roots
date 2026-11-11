@@ -712,7 +712,20 @@
     "placeholder": "Write a comment …",
     "someone": "Someone",
     "viaAi": "via AI app",
-    "viaApi": "via API"
+    "viaApi": "via API",
+    "edited": "edited",
+    "edit": "Edit",
+    "trashed": "moved to trash",
+    "taskCreated": "Task created",
+    "taskTrashed": "Task moved to trash",
+    "listening": "Listening … speak now",
+    "dictate": "Dictate",
+    "stopDictation": "Stop dictation",
+    "attach": "Attach file",
+    "attachHint": "Attach photos and files – they are stored in the project's documents",
+    "detach": "Remove {name}",
+    "confirmDelete": "Delete comment?",
+    "confirmDeleteHint": "Attached files stay in the documents."
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -1414,6 +1427,7 @@
     "types": {
       "text": "Text",
       "number": "Number",
+      "money": "Amount (€)",
       "date": "Date",
       "boolean": "Yes/No",
       "select": "Choice",
@@ -4942,7 +4956,7 @@
     "trashHint": "Deleted projects stay here for {days} days and can be restored.",
     "dueBeforeStart": "The due date is before the start.",
     "endBeforeStart": "The end is before the start.",
-    "commentEmpty": "Please write a comment.",
+    "commentEmpty": "Please write a comment or attach a file.",
     "linkKinds": {
       "wiki_pages": "Wiki",
       "events": "Event",

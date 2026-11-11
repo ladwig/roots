@@ -712,7 +712,20 @@
     "placeholder": "Kommentar schreiben …",
     "someone": "Jemand",
     "viaAi": "über KI-App",
-    "viaApi": "über API"
+    "viaApi": "über API",
+    "edited": "bearbeitet",
+    "edit": "Bearbeiten",
+    "trashed": "in den Papierkorb gelegt",
+    "taskCreated": "Aufgabe angelegt",
+    "taskTrashed": "Aufgabe in den Papierkorb gelegt",
+    "listening": "Ich höre zu … sprich jetzt",
+    "dictate": "Diktieren",
+    "stopDictation": "Diktat beenden",
+    "attach": "Datei anhängen",
+    "attachHint": "Fotos und Dateien anhängen – sie landen in den Dokumenten des Projekts",
+    "detach": "{name} entfernen",
+    "confirmDelete": "Kommentar löschen?",
+    "confirmDeleteHint": "Angehängte Dateien bleiben in den Dokumenten."
   },
   "errors": {
     "generic": "Etwas ist schiefgelaufen. Bitte versuch es noch einmal.",
@@ -1414,6 +1427,7 @@
     "types": {
       "text": "Text",
       "number": "Zahl",
+      "money": "Betrag (€)",
       "date": "Datum",
       "boolean": "Ja/Nein",
       "select": "Auswahl",
@@ -4942,7 +4956,7 @@
     "trashHint": "Gelöschte Projekte bleiben {days} Tage hier und lassen sich wiederherstellen.",
     "dueBeforeStart": "Die Fälligkeit liegt vor dem Start.",
     "endBeforeStart": "Das Ende liegt vor dem Start.",
-    "commentEmpty": "Bitte einen Kommentar schreiben.",
+    "commentEmpty": "Bitte einen Kommentar schreiben oder eine Datei anhängen.",
     "linkKinds": {
       "wiki_pages": "Wiki",
       "events": "Veranstaltung",

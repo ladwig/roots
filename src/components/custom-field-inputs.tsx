@@ -3,16 +3,17 @@ import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { formatValue, type CustomValues, type FieldDef } from "@/lib/custom-fields"
 import { DateInput } from "@/components/date-input"
+import { TypedInput } from "@/components/typed-input"
 
 // Inputs for an entity's custom fields (form names "custom.<key>", read back with readCustom()).
-export function CustomFieldInputs({ defs, values, idPrefix }: { defs: FieldDef[]; values?: CustomValues; idPrefix: string }) {
+export function CustomFieldInputs({ defs, values, idPrefix, single }: { defs: FieldDef[]; values?: CustomValues; idPrefix: string; single?: boolean }) {
   if (!defs.length) return null
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className={single ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"}>
       {defs.map((d) => {
         const id = `${idPrefix}-${d.key}`
         const name = `custom.${d.key}`
-        const value = formatValue(values?.[d.key])
+        const value = formatValue(values?.[d.key], d.type)
         if (d.type === "boolean")
           return (
             <label key={d.key} className="flex items-center gap-2 text-sm sm:col-span-2">
@@ -35,6 +36,8 @@ export function CustomFieldInputs({ defs, values, idPrefix }: { defs: FieldDef[]
                   </NativeSelectOption>
                 ))}
               </NativeSelect>
+            ) : d.type === "money" ? (
+              <TypedInput kind="money" id={id} name={name} defaultValue={value} required={d.required} />
             ) : d.type === "date" ? (
               <DateInput id={id} name={name} defaultValue={value ? String(value) : undefined} required={d.required} />
             ) : (
