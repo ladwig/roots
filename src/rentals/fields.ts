@@ -129,13 +129,19 @@ export function readRental(get: Get): { row: RentalRow } | { error: string; fiel
   return { row: { starts_at: new Date(starts).toISOString(), ends_at: ends ? new Date(ends).toISOString() : null, status, price_cents: price, unit, renew_months: renew ?? null, notice_months: notice ?? null, deposit_cents: deposit ?? null, note: str(get, "note", 20000) } }
 }
 
-/** Where a rental stands at `now`: upcoming, running (and whether it ends soon), ended, request, cancelled. */
-export function rentalState(r: { status: string; starts_at: string; ends_at: string | null }, now = new Date()): "request" | "cancelled" | "upcoming" | "running" | "ended" {
+/**
+ * Where a rental stands at `now`: upcoming, running, ended, request, cancelled. A renewing contract keeps running past
+ * its term's end until notice is given (then `ends_at` is the end).
+ */
+export function rentalState(r: { status: string; starts_at: string; ends_at: string | null; renew_months?: number | null; notice_at?: string | null }, now = new Date()): "request" | "cancelled" | "upcoming" | "running" | "ended" {
   if (r.status === "request" || r.status === "cancelled") return r.status
   if (Date.parse(r.starts_at) > now.getTime()) return "upcoming"
-  if (r.ends_at && Date.parse(r.ends_at) <= now.getTime()) return "ended"
+  if (r.ends_at && Date.parse(r.ends_at) <= now.getTime() && !(r.renew_months && !r.notice_at)) return "ended"
   return "running"
 }
+
+/** PostgREST filter: rentals not over at `now` (no end, end later, or renewing without notice). */
+export const notOver = (now: string) => `ends_at.is.null,ends_at.gt.${now},and(renew_months.not.is.null,notice_at.is.null)`
 
 /**
  * Earliest end when giving notice today (open-ended or renewing contracts): notice months from today, to the end of
@@ -157,18 +163,28 @@ const addMonths = (day: string, n: number) => {
 const addDays = (day: string, n: number) => new Date(Date.parse(`${day}T00:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10)
 
 /**
- * Where a long-term contract stands today (dates YYYY-MM-DD, Berlin): a fixed end; or renewing by `renew_months` from
- * the start — the current term's last day and the last day to give notice for it (notice months before its end; once
- * that has passed, the next term counts); or open-ended — the earliest end when giving notice today.
+ * Where a long-term contract stands today (dates YYYY-MM-DD, Berlin). `end` = end of the (first) term. Renewing
+ * (`renew_months`, no notice yet): the current term's last day and the last day to give notice for it (notice months
+ * before its end; once that has passed, the next term counts). With an end and no renewal (or notice given): fixed.
+ * Without an end: open-ended, with the earliest end when giving notice today.
  */
-export function termInfo(r: { start: string; end: string | null; renew_months: number | null; notice_months: number | null }, today: string) {
-  if (r.end) return { kind: "fixed" as const, end: r.end }
-  if (r.renew_months) {
-    for (let k = 1; k <= 600; k++) {
-      const termEnd = addDays(addMonths(r.start, k * r.renew_months), -1)
+export function termInfo(r: { end: string | null; renew_months: number | null; notice_months: number | null; noticeGiven?: boolean }, today: string) {
+  if (r.end && r.renew_months && !r.noticeGiven) {
+    let termEnd = r.end
+    for (let k = 0; k < 600; k++) {
       const deadline = addDays(addMonths(addDays(termEnd, 1), -(r.notice_months ?? 0)), -1)
       if (deadline >= today) return { kind: "renew" as const, termEnd, deadline }
+      termEnd = addDays(addMonths(addDays(termEnd, 1), r.renew_months), -1)
     }
   }
+  if (r.end) return { kind: "fixed" as const, end: r.end }
   return { kind: "open" as const, earliest: r.notice_months != null ? noticeEnd({ ends_at: null, notice_months: r.notice_months }, today) : null }
+}
+
+/** Last day of a term of `months` from `start` (01.09.2026 + 12 → 31.08.2027). */
+export const termEndOf = (start: string, months: number) => addDays(addMonths(start, months), -1)
+/** Whole months from `start` to `end` (last day included), or null when it isn't a whole number of months. */
+export function monthsOf(start: string, end: string) {
+  for (let m = 1; m <= 600; m++) if (termEndOf(start, m) === end) return m
+  return null
 }

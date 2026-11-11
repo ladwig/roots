@@ -3,7 +3,7 @@
 // double booking, fixed parts never alone).
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "@/lib/supabase/types"
-import { noticeEnd, type ObjectRow, type RateRow, type RentalRow } from "./fields"
+import { noticeEnd, termInfo, type ObjectRow, type RateRow, type RentalRow } from "./fields"
 
 type Db = SupabaseClient<Database>
 export type RentalFail = { error: string; db?: { code?: string; message: string } }
@@ -109,9 +109,12 @@ export async function setPeople(db: Db, orgId: string, rentalId: string, people:
 
 /** Notice received today: no more renewing; open-ended contracts end at the earliest possible date (or `on`). */
 export async function giveNotice(db: Db, orgId: string, id: string, on: string | null, today: string): Promise<RentalFail | { id: string; ends: string }> {
-  const { data: r } = await db.from("rentals").select("ends_at, notice_months").eq("id", id).eq("org_id", orgId).maybeSingle()
+  const { data: r } = await db.from("rentals").select("ends_at, notice_months, renew_months, notice_at").eq("id", id).eq("org_id", orgId).maybeSingle()
   if (!r) return { error: "errors.not_allowed" }
-  const ends = on && /^\d{4}-\d{2}-\d{2}$/.test(on) ? on : noticeEnd(r, today)
+  // Renewing contracts end with the current term (the one whose notice deadline hasn't passed); others after the notice period.
+  const day = (v: string | null) => (v ? new Date(v).toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" }) : null)
+  const term = termInfo({ end: day(r.ends_at), renew_months: r.renew_months, notice_months: r.notice_months, noticeGiven: !!r.notice_at }, today)
+  const ends = on && /^\d{4}-\d{2}-\d{2}$/.test(on) ? on : term.kind === "renew" ? term.termEnd : noticeEnd(r, today)
   const { error } = await db.from("rentals").update({ notice_at: new Date().toISOString(), ends_at: new Date(`${ends}T23:59:59`).toISOString() }).eq("id", id).eq("org_id", orgId)
   return error ? dbFail(error) : { id, ends }
 }

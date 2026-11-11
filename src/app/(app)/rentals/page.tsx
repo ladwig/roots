@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { param, withParams } from "@/lib/url"
-import { FAMILIES } from "@/rentals/fields"
+import { FAMILIES, notOver } from "@/rentals/fields"
 import { kindLabel, peopleLine } from "./parts"
 
 const VIEWS = ["all", "free", "busy"] as const
@@ -44,7 +44,7 @@ export default async function RentalsPage({ searchParams }: PageProps<"/rentals"
       .is("deleted_at", null)
       .eq("status", "confirmed")
       .lte("starts_at", now)
-      .or(`ends_at.is.null,ends_at.gt.${now}`)
+      .or(notOver(now))
       .limit(2000),
     ctx.supabase.from("rental_rates").select("object_id, price_cents, unit").eq("org_id", ctx.org.id).eq("active", true).order("position"),
     // The next confirmed rental of free objects ("ab 01.09.: …").

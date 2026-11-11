@@ -18,6 +18,7 @@ import { param, type SearchParams } from "@/lib/url"
 import { longTerm, UNITS, wordFor, type Family } from "@/rentals/fields"
 import { createRentalAction } from "../../actions"
 import { kindLabel } from "../../parts"
+import { TermFields } from "../../term-fields"
 import { DateInput } from "@/components/date-input"
 
 // New contract / booking / loan for one object (?object=…; from the calendar also ?start=&end=). Picking a rate is
@@ -48,7 +49,7 @@ export default async function NewRentalPage({ searchParams }: { searchParams: Pr
   }
   const [{ data: o }, { data: rates }, defs] = await Promise.all([
     ctx.supabase.from("rental_objects").select("id, name, kind, family").eq("id", objectId).eq("org_id", ctx.org.id).is("deleted_at", null).maybeSingle(),
-    ctx.supabase.from("rental_rates").select("id, name, unit, price_cents").eq("object_id", objectId).eq("org_id", ctx.org.id).eq("active", true).order("position"),
+    ctx.supabase.from("rental_rates").select("id, name, unit, price_cents, term_months, renew_months, notice_months").eq("object_id", objectId).eq("org_id", ctx.org.id).eq("active", true).order("position"),
     loadFields(ctx.supabase, ctx.org.id, "rentals"),
   ])
   if (!o) notFound()
@@ -66,24 +67,25 @@ export default async function NewRentalPage({ searchParams }: { searchParams: Pr
           <ContactPicker name="contact_id" label={t("rentals.roles.main")} />
         </FormCard>
         <FormCard id="when" title={t("rentals.whenTitle")}>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid content-start gap-2">
-              <Label htmlFor="n-start">{t("rentals.starts")}</Label>
-              {long ? (
-                <TypedInput kind="date" id="n-start" name="starts_at" required defaultValue={start?.slice(0, 10) ?? today} />
-              ) : (
+          {long ? (
+            // Term defaults from the first tariff (term, renewal, notice); the form posts what's shown.
+            <TermFields start={start?.slice(0, 10) ?? today} end={null} termMonths={first?.term_months ?? (first?.renew_months ? first.renew_months : null)} renew={first?.renew_months ?? null} notice={first?.notice_months ?? null} />
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid content-start gap-2">
+                <Label htmlFor="n-start">{t("rentals.starts")}</Label>
                 <DateInput id="n-start" name="starts_at" type="datetime-local" required defaultValue={start ? toLocalInput(start) : `${today}T10:00`} />
-              )}
+              </div>
+              <div className="grid content-start gap-2">
+                <Label htmlFor="n-end">{t("rentals.ends")}</Label>
+                <DateInput id="n-end" name="ends_at" type="datetime-local" defaultValue={end ? toLocalInput(end) : ""} />
+              </div>
             </div>
-            <div className="grid content-start gap-2">
-              <Label htmlFor="n-end">{t("rentals.ends")}</Label>
-              {long ? <TypedInput kind="date" id="n-end" name="ends_at" defaultValue={end?.slice(0, 10) ?? ""} /> : <DateInput id="n-end" name="ends_at" type="datetime-local" defaultValue={end ? toLocalInput(end) : ""} />}
-              {long && <p className="text-xs text-muted-foreground">{t("rentals.endOptional")}</p>}
-            </div>
-          </div>
+          )}
           <div className="grid gap-2">
             <Label htmlFor="n-status">{t("rentals.requestStatus")}</Label>
             <Choice id="n-status" name="status" label={t("rentals.requestStatus")} required defaultValue="confirmed" options={(["confirmed", "request"] as const).map((x) => ({ value: x, label: t(`rentals.statusOptions.${x}`) }))} />
+            <p className="text-xs text-muted-foreground">{t("rentals.statusHint")}</p>
           </div>
         </FormCard>
         <FormCard id="price" title={t("rentals.priceTitle")} description={rates?.length ? t("rentals.rateHint") : undefined}>
@@ -120,18 +122,6 @@ export default async function NewRentalPage({ searchParams }: { searchParams: Pr
               <Label htmlFor="n-dep">{t("rentals.deposit")}</Label>
               <TypedInput kind="money" id="n-dep" name="deposit" placeholder={t("rentals.fromRate")} />
             </div>
-            {long && (
-              <>
-                <div className="grid content-start gap-2">
-                  <Label htmlFor="n-notice">{t("rentals.notice")}</Label>
-                  <TypedInput kind="number" id="n-notice" name="notice_months" min={0} max={60} placeholder={t("rentals.fromRate")} />
-                </div>
-                <div className="grid content-start gap-2">
-                  <Label htmlFor="n-renew">{t("rentals.renew")}</Label>
-                  <TypedInput kind="number" id="n-renew" name="renew_months" min={1} max={600} placeholder={t("rentals.fromRate")} />
-                </div>
-              </>
-            )}
           </div>
         </FormCard>
         <FormCard id="more" title={defs.length ? t("membership.moreFields") : t("rentals.note")}>

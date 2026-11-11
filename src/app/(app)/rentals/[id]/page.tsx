@@ -20,7 +20,7 @@ import { requirePerm } from "@/lib/context"
 import { loadFields } from "@/lib/custom-fields"
 import { formatMoney } from "@/lib/inputs"
 import { param, withParams } from "@/lib/url"
-import { KINDS, UNITS, longTerm, rentalState, wordFor, type Family } from "@/rentals/fields"
+import { KINDS, UNITS, longTerm, rentalState, wordFor, type Family, notOver } from "@/rentals/fields"
 import { OBJECT_COLS, RENTAL_COLS } from "@/rentals/server"
 import { addChildrenAction, deleteRateAction, handOutAction, returnAction, saveRateAction, trashObjectAction } from "../actions"
 import { kindLabel, ObjectForm, peopleLine, period, StateBadge } from "../parts"
@@ -48,7 +48,7 @@ export default async function ObjectPage({ params, searchParams }: PageProps<"/r
   const now = new Date().toISOString()
   // Who has each child right now (keys, devices), and the running rental of this object (keys hang on it).
   const { data: childRentals } = children.length
-    ? await ctx.supabase.from("rentals").select(RENTAL_COLS).in("object_id", children.map((c) => c.id)).eq("org_id", ctx.org.id).is("deleted_at", null).eq("status", "confirmed").lte("starts_at", now).or(`ends_at.is.null,ends_at.gt.${now}`)
+    ? await ctx.supabase.from("rentals").select(RENTAL_COLS).in("object_id", children.map((c) => c.id)).eq("org_id", ctx.org.id).is("deleted_at", null).eq("status", "confirmed").lte("starts_at", now).or(notOver(now))
     : { data: [] }
   const holder = (childId: string) => (childRentals ?? []).find((r) => r.object_id === childId)
   const current = (rentals ?? []).filter((r) => ["running", "upcoming", "request"].includes(rentalState(r)))

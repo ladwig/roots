@@ -1,4 +1,5 @@
 import { contactName, CONTACT_FIELDS } from "@/app/(app)/contacts/fields"
+import { notOver } from "@/rentals/fields"
 import type { getT } from "@/i18n/server"
 import type { getContext } from "@/lib/context"
 import { loadFields } from "@/lib/custom-fields"
@@ -356,7 +357,7 @@ export const EXPORTERS: Record<string, Exporter> = {
           .range(from, to)
         if (picked(sp).length) return q.in("id", picked(sp))
         if (sp.get("family")) q = q.eq("rental_objects.family", sp.get("family")!)
-        if (view === "current") q = q.eq("status", "confirmed").lte("starts_at", now).or(`ends_at.is.null,ends_at.gt.${now}`)
+        if (view === "current") q = q.eq("status", "confirmed").lte("starts_at", now).or(notOver(now))
         if (view === "upcoming") q = q.eq("status", "confirmed").gt("starts_at", now)
         if (view === "requests") q = q.eq("status", "request")
         if (view === "ended") q = q.lte("ends_at", now)

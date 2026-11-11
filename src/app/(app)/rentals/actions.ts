@@ -99,16 +99,18 @@ export async function createRentalAction(fd: FormData) {
   const { data: rate } = rateId ? await ctx.supabase.from("rental_rates").select("*").eq("id", rateId).eq("org_id", ctx.org.id).maybeSingle() : { data: null }
   const pick = (k: string, fromRate: unknown) => (s(fd, k).trim() ? s(fd, k) : fromRate == null ? "" : String(fromRate))
   const starts = when(s(fd, "starts_at"))
+  // The term picker (long-term) posts the whole term itself; older/API-like forms fall back to the rate.
+  const ownTerm = fd.has("term_mode")
   // A fixed first term from the rate: end = start + term (unless an end was entered).
-  const termEnd = !s(fd, "ends_at") && rate?.term_months && starts && starts !== "x" ? new Date(new Date(starts).setMonth(new Date(starts).getMonth() + rate.term_months) - 1000).toISOString() : ""
+  const termEnd = !ownTerm && !s(fd, "ends_at") && rate?.term_months && starts && starts !== "x" ? new Date(new Date(starts).setMonth(new Date(starts).getMonth() + rate.term_months) - 1000).toISOString() : ""
   const get = (k: string) =>
     k === "starts_at" ? starts
     : k === "ends_at" ? when(s(fd, "ends_at"), true) || termEnd
     : k === "price" ? (s(fd, "price").trim() || (rate ? (rate.price_cents / 100).toFixed(2) : ""))
     : k === "deposit" ? (s(fd, "deposit").trim() || (rate?.deposit_cents != null ? (rate.deposit_cents / 100).toFixed(2) : ""))
     : k === "unit" ? pick("unit", rate?.unit)
-    : k === "renew_months" ? pick("renew_months", rate?.renew_months)
-    : k === "notice_months" ? pick("notice_months", rate?.notice_months)
+    : k === "renew_months" ? (ownTerm ? s(fd, k) : pick("renew_months", rate?.renew_months))
+    : k === "notice_months" ? (ownTerm ? s(fd, k) : pick("notice_months", rate?.notice_months))
     : s(fd, k)
   const r = readRental(get)
   if ("error" in r) back(here, { error: fieldError(t, r) })

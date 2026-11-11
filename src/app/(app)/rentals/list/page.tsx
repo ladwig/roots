@@ -11,7 +11,7 @@ import { SubmitButton } from "@/components/submit-button"
 import { getT } from "@/i18n/server"
 import { requirePerm } from "@/lib/context"
 import { pageParam, param, withParams } from "@/lib/url"
-import { FAMILIES } from "@/rentals/fields"
+import { FAMILIES, notOver } from "@/rentals/fields"
 import { bulkTrashRentals, restoreRentalAction } from "../actions"
 import { kindLabel, peopleLine, period, StateBadge } from "../parts"
 
@@ -37,7 +37,7 @@ export default async function RentalListPage({ searchParams }: PageProps<"/renta
   if (family) query = query.eq("rental_objects.family", family)
   if (trash) {
     // trash: no time filter
-  } else if (view === "current") query = query.eq("status", "confirmed").lte("starts_at", now).or(`ends_at.is.null,ends_at.gt.${now}`).order("starts_at", { ascending: false })
+  } else if (view === "current") query = query.eq("status", "confirmed").lte("starts_at", now).or(notOver(now)).order("starts_at", { ascending: false })
   else if (view === "upcoming") query = query.eq("status", "confirmed").gt("starts_at", now).order("starts_at")
   else if (view === "requests") query = query.eq("status", "request").order("starts_at")
   else if (view === "ended") query = query.lte("ends_at", now).order("ends_at", { ascending: false })

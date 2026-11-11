@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { familyOf, noticeEnd, readObject, readRate, readRental, rentalState, termInfo, wordFor } from "./fields.ts"
+import { familyOf, noticeEnd, readObject, readRate, readRental, rentalState, monthsOf, termEndOf, termInfo, wordFor } from "./fields.ts"
 
 const form = (o) => (k) => o[k] ?? ""
 
@@ -35,9 +35,17 @@ test("rentals: kinds, wording, parsing, state, notice", () => {
 })
 
 test("contract term: renewing yearly with 3 months notice, fixed end, open-ended", () => {
-  const r = { start: "2026-09-01", end: null, renew_months: 12, notice_months: 3 }
+  const r = { end: "2027-08-31", renew_months: 12, notice_months: 3 }
   assert.deepEqual(termInfo(r, "2026-11-11"), { kind: "renew", termEnd: "2027-08-31", deadline: "2027-05-31" })
   assert.deepEqual(termInfo(r, "2027-06-01"), { kind: "renew", termEnd: "2028-08-31", deadline: "2028-05-31" }) // deadline passed → next term
-  assert.deepEqual(termInfo({ ...r, end: "2027-03-31" }, "2026-11-11"), { kind: "fixed", end: "2027-03-31" })
-  assert.deepEqual(termInfo({ ...r, renew_months: null }, "2026-11-11"), { kind: "open", earliest: "2027-02-28" })
+  assert.deepEqual(termInfo({ ...r, noticeGiven: true }, "2026-11-11"), { kind: "fixed", end: "2027-08-31" })
+  assert.deepEqual(termInfo({ ...r, renew_months: null }, "2026-11-11"), { kind: "fixed", end: "2027-08-31" })
+  assert.deepEqual(termInfo({ end: null, renew_months: null, notice_months: 3 }, "2026-11-11"), { kind: "open", earliest: "2027-02-28" })
+  assert.equal(termEndOf("2026-09-01", 12), "2027-08-31")
+  assert.equal(monthsOf("2026-09-01", "2027-08-31"), 12)
+  assert.equal(monthsOf("2026-09-01", "2027-08-30"), null)
+  // renewing contracts keep running past the first term until notice
+  const past = { status: "confirmed", starts_at: "2025-04-01T00:00:00Z", ends_at: "2026-03-31T22:00:00Z" }
+  assert.equal(rentalState({ ...past, renew_months: 12 }, new Date("2026-11-11")), "running")
+  assert.equal(rentalState({ ...past, renew_months: 12, notice_at: "2026-01-01" }, new Date("2026-11-11")), "ended")
 })

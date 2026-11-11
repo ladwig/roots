@@ -5155,7 +5155,7 @@
     "unit": "Abrechnung",
     "price": "Preis",
     "minUnits": "Mindestens",
-    "termMonths": "Feste Laufzeit (Monate)",
+    "termMonths": "Laufzeit in Monaten",
     "renewMonths": "Verlängert sich um (Monate)",
     "noticeMonths": "Kündigungsfrist (Monate)",
     "rateActive": "Aktiv",
@@ -5240,7 +5240,7 @@
     "fromRate": "aus dem Tarif",
     "statusOptions": {
       "confirmed": "Bestätigt",
-      "request": "Anfrage (blockiert nicht)"
+      "request": "Anfrage"
     },
     "statusOptionsAll": {
       "confirmed": "Bestätigt",
@@ -5273,7 +5273,6 @@
     "depositShort": "Kaution {amount}",
     "rentedOf": "{count} von {total} vermietet",
     "monthlyRent": "{amount} Miete pro Monat",
-    "endOptional": "Nur bei befristeten Verträgen – sonst läuft er weiter bzw. verlängert sich.",
     "term": {
       "since": "Läuft seit {date}",
       "from": "Beginnt am {date}",
@@ -5282,7 +5281,19 @@
       "deadline": "Kündigung spätestens bis {date}",
       "openNotice": "unbefristet, kündbar frühestens zum {date}",
       "open": "unbefristet"
-    }
+    },
+    "termLabel": "Laufzeit",
+    "termOpen": "Unbefristet",
+    "termFixed": "Feste Laufzeit",
+    "monthsWord": "Monate",
+    "termUntil": "bis {date}",
+    "afterLabel": "Danach",
+    "afterEnd": "Endet",
+    "afterRenew": "Verlängert sich automatisch",
+    "renewBy": "jeweils um",
+    "noticeOpenHint": "Monate Kündigungsfrist",
+    "noticeRenewHint": "Monate vor Ende der Laufzeit kündigen",
+    "statusHint": "Eine Anfrage hält das Objekt noch nicht frei – erst „Bestätigt“ ist es vergeben."
   },
   "oauth": {
     "title": "{app} mit roots verbinden",

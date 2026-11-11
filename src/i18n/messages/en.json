@@ -5155,7 +5155,7 @@
     "unit": "Billing",
     "price": "Price",
     "minUnits": "At least",
-    "termMonths": "Fixed term (months)",
+    "termMonths": "Term in months",
     "renewMonths": "Renews by (months)",
     "noticeMonths": "Notice period (months)",
     "rateActive": "Active",
@@ -5240,7 +5240,7 @@
     "fromRate": "from the rate",
     "statusOptions": {
       "confirmed": "Confirmed",
-      "request": "Request (doesn’t block)"
+      "request": "Request"
     },
     "statusOptionsAll": {
       "confirmed": "Confirmed",
@@ -5273,7 +5273,6 @@
     "depositShort": "Deposit {amount}",
     "rentedOf": "{count} of {total} rented",
     "monthlyRent": "{amount} rent per month",
-    "endOptional": "Only for fixed-term contracts – otherwise it keeps running or renews.",
     "term": {
       "since": "Running since {date}",
       "from": "Starts on {date}",
@@ -5282,7 +5281,19 @@
       "deadline": "notice by {date} at the latest",
       "openNotice": "open-ended, earliest end with notice: {date}",
       "open": "open-ended"
-    }
+    },
+    "termLabel": "Term",
+    "termOpen": "Open-ended",
+    "termFixed": "Fixed term",
+    "monthsWord": "months",
+    "termUntil": "until {date}",
+    "afterLabel": "Afterwards",
+    "afterEnd": "Ends",
+    "afterRenew": "Renews automatically",
+    "renewBy": "by",
+    "noticeOpenHint": "months notice",
+    "noticeRenewHint": "months notice before the term ends",
+    "statusHint": "A request doesn't hold the object yet – only “Confirmed” books it."
   },
   "oauth": {
     "title": "Connect {app} to roots",

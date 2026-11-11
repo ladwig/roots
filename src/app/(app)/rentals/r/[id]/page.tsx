@@ -27,6 +27,7 @@ import { RENTAL_COLS } from "@/rentals/server"
 import { contactName } from "../../../contacts/fields"
 import { addPersonAction, giveNoticeAction, removePersonAction, returnAction, trashRentalAction, updateRentalAction } from "../../actions"
 import { kindLabel, period, StateBadge } from "../../parts"
+import { TermFields } from "../../term-fields"
 import { ContractMenu } from "./contract-menu"
 import { DateInput } from "@/components/date-input"
 
@@ -61,7 +62,7 @@ export default async function RentalPage({ params, searchParams }: PageProps<"/r
   const berlinDay = (v: string) => new Date(v).toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
   const long_ = (d: string) => t.date(`${d}T12:00:00Z`, { dateStyle: "medium" })
   const months = (n: number) => (n % 12 === 0 ? t("letters.years", { count: n / 12 }) : t("rentals.noticeMonthsText", { count: n }))
-  const term = termInfo({ start: berlinDay(r.starts_at), end: r.ends_at ? berlinDay(r.ends_at) : null, renew_months: r.renew_months, notice_months: r.notice_months }, today)
+  const term = termInfo({ end: r.ends_at ? berlinDay(r.ends_at) : null, renew_months: r.renew_months, notice_months: r.notice_months, noticeGiven: !!r.notice_at }, today)
   const begun = berlinDay(r.starts_at) <= today ? t("rentals.term.since", { date: long_(berlinDay(r.starts_at)) }) : t("rentals.term.from", { date: long_(berlinDay(r.starts_at)) })
   const termText = [
     begun,
@@ -204,20 +205,24 @@ export default async function RentalPage({ params, searchParams }: PageProps<"/r
           <input type="hidden" name="id" value={id} />
           <fieldset disabled={!editable} className="grid gap-6">
             <FormCard id="terms" title={t("rentals.whenTitle")} description={long ? termText : undefined}>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="grid content-start gap-2">
-                  <Label htmlFor="e-start">{t("rentals.starts")}</Label>
-                  <DateInput id="e-start" name="starts_at" type={long ? "date" : "datetime-local"} required defaultValue={dateValue(r.starts_at)} />
+              {long ? (
+                <TermFields start={dateValue(r.starts_at)} end={r.ends_at ? dateValue(r.ends_at) : null} renew={r.renew_months} notice={r.notice_months} disabled={!editable} />
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid content-start gap-2">
+                    <Label htmlFor="e-start">{t("rentals.starts")}</Label>
+                    <DateInput id="e-start" name="starts_at" type="datetime-local" required defaultValue={dateValue(r.starts_at)} />
+                  </div>
+                  <div className="grid content-start gap-2">
+                    <Label htmlFor="e-end">{t("rentals.ends")}</Label>
+                    <DateInput id="e-end" name="ends_at" type="datetime-local" defaultValue={dateValue(r.ends_at)} />
+                  </div>
                 </div>
-                <div className="grid content-start gap-2">
-                  <Label htmlFor="e-end">{t("rentals.ends")}</Label>
-                  <DateInput id="e-end" name="ends_at" type={long ? "date" : "datetime-local"} defaultValue={dateValue(r.ends_at)} />
-                  {long && <p className="text-xs text-muted-foreground">{t("rentals.endOptional")}</p>}
-                </div>
-              </div>
+              )}
               <div className="grid gap-2">
                 <Label htmlFor="e-status">{t("rentals.requestStatus")}</Label>
                 <Choice id="e-status" name="status" label={t("rentals.requestStatus")} required disabled={!editable} defaultValue={r.status} options={(["confirmed", "request", "cancelled"] as const).map((x) => ({ value: x, label: t(`rentals.statusOptionsAll.${x}`) }))} />
+                <p className="text-xs text-muted-foreground">{t("rentals.statusHint")}</p>
               </div>
             </FormCard>
             <FormCard id="price" title={t("rentals.priceTitle")} description={r.rental_rates?.name ? `${t("rentals.rate")}: ${r.rental_rates.name}` : undefined}>
@@ -241,18 +246,6 @@ export default async function RentalPage({ params, searchParams }: PageProps<"/r
                   <Label htmlFor="e-dep">{t("rentals.deposit")}</Label>
                   <TypedInput kind="money" id="e-dep" name="deposit" defaultValue={r.deposit_cents != null ? formatMoney(r.deposit_cents) : ""} />
                 </div>
-                {long && (
-                  <>
-                    <div className="grid content-start gap-2">
-                      <Label htmlFor="e-notice">{t("rentals.notice")}</Label>
-                      <TypedInput kind="number" id="e-notice" name="notice_months" min={0} max={60} defaultValue={r.notice_months ?? ""} />
-                    </div>
-                    <div className="grid content-start gap-2">
-                      <Label htmlFor="e-renew">{t("rentals.renew")}</Label>
-                      <TypedInput kind="number" id="e-renew" name="renew_months" min={1} max={600} defaultValue={r.renew_months ?? ""} />
-                    </div>
-                  </>
-                )}
               </div>
               {r.deposit_back_at && <Badge variant="outline">{t("rentals.depositBack")}</Badge>}
             </FormCard>
