@@ -21,7 +21,9 @@ export async function TicketShop({ site, slug, eventId, max, code, waitlist, cod
   const t = await getT()
   const now = new Date().getTime()
   const free = types.every((ty) => ty.final_price === 0)
-  const soldOut = !claim && types.filter((ty) => !ty.hidden).every((ty) => ty.remaining === 0)
+  // Sold out = every type on offer here is gone (with a code limited to some types, only those count).
+  const offered = types.filter((ty) => !ty.hidden || ty.code_applies)
+  const soldOut = !claim && offered.length > 0 && offered.every((ty) => ty.remaining === 0)
   let anyOnSale = false
   // One ticket preselected: the type a code link unlocks/discounts, else the first one on sale.
   const buyable = types.filter((ty) => ty.remaining !== 0 && !(ty.sales_start && new Date(ty.sales_start).getTime() > now) && !(ty.sales_end && new Date(ty.sales_end).getTime() < now))
