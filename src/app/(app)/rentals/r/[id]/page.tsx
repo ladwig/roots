@@ -22,7 +22,7 @@ import { loadFields, type CustomValues } from "@/lib/custom-fields"
 import { formatMoney } from "@/lib/inputs"
 import { toLocalInput } from "@/lib/time"
 import { param } from "@/lib/url"
-import { longTerm, noticeEnd, rentalState, UNITS, wordFor, type Family } from "@/rentals/fields"
+import { longTerm, noticeEnd, rentalState, termInfo, UNITS, wordFor, type Family } from "@/rentals/fields"
 import { RENTAL_COLS } from "@/rentals/server"
 import { contactName } from "../../../contacts/fields"
 import { addPersonAction, giveNoticeAction, removePersonAction, returnAction, trashRentalAction, updateRentalAction } from "../../actions"
@@ -57,6 +57,22 @@ export default async function RentalPage({ params, searchParams }: PageProps<"/r
   const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
   const here = `/rentals/r/${id}`
   const people = [...(r.rental_contacts ?? [])].sort((a, b) => (a.role === b.role ? 0 : a.role === "main" ? -1 : 1))
+  // The contract term in words (long-term): renewing (current term + notice deadline), fixed, or open-ended.
+  const berlinDay = (v: string) => new Date(v).toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
+  const long_ = (d: string) => t.date(`${d}T12:00:00Z`, { dateStyle: "medium" })
+  const months = (n: number) => (n % 12 === 0 ? t("letters.years", { count: n / 12 }) : t("rentals.noticeMonthsText", { count: n }))
+  const term = termInfo({ start: berlinDay(r.starts_at), end: r.ends_at ? berlinDay(r.ends_at) : null, renew_months: r.renew_months, notice_months: r.notice_months }, today)
+  const begun = berlinDay(r.starts_at) <= today ? t("rentals.term.since", { date: long_(berlinDay(r.starts_at)) }) : t("rentals.term.from", { date: long_(berlinDay(r.starts_at)) })
+  const termText = [
+    begun,
+    term.kind === "fixed"
+      ? t("rentals.term.fixed", { date: long_(term.end) })
+      : term.kind === "renew"
+        ? t("rentals.term.renew", { end: long_(term.termEnd), renew: months(r.renew_months!) }) + (r.notice_months != null ? ` · ${t("rentals.term.deadline", { date: long_(term.deadline) })}` : "")
+        : term.earliest
+          ? t("rentals.term.openNotice", { date: long_(term.earliest) })
+          : t("rentals.term.open"),
+  ].join(" · ")
   const dateValue = (v: string | null) => (v ? (long ? new Date(v).toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" }) : toLocalInput(v)) : "")
 
   return (
@@ -187,7 +203,7 @@ export default async function RentalPage({ params, searchParams }: PageProps<"/r
         <form action={updateRentalAction} className="grid gap-6">
           <input type="hidden" name="id" value={id} />
           <fieldset disabled={!editable} className="grid gap-6">
-            <FormCard id="terms" title={t("rentals.whenTitle")} description={long ? t("rentals.endsHint") : undefined}>
+            <FormCard id="terms" title={t("rentals.whenTitle")} description={long ? termText : undefined}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid content-start gap-2">
                   <Label htmlFor="e-start">{t("rentals.starts")}</Label>
@@ -196,6 +212,7 @@ export default async function RentalPage({ params, searchParams }: PageProps<"/r
                 <div className="grid content-start gap-2">
                   <Label htmlFor="e-end">{t("rentals.ends")}</Label>
                   <DateInput id="e-end" name="ends_at" type={long ? "date" : "datetime-local"} defaultValue={dateValue(r.ends_at)} />
+                  {long && <p className="text-xs text-muted-foreground">{t("rentals.endOptional")}</p>}
                 </div>
               </div>
               <div className="grid gap-2">

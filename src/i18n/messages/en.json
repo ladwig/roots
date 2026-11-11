@@ -5173,7 +5173,6 @@
     "starts": "Start",
     "ends": "End",
     "endsOpen": "open",
-    "endsHint": "Empty = open-ended.",
     "renew": "Renews automatically by (months)",
     "notice": "Notice period (months)",
     "requestStatus": "Status",
@@ -5273,7 +5272,17 @@
     "rentCol": "Rent",
     "depositShort": "Deposit {amount}",
     "rentedOf": "{count} of {total} rented",
-    "monthlyRent": "{amount} rent per month"
+    "monthlyRent": "{amount} rent per month",
+    "endOptional": "Only for fixed-term contracts – otherwise it keeps running or renews.",
+    "term": {
+      "since": "Running since {date}",
+      "from": "Starts on {date}",
+      "fixed": "fixed term until {date}",
+      "renew": "current term until {end}, then renews by {renew}",
+      "deadline": "notice by {date} at the latest",
+      "openNotice": "open-ended, earliest end with notice: {date}",
+      "open": "open-ended"
+    }
   },
   "oauth": {
     "title": "Connect {app} to roots",

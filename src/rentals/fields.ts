@@ -148,3 +148,27 @@ export function noticeEnd(r: { ends_at: string | null; notice_months: number | n
   const end = r.ends_at?.slice(0, 10)
   return end && end > last ? end : last
 }
+
+const addMonths = (day: string, n: number) => {
+  const [y, m, d] = day.split("-").map(Number)
+  const last = new Date(Date.UTC(y, m - 1 + n + 1, 0)).getUTCDate() // keep the day, or the month's last
+  return new Date(Date.UTC(y, m - 1 + n, Math.min(d, last))).toISOString().slice(0, 10)
+}
+const addDays = (day: string, n: number) => new Date(Date.parse(`${day}T00:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10)
+
+/**
+ * Where a long-term contract stands today (dates YYYY-MM-DD, Berlin): a fixed end; or renewing by `renew_months` from
+ * the start — the current term's last day and the last day to give notice for it (notice months before its end; once
+ * that has passed, the next term counts); or open-ended — the earliest end when giving notice today.
+ */
+export function termInfo(r: { start: string; end: string | null; renew_months: number | null; notice_months: number | null }, today: string) {
+  if (r.end) return { kind: "fixed" as const, end: r.end }
+  if (r.renew_months) {
+    for (let k = 1; k <= 600; k++) {
+      const termEnd = addDays(addMonths(r.start, k * r.renew_months), -1)
+      const deadline = addDays(addMonths(addDays(termEnd, 1), -(r.notice_months ?? 0)), -1)
+      if (deadline >= today) return { kind: "renew" as const, termEnd, deadline }
+    }
+  }
+  return { kind: "open" as const, earliest: r.notice_months != null ? noticeEnd({ ends_at: null, notice_months: r.notice_months }, today) : null }
+}

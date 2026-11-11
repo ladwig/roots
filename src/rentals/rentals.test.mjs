@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { familyOf, noticeEnd, readObject, readRate, readRental, rentalState, wordFor } from "./fields.ts"
+import { familyOf, noticeEnd, readObject, readRate, readRental, rentalState, termInfo, wordFor } from "./fields.ts"
 
 const form = (o) => (k) => o[k] ?? ""
 
@@ -32,4 +32,12 @@ test("rentals: kinds, wording, parsing, state, notice", () => {
 
   assert.equal(noticeEnd({ ends_at: null, notice_months: 3 }, "2026-06-15"), "2026-09-30")
   assert.equal(noticeEnd({ ends_at: "2027-02-28T23:00:00Z", notice_months: 3 }, "2026-06-15"), "2027-02-28") // fixed term ends later
+})
+
+test("contract term: renewing yearly with 3 months notice, fixed end, open-ended", () => {
+  const r = { start: "2026-09-01", end: null, renew_months: 12, notice_months: 3 }
+  assert.deepEqual(termInfo(r, "2026-11-11"), { kind: "renew", termEnd: "2027-08-31", deadline: "2027-05-31" })
+  assert.deepEqual(termInfo(r, "2027-06-01"), { kind: "renew", termEnd: "2028-08-31", deadline: "2028-05-31" }) // deadline passed → next term
+  assert.deepEqual(termInfo({ ...r, end: "2027-03-31" }, "2026-11-11"), { kind: "fixed", end: "2027-03-31" })
+  assert.deepEqual(termInfo({ ...r, renew_months: null }, "2026-11-11"), { kind: "open", earliest: "2027-02-28" })
 })

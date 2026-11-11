@@ -5173,7 +5173,6 @@
     "starts": "Beginn",
     "ends": "Ende",
     "endsOpen": "offen",
-    "endsHint": "Leer = unbefristet.",
     "renew": "Verlängert sich automatisch um (Monate)",
     "notice": "Kündigungsfrist (Monate)",
     "requestStatus": "Status",
@@ -5240,11 +5239,11 @@
     "rateHint": "Leere Felder werden aus dem Tarif übernommen.",
     "fromRate": "aus dem Tarif",
     "statusOptions": {
-      "confirmed": "Fest",
+      "confirmed": "Bestätigt",
       "request": "Anfrage (blockiert nicht)"
     },
     "statusOptionsAll": {
-      "confirmed": "Fest",
+      "confirmed": "Bestätigt",
       "request": "Anfrage",
       "cancelled": "Storniert"
     },
@@ -5273,7 +5272,17 @@
     "rentCol": "Miete",
     "depositShort": "Kaution {amount}",
     "rentedOf": "{count} von {total} vermietet",
-    "monthlyRent": "{amount} Miete pro Monat"
+    "monthlyRent": "{amount} Miete pro Monat",
+    "endOptional": "Nur bei befristeten Verträgen – sonst läuft er weiter bzw. verlängert sich.",
+    "term": {
+      "since": "Läuft seit {date}",
+      "from": "Beginnt am {date}",
+      "fixed": "befristet bis {date}",
+      "renew": "aktuelle Laufzeit bis {end}, verlängert sich dann um {renew}",
+      "deadline": "Kündigung spätestens bis {date}",
+      "openNotice": "unbefristet, kündbar frühestens zum {date}",
+      "open": "unbefristet"
+    }
   },
   "oauth": {
     "title": "{app} mit roots verbinden",

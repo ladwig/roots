@@ -65,7 +65,7 @@ export default async function NewRentalPage({ searchParams }: { searchParams: Pr
         <FormCard id="who" title={t("rentals.people")} description={t("rentals.peopleHintNew")}>
           <ContactPicker name="contact_id" label={t("rentals.roles.main")} />
         </FormCard>
-        <FormCard id="when" title={t("rentals.whenTitle")} description={long ? t("rentals.endsHint") : undefined}>
+        <FormCard id="when" title={t("rentals.whenTitle")}>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid content-start gap-2">
               <Label htmlFor="n-start">{t("rentals.starts")}</Label>
@@ -78,6 +78,7 @@ export default async function NewRentalPage({ searchParams }: { searchParams: Pr
             <div className="grid content-start gap-2">
               <Label htmlFor="n-end">{t("rentals.ends")}</Label>
               {long ? <TypedInput kind="date" id="n-end" name="ends_at" defaultValue={end?.slice(0, 10) ?? ""} /> : <DateInput id="n-end" name="ends_at" type="datetime-local" defaultValue={end ? toLocalInput(end) : ""} />}
+              {long && <p className="text-xs text-muted-foreground">{t("rentals.endOptional")}</p>}
             </div>
           </div>
           <div className="grid gap-2">
