@@ -5293,7 +5293,9 @@
     "renewBy": "jeweils um",
     "noticeOpenHint": "Monate Kündigungsfrist",
     "noticeRenewHint": "Monate vor Ende der Laufzeit kündigen",
-    "statusHint": "Eine Anfrage hält das Objekt noch nicht frei – erst „Bestätigt“ ist es vergeben."
+    "statusHint": "Eine Anfrage hält das Objekt noch nicht frei – erst „Bestätigt“ ist es vergeben.",
+    "contractSheetHint": "Mit den Daten dieses Mietverhältnisses – ablegen speichert das PDF hier und beim Kontakt, senden schickt es per E-Mail.",
+    "createdContract": "Angelegt – jetzt den Vertrag erstellen."
   },
   "oauth": {
     "title": "{app} mit roots verbinden",

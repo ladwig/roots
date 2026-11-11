@@ -28,6 +28,10 @@ import { contactName } from "../../../contacts/fields"
 import { addPersonAction, giveNoticeAction, removePersonAction, returnAction, trashRentalAction, updateRentalAction } from "../../actions"
 import { kindLabel, period, StateBadge } from "../../parts"
 import { TermFields } from "../../term-fields"
+import { UrlSheet } from "@/components/url-sheet"
+import { readFields } from "@/letters/model"
+import { contactVars, letterhead, loadTemplate } from "@/letters/server"
+import { Composer } from "../../../files/templates/[id]/composer"
 import { ContractMenu } from "./contract-menu"
 import { DateInput } from "@/components/date-input"
 
@@ -50,6 +54,13 @@ export default async function RentalPage({ params, searchParams }: PageProps<"/r
       : Promise.resolve({ data: [] as { id: string; name: string; org_id: string | null }[] }),
   ])
   if (!r || !r.rental_objects) notFound()
+  // ?contract=<template>: write the contract right here (drawer with live preview), for the main tenant + this rental.
+  const contractId = param(sp, "contract")
+  const mainId = (r.rental_contacts ?? []).find((p) => p.role === "main")?.contact_id ?? null
+  const composer =
+    contractId && mainId && ctx.can("org.files.view") && (contracts ?? []).some((c) => c.id === contractId)
+      ? await Promise.all([loadTemplate(ctx, contractId), letterhead(ctx), contactVars(ctx, t, mainId, id)]).then(([template, head, filled]) => (template ? { template, head, filled, contactId: mainId } : null))
+      : null
   const o = r.rental_objects
   const word = wordFor(o.family as Family, r.unit)
   const state = rentalState(r)
@@ -91,7 +102,7 @@ export default async function RentalPage({ params, searchParams }: PageProps<"/r
                 chooseHref={`/files/templates?contact=${people.find((p) => p.role === "main")!.contact_id}&rental=${id}`}
                 items={[...(contracts ?? [])]
                   .sort((a, b) => Number(a.org_id === null) - Number(b.org_id === null))
-                  .map((c) => ({ href: `/files/templates/${c.id}?contact=${people.find((p) => p.role === "main")!.contact_id}&rental=${id}`, label: c.name }))}
+                  .map((c) => ({ href: `${here}?contract=${c.id}`, label: c.name }))}
               />
             )}
             {editable && state === "running" && !long && (
@@ -260,6 +271,24 @@ export default async function RentalPage({ params, searchParams }: PageProps<"/r
           {kindLabel(t, o.kind)} · {o.name}
         </p>
       </RecordLayout>
+      {composer && (
+        <UrlSheet params={["contract"]} wide title={composer.template.name} description={t("rentals.contractSheetHint")}>
+          <Composer
+            template={{ id: composer.template.id, name: composer.template.name, title: composer.template.title, body: composer.template.body, letterhead: composer.template.letterhead }}
+            fields={readFields(composer.template.fields)}
+            seller={composer.head.seller}
+            logoUrl={composer.head.logoUrl}
+            orgName={composer.head.seller.legal_name ?? ctx.org.name}
+            initialContact={null}
+            initialFilled={composer.filled}
+            canManage={ctx.can("org.files.manage")}
+            canPickContact={false}
+            fixedContact={composer.contactId}
+            rentalId={id}
+            doneHref={here}
+          />
+        </UrlSheet>
+      )}
     </Page>
   )
 }

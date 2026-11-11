@@ -5293,7 +5293,9 @@
     "renewBy": "by",
     "noticeOpenHint": "months notice",
     "noticeRenewHint": "months notice before the term ends",
-    "statusHint": "A request doesn't hold the object yet – only “Confirmed” books it."
+    "statusHint": "A request doesn't hold the object yet – only “Confirmed” books it.",
+    "contractSheetHint": "Filled from this rental – saving stores the PDF here and on the contact, sending mails it.",
+    "createdContract": "Created – now write the contract."
   },
   "oauth": {
     "title": "Connect {app} to roots",

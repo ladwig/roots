@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState, useTransition } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { DownloadIcon, FolderInputIcon, Loader2Icon, SendIcon } from "lucide-react"
 import { toast } from "sonner"
 import { ContactPicker } from "@/components/contact-picker"
@@ -33,6 +34,8 @@ export function Composer({
   canManage,
   canPickContact,
   rentalId,
+  fixedContact,
+  doneHref,
 }: {
   template: { id: string; name: string; title: string; body: string; letterhead: boolean }
   fields: LetterField[]
@@ -44,8 +47,11 @@ export function Composer({
   canManage: boolean
   canPickContact: boolean
   rentalId?: string | null // a rental's contract: values from that rental, the PDF also goes onto it
+  fixedContact?: string | null // the recipient is given (no picker), e.g. the rental's main tenant
+  doneHref?: string // after saving/sending go here (e.g. close the drawer on the rental)
 }) {
   const t = useT()
+  const router = useRouter()
   const form = useRef<HTMLFormElement>(null)
   const [filled, setFilled] = useState<Filled | null>(initialFilled)
   const [values, setValues] = useState<Record<string, string>>({})
@@ -79,10 +85,12 @@ export function Composer({
       const res = await (kind === "save" ? saveLetter : sendLetter)(fd)
       setBusy(null)
       if (res.error) toast.error(res.error)
-      else
+      else {
         toast.success(res.ok, {
           action: "fileId" in res && res.fileId ? { label: t("files.open"), onClick: () => window.open(`/files/${res.fileId}`, "_blank") } : undefined,
         })
+        if (doneHref) router.push(doneHref)
+      }
     })
   }
 
@@ -91,6 +99,7 @@ export function Composer({
       <form ref={form} action={`/files/templates/${template.id}/pdf`} method="post" className="grid gap-4">
         <input type="hidden" name="template" value={template.id} />
         {rentalId && <input type="hidden" name="rental" value={rentalId} />}
+        {fixedContact && <input type="hidden" name="contact" value={fixedContact} />}
         {canPickContact && (
           <div className="grid gap-1.5">
             <ContactPicker name="contact" label={t("letters.recipient")} placeholder={t("letters.recipientPlaceholder")} initial={initialContact} onChange={pickContact} />

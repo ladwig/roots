@@ -120,7 +120,12 @@ export async function createRentalAction(fd: FormData) {
   const x = await rentals.createRental(ctx.supabase, ctx.org.id, { object_id: object, rate_id: rateId || null, parent_id: idOf(fd, "parent_id") || null, row: r.row, people, custom: c.custom })
   if ("error" in x) back(here, { error: message(t, x) })
   deliverSoon()
-  back(`${PATH}/r/${x.id}`, { ok: t("rentals.created") })
+  // Long-term with a tenant: go straight on to the contract (own template first, else roots' default).
+  const { data: tpl } =
+    r.row.unit === "month" || r.row.unit === "year"
+      ? await ctx.supabase.from("letter_templates").select("id, org_id").or(`org_id.is.null,org_id.eq.${ctx.org.id}`).is("deleted_at", null).ilike("body", "%{rental\\_%").order("org_id", { nullsFirst: false }).limit(1).maybeSingle()
+      : { data: null }
+  back(tpl && people.length && ctx.can("org.files.view") ? `${PATH}/r/${x.id}?contract=${tpl.id}` : `${PATH}/r/${x.id}`, { ok: t(tpl && people.length ? "rentals.createdContract" : "rentals.created") })
 }
 
 export async function updateRentalAction(fd: FormData) {
