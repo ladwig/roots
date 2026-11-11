@@ -1,6 +1,5 @@
-import Link from "next/link"
 import type { T } from "@/i18n/translate"
-import { TimelineBar } from "./timeline-bar"
+import { TimelineBar, TimelineDrop, UndatedChip } from "./timeline-bar"
 
 export type TimelineItem = { id: string; title: string; start: string | null; end: string | null; color: string; href: string; done?: boolean; group?: string; detail?: string }
 
@@ -39,9 +38,9 @@ export function Timeline({ t, items, today, empty, onMove }: { t: T; items: Time
 
   return (
     <div className="grid gap-4">
-      {dated.length > 0 && (
+      {(dated.length > 0 || (onMove && undated.length > 0)) && (
         <div className="overflow-x-auto rounded-lg border">
-          <div className="relative" style={{ width }}>
+          <TimelineDrop first={first} days={days} onMove={onMove} style={{ width, minHeight: dated.length ? undefined : "7rem" }}>
             {/* week lines + today */}
             <div className="pointer-events-none absolute inset-0" aria-hidden>
               {mondays.map((d) => (
@@ -88,19 +87,17 @@ export function Timeline({ t, items, today, empty, onMove }: { t: T; items: Time
                   ))}
               </div>
             ))}
-          </div>
+          </TimelineDrop>
         </div>
       )}
       {undated.length > 0 && (
         <div className="grid gap-2">
           <h3 className="text-sm font-medium text-muted-foreground">{t("timeline.undated")}</h3>
+          {onMove && <p className="text-xs text-muted-foreground">{t("timeline.dragHint")}</p>}
           <ul className="flex flex-wrap gap-2">
             {undated.map((i) => (
               <li key={i.id}>
-                <Link href={i.href} scroll={false} className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-sm hover:bg-muted">
-                  <span className="size-2 rounded-full" style={{ background: i.color }} aria-hidden />
-                  {i.title}
-                </Link>
+                <UndatedChip id={i.id} href={i.href} title={i.title} color={i.color} draggable={!!onMove} />
               </li>
             ))}
           </ul>

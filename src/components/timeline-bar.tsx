@@ -114,3 +114,62 @@ export function TimelineBar({
     </Link>
   )
 }
+
+const DRAG_TYPE = "application/x-roots-item"
+
+/** An item without dates; with `draggable` it can be dropped onto the timeline (`<TimelineDrop>`). */
+export function UndatedChip({ id, href, title, color, draggable }: { id: string; href: string; title: string; color: string; draggable: boolean }) {
+  return (
+    <Link
+      href={href}
+      scroll={false}
+      draggable={draggable}
+      onDragStart={(e) => {
+        e.dataTransfer.setData(DRAG_TYPE, id)
+        e.dataTransfer.effectAllowed = "move"
+      }}
+      className={cn("inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-sm hover:bg-muted", draggable && "cursor-grab active:cursor-grabbing")}
+    >
+      <span className="size-2 rounded-full" style={{ background: color }} aria-hidden />
+      {title}
+    </Link>
+  )
+}
+
+/** The timeline's chart: undated items dropped on it get the day under the pointer as their end (due) date. */
+export function TimelineDrop({ first, days, onMove, style, children }: { first: number; days: number; onMove?: (id: string, start: string | null, end: string | null) => Promise<{ error?: string }>; style: React.CSSProperties; children: React.ReactNode }) {
+  const router = useRouter()
+  const [over, setOver] = useState<number | null>(null) // day index under the pointer while dragging
+  const [pending, start] = useTransition()
+  const dayAt = (e: React.DragEvent) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    return Math.max(0, Math.min(days - 1, Math.floor(((e.clientX - r.left) / r.width) * days)))
+  }
+  return (
+    <div
+      className={cn("relative", pending && "opacity-70")}
+      style={style}
+      onDragOver={(e) => {
+        if (!onMove || !e.dataTransfer.types.includes(DRAG_TYPE)) return
+        e.preventDefault()
+        setOver(dayAt(e))
+      }}
+      onDragLeave={() => setOver(null)}
+      onDrop={(e) => {
+        const id = e.dataTransfer.getData(DRAG_TYPE)
+        setOver(null)
+        if (!onMove || !id) return
+        e.preventDefault()
+        const day = iso(first + dayAt(e) * DAY)
+        start(async () => {
+          const r = await onMove(id, null, day)
+          if (r.error) toast.error(r.error)
+          else router.refresh()
+        })
+      }}
+    >
+      {children}
+      {over !== null && <span className="pointer-events-none absolute inset-y-0 bg-primary/15" style={{ left: `${(over / days) * 100}%`, width: `${100 / days}%` }} aria-hidden />}
+    </div>
+  )
+}
