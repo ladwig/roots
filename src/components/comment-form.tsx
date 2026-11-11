@@ -13,6 +13,8 @@ type Recognition = { lang: string; continuous: boolean; interimResults: boolean;
 type RecognitionCtor = new () => Recognition
 const speech = () => (typeof window === "undefined" ? null : ((window as unknown as { SpeechRecognition?: RecognitionCtor; webkitSpeechRecognition?: RecognitionCtor }).SpeechRecognition ?? (window as unknown as { webkitSpeechRecognition?: RecognitionCtor }).webkitSpeechRecognition ?? null))
 const noop = () => () => {}
+// An attachment in the box: images preview (a local blob right after upload, else the stored file).
+type Attached = { id: string; name: string; image: boolean; src?: string }
 const joined = (a: string, b: string) => (a && !/\s$/.test(a) ? `${a} ` : a) + b.trim()
 
 /**
@@ -20,10 +22,10 @@ const joined = (a: string, b: string) => (a && !/\s$/.test(a) ? `${a} ` : a) + b
  * attachments. Attachments upload at once into the record's files (`files` = where: the project), the comment keeps
  * their ids. Posts to `action` like a normal form.
  */
-export function CommentForm({ action, entity, entityId, back, files, edit }: { action: (fd: FormData) => Promise<void>; entity: string; entityId: string; back: string; files?: { orgId: string; entity: string; entityId: string }; edit?: { id: string; body: string; files: { id: string; name: string }[] } }) {
+export function CommentForm({ action, entity, entityId, back, files, edit }: { action: (fd: FormData) => Promise<void>; entity: string; entityId: string; back: string; files?: { orgId: string; entity: string; entityId: string }; edit?: { id: string; body: string; files: Attached[] } }) {
   const t = useT()
   const [text, setText] = useState(edit?.body ?? "")
-  const [attached, setAttached] = useState<{ id: string; name: string }[]>(edit?.files ?? [])
+  const [attached, setAttached] = useState<Attached[]>(edit?.files ?? [])
   const [listening, setListening] = useState(false)
   const [interim, setInterim] = useState("") // what is being said right now (not final yet), shown live
   const [uploading, startUpload] = useTransition()
@@ -64,7 +66,8 @@ export function CommentForm({ action, entity, entityId, back, files, edit }: { a
     if (!picked.length || !files) return
     startUpload(async () => {
       const done = await uploadFiles(files.orgId, picked, { entity: files.entity, entityId: files.entityId }, t)
-      setAttached((a) => [...a, ...done.map((f) => ({ id: f.id!, name: f.name }))].slice(0, 20))
+      const local = new Map(picked.map((f) => [f.name, f]))
+      setAttached((a) => [...a, ...done.map((f) => ({ id: f.id!, name: f.name, image: f.mime.startsWith("image/"), src: local.has(f.name) && f.mime.startsWith("image/") ? URL.createObjectURL(local.get(f.name)!) : undefined }))].slice(0, 20))
       for (const el of [picker.current, camera.current]) if (el) el.value = ""
     })
   }
@@ -91,15 +94,25 @@ export function CommentForm({ action, entity, entityId, back, files, edit }: { a
       <input type="hidden" name="file_ids" value={attached.map((a) => a.id).join(",")} />
       <Textarea name="body" value={interim ? joined(text, interim) : text} onChange={(e) => (setText(e.target.value), setInterim(""))} maxLength={10000} rows={3} autoFocus={!!edit} placeholder={t(listening ? "activity.listening" : "activity.placeholder")} aria-label={t("activity.placeholder")} />
       {attached.length > 0 && (
-        <ul className="flex flex-wrap gap-1">
-          {attached.map((a) => (
-            <li key={a.id} className="flex max-w-full items-center gap-1 rounded-md bg-muted py-0.5 pr-0.5 pl-2 text-xs">
-              <span className="truncate">{a.name}</span>
-              <Button type="button" variant="ghost" size="icon-xs" aria-label={t("activity.detach", { name: a.name })} onClick={() => setAttached((x) => x.filter((y) => y.id !== a.id))}>
-                <XIcon />
-              </Button>
-            </li>
-          ))}
+        <ul className="flex min-w-0 flex-wrap items-end gap-2">
+          {attached.map((a) =>
+            a.image ? (
+              <li key={a.id} className="relative size-16 shrink-0 overflow-hidden rounded-md border bg-muted">
+                {/* eslint-disable-next-line @next/next/no-img-element -- local preview / private file */}
+                <img src={a.src ?? `/files/${a.id}`} alt={a.name} className="size-full object-cover" />
+                <Button type="button" variant="secondary" size="icon-xs" aria-label={t("activity.detach", { name: a.name })} onClick={() => setAttached((x) => x.filter((y) => y.id !== a.id))} className="absolute top-0.5 right-0.5">
+                  <XIcon />
+                </Button>
+              </li>
+            ) : (
+              <li key={a.id} className="flex max-w-full min-w-0 items-center gap-1 rounded-md bg-muted py-0.5 pr-0.5 pl-2 text-xs">
+                <span className="min-w-0 truncate">{a.name}</span>
+                <Button type="button" variant="ghost" size="icon-xs" aria-label={t("activity.detach", { name: a.name })} onClick={() => setAttached((x) => x.filter((y) => y.id !== a.id))}>
+                  <XIcon />
+                </Button>
+              </li>
+            ),
+          )}
         </ul>
       )}
       <div className="flex flex-wrap items-center gap-2">

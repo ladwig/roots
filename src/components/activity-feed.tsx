@@ -232,7 +232,7 @@ function CommentView({ t, c, mine, back, actions, fileOf, upload }: { t: T; c: C
               </TooltipTrigger>
               <TooltipContent>{t("activity.edit")}</TooltipContent>
             </Tooltip>
-            <CommentForm action={actions.edit} entity={c.entity} entityId={c.entity_id} back={back} files={upload} edit={{ id: c.id, body: c.body, files: attached.map((f) => ({ id: f.id, name: f.name })) }} />
+            <CommentForm action={actions.edit} entity={c.entity} entityId={c.entity_id} back={back} files={upload} edit={{ id: c.id, body: c.body, files: attached.map((f) => ({ id: f.id, name: f.name, image: f.mime.startsWith("image/") })) }} />
           </details>
           <form action={actions.remove} className="absolute top-1 right-1">
             <input type="hidden" name="id" value={c.id} />
