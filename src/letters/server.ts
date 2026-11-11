@@ -14,6 +14,15 @@ export type LetterTemplate = { id: string; org_id: string | null; name: string; 
 
 const berlin = (ts: string) => new Date(ts).toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
 export const longDate = (t: T, iso: string) => t.date(`${iso}T12:00:00Z`, { dateStyle: "long" })
+const span = (t: T, months: number) => (months % 12 === 0 ? t("letters.years", { count: months / 12 }) : t("rentals.noticeMonthsText", { count: months }))
+
+/** The rental's term as a sentence for contracts: renews by …, fixed until …, or open-ended (+ notice). */
+function durationText(t: T, r: { ends_at: string | null; renew_months: number | null; notice_months: number | null }) {
+  const notice = r.notice_months != null ? span(t, r.notice_months) : null
+  if (r.renew_months) return t(notice ? "letters.duration.renew" : "letters.duration.renewNoNotice", { renew: span(t, r.renew_months), notice: notice ?? "" })
+  if (r.ends_at) return t("letters.duration.fixed", { end: longDate(t, berlin(r.ends_at)) })
+  return t(notice ? "letters.duration.open" : "letters.duration.openNoNotice", { notice: notice ?? "" })
+}
 
 /** Seller (invoice settings) + logo for the letterhead; falls back to the org's name. */
 export async function letterhead(ctx: Ctx) {
@@ -29,7 +38,7 @@ export async function contactVars(ctx: Ctx, t: T, contactId: string, rentalId?: 
   const { data: c } = await ctx.supabase
     .from("contacts")
     .select(
-      "first_name, last_name, company, email, street, postal_code, city, memberships(member_no, starts_on, ends_on, deleted_at, membership_types(name)), rental_contacts(rentals(id, starts_at, ends_at, status, price_cents, unit, deposit_cents, notice_months, deleted_at, rental_objects(name), rental_contacts(role, contacts(first_name, last_name, company))))",
+      "first_name, last_name, company, email, street, postal_code, city, memberships(member_no, starts_on, ends_on, deleted_at, membership_types(name)), rental_contacts(rentals(id, starts_at, ends_at, status, price_cents, unit, deposit_cents, notice_months, renew_months, deleted_at, rental_objects(name), rental_contacts(role, contacts(first_name, last_name, company))))",
     )
     .eq("id", contactId)
     .eq("org_id", ctx.org.id)
@@ -42,6 +51,9 @@ export async function contactVars(ctx: Ctx, t: T, contactId: string, rentalId?: 
     .filter((x): x is NonNullable<typeof x> => !!x && !x.deleted_at && x.status !== "cancelled")
     .sort((a, b) => b.starts_at.localeCompare(a.starts_at))
   const r = (rentalId ? live.find((x) => x.id === rentalId) : null) ?? live[0]
+  // Rent as amounts: the rental's price counts as net (commercial rentals); gross adds 19 % VAT, none for Kleinunternehmer.
+  const { data: tax } = r?.price_cents != null ? await ctx.supabase.from("org_billing").select("tax_mode").eq("org_id", ctx.org.id).maybeSingle() : { data: null }
+  const gross = r?.price_cents != null ? (tax?.tax_mode === "small_business" ? r.price_cents : Math.round(r.price_cents * 1.19)) : null
   const person = (p: { first_name: string | null; last_name: string | null; company: string | null } | null) => (p ? [p.first_name, p.last_name].filter(Boolean).join(" ") || p.company || "" : "")
   const name = [c.first_name, c.last_name].filter(Boolean).join(" ") || c.company || ""
   const place = [c.postal_code, c.city].filter(Boolean).join(" ")
@@ -63,6 +75,9 @@ export async function contactVars(ctx: Ctx, t: T, contactId: string, rentalId?: 
       rental_start: r ? longDate(t, berlin(r.starts_at)) : "",
       rental_end: r?.ends_at ? longDate(t, berlin(r.ends_at)) : "",
       rental_rent: r?.price_cents != null ? `${t.money(r.price_cents)}${r.unit ? ` ${t.dynamic(`rentals.units.${r.unit}`)}` : ""}` : "",
+      rental_duration: r ? durationText(t, r) : "",
+      rental_net: r?.price_cents != null ? t.money(r.price_cents) : "",
+      rental_gross: gross != null ? t.money(gross) : "",
       rental_deposit: r?.deposit_cents != null ? t.money(r.deposit_cents) : "",
       rental_notice: r?.notice_months != null ? t("rentals.noticeMonthsText", { count: r.notice_months }) : "",
       rental_people: (r?.rental_contacts ?? []).filter((p) => p.role === "main").map((p) => person(p.contacts)).filter(Boolean).join(", "),

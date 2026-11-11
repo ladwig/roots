@@ -3474,7 +3474,18 @@
     "folder": "Briefe",
     "defaultHint": "Standardvorlage von roots. Zum Ändern kopieren.",
     "placeholdersTitle": "Platzhalter",
-    "sentAndSaved": "Verschickt und beim Mietverhältnis und Kontakt abgelegt."
+    "sentAndSaved": "Verschickt und beim Mietverhältnis und Kontakt abgelegt.",
+    "years": {
+      "one": "ein Jahr",
+      "other": "{count} Jahre"
+    },
+    "duration": {
+      "renew": "Es verlängert sich um jeweils {renew}, wenn es nicht mit einer Frist von {notice} zum Ende der Laufzeit schriftlich gekündigt wird.",
+      "renewNoNotice": "Es verlängert sich um jeweils {renew}, wenn es nicht zum Ende der Laufzeit schriftlich gekündigt wird.",
+      "fixed": "Es ist befristet und endet am {end}.",
+      "open": "Es läuft auf unbestimmte Zeit und kann mit einer Frist von {notice} schriftlich gekündigt werden.",
+      "openNoNotice": "Es läuft auf unbestimmte Zeit."
+    }
   },
   "search": {
     "open": "Suchen",

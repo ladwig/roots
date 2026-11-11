@@ -3474,7 +3474,18 @@
     "folder": "Letters",
     "defaultHint": "Default template from roots. Copy it to change it.",
     "placeholdersTitle": "Placeholders",
-    "sentAndSaved": "Sent and saved on the rental and the contact."
+    "sentAndSaved": "Sent and saved on the rental and the contact.",
+    "years": {
+      "one": "one year",
+      "other": "{count} years"
+    },
+    "duration": {
+      "renew": "It renews by {renew} at a time unless terminated in writing with {notice} notice before the end of the term.",
+      "renewNoNotice": "It renews by {renew} at a time unless terminated in writing before the end of the term.",
+      "fixed": "It is fixed-term and ends on {end}.",
+      "open": "It runs for an indefinite period and can be terminated in writing with {notice} notice.",
+      "openNoNotice": "It runs for an indefinite period."
+    }
   },
   "search": {
     "open": "Search",
