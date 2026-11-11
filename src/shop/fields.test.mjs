@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { changeCart, deliveriesFor, paymentsFor, priceCart, readCart, readProduct, readShippingRates, shippingCents, slugify } from "./fields.ts"
+import { changeCart, deliveriesFor, paymentsFor, priceCart, readCart, readProduct, readShippingRates, readStockMove, shippingCents, slugify } from "./fields.ts"
 
 const A = "11111111-1111-4111-8111-111111111111"
 const V = "22222222-2222-4222-8222-222222222222"
@@ -133,4 +133,15 @@ test("refunds: pieces per line or another amount, never more than is left", asyn
   const odd = refundAdjustment([{ cents: 1000, rate: 19 }, { cents: 1000, rate: 7 }, { cents: 1000, rate: 0 }], 100)
   assert.equal(odd.reduce((s, x) => s + x.cents, 0), -100)
   assert.deepEqual(refundAdjustment([{ cents: 1000, rate: 19 }], 0), [])
+})
+
+test("Lager: receipt +, withdrawal −, count books the difference, sale needs a price", () => {
+  const g = (o) => (k) => o[k] ?? ""
+  assert.deepEqual(readStockMove(g({ kind: "receipt", quantity: "50" }), 0), { move: { quantity: 50, reason: "receipt", note: null } })
+  assert.deepEqual(readStockMove(g({ kind: "withdrawal", quantity: "3", note: " Promo " }), 10), { move: { quantity: -3, reason: "withdrawal", note: "Promo" } })
+  assert.deepEqual(readStockMove(g({ kind: "count", counted: "7" }), 10), { move: { quantity: -3, reason: "correction", note: null } })
+  assert.deepEqual(readStockMove(g({ kind: "count", counted: "10" }), 10), { error: "store.lager.noChange" })
+  assert.deepEqual(readStockMove(g({ kind: "loss", quantity: "0" }), 10), { error: "store.lager.quantityInvalid" })
+  assert.deepEqual(readStockMove(g({ kind: "sale", quantity: "2", price: "25,00" }), 10), { sale: { quantity: 2, unit: 2500, note: null } })
+  assert.ok("error" in readStockMove(g({ kind: "sale", quantity: "2" }), 10))
 })

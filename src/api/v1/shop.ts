@@ -1,7 +1,8 @@
 import { z } from "zod"
 import { deliverSoon } from "@/events/worker"
 import { imageUrl, removeImage } from "@/lib/images"
-import { DELIVERIES, MAIL_KINDS, ORDER_STATUSES, PAYMENTS, PRODUCT_KINDS, PRODUCT_STATUSES, readOptions, readProduct, readShippingRates, readVariant, TAX_RATES } from "@/shop/fields"
+import { DELIVERIES, MAIL_KINDS, ORDER_STATUSES, PAYMENTS, PRODUCT_KINDS, PRODUCT_STATUSES, readOptions, readProduct, readShippingRates, readStockMove, readVariant, STOCK_KINDS, TAX_RATES } from "@/shop/fields"
+import { bookStock, stockHistory, stockItem, stockList } from "@/shop/stock"
 import { applyOptions, cancelOrder, ensureInvoice, mail, markOrderPaid, refundShopOrder, setOrderStatus } from "@/shop/server"
 import { deleteTrack, finishTrackUpload, productTrackList, startTrackUpload, updateTrack } from "@/shop/audio"
 import { ApiError, dbError, endpoint, list, notFound, page, paged, uuid, type Endpoint } from "../core"
@@ -137,6 +138,9 @@ const stepError = (e: unknown) => {
   if (/^[a-z]+\.[a-zA-Z]+$/.test(key)) return new ApiError(409, key.split(".")[1].replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`), key)
   return e
 }
+
+const StockRow = z.object({ item_id: uuid, product_id: uuid, variant_id: uuid.nullable(), name: z.string(), stock: z.number().int().nullable(), sold: z.number().int(), reserved: z.number().int(), on_hand: z.number().int().nullable(), available: z.number().int().nullable(), last_move: ts.nullable() })
+const stockOut = (i: Awaited<ReturnType<typeof stockList>>[number]) => ({ item_id: i.item_id!, product_id: i.product_id!, variant_id: i.variant_id, name: i.name!, stock: i.stock, sold: i.sold!, reserved: i.reserved!, on_hand: i.on_hand, available: i.available, last_move: i.last_move })
 
 export const endpoints: Endpoint[] = [
   endpoint({
@@ -580,6 +584,65 @@ export const endpoints: Endpoint[] = [
         .single()
       if (error) throw dbError(error)
       return data
+    },
+  }),
+  // ---------- Lager ----------
+  endpoint({
+    method: "GET",
+    path: "/shop/stock",
+    permission: "shop.view",
+    tag: TAG,
+    summary: "List stock per item",
+    description: "Every physical item (a product without variants, or a physical variant; `item_id` = its id): `stock` = received in total (null = not counted), `sold` = paid − refunded, `reserved` = in open orders, `on_hand` = stock − sold, `available` = on hand − reserved.",
+    response: z.object({ data: z.array(StockRow) }),
+    async handler({ db, orgId }) {
+      return { data: (await stockList(db, orgId)).map(stockOut) }
+    },
+  }),
+  endpoint({
+    method: "GET",
+    path: "/shop/stock/{id}",
+    permission: "shop.view",
+    tag: TAG,
+    summary: "Get an item's stock and history",
+    description: "`id` = variant id, or product id for a product without variants. History (newest first): movements (opening, receipt, withdrawal, loss, correction) and shop sales (sale, returned = refunded pieces) with their order.",
+    response: StockRow.extend({ history: z.array(z.object({ kind: z.string(), quantity: z.number().int(), note: z.string().nullable(), at: ts, order: z.object({ id: uuid, number: z.number().int() }).nullable() })) }),
+    async handler({ db, orgId, params }) {
+      const item = await stockItem(db, orgId, params.id)
+      if (!item) throw notFound()
+      const history = await stockHistory(db, orgId, params.id)
+      return { ...stockOut(item), history: history.map((h) => ({ kind: h.kind, quantity: h.quantity, note: h.note, at: h.at, order: h.order })) }
+    },
+  }),
+  endpoint({
+    method: "POST",
+    path: "/shop/stock/{id}",
+    permission: "shop.manage",
+    tag: TAG,
+    summary: "Book stock (receipt, withdrawal, loss, stocktake, sale on site)",
+    description: "`receipt` adds `quantity`, `withdrawal` (promo, free copies, own use) and `loss` take it off, `count` sets the counted stock (`counted`; the difference to on hand is booked as a correction), `sale` records a sale on site (merch table) at `price_cents` per piece: a completed shop order paid cash, with revenue and an invoice when automatic invoices are on. Stock can't go below zero (422 stock_negative).",
+    body: z
+      .object({
+        kind: z.enum(STOCK_KINDS),
+        quantity: z.number().int().min(1).max(1_000_000).optional(),
+        counted: z.number().int().min(0).max(1_000_000).optional().describe("For kind count"),
+        price_cents: z.number().int().min(1).optional().describe("For kind sale: price per piece"),
+        note: z.string().max(500).optional(),
+      })
+      .strict(),
+    response: StockRow.extend({ order_id: uuid.nullable().describe("The shop order of a sale on site") }),
+    async handler({ db, orgId, params, body }) {
+      const item = await stockItem(db, orgId, params.id)
+      if (!item) throw notFound()
+      const form: Record<string, string> = { kind: body.kind, quantity: String(body.quantity ?? ""), counted: String(body.counted ?? ""), price: body.price_cents ? (body.price_cents / 100).toFixed(2) : "", note: body.note ?? "" }
+      const r = readStockMove((k) => form[k] ?? "", item.on_hand ?? 0)
+      if ("error" in r) throw new ApiError(422, r.error.split(".").pop()!.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`), r.error)
+      const order = await bookStock(db, orgId, item, r).catch((e) => {
+        const key = e instanceof Error ? e.message : ""
+        return Promise.reject(key === "errors.stock_negative" ? new ApiError(422, "stock_negative", "That would take the stock below zero.") : stepError(e))
+      })
+      deliverSoon()
+      return { ...stockOut((await stockItem(db, orgId, params.id))!), order_id: order ? (await db.from("shop_orders").select("order_id").eq("id", order).single()).data?.order_id ?? null : null }
     },
   }),
 ]

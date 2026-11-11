@@ -703,7 +703,8 @@
       "product_variants": "Produktvarianten",
       "shop_orders": "Shop-Bestellungen",
       "shop_settings": "Shop-Einstellungen",
-      "product_tracks": "Musik-Titel"
+      "product_tracks": "Musik-Titel",
+      "stock_moves": "Lagerbewegungen"
     },
     "title": "Aktivität",
     "comment": "Kommentieren",
@@ -794,7 +795,8 @@
       "retry": "Erneut versuchen",
       "code": "Fehlercode: {code}"
     },
-    "not_found": "Nicht gefunden."
+    "not_found": "Nicht gefunden.",
+    "stock_negative": "Das würde den Bestand unter null bringen."
   },
   "admin": {
     "title": "Plattform",
@@ -6028,6 +6030,65 @@
       "transfer": "Bereits per Überweisung bezahlt am {date} – vielen Dank.",
       "cash": "Bereits bar bezahlt am {date} – vielen Dank.",
       "card": "Bereits mit Karte bezahlt am {date} – vielen Dank."
+    },
+    "lager": {
+      "title": "Lager",
+      "hint": "Bestand je Artikel. Shop-Verkäufe zählen automatisch, alles andere buchst du hier: Zugang, Entnahme, Schwund, Inventur oder Verkauf vor Ort.",
+      "item": "Artikel",
+      "onHand": "Bestand",
+      "reserved": "Reserviert",
+      "available": "Verfügbar",
+      "sold": "Verkauft",
+      "lastMove": "Letzte Bewegung",
+      "untracked": "nicht gezählt",
+      "empty": "Noch keine physischen Artikel",
+      "emptyText": "Lege im Shop ein physisches Produkt an, dann erscheint es hier.",
+      "meta": "Bestand {onHand} · reserviert {reserved} · verfügbar {available} · verkauft {sold}",
+      "toProduct": "Zum Produkt",
+      "kind": "Art der Buchung",
+      "kinds": {
+        "receipt": "Zugang",
+        "withdrawal": "Entnahme",
+        "loss": "Schwund",
+        "count": "Inventur",
+        "sale": "Verkauf vor Ort"
+      },
+      "hints": {
+        "receipt": "Neue Ware ist da (Lieferung, Nachpressung).",
+        "withdrawal": "Ware geht raus ohne Verkauf: Promo, Freiexemplare, Eigenbedarf.",
+        "loss": "Kaputt, verloren oder nicht auffindbar.",
+        "count": "Gezählter Bestand – die Differenz wird als Korrektur gebucht.",
+        "sale": "Verkauf z. B. am Merch-Stand, bar bezahlt: wird eine abgeschlossene Bestellung mit Umsatz (und Rechnung, falls automatisch)."
+      },
+      "quantity": "Menge",
+      "counted": "Gezählt",
+      "unitPrice": "Preis pro Stück",
+      "note": "Notiz",
+      "notePlaceholder": {
+        "receipt": "z. B. Lieferung Presswerk",
+        "withdrawal": "z. B. Promo für Radio",
+        "loss": "z. B. Transportschaden",
+        "count": "z. B. Inventur Jahresende",
+        "sale": "z. B. Konzert Leipzig"
+      },
+      "book": "Buchen",
+      "sell": "Verkauf erfassen",
+      "booked": "Gebucht.",
+      "soldDone": "Verkauf erfasst – als Bestellung abgeschlossen.",
+      "history": "Verlauf",
+      "noHistory": "Noch keine Bewegungen.",
+      "reasons": {
+        "opening": "Anfangsbestand",
+        "receipt": "Zugang",
+        "withdrawal": "Entnahme",
+        "loss": "Schwund",
+        "correction": "Korrektur",
+        "sale": "Verkauf",
+        "returned": "Erstattet"
+      },
+      "counterName": "Verkauf vor Ort",
+      "quantityInvalid": "Bitte eine gültige Menge eingeben.",
+      "noChange": "Der gezählte Bestand stimmt schon – nichts zu buchen."
     }
   }
 }

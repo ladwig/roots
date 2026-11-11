@@ -356,3 +356,30 @@ export function refundAdjustment(remaining: { cents: number; rate: number }[], e
     return { rate, cents: -part }
   })
 }
+
+// ---------- Lager (stock movements) ----------
+
+export const STOCK_KINDS = ["receipt", "withdrawal", "loss", "count", "sale"] as const
+export type StockKind = (typeof STOCK_KINDS)[number]
+export type StockMove =
+  | { move: { quantity: number; reason: "receipt" | "withdrawal" | "loss" | "correction"; note: string | null } }
+  | { sale: { quantity: number; unit: number; note: string | null } }
+
+/**
+ * One booking from the Lager drawer / API: Zugang (+), Entnahme / Schwund (−), Inventur (counted → the difference to
+ * what is on hand), or Verkauf vor Ort (a real order, paid cash). `onHand` = stock − sold, for the count.
+ */
+export function readStockMove(get: (k: string) => string, onHand: number): StockMove | { error: string } {
+  const kind = STOCK_KINDS.find((k) => k === get("kind"))
+  if (!kind) return { error: "errors.invalid_input" }
+  const note = get("note").trim().slice(0, 500) || null
+  const n = Number(get(kind === "count" ? "counted" : "quantity").trim())
+  if (!Number.isInteger(n) || n < (kind === "count" ? 0 : 1) || n > 1_000_000) return { error: "store.lager.quantityInvalid" }
+  if (kind === "count") return n === onHand ? { error: "store.lager.noChange" } : { move: { quantity: n - onHand, reason: "correction", note } }
+  if (kind === "sale") {
+    const unit = moneyCents(get("price"))
+    if (unit === null || unit < 1 || unit > MAX_UNIT_CENTS) return { error: "store.priceInvalid" }
+    return { sale: { quantity: n, unit, note } }
+  }
+  return { move: { quantity: kind === "receipt" ? n : -n, reason: kind, note } }
+}

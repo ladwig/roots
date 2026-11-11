@@ -703,7 +703,8 @@
       "product_variants": "Product variants",
       "shop_orders": "Shop orders",
       "shop_settings": "Shop settings",
-      "product_tracks": "Music tracks"
+      "product_tracks": "Music tracks",
+      "stock_moves": "Stock movements"
     },
     "title": "Activity",
     "comment": "Comment",
@@ -794,7 +795,8 @@
       "retry": "Try again",
       "code": "Error code: {code}"
     },
-    "not_found": "Not found."
+    "not_found": "Not found.",
+    "stock_negative": "That would take the stock below zero."
   },
   "admin": {
     "title": "Platform",
@@ -6028,6 +6030,65 @@
       "transfer": "Already paid by bank transfer on {date} – thank you.",
       "cash": "Already paid in cash on {date} – thank you.",
       "card": "Already paid by card on {date} – thank you."
+    },
+    "lager": {
+      "title": "Stock",
+      "hint": "Stock per item. Shop sales count automatically; book everything else here: receipt, withdrawal, loss, stocktake or sale on site.",
+      "item": "Item",
+      "onHand": "On hand",
+      "reserved": "Reserved",
+      "available": "Available",
+      "sold": "Sold",
+      "lastMove": "Last movement",
+      "untracked": "not counted",
+      "empty": "No physical items yet",
+      "emptyText": "Create a physical product in the shop and it shows up here.",
+      "meta": "On hand {onHand} · reserved {reserved} · available {available} · sold {sold}",
+      "toProduct": "Open product",
+      "kind": "Kind of booking",
+      "kinds": {
+        "receipt": "Receipt",
+        "withdrawal": "Withdrawal",
+        "loss": "Loss",
+        "count": "Stocktake",
+        "sale": "Sale on site"
+      },
+      "hints": {
+        "receipt": "New goods arrived (delivery, repress).",
+        "withdrawal": "Goods go out without a sale: promo, free copies, own use.",
+        "loss": "Broken, lost or missing.",
+        "count": "Counted stock – the difference is booked as a correction.",
+        "sale": "A sale e.g. at the merch table, paid cash: becomes a completed order with revenue (and an invoice if automatic)."
+      },
+      "quantity": "Quantity",
+      "counted": "Counted",
+      "unitPrice": "Price per piece",
+      "note": "Note",
+      "notePlaceholder": {
+        "receipt": "e.g. delivery from the pressing plant",
+        "withdrawal": "e.g. promo for radio",
+        "loss": "e.g. damaged in transit",
+        "count": "e.g. year-end stocktake",
+        "sale": "e.g. concert Leipzig"
+      },
+      "book": "Book",
+      "sell": "Record sale",
+      "booked": "Booked.",
+      "soldDone": "Sale recorded – completed as an order.",
+      "history": "History",
+      "noHistory": "No movements yet.",
+      "reasons": {
+        "opening": "Opening stock",
+        "receipt": "Receipt",
+        "withdrawal": "Withdrawal",
+        "loss": "Loss",
+        "correction": "Correction",
+        "sale": "Sale",
+        "returned": "Refunded"
+      },
+      "counterName": "Sale on site",
+      "quantityInvalid": "Please enter a valid quantity.",
+      "noChange": "The counted stock already matches – nothing to book."
     }
   }
 }

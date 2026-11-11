@@ -2125,6 +2125,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"stock_moves": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"id": string,"note": string | null,"org_id": string,"product_id": string,"quantity": number,"reason": string,"updated_at": string,"updated_by": string | null,"variant_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"note"?: string | null,"org_id": string,"product_id": string,"quantity": number,"reason": string,"updated_at"?: string,"updated_by"?: string | null,"variant_id"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"note"?: string | null,"org_id"?: string,"product_id"?: string,"quantity"?: number,"reason"?: string,"updated_at"?: string,"updated_by"?: string | null,"variant_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "stock_moves_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "stock_moves_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "products"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "stock_moves_variant_id_fkey"
+      columns: ["variant_id"]
+isOneToOne: false
+      referencedRelation: "product_variants"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"task_assignees": {
                   Row: {
                     "created_at": string,"created_by": string | null,"id": string,"org_id": string,"task_id": string,"updated_at": string,"updated_by": string | null,"user_id": string
@@ -2961,6 +2993,11 @@ isOneToOne: false
                            },
 "shop_release_due":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"shop_stock":
+{ Args: { "p_org": string }; Returns: {
+              "item_id": string,"last_move": string,"product": string,"product_id": string,"reserved": number,"sold": number,"stock": number,"variant": string,"variant_id": string
+            }[]
                            },
 "site_for_host":
 { Args: { "p_host": string }; Returns: string

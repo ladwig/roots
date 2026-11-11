@@ -8,7 +8,8 @@ import { requirePerm } from "@/lib/context"
 import { removeImage, replaceImage } from "@/lib/images"
 import { moneyCents } from "@/lib/inputs"
 import { back } from "@/lib/url"
-import { MAIL_KINDS, readOptions, readProduct, readShippingRates, readVariant } from "@/shop/fields"
+import { MAIL_KINDS, readOptions, readProduct, readShippingRates, readStockMove, readVariant } from "@/shop/fields"
+import { bookStock, stockItem } from "@/shop/stock"
 import { applyOptions, cancelOrder, ensureInvoice, issueMissingInvoices, mail, markOrderPaid, refundShopOrder, setOrderStatus } from "@/shop/server"
 import { deleteTrack, finishTrackUpload, startTrackUpload, updateTrack } from "@/shop/audio"
 
@@ -343,4 +344,27 @@ export async function saveTrack(fd: FormData) {
     : await finishTrackUpload(ctx.supabase, ctx.org.id, trackId)
   if ("error" in r) back(here, { error: r.error === "db" ? dbError(t, r.db!) : t.dynamic(String(r.error)) })
   back(here, { ok: fd.get("delete") ? t("store.trackRemoved") : t("store.saved") })
+}
+
+// ---------- Lager ----------
+
+/** Book a movement or a sale at the merch table on one item (drawer on Shop → Lager). */
+export async function bookStockAction(fd: FormData) {
+  const { ctx, t } = await manager()
+  const itemId = id(fd, "item")
+  const here = `/shop/stock?item=${itemId}`
+  const item = itemId && (await stockItem(ctx.supabase, ctx.org.id, itemId))
+  if (!item) back("/shop/stock", { error: t("errors.not_found") })
+  const r = readStockMove(getter(fd), item.on_hand ?? 0)
+  if ("error" in r) back(here, { error: msg(t, r.error) })
+  let order: string | null = null
+  try {
+    order = await bookStock(ctx.supabase, ctx.org.id, item, r)
+  } catch (e) {
+    const m = e instanceof Error ? e.message : ""
+    if (!t.has(m)) console.error("shop stock", itemId, e)
+    back(here, { error: msg(t, m) })
+  }
+  deliverSoon()
+  back(here, { ok: t(order ? "store.lager.soldDone" : "store.lager.booked") })
 }

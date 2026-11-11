@@ -1119,8 +1119,28 @@ begin
       assert false, 'anon reads the products table';
     exception when insufficient_privilege then null; end;
     reset role;
+    -- Lager: movements change the stock, typing a stock books a correction
+    perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select count(*) into n from public.stock_moves where variant_id = v_v and reason = 'opening' and quantity = 1; assert n = 1, 'a new variant with stock has no opening movement';
+    insert into public.stock_moves (org_id, product_id, variant_id, quantity, reason) values (org_a, v_p, v_v, 4, 'receipt');
+    select stock into n from public.product_variants where id = v_v;          assert n = 5, 'a receipt did not raise the stock';
+    update public.product_variants set stock = 3 where id = v_v;
+    select quantity into n from public.stock_moves where variant_id = v_v and reason = 'correction'; assert n = -2, 'typing a stock booked no correction';
+    select sum(quantity) into n from public.stock_moves where variant_id = v_v; assert n = 3, 'movements and stock differ';
+    begin
+      insert into public.stock_moves (org_id, product_id, variant_id, quantity, reason) values (org_a, v_p, v_v, -10, 'withdrawal');
+      assert false, 'stock went below zero';
+    exception when raise_exception then null; end;
+    reset role;
     perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
     set local role authenticated;
+    select count(*) into n from public.stock_moves where org_id = org_a;      assert n = 0, 'B sees stock movements of A';
+    select count(*) into n from public.shop_stock(org_a);                     assert n = 0, 'B reads the Lager of A';
+    begin
+      insert into public.stock_moves (org_id, product_id, quantity, reason) values (org_b, v_p, 5, 'receipt');
+      assert false, 'B booked stock on a product of A';
+    exception when insufficient_privilege or raise_exception then null; end;
     select count(*) into n from public.products where org_id = org_a;         assert n = 0, 'B sees products of A';
     select count(*) into n from public.product_variants where org_id = org_a; assert n = 0, 'B sees variants of A';
     select count(*) into n from public.shop_orders where org_id = org_a;      assert n = 0, 'B sees shop orders of A';
