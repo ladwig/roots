@@ -136,7 +136,7 @@ export async function ActivityFeed({
                 <span>· {t.date(e.at, { dateStyle: "medium", timeStyle: "short" })}</span>
                 {e.via && <span>· {e.via.startsWith("oauth:") ? t("activity.viaAi") : t("activity.viaApi")}</span>}
                 {e.comment && e.comment.updated_at > e.comment.created_at && Date.parse(e.comment.updated_at) - Date.parse(e.comment.created_at) > 2000 && <span>· {t("activity.edited")}</span>}
-                {e.task && tasks && (
+                {e.task && tasks && !e.event && (
                   <Link href={tasks.href(e.task.id)} className="inline-flex min-w-0 items-center gap-1 underline-offset-4 hover:underline">
                     · <CheckSquareIcon className="size-3 shrink-0" aria-hidden />
                     <span className="truncate">{e.task.title}</span>
@@ -145,8 +145,26 @@ export async function ActivityFeed({
               </span>
               {e.comment ? (
                 <CommentView t={t} c={e.comment} mine={e.comment.created_by === ctx.userId} back={back} actions={actions} fileOf={fileOf} upload={uploadTo} />
+              ) : e.event && e.task && tasks ? (
+                <p>
+                  {/* "Aufgabe <Flyer> angelegt": the task's name in the sentence opens it */}
+                  {t(e.event === "created" ? "activity.taskCreated" : "activity.taskTrashed", { task: "\u0000" })
+                    .split("\u0000")
+                    .map((part, i) =>
+                      i === 0 ? (
+                        part
+                      ) : (
+                        <span key={i}>
+                          <Link href={tasks.href(e.task!.id)} className="font-medium underline-offset-4 hover:underline">
+                            {e.task!.title || "…"}
+                          </Link>
+                          {part}
+                        </span>
+                      ),
+                    )}
+                </p>
               ) : e.event ? (
-                <p>{t(e.task ? (e.event === "created" ? "activity.taskCreated" : "activity.taskTrashed") : e.event === "created" ? "activity.created" : "activity.trashed")}</p>
+                <p>{t(e.event === "created" ? "activity.created" : "activity.trashed")}</p>
               ) : (
                 <ul className="grid gap-0.5">
                   {e.diff?.map((d) => (
