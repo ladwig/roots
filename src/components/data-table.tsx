@@ -87,9 +87,10 @@ export function DataTable<R>({
                   {select && <TableCell className="w-10">{box(row)}</TableCell>}
                   {/* The row link is stretched per cell: Safari ignores position:relative on <tr>, so one link stretched
                       over the row would cover the whole table (every click opened the last row). The first cell's link
-                      is the real one (focus, screen readers); the others are mouse-only copies. */}
+                      is the real one (focus, screen readers); the others are mouse-only copies. Buttons in a cell (copy…) sit above
+                      the link, so they do their own thing. */}
                   {columns.map((c, i) => (
-                    <TableCell key={i} className={cn(c.className, href && "relative")}>
+                    <TableCell key={i} className={cn(c.className, href && "relative [&_button]:relative [&_button]:z-10")}>
                       {i === 0 && href ? (
                         <Link href={href} scroll={false} className="after:absolute after:inset-0 focus-visible:underline focus-visible:outline-none">
                           {c.cell(row)}
