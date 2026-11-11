@@ -9,13 +9,13 @@ import type { getContext } from "@/lib/context"
 import { fileSize } from "@/lib/files"
 
 /** Files attached to one record, with upload + remove. Drop into any record's drawer or page. */
-export async function FileList({ ctx, entity, entityId, back }: { ctx: Awaited<ReturnType<typeof getContext>>; entity: string; entityId: string; back: string }) {
+export async function FileList({ ctx, entity, entityId, back, hideTitle }: { ctx: Awaited<ReturnType<typeof getContext>>; entity: string; entityId: string; back: string; hideTitle?: boolean }) {
   if (!ctx.can("org.files.view")) return null
   const t = await getT()
   const canManage = ctx.can("org.files.manage")
   const { data: files } = await ctx.supabase
     .from("files")
-    .select("id, name, size, created_at")
+    .select("id, name, size, mime, created_at")
     .eq("org_id", ctx.org.id)
     .eq("entity", entity)
     .eq("entity_id", entityId)
@@ -23,18 +23,25 @@ export async function FileList({ ctx, entity, entityId, back }: { ctx: Awaited<R
     .order("created_at", { ascending: false })
 
   return (
-    <section className="grid gap-3" aria-labelledby={`files-${entityId}`}>
+    <section className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3" aria-labelledby={hideTitle ? undefined : `files-${entityId}`} aria-label={hideTitle ? t("files.title") : undefined}>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 id={`files-${entityId}`} className="font-medium">
+        <h3 id={`files-${entityId}`} className={hideTitle ? "sr-only" : "font-medium"}>
           {t("files.title")}
         </h3>
         {canManage && <FileUpload orgId={ctx.org.id} entity={entity} entityId={entityId} />}
       </div>
       {files?.length ? (
-        <ul className="grid gap-1">
+        <ul className="grid grid-cols-[minmax(0,1fr)] gap-1">
           {files.map((f) => (
-            <li key={f.id} className="flex items-center gap-2 rounded-md border px-2 py-1.5 text-sm">
-              <FileIcon className="size-4 shrink-0 text-muted-foreground" />
+            <li key={f.id} className="flex min-w-0 items-center gap-2 rounded-md border px-2 py-1.5 text-sm">
+              {f.mime?.startsWith("image/") ? (
+                <a href={`/files/${f.id}`} target="_blank" rel="noreferrer" className="shrink-0 overflow-hidden rounded border bg-muted">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- private file behind a short signed URL */}
+                  <img src={`/files/${f.id}`} alt="" loading="lazy" className="size-8 object-cover" />
+                </a>
+              ) : (
+                <FileIcon className="size-4 shrink-0 text-muted-foreground" />
+              )}
               <a href={`/files/${f.id}`} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate hover:underline">
                 {f.name}
               </a>

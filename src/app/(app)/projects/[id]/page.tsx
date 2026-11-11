@@ -111,7 +111,7 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
                   {canManage && <SaveBar />}
                 </form>
                 <FormCard id="files" title={t("files.title")}>
-                  <FileList ctx={ctx} entity="projects" entityId={p.id} back={base} />
+                  <FileList ctx={ctx} entity="projects" entityId={p.id} back={base} hideTitle />
                 </FormCard>
                 <FormCard id="links" title={t("projects.links")} description={t("projects.linksHint")}>
                   {linked.length > 0 && (

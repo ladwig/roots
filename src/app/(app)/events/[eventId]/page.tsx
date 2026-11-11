@@ -44,7 +44,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
           <>
             {ctx.can("org.files.view") && (
               <FormCard id="files" title={t("files.title")}>
-                <FileList ctx={ctx} entity="events" entityId={ev.id} back={`/events/${ev.id}`} />
+                <FileList ctx={ctx} entity="events" entityId={ev.id} back={`/events/${ev.id}`} hideTitle />
               </FormCard>
             )}
             {canManage && (
