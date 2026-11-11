@@ -77,12 +77,16 @@ export default async function OrdersPage({ searchParams }: PageProps<"/shop/orde
           },
           {
             header: t("store.items"),
+            // One line per item, cut with … so long names don't stretch the table.
             cell: (o) => (
-              <span className="line-clamp-2">
+              <span className="grid max-w-xs gap-0.5">
                 {o.pay_orders.pay_order_items
                   .filter((i) => !(i.metadata as Record<string, unknown> | null)?.shipping)
-                  .map((i) => `${i.quantity}× ${i.description}`)
-                  .join(", ")}
+                  .map((i, n) => (
+                    <span key={n} className="truncate" title={`${i.quantity}× ${i.description}`}>
+                      {i.quantity}× {i.description}
+                    </span>
+                  ))}
               </span>
             ),
           },
