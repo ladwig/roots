@@ -14,7 +14,7 @@ import { param, withParams, type SearchParams } from "@/lib/url"
 import { DOT, progress, type ChecklistItem } from "@/projects/fields"
 import { initials, projectBasics } from "@/projects/load"
 import { TASK_COLS } from "@/projects/server"
-import { bulkTasks, moveTaskDue } from "./actions"
+import { bulkTasks, moveTaskDue, moveTaskDates } from "./actions"
 import { Board } from "./board"
 import { TaskDrawer } from "./task-drawer"
 
@@ -92,6 +92,7 @@ export async function TasksView({ ctx, t, sp, base, view, projectId, basics }: {
           t={t}
           today={today}
           empty={t("projects.empty")}
+          onMove={canManage ? moveTaskDates : undefined}
           items={tasks.map((x) => ({ id: x.id, title: x.title, start: x.start_on, end: x.due_on, color: colorOf(x.status_id), href: x.href, done: x.done, group: projectId ? undefined : (x.project?.name ?? t("projects.noProject")) }))}
         />
       ) : view === "calendar" ? (

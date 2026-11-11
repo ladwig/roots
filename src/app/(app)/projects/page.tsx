@@ -16,7 +16,7 @@ import { DOT } from "@/projects/fields"
 import { initials, projectBasics } from "@/projects/load"
 import { PROJECT_COLS } from "@/projects/server"
 import Link from "next/link"
-import { restoreProjectAction } from "./actions"
+import { moveProjectDates, restoreProjectAction } from "./actions"
 import { Board } from "./board"
 import { ViewSegments } from "./view-segments"
 
@@ -156,6 +156,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
               t={t}
               today={today}
               empty={t("projects.noProjects")}
+              onMove={canManage ? moveProjectDates : undefined}
               items={projects.map((p) => ({ id: p.id, title: p.title, start: p.start_on, end: p.due_on, color: DOT[p.color] ?? DOT.gray, href: p.href, done: p.done, group: projectStatuses.find((s) => s.id === p.status_id)?.name }))}
             />
           ) : (

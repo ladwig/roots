@@ -1,6 +1,6 @@
 import Link from "next/link"
 import type { T } from "@/i18n/translate"
-import { cn } from "@/lib/utils"
+import { TimelineBar } from "./timeline-bar"
 
 export type TimelineItem = { id: string; title: string; start: string | null; end: string | null; color: string; href: string; done?: boolean; group?: string; detail?: string }
 
@@ -11,10 +11,10 @@ const iso = (n: number) => new Date(n).toISOString().slice(0, 10)
 /**
  * Timeline (Gantt light): one row per item, a bar from start to end (one date only = a one-day bar), grouped by `group`,
  * today marked. Days are the columns; the range covers all items plus a little air, at least four weeks. Items without
- * dates are listed below. Server-rendered, scrolls sideways on small screens; bars link to the item.
- * ponytail: no dragging bars; dates are changed in the item itself. Add drag when people ask for it.
+ * dates are listed below. Scrolls sideways on small screens; bars link to the item. With `onMove` (a server action)
+ * bars can be dragged: whole bar = shift, edges = start / end (`<TimelineBar>`).
  */
-export function Timeline({ t, items, today, empty }: { t: T; items: TimelineItem[]; today: string; empty: string }) {
+export function Timeline({ t, items, today, empty, onMove }: { t: T; items: TimelineItem[]; today: string; empty: string; onMove?: (id: string, start: string | null, end: string | null) => Promise<{ error?: string }> }) {
   const dated = items
     .map((i) => {
       const a = i.start ?? i.end
@@ -68,16 +68,22 @@ export function Timeline({ t, items, today, empty }: { t: T; items: TimelineItem
                   .filter((d) => (d.group ?? "") === g)
                   .sort((a, b) => a.from - b.from)
                   .map((d) => (
-                    <div key={d.id} className="relative h-10 border-b last:border-b-0">
-                      <Link
+                    <div key={d.id} data-row className="relative h-10 border-b last:border-b-0">
+                      <TimelineBar
+                        id={d.id}
                         href={d.href}
-                        scroll={false}
+                        label={d.title}
                         title={`${d.title} · ${t.date(iso(d.from), { dateStyle: "medium" })}${d.to > d.from ? ` – ${t.date(iso(d.to), { dateStyle: "medium" })}` : ""}`}
-                        className={cn("absolute top-1.5 flex h-7 min-w-7 items-center overflow-hidden rounded-md border-l-4 px-2 text-xs font-medium whitespace-nowrap text-foreground hover:brightness-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none", d.done && "opacity-50")}
-                        style={{ left: pct(d.from), width: `calc(${((d.to - d.from) / DAY + 1) / days} * 100%)`, borderColor: d.color, background: `color-mix(in oklch, ${d.color} 22%, var(--background))` }}
-                      >
-                        <span className="truncate">{d.done ? `✓ ${d.title}` : d.title}</span>
-                      </Link>
+                        from={d.from}
+                        to={d.to}
+                        first={first}
+                        days={days}
+                        hasStart={!!d.start}
+                        hasEnd={!!d.end}
+                        color={d.color}
+                        done={d.done}
+                        onMove={onMove}
+                      />
                     </div>
                   ))}
               </div>

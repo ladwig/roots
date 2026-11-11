@@ -148,6 +148,27 @@ export async function moveTaskDue(id: string, start: string): Promise<{ error?: 
   return "error" in r ? { error: message(t, r) } : {}
 }
 
+const DAY = /^\d{4}-\d{2}-\d{2}$/
+const dayOrNull = (d: string | null) => (d === null ? null : DAY.test(d) ? d : undefined)
+
+/** Timeline drag: a task's new start/end (null = that date stays empty). */
+export async function moveTaskDates(id: string, start: string | null, end: string | null): Promise<{ error?: string }> {
+  const { ctx, t } = await manager()
+  const [s, e] = [dayOrNull(start), dayOrNull(end)]
+  if (!UUID.test(id) || s === undefined || e === undefined) return { error: t("errors.invalid_input") }
+  const r = await updateTask(ctx.supabase, ctx.org.id, id, { start_on: s, due_on: e })
+  return "error" in r ? { error: message(t, r) } : {}
+}
+
+/** Timeline drag on the project list: a project's new start/end. */
+export async function moveProjectDates(id: string, start: string | null, end: string | null): Promise<{ error?: string }> {
+  const { ctx, t } = await manager()
+  const [s, e] = [dayOrNull(start), dayOrNull(end)]
+  if (!UUID.test(id) || s === undefined || e === undefined) return { error: t("errors.invalid_input") }
+  const r = await updateProject(ctx.supabase, ctx.org.id, id, { start_on: s, end_on: e })
+  return "error" in r ? { error: message(t, r) } : {}
+}
+
 // ---------- projects ----------
 
 const readProjectForm = async (ctx: Awaited<ReturnType<typeof manager>>["ctx"], fd: FormData) => {
