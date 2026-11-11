@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ChevronRightIcon, FolderPlusIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { ChevronRightIcon, FolderPlusIcon, PencilIcon, PlusIcon, Trash2Icon, FileTextIcon } from "lucide-react"
 import { ActionsMenu, MenuLink, MenuSeparator, MenuSubmit } from "@/components/actions-menu"
 import { ContactPicker } from "@/components/contact-picker"
 import { FileList } from "@/components/file-list"
@@ -54,6 +54,10 @@ export default async function ObjectPage({ params, searchParams }: PageProps<"/r
   const current = (rentals ?? []).filter((r) => ["running", "upcoming", "request"].includes(rentalState(r)))
   const earlier = (rentals ?? []).filter((r) => !current.includes(r))
   const running = current.find((r) => rentalState(r) === "running")
+  // The documents of the current rentals (contracts), shown with each rental.
+  const { data: docs } = current.length && ctx.can("org.files.view")
+    ? await ctx.supabase.from("files").select("id, name, entity_id").eq("org_id", ctx.org.id).eq("entity", "rentals").in("entity_id", current.map((r) => r.id)).is("deleted_at", null).order("created_at", { ascending: false })
+    : { data: [] as { id: string; name: string; entity_id: string | null }[] }
   const family = o.family as Family
   const firstRate = (rates ?? []).find((r) => r.active)
   const word = wordFor(family, firstRate?.unit)
@@ -73,6 +77,20 @@ export default async function ObjectPage({ params, searchParams }: PageProps<"/r
         </span>
       </Link>
       <StateBadge t={t} r={r} />
+      {(docs ?? []).some((d) => d.entity_id === r.id) && (
+        <ul className="grid w-full grid-cols-[minmax(0,1fr)] gap-1 border-t pt-2">
+          {(docs ?? [])
+            .filter((d) => d.entity_id === r.id)
+            .map((d) => (
+              <li key={d.id} className="min-w-0">
+                <a href={`/files/${d.id}`} target="_blank" rel="noreferrer" className="inline-flex max-w-full items-center gap-1.5 text-primary underline-offset-4 hover:underline">
+                  <FileTextIcon className="size-3.5 shrink-0" aria-hidden />
+                  <span className="truncate">{d.name}</span>
+                </a>
+              </li>
+            ))}
+        </ul>
+      )}
       {canManage && o.lendable && !o.rentable && rentalState(r) === "running" && (
         <form action={returnAction}>
           <input type="hidden" name="id" value={r.id} />

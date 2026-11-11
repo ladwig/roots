@@ -5268,7 +5268,12 @@
     "restored": "Restored.",
     "portalNone": "Nothing running for you right now.",
     "portalRole": "You are",
-    "portalDocs": "Documents"
+    "portalDocs": "Documents",
+    "nextFrom": "from {date}: {who}",
+    "rentCol": "Rent",
+    "depositShort": "Deposit {amount}",
+    "rentedOf": "{count} of {total} rented",
+    "monthlyRent": "{amount} rent per month"
   },
   "oauth": {
     "title": "Connect {app} to roots",

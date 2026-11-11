@@ -5268,7 +5268,12 @@
     "restored": "Wiederhergestellt.",
     "portalNone": "Gerade läuft bei dir nichts.",
     "portalRole": "Du bist",
-    "portalDocs": "Dokumente"
+    "portalDocs": "Dokumente",
+    "nextFrom": "ab {date}: {who}",
+    "rentCol": "Miete",
+    "depositShort": "Kaution {amount}",
+    "rentedOf": "{count} von {total} vermietet",
+    "monthlyRent": "{amount} Miete pro Monat"
   },
   "oauth": {
     "title": "{app} mit roots verbinden",

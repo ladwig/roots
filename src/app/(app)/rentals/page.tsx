@@ -32,14 +32,14 @@ export default async function RentalsPage({ searchParams }: PageProps<"/rentals"
   const now = new Date().toISOString()
 
   // ponytail: all objects of the org at once (≤ 1000); paginate when orgs get bigger.
-  const [{ data: objects }, { data: running }, { data: rates }] = await Promise.all([
+  const [{ data: objects }, { data: running }, { data: rates }, { data: upcoming }] = await Promise.all([
     (trash
       ? ctx.supabase.from("rental_objects").select("id, parent_id, family, kind, name, status, rentable, lendable, included, deleted_at").eq("org_id", ctx.org.id).not("deleted_at", "is", null).order("deleted_at", { ascending: false })
       : ctx.supabase.from("rental_objects").select("id, parent_id, family, kind, name, status, rentable, lendable, included, deleted_at").eq("org_id", ctx.org.id).is("deleted_at", null).order("position").order("name")
     ).limit(1000),
     ctx.supabase
       .from("rentals")
-      .select("id, object_id, starts_at, ends_at, rental_contacts(role, contacts(first_name, last_name, company, email))")
+      .select("id, object_id, starts_at, ends_at, price_cents, unit, deposit_cents, rental_contacts(role, contacts(first_name, last_name, company, email))")
       .eq("org_id", ctx.org.id)
       .is("deleted_at", null)
       .eq("status", "confirmed")
@@ -47,7 +47,11 @@ export default async function RentalsPage({ searchParams }: PageProps<"/rentals"
       .or(`ends_at.is.null,ends_at.gt.${now}`)
       .limit(2000),
     ctx.supabase.from("rental_rates").select("object_id, price_cents, unit").eq("org_id", ctx.org.id).eq("active", true).order("position"),
+    // The next confirmed rental of free objects ("ab 01.09.: …").
+    ctx.supabase.from("rentals").select("id, object_id, starts_at, rental_contacts(role, contacts(first_name, last_name, company, email))").eq("org_id", ctx.org.id).is("deleted_at", null).eq("status", "confirmed").gt("starts_at", now).order("starts_at").limit(2000),
   ])
+  const next = (id: string) => (upcoming ?? []).find((r) => r.object_id === id)
+  const day = (v: string) => t.date(v, { dateStyle: "medium" })
   const all = objects ?? []
   const busy = (id: string) => (running ?? []).filter((r) => r.object_id === id)
   const childrenOf = (id: string) => all.filter((o) => o.parent_id === id)
@@ -58,11 +62,27 @@ export default async function RentalsPage({ searchParams }: PageProps<"/rentals"
   if (view === "free") rows = rows.filter((o) => !busy(o.id).length && !o.included && o.status === "active")
   if (view === "busy") rows = rows.filter((o) => busy(o.id).length)
 
+  // "Gehört dazu" only when something belongs to something.
+  const childCol = {
+    header: t("rentals.children"),
+    cell: (o: (typeof rows)[number]) => {
+              const kids = childrenOf(o.id)
+              if (!kids.length) return ""
+              const out = kids.filter((k) => busy(k.id).length).length
+              return t("rentals.childCount", { count: kids.length, out })
+            },
+          }
+  // Rent per month of what's rented right now (monthly rentals; yearly ones / 12).
+  const monthly = (running ?? []).reduce((sum, r) => sum + (r.price_cents == null ? 0 : r.unit === "month" ? r.price_cents : r.unit === "year" ? Math.round(r.price_cents / 12) : 0), 0)
+  const rentable = all.filter((o) => (o.rentable || o.lendable) && !o.included && o.status === "active" && !o.parent_id)
+  const rentedNow = rentable.filter((o) => busy(o.id).length).length
+
   return (
     <Page>
       <PageHeader
         area="rentals"
         title={trash ? `${t("rentals.title")} · ${t("rentals.trash")}` : t("rentals.title")}
+        meta={!trash && rentable.length ? [t("rentals.rentedOf", { count: rentedNow, total: rentable.length }), monthly ? t("rentals.monthlyRent", { amount: t.money(monthly) }) : null].filter(Boolean).join(" · ") : undefined}
         menu={
           <ActionsMenu>
             <MenuExport entity="rental_objects" query={{ family }} />
@@ -142,29 +162,40 @@ export default async function RentalsPage({ searchParams }: PageProps<"/rentals"
               const b = busy(o.id)
               if (o.status !== "active") return <Badge variant="outline">{t.dynamic(`rentals.statuses.${o.status}`)}</Badge>
               if (o.included) return <span className="text-muted-foreground">{t("rentals.includedShort")}</span>
-              if (!b.length) return <Badge variant="secondary">{t("rentals.free")}</Badge>
+              if (!b.length) {
+                const n = next(o.id)
+                return (
+                  <span className="grid justify-items-start gap-0.5">
+                    <Badge variant="secondary">{t("rentals.free")}</Badge>
+                    {n && <span className="text-xs text-muted-foreground">{t("rentals.nextFrom", { date: day(n.starts_at), who: peopleLine(n.rental_contacts) || "–" })}</span>}
+                  </span>
+                )
+              }
               return (
                 <span className="grid">
-                  <span>{t("rentals.busyWith", { who: b.map((r) => peopleLine(r.rental_contacts)).filter(Boolean).join(" · ") || "–" })}</span>
-                  {b[0].ends_at && <span className="text-xs text-muted-foreground">{t("rentals.until", { date: t.date(b[0].ends_at, { dateStyle: "medium" }) })}</span>}
+                  <Link href={`/rentals/r/${b[0].id}`} className="relative z-10 font-medium underline-offset-4 hover:underline">
+                    {b.map((r) => peopleLine(r.rental_contacts)).filter(Boolean).join(" · ") || "–"}
+                  </Link>
+                  <span className="text-xs text-muted-foreground">{b[0].ends_at ? `${day(b[0].starts_at)} – ${day(b[0].ends_at)}` : t("rentals.since", { date: day(b[0].starts_at) })}</span>
                 </span>
               )
             },
           },
+          ...(all.some((o) => o.parent_id) ? [childCol] : []),
           {
-            header: t("rentals.children"),
+            // Rented: what this rental pays (+ deposit); free: the tariff, muted.
+            header: t("rentals.rentCol"),
             cell: (o) => {
-              const kids = childrenOf(o.id)
-              if (!kids.length) return ""
-              const out = kids.filter((k) => busy(k.id).length).length
-              return t("rentals.childCount", { count: kids.length, out })
-            },
-          },
-          {
-            header: t("rentals.rates"),
-            cell: (o) => {
+              const b = busy(o.id)[0]
+              if (b?.price_cents != null)
+                return (
+                  <span className="grid">
+                    <span>{`${t.money(b.price_cents)}${b.unit ? ` ${t.dynamic(`rentals.units.${b.unit}`)}` : ""}`}</span>
+                    {b.deposit_cents ? <span className="text-xs text-muted-foreground">{t("rentals.depositShort", { amount: t.money(b.deposit_cents) })}</span> : null}
+                  </span>
+                )
               const r = (rates ?? []).find((x) => x.object_id === o.id)
-              return r ? `${t.money(r.price_cents)} ${t.dynamic(`rentals.units.${r.unit}`)}` : ""
+              return r ? <span className="text-muted-foreground">{`${t.money(r.price_cents)} ${t.dynamic(`rentals.units.${r.unit}`)}`}</span> : ""
             },
             className: "whitespace-nowrap",
           },
