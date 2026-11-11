@@ -727,7 +727,11 @@
     "detach": "{name} entfernen",
     "confirmDelete": "Kommentar löschen?",
     "confirmDeleteHint": "Angehängte Dateien bleiben in den Dokumenten.",
-    "photo": "Foto aufnehmen"
+    "photo": "Foto aufnehmen",
+    "filesAdded": {
+      "one": "Datei hinzugefügt",
+      "other": "{count} Dateien hinzugefügt"
+    }
   },
   "errors": {
     "generic": "Etwas ist schiefgelaufen. Bitte versuch es noch einmal.",

@@ -727,7 +727,11 @@
     "detach": "Remove {name}",
     "confirmDelete": "Delete comment?",
     "confirmDeleteHint": "Attached files stay in the documents.",
-    "photo": "Take photo"
+    "photo": "Take photo",
+    "filesAdded": {
+      "one": "File added",
+      "other": "{count} files added"
+    }
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",

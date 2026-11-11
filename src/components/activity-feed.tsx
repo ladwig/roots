@@ -12,7 +12,8 @@ type Ctx = Awaited<ReturnType<typeof getContext>>
 type Change = { table_name?: string; row_id?: string; at: string; actor_id: string | null; action: string; old: unknown; new: unknown; via: string | null }
 type Comment = { id: string; body: string; created_at: string; updated_at: string; created_by: string | null; file_ids: string[]; entity: string; entity_id: string }
 type Diff = { label: string; from: string; to: string }
-type Entry = { key: string; at: string; by: string | null; task: { id: string; title: string } | null; comment: Comment | null; diff: Diff[] | null; event: "created" | "trashed" | null; via: string | null }
+type FileRow = { id: string; name: string; mime: string }
+type Entry = { key: string; at: string; by: string | null; task: { id: string; title: string } | null; comment: Comment | null; diff: Diff[] | null; event: "created" | "trashed" | null; via: string | null; uploads?: FileRow[] }
 type Fields = { fields: Record<string, string>; show?: Record<string, (v: unknown) => string>; defs?: { key: string; label: string; type?: string }[] }
 
 /**
@@ -49,10 +50,14 @@ export async function ActivityFeed({
 }) {
   const withTasks = entity === "projects" && !!tasks
   const COLS = "id, body, created_at, updated_at, created_by, file_ids, entity, entity_id"
-  const [{ data: own }, { data: changes }, { data: taskRows }] = await Promise.all([
+  const [{ data: own }, { data: changes }, { data: taskRows }, { data: recordFiles }] = await Promise.all([
     ctx.supabase.from("comments").select(COLS).eq("org_id", ctx.org.id).eq("entity", entity).eq("entity_id", entityId).order("created_at", { ascending: false }).limit(200),
     withTasks ? ctx.supabase.rpc("project_changes", { p_id: entityId }) : ctx.supabase.rpc("record_changes", { p_table: entity, p_id: entityId }),
     withTasks ? ctx.supabase.from("tasks").select("id, title").eq("org_id", ctx.org.id).eq("project_id", entityId).limit(1000) : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+    // Files uploaded to the record itself (Dokumente); the ones attached to a comment show with the comment.
+    ctx.can("org.files.view")
+      ? ctx.supabase.from("files").select("id, name, mime, created_at, created_by").eq("org_id", ctx.org.id).eq("entity", entity).eq("entity_id", entityId).is("deleted_at", null).order("created_at", { ascending: false }).limit(200)
+      : Promise.resolve({ data: [] as (FileRow & { created_at: string; created_by: string | null })[] }),
   ])
   const taskIds = (taskRows ?? []).map((x) => x.id)
   const { data: taskComments } = taskIds.length
@@ -60,8 +65,17 @@ export async function ActivityFeed({
     : { data: [] as Comment[] }
   const comments = [...(own ?? []), ...(taskComments ?? [])] as Comment[]
   const log = (changes ?? []) as Change[]
-  const people = [...new Set([...comments.map((c) => c.created_by), ...log.map((c) => c.actor_id)].filter((v): v is string => !!v))]
   const fileIds = [...new Set(comments.flatMap((c) => c.file_ids))]
+  // Uploads by the same person within a minute = one entry ("3 Dateien hinzugefügt").
+  const uploads = (recordFiles ?? [])
+    .filter((f) => !fileIds.includes(f.id))
+    .reduce<{ at: string; by: string | null; files: FileRow[] }[]>((acc, f) => {
+      const last = acc.at(-1)
+      if (last && last.by === f.created_by && Math.abs(Date.parse(last.at) - Date.parse(f.created_at)) < 60_000) last.files.push(f)
+      else acc.push({ at: f.created_at, by: f.created_by, files: [f] })
+      return acc
+    }, [])
+  const people = [...new Set([...comments.map((c) => c.created_by), ...log.map((c) => c.actor_id), ...uploads.map((u) => u.by)].filter((v): v is string => !!v))]
   const [{ data: profiles }, { data: files }] = await Promise.all([
     people.length ? ctx.supabase.from("profiles").select("id, full_name, email").in("id", people) : Promise.resolve({ data: [] as { id: string; full_name: string | null; email: string | null }[] }),
     fileIds.length ? ctx.supabase.from("files").select("id, name, mime").eq("org_id", ctx.org.id).in("id", fileIds) : Promise.resolve({ data: [] as { id: string; name: string; mime: string }[] }),
@@ -106,6 +120,7 @@ export async function ActivityFeed({
   const titleOf = (c: Change) => String(((c.new ?? c.old) as { title?: string } | null)?.title ?? "")
   const taskOf = (id: string) => ({ id, title: taskRows?.find((x) => x.id === id)?.title ?? "…" })
   const feed: Entry[] = [
+    ...uploads.map((u, i): Entry => ({ key: `f${i}`, at: u.at, by: u.by, task: null, comment: null, diff: null, event: null, via: null, uploads: u.files })),
     ...comments.map((c): Entry => ({ key: c.id, at: c.created_at, by: c.created_by, task: c.entity === "tasks" && withTasks ? taskOf(c.entity_id) : null, comment: c, diff: null, event: null, via: null })),
     ...log.flatMap((c, i): Entry[] => {
       const isTask = withTasks && c.table_name === "tasks"
@@ -143,7 +158,12 @@ export async function ActivityFeed({
                   </Link>
                 )}
               </span>
-              {e.comment ? (
+              {e.uploads ? (
+                <div className="grid gap-2">
+                  <p>{t("activity.filesAdded", { count: e.uploads.length })}</p>
+                  <Attachments files={e.uploads} />
+                </div>
+              ) : e.comment ? (
                 <CommentView t={t} c={e.comment} mine={e.comment.created_by === ctx.userId} back={back} actions={actions} fileOf={fileOf} upload={uploadTo} />
               ) : e.event && e.task && tasks ? (
                 <p>
@@ -184,8 +204,6 @@ export async function ActivityFeed({
 
 function CommentView({ t, c, mine, back, actions, fileOf, upload }: { t: T; c: Comment; mine: boolean; back: string; actions: { edit: (fd: FormData) => Promise<void>; remove: (fd: FormData) => Promise<void> }; fileOf: (id: string) => { id: string; name: string; mime: string } | undefined; upload?: { orgId: string; entity: string; entityId: string } }) {
   const attached = c.file_ids.map(fileOf).filter((f) => !!f)
-  const images = attached.filter((f) => f.mime.startsWith("image/"))
-  const others = attached.filter((f) => !f.mime.startsWith("image/"))
   // Own comments: pencil + bin top right. Editing (a <details>, no JS) swaps the text for the comment box.
   return (
     <div className={cn("relative grid gap-2 rounded-lg bg-muted px-3 py-2 [&:has(details[open])_[data-view]]:hidden", mine && "pr-16")}>
@@ -194,27 +212,10 @@ function CommentView({ t, c, mine, back, actions, fileOf, upload }: { t: T; c: C
           {c.body}
         </p>
       )}
-      {images.length > 0 && (
-        <div data-view className="flex flex-wrap gap-2">
-          {images.map((f) => (
-            <a key={f.id} href={`/files/${f.id}`} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-md border bg-background">
-              {/* eslint-disable-next-line @next/next/no-img-element -- private file behind a short signed URL */}
-              <img src={`/files/${f.id}`} alt={f.name} loading="lazy" className="size-24 object-cover" />
-            </a>
-          ))}
+      {attached.length > 0 && (
+        <div data-view>
+          <Attachments files={attached} />
         </div>
-      )}
-      {others.length > 0 && (
-        <ul data-view className="grid gap-1">
-          {others.map((f) => (
-            <li key={f.id}>
-              <a href={`/files/${f.id}`} target="_blank" rel="noreferrer" className="inline-flex max-w-full items-center gap-1 text-primary underline-offset-4 hover:underline">
-                <PaperclipIcon className="size-3.5 shrink-0" aria-hidden />
-                <span className="truncate">{f.name}</span>
-              </a>
-            </li>
-          ))}
-        </ul>
       )}
       {mine && (
         <>
@@ -245,6 +246,38 @@ function CommentView({ t, c, mine, back, actions, fileOf, upload }: { t: T; c: C
             </Tooltip>
           </form>
         </>
+      )}
+    </div>
+  )
+}
+
+/** Pictures as thumbnails, other files as links (each opens /files/<id>). */
+function Attachments({ files }: { files: FileRow[] }) {
+  const images = files.filter((f) => f.mime.startsWith("image/"))
+  const others = files.filter((f) => !f.mime.startsWith("image/"))
+  return (
+    <div className="grid gap-2">
+      {images.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {images.map((f) => (
+            <a key={f.id} href={`/files/${f.id}`} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-md border bg-background">
+              {/* eslint-disable-next-line @next/next/no-img-element -- private file behind a short signed URL */}
+              <img src={`/files/${f.id}`} alt={f.name} loading="lazy" className="size-24 object-cover" />
+            </a>
+          ))}
+        </div>
+      )}
+      {others.length > 0 && (
+        <ul className="grid grid-cols-[minmax(0,1fr)] gap-1">
+          {others.map((f) => (
+            <li key={f.id} className="min-w-0">
+              <a href={`/files/${f.id}`} target="_blank" rel="noreferrer" className="inline-flex max-w-full items-center gap-1 text-primary underline-offset-4 hover:underline">
+                <PaperclipIcon className="size-3.5 shrink-0" aria-hidden />
+                <span className="truncate">{f.name}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   )
