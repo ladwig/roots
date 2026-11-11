@@ -1559,7 +1559,7 @@
     "validFrom": "Gültig ab",
     "validUntil": "Gültig bis",
     "codeTypes": "Gilt für",
-    "codeTypesHint": "Nichts ausgewählt = alle sichtbaren Ticketarten. Versteckte Arten gibt es nur mit einem Code, der sie hier auswählt; wie viele es davon gibt, steht im Kontingent der Ticketart.",
+    "codeTypesHint": "Nichts ausgewählt = alle sichtbaren Ticketarten. Mit Auswahl zeigt der Code (und sein Link) nur diese Arten – gut für eigene Kontingente, z. B. ein Friends-Link mit einer versteckten Ticketart. Versteckte Arten gibt es nur mit einem Code, der sie hier auswählt.",
     "codeActive": "Aktiv",
     "codeFormat": "Code: 3–40 Zeichen, Buchstaben, Zahlen und Bindestriche.",
     "codeValue": "Bitte einen gültigen Rabatt angeben (1–100 % oder einen Betrag).",

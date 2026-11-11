@@ -1559,7 +1559,7 @@
     "validFrom": "Valid from",
     "validUntil": "Valid until",
     "codeTypes": "Applies to",
-    "codeTypesHint": "Nothing selected = all visible ticket types. Hidden types are only sold with a code that selects them here; how many exist is the ticket type's quota.",
+    "codeTypesHint": "Nothing selected = all visible ticket types. With a selection, the code (and its link) shows only these types – good for separate contingents, e.g. a friends link with a hidden ticket type. Hidden types are only available with a code that selects them here.",
     "codeActive": "Active",
     "codeFormat": "Code: 3–40 characters, letters, digits and dashes.",
     "codeValue": "Please enter a valid discount (1–100 % or an amount).",
