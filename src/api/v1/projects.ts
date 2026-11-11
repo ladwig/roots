@@ -442,11 +442,11 @@ export const endpoints: Endpoint[] = [
     permission: "projects.view",
     tag: TAG,
     summary: "Edit a comment",
-    description: "Only the comment's author (the key's creator / the connected person) can edit it; attachments stay.",
-    body: z.object({ body: z.string().max(10_000) }).strict(),
+    description: "Only the comment's author (the key's creator / the connected person) can edit it. `file_ids` replaces the attachments (left out = unchanged; removed files stay in the documents).",
+    body: z.object({ body: z.string().max(10_000), file_ids: z.array(uuid).max(20).optional() }).strict(),
     response: Comment,
     async handler({ db, orgId, params, body }) {
-      const r = await editComment(db, orgId, params.id, body.body)
+      const r = await editComment(db, orgId, params.id, body.body, body.file_ids)
       if ("error" in r) fail(r)
       return (await db.from("comments").select(COMMENT_COLS).eq("id", params.id).single()).data as z.infer<typeof Comment>
     },

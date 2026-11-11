@@ -2,7 +2,6 @@ import Link from "next/link"
 import { CheckSquareIcon, PaperclipIcon, PencilIcon, Trash2Icon } from "lucide-react"
 import { CommentForm } from "@/components/comment-form"
 import { SubmitButton } from "@/components/submit-button"
-import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { T } from "@/i18n/translate"
 import type { getContext } from "@/lib/context"
@@ -121,10 +120,11 @@ export async function ActivityFeed({
     }),
   ].sort((a, b) => b.at.localeCompare(a.at))
   const fileOf = (id: string) => files?.find((f) => f.id === id)
+  const uploadTo = upload && ctx.can("org.files.manage") ? { orgId: ctx.org.id, ...upload } : undefined
 
   return (
     <div className="grid gap-5">
-      <CommentForm action={actions.add} entity={entity} entityId={entityId} back={back} files={upload && ctx.can("org.files.manage") ? { orgId: ctx.org.id, ...upload } : undefined} />
+      <CommentForm action={actions.add} entity={entity} entityId={entityId} back={back} files={uploadTo} />
       {feed.length > 0 && (
         <ol className="grid gap-4 border-l pl-4">
           {feed.map((e) => (
@@ -143,7 +143,7 @@ export async function ActivityFeed({
                 )}
               </span>
               {e.comment ? (
-                <CommentView t={t} c={e.comment} mine={e.comment.created_by === ctx.userId} back={back} actions={actions} fileOf={fileOf} />
+                <CommentView t={t} c={e.comment} mine={e.comment.created_by === ctx.userId} back={back} actions={actions} fileOf={fileOf} upload={uploadTo} />
               ) : e.event ? (
                 <p>{t(e.task ? (e.event === "created" ? "activity.taskCreated" : "activity.taskTrashed") : e.event === "created" ? "activity.created" : "activity.trashed")}</p>
               ) : (
@@ -163,7 +163,7 @@ export async function ActivityFeed({
   )
 }
 
-function CommentView({ t, c, mine, back, actions, fileOf }: { t: T; c: Comment; mine: boolean; back: string; actions: { edit: (fd: FormData) => Promise<void>; remove: (fd: FormData) => Promise<void> }; fileOf: (id: string) => { id: string; name: string; mime: string } | undefined }) {
+function CommentView({ t, c, mine, back, actions, fileOf, upload }: { t: T; c: Comment; mine: boolean; back: string; actions: { edit: (fd: FormData) => Promise<void>; remove: (fd: FormData) => Promise<void> }; fileOf: (id: string) => { id: string; name: string; mime: string } | undefined; upload?: { orgId: string; entity: string; entityId: string } }) {
   const attached = c.file_ids.map(fileOf).filter((f) => !!f)
   const images = attached.filter((f) => f.mime.startsWith("image/"))
   const others = attached.filter((f) => !f.mime.startsWith("image/"))
@@ -199,14 +199,7 @@ function CommentView({ t, c, mine, back, actions, fileOf }: { t: T; c: Comment; 
               <PencilIcon className="size-3.5" aria-hidden />
               {t("activity.edit")}
             </summary>
-            <form action={actions.edit} className="grid gap-2">
-              <input type="hidden" name="id" value={c.id} />
-              <input type="hidden" name="back" value={back} />
-              <Textarea name="body" defaultValue={c.body} maxLength={10000} rows={3} aria-label={t("activity.edit")} className="bg-background" />
-              <SubmitButton size="sm" variant="outline" className="justify-self-start">
-                {t("common.save")}
-              </SubmitButton>
-            </form>
+            <CommentForm action={actions.edit} entity={c.entity} entityId={c.entity_id} back={back} files={upload} edit={{ id: c.id, body: c.body, files: attached.map((f) => ({ id: f.id, name: f.name })) }} />
           </details>
           <form action={actions.remove} className="self-start">
             <input type="hidden" name="id" value={c.id} />

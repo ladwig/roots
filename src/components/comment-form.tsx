@@ -19,10 +19,10 @@ const noop = () => () => {}
  * attachments. Attachments upload at once into the record's files (`files` = where: the project), the comment keeps
  * their ids. Posts to `action` like a normal form.
  */
-export function CommentForm({ action, entity, entityId, back, files }: { action: (fd: FormData) => Promise<void>; entity: string; entityId: string; back: string; files?: { orgId: string; entity: string; entityId: string } }) {
+export function CommentForm({ action, entity, entityId, back, files, edit }: { action: (fd: FormData) => Promise<void>; entity: string; entityId: string; back: string; files?: { orgId: string; entity: string; entityId: string }; edit?: { id: string; body: string; files: { id: string; name: string }[] } }) {
   const t = useT()
-  const [text, setText] = useState("")
-  const [attached, setAttached] = useState<{ id: string; name: string }[]>([])
+  const [text, setText] = useState(edit?.body ?? "")
+  const [attached, setAttached] = useState<{ id: string; name: string }[]>(edit?.files ?? [])
   const [listening, setListening] = useState(false)
   const [uploading, startUpload] = useTransition()
   const rec = useRef<Recognition | null>(null)
@@ -65,8 +65,10 @@ export function CommentForm({ action, entity, entityId, back, files }: { action:
         try {
           await action(fd) // redirects back with a toast
         } finally {
-          setText("")
-          setAttached([])
+          if (!edit) {
+            setText("")
+            setAttached([])
+          }
         }
       }}
       className="grid gap-2"
@@ -74,8 +76,9 @@ export function CommentForm({ action, entity, entityId, back, files }: { action:
       <input type="hidden" name="entity" value={entity} />
       <input type="hidden" name="entity_id" value={entityId} />
       <input type="hidden" name="back" value={back} />
+      {edit && <input type="hidden" name="id" value={edit.id} />}
       <input type="hidden" name="file_ids" value={attached.map((a) => a.id).join(",")} />
-      <Textarea name="body" value={text} onChange={(e) => setText(e.target.value)} maxLength={10000} rows={3} placeholder={t(listening ? "activity.listening" : "activity.placeholder")} aria-label={t("activity.placeholder")} />
+      <Textarea name="body" value={text} onChange={(e) => setText(e.target.value)} maxLength={10000} rows={3} autoFocus={!!edit} placeholder={t(listening ? "activity.listening" : "activity.placeholder")} aria-label={t("activity.placeholder")} />
       {attached.length > 0 && (
         <ul className="flex flex-wrap gap-1">
           {attached.map((a) => (
@@ -90,7 +93,7 @@ export function CommentForm({ action, entity, entityId, back, files }: { action:
       )}
       <div className="flex flex-wrap items-center gap-2">
         <SubmitButton size="sm" disabled={uploading || (!text.trim() && !attached.length)}>
-          {t("activity.comment")}
+          {t(edit ? "common.save" : "activity.comment")}
         </SubmitButton>
         {canDictate && (
           <Tooltip>

@@ -240,7 +240,7 @@ export async function addCommentAction(fd: FormData) {
 
 export async function editCommentAction(fd: FormData) {
   const { ctx, t } = await viewer()
-  const r = await editComment(ctx.supabase, ctx.org.id, id(fd, "id") ?? "", String(fd.get("body") ?? ""))
+  const r = await editComment(ctx.supabase, ctx.org.id, id(fd, "id") ?? "", String(fd.get("body") ?? ""), fd.has("file_ids") ? String(fd.get("file_ids")).split(",").filter(Boolean) : undefined)
   back(backTo(fd, "/projects"), "error" in r ? { error: message(t, r) } : {})
 }
 

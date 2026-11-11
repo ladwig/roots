@@ -219,14 +219,20 @@ export async function addComment(db: Db, orgId: string, entity: string, entityId
   return error || !data ? dbFail(error ?? { message: "insert failed" }) : { id: data.id }
 }
 
-/** Only the author changes or removes a comment (RLS in the App; the API's service client checks it here). */
-export async function editComment(db: Db, orgId: string, id: string, body: string): Promise<ProjectFail | { id: string }> {
+/** Only the author changes or removes a comment (RLS in the App; the API's service client checks it here). `fileIds` = the attachments now (undefined = unchanged). */
+export async function editComment(db: Db, orgId: string, id: string, body: string, fileIds?: string[]): Promise<ProjectFail | { id: string }> {
   const text = body.replace(/\r\n/g, "\n").trim().slice(0, 10_000)
   const { data: me } = await db.rpc("actor")
   const { data: c } = await db.from("comments").select("file_ids").eq("id", id).eq("org_id", orgId).eq("created_by", me ?? "").maybeSingle()
   if (!c) return { error: "errors.not_allowed" }
-  if (!text && !c.file_ids.length) return { error: "projects.commentEmpty" }
-  const { error } = await db.from("comments").update({ body: text }).eq("id", id).eq("org_id", orgId).eq("created_by", me ?? "")
+  const files = fileIds === undefined ? c.file_ids : [...new Set(fileIds.filter((f) => UUID.test(f)))].slice(0, 20)
+  if (!text && !files.length) return { error: "projects.commentEmpty" }
+  const added = files.filter((f) => !c.file_ids.includes(f))
+  if (added.length) {
+    const { count } = await db.from("files").select("id", { count: "exact", head: true }).eq("org_id", orgId).in("id", added)
+    if (count !== added.length) return { error: "errors.not_allowed" }
+  }
+  const { error } = await db.from("comments").update({ body: text, file_ids: files }).eq("id", id).eq("org_id", orgId).eq("created_by", me ?? "")
   return error ? dbFail(error) : { id }
 }
 
