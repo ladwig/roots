@@ -725,7 +725,8 @@
     "attachHint": "Attach photos and files – they are stored in the project's documents",
     "detach": "Remove {name}",
     "confirmDelete": "Delete comment?",
-    "confirmDeleteHint": "Attached files stay in the documents."
+    "confirmDeleteHint": "Attached files stay in the documents.",
+    "photo": "Take photo"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",

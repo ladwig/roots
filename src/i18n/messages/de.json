@@ -725,7 +725,8 @@
     "attachHint": "Fotos und Dateien anhängen – sie landen in den Dokumenten des Projekts",
     "detach": "{name} entfernen",
     "confirmDelete": "Kommentar löschen?",
-    "confirmDeleteHint": "Angehängte Dateien bleiben in den Dokumenten."
+    "confirmDeleteHint": "Angehängte Dateien bleiben in den Dokumenten.",
+    "photo": "Foto aufnehmen"
   },
   "errors": {
     "generic": "Etwas ist schiefgelaufen. Bitte versuch es noch einmal.",

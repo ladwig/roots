@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState, useSyncExternalStore, useTransition } from "react"
-import { Loader2Icon, MicIcon, PaperclipIcon, SquareIcon, XIcon } from "lucide-react"
+import { CameraIcon, Loader2Icon, MicIcon, PaperclipIcon, SquareIcon, XIcon } from "lucide-react"
 import { uploadFiles } from "@/components/file-upload"
 import { SubmitButton } from "@/components/submit-button"
 import { Button } from "@/components/ui/button"
@@ -29,6 +29,7 @@ export function CommentForm({ action, entity, entityId, back, files, edit }: { a
   const [uploading, startUpload] = useTransition()
   const rec = useRef<Recognition | null>(null)
   const picker = useRef<HTMLInputElement>(null)
+  const camera = useRef<HTMLInputElement>(null)
   const canDictate = useSyncExternalStore(noop, () => !!speech(), () => false)
 
   const dictate = () => {
@@ -64,7 +65,7 @@ export function CommentForm({ action, entity, entityId, back, files, edit }: { a
     startUpload(async () => {
       const done = await uploadFiles(files.orgId, picked, { entity: files.entity, entityId: files.entityId }, t)
       setAttached((a) => [...a, ...done.map((f) => ({ id: f.id!, name: f.name }))].slice(0, 20))
-      if (picker.current) picker.current.value = ""
+      for (const el of [picker.current, camera.current]) if (el) el.value = ""
     })
   }
 
@@ -116,6 +117,14 @@ export function CommentForm({ action, entity, entityId, back, files, edit }: { a
         {files && (
           <>
             <input ref={picker} type="file" multiple hidden onChange={(e) => attach(e.target.files)} />
+            {/* Phones/tablets: straight to the rear camera (the paperclip still offers camera, library and files). */}
+            <input ref={camera} type="file" accept="image/*" capture="environment" hidden onChange={(e) => attach(e.target.files)} />
+            <Tooltip>
+              <TooltipTrigger render={<Button type="button" size="icon-sm" variant="ghost" disabled={uploading} onClick={() => camera.current?.click()} aria-label={t("activity.photo")} className="pointer-fine:hidden" />}>
+                <CameraIcon />
+              </TooltipTrigger>
+              <TooltipContent>{t("activity.photo")}</TooltipContent>
+            </Tooltip>
             <Tooltip>
               <TooltipTrigger render={<Button type="button" size="icon-sm" variant="ghost" disabled={uploading} onClick={() => picker.current?.click()} aria-label={t("activity.attach")} />}>
                 {uploading ? <Loader2Icon className="animate-spin" /> : <PaperclipIcon />}
