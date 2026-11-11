@@ -3473,7 +3473,8 @@
     "mailText": "Hello {name},\n\nplease find “{document}” attached as a PDF.\n\nKind regards\n{org}",
     "folder": "Letters",
     "defaultHint": "Default template from roots. Copy it to change it.",
-    "placeholdersTitle": "Placeholders"
+    "placeholdersTitle": "Placeholders",
+    "sentAndSaved": "Sent and saved on the rental and the contact."
   },
   "search": {
     "open": "Search",
@@ -5255,7 +5256,8 @@
     "restore": "Restore",
     "restored": "Restored.",
     "portalNone": "Nothing running for you right now.",
-    "portalRole": "You are"
+    "portalRole": "You are",
+    "portalDocs": "Documents"
   },
   "oauth": {
     "title": "Connect {app} to roots",

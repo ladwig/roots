@@ -3473,7 +3473,8 @@
     "mailText": "Guten Tag {name},\n\nanbei erhalten Sie „{document}“ als PDF.\n\nMit freundlichen Grüßen\n{org}",
     "folder": "Briefe",
     "defaultHint": "Standardvorlage von roots. Zum Ändern kopieren.",
-    "placeholdersTitle": "Platzhalter"
+    "placeholdersTitle": "Platzhalter",
+    "sentAndSaved": "Verschickt und beim Mietverhältnis und Kontakt abgelegt."
   },
   "search": {
     "open": "Suchen",
@@ -5255,7 +5256,8 @@
     "restore": "Wiederherstellen",
     "restored": "Wiederhergestellt.",
     "portalNone": "Gerade läuft bei dir nichts.",
-    "portalRole": "Du bist"
+    "portalRole": "Du bist",
+    "portalDocs": "Dokumente"
   },
   "oauth": {
     "title": "{app} mit roots verbinden",

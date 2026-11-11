@@ -1,4 +1,6 @@
+import { FileTextIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { sitePath } from "@/lib/url"
 import { getT } from "@/i18n/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { rentalState } from "@/rentals/fields"
@@ -20,7 +22,7 @@ export async function hasRentals(orgId: string, contactId: string) {
 
 // "Meine Miete": the person's running and upcoming rentals (object, period, the people on it; rent, deposit and notice
 // only for main tenants) and the keys/things handed out to them. Reads only rows of this contact in this org.
-export async function RentalsSection({ orgId, contact, tab }: SectionProps) {
+export async function RentalsSection({ orgId, site, contact, tab }: SectionProps) {
   if (tab !== "rental") return null
   const t = await getT()
   const { data } = await createAdminClient()
@@ -34,6 +36,11 @@ export async function RentalsSection({ orgId, contact, tab }: SectionProps) {
   const mine = (data ?? []).filter((x) => ["running", "upcoming"].includes(rentalState(x.rentals, now)))
   const places = mine.filter((x) => x.rentals.rental_objects?.family !== "access")
   const keys = mine.filter((x) => x.rentals.rental_objects?.family === "access")
+  // Documents shared with the main tenant (contracts saved from the App land here, meta.portal).
+  const mainIds = places.filter((x) => x.role === "main").map((x) => x.rentals.id)
+  const { data: docs } = mainIds.length
+    ? await createAdminClient().from("files").select("id, name, entity_id, created_at").eq("org_id", orgId).eq("entity", "rentals").in("entity_id", mainIds).eq("meta->>portal", "true").is("deleted_at", null).order("created_at", { ascending: false })
+    : { data: [] as { id: string; name: string; entity_id: string | null; created_at: string }[] }
   const day = (v: string) => t.date(v, { dateStyle: "medium" })
   const kind = (k: string) => (t.has(`rentals.kinds.${k}`) ? t.dynamic(`rentals.kinds.${k}`) : k)
   const box = "grid gap-3 rounded-xl border bg-card p-5"
@@ -81,6 +88,23 @@ export async function RentalsSection({ orgId, contact, tab }: SectionProps) {
                 .join(", ")}
             </dd>
           </dl>
+          {(docs ?? []).some((d) => d.entity_id === r.id) && (
+            <div className="grid gap-1.5">
+              <h3 className="text-sm font-medium">{t("rentals.portalDocs")}</h3>
+              <ul className="grid gap-1 text-sm">
+                {(docs ?? [])
+                  .filter((d) => d.entity_id === r.id)
+                  .map((d) => (
+                    <li key={d.id}>
+                      <a href={sitePath(site, `/portal/file/${d.id}`)} className="inline-flex max-w-full items-center gap-1.5 text-primary underline-offset-4 hover:underline">
+                        <FileTextIcon className="size-4 shrink-0" aria-hidden />
+                        <span className="truncate">{d.name}</span>
+                      </a>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
         </div>
       ))}
       {keys.length > 0 && (

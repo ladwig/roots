@@ -26,11 +26,12 @@ export default async function TemplatePage({ params, searchParams }: PageProps<"
   const t = await getT()
   const sp = await searchParams
   const contactId = param(sp, "contact")
+  const rentalId = param(sp, "rental")
   const canPickContact = ctx.can("crm.view")
   const [template, head, filled, { data: contact }] = await Promise.all([
     loadTemplate(ctx, id),
     letterhead(ctx),
-    contactId && canPickContact ? contactVars(ctx, t, contactId) : Promise.resolve(null),
+    contactId && canPickContact ? contactVars(ctx, t, contactId, rentalId) : Promise.resolve(null),
     contactId && canPickContact
       ? ctx.supabase.from("contacts").select("id, first_name, last_name, company, email").eq("id", contactId).eq("org_id", ctx.org.id).maybeSingle()
       : Promise.resolve({ data: null }),
@@ -78,6 +79,7 @@ export default async function TemplatePage({ params, searchParams }: PageProps<"
         initialFilled={filled}
         canManage={canManage}
         canPickContact={canPickContact}
+        rentalId={filled?.rentalId ?? null}
       />
 
       {editing && (

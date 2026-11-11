@@ -1,7 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { FileTextIcon, Trash2Icon, XIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Trash2Icon, XIcon } from "lucide-react"
 import { ActionsMenu, MenuSubmit } from "@/components/actions-menu"
 import { Choice } from "@/components/choice"
 import { ContactPicker } from "@/components/contact-picker"
@@ -28,6 +27,7 @@ import { RENTAL_COLS } from "@/rentals/server"
 import { contactName } from "../../../contacts/fields"
 import { addPersonAction, giveNoticeAction, removePersonAction, returnAction, trashRentalAction, updateRentalAction } from "../../actions"
 import { kindLabel, period, StateBadge } from "../../parts"
+import { ContractMenu } from "./contract-menu"
 import { DateInput } from "@/components/date-input"
 
 // One rental (Mietvertrag / Buchung / Ausleihe / Ausgabe): people with roles, period and terms (saved by the save bar),
@@ -39,10 +39,14 @@ export default async function RentalPage({ params, searchParams }: PageProps<"/r
   const t = await getT()
   const sp = await searchParams
   const canManage = ctx.can("rentals.manage")
-  const [{ data: r }, { data: handouts }, defs] = await Promise.all([
+  const [{ data: r }, { data: handouts }, defs, { data: contracts }] = await Promise.all([
     ctx.supabase.from("rentals").select(`${RENTAL_COLS}, rental_objects(id, name, kind, family, parent_id), rental_rates(name)`).eq("id", id).eq("org_id", ctx.org.id).maybeSingle(),
     ctx.supabase.from("rentals").select(`${RENTAL_COLS}, rental_objects(id, name, kind)`).eq("parent_id", id).eq("org_id", ctx.org.id).is("deleted_at", null).order("starts_at"),
     loadFields(ctx.supabase, ctx.org.id, "rentals"),
+    // Contract templates = letter templates that use the rental's placeholders (own ones first).
+    ctx.can("org.files.view")
+      ? ctx.supabase.from("letter_templates").select("id, name, org_id").or(`org_id.is.null,org_id.eq.${ctx.org.id}`).is("deleted_at", null).ilike("body", "%{rental\\_%").order("name")
+      : Promise.resolve({ data: [] as { id: string; name: string; org_id: string | null }[] }),
   ])
   if (!r || !r.rental_objects) notFound()
   const o = r.rental_objects
@@ -65,9 +69,13 @@ export default async function RentalPage({ params, searchParams }: PageProps<"/r
         actions={
           <>
             {ctx.can("org.files.view") && people.some((p) => p.role === "main") && (
-              <Button render={<Link href={`/files/templates?contact=${people.find((p) => p.role === "main")!.contact_id}`} />} nativeButton={false} size="sm" variant="outline">
-                <FileTextIcon /> {t("rentals.writeContract")}
-              </Button>
+              <ContractMenu
+                label={t("rentals.writeContract")}
+                chooseHref={`/files/templates?contact=${people.find((p) => p.role === "main")!.contact_id}&rental=${id}`}
+                items={[...(contracts ?? [])]
+                  .sort((a, b) => Number(a.org_id === null) - Number(b.org_id === null))
+                  .map((c) => ({ href: `/files/templates/${c.id}?contact=${people.find((p) => p.role === "main")!.contact_id}&rental=${id}`, label: c.name }))}
+              />
             )}
             {editable && state === "running" && !long && (
               <form action={returnAction}>

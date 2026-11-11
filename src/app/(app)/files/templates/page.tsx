@@ -23,7 +23,8 @@ export default async function TemplatesPage({ searchParams }: PageProps<"/files/
   const trash = canManage && param(sp, "trash") === "1"
   // From a contact's "Brief erstellen": keep the contact for the template that gets picked.
   const contact = param(sp, "contact")
-  const forContact = contact && /^[0-9a-f-]{36}$/.test(contact) ? `?contact=${contact}` : ""
+  const rental = param(sp, "rental")
+  const forContact = contact && /^[0-9a-f-]{36}$/.test(contact) ? `?contact=${contact}${rental && /^[0-9a-f-]{36}$/.test(rental) ? `&rental=${rental}` : ""}` : ""
   const cols = "id, org_id, name, updated_at"
   const { data } = trash
     ? await ctx.supabase.from("letter_templates").select(cols).eq("org_id", ctx.org.id).not("deleted_at", "is", null).order("deleted_at", { ascending: false })

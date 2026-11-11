@@ -72,6 +72,7 @@ const TemplateBody = z.object({
 const LetterInput = z
   .object({
     contact_id: uuid.optional().describe("Fills the contact's placeholders and the address (needs crm.view)"),
+    rental_id: uuid.optional().describe("With contact_id: fill the rental_* placeholders from this rental of the contact (else their newest); saving then also puts the PDF on the rental, shared in the tenant's member area"),
     date: day.optional().describe("Letter date, default today"),
     fields: z.record(z.string().max(40), z.string().max(10000)).optional().describe("Values of the template's own fields: { key: value }"),
   })
@@ -92,7 +93,7 @@ async function apiLetter(db: Db, orgId: string, templateId: string, input: z.inf
     const { data: can } = await db.rpc("has_perm", { p_org: orgId, p_perm: "crm.view" })
     if (!can) throw new ApiError(403, "forbidden", 'Filling in a contact needs the permission "crm.view".')
   }
-  const letter = await fillLetter(ctx, docT(), template, { contactId: input.contact_id, date: input.date, values: input.fields ?? {} })
+  const letter = await fillLetter(ctx, docT(), template, { contactId: input.contact_id, rentalId: input.rental_id, date: input.date, values: input.fields ?? {} })
   if (input.contact_id && !letter.contactId) throw new ApiError(422, "invalid_reference", "contact_id does not belong to this organisation.")
   return { ctx, letter, bytes: await letterPdf(letter) }
 }

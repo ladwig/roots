@@ -32,6 +32,7 @@ export function Composer({
   initialFilled,
   canManage,
   canPickContact,
+  rentalId,
 }: {
   template: { id: string; name: string; title: string; body: string; letterhead: boolean }
   fields: LetterField[]
@@ -42,6 +43,7 @@ export function Composer({
   initialFilled: Filled | null
   canManage: boolean
   canPickContact: boolean
+  rentalId?: string | null // a rental's contract: values from that rental, the PDF also goes onto it
 }) {
   const t = useT()
   const form = useRef<HTMLFormElement>(null)
@@ -67,7 +69,7 @@ export function Composer({
 
   const pickContact = (c: Contact | null) => {
     if (!c) return setFilled(null)
-    startLoading(async () => setFilled(await letterContact(c.id)))
+    startLoading(async () => setFilled(await letterContact(c.id, rentalId)))
   }
   const run = (kind: "save" | "send") => {
     if (!form.current?.reportValidity()) return
@@ -88,6 +90,7 @@ export function Composer({
     <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:items-start">
       <form ref={form} action={`/files/templates/${template.id}/pdf`} method="post" className="grid gap-4">
         <input type="hidden" name="template" value={template.id} />
+        {rentalId && <input type="hidden" name="rental" value={rentalId} />}
         {canPickContact && (
           <div className="grid gap-1.5">
             <ContactPicker name="contact" label={t("letters.recipient")} placeholder={t("letters.recipientPlaceholder")} initial={initialContact} onChange={pickContact} />

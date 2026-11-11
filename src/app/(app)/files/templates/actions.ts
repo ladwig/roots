@@ -81,10 +81,10 @@ export async function restoreTemplate(fd: FormData) {
 }
 
 /** Placeholder values + address of a contact, for the live preview. */
-export async function letterContact(contactId: string) {
+export async function letterContact(contactId: string, rentalId?: string | null) {
   const ctx = await getContext()
   if (!ctx.can("org.files.view") || !ctx.can("crm.view")) return null
-  return contactVars(ctx, await getT(), String(contactId))
+  return contactVars(ctx, await getT(), String(contactId), rentalId ? String(rentalId) : null)
 }
 
 async function pdfFromForm(fd: FormData) {
@@ -120,7 +120,10 @@ export async function sendLetter(fd: FormData): Promise<{ ok?: string; error?: s
       html: textHtml(message),
       attachments: [{ filename: letterFileName(letter.title, letter.vars.name ?? ""), content: bytes }],
     }, { kind: "letter", entity: "contacts", entityId: letter.contactId })
-    return sent ? { ok: t("letters.sent") } : { error: t("email.noProvider") }
+    if (!sent) return { error: t("email.noProvider") }
+    // A sent contract also goes into the rental's (and the contact's) documents.
+    if (letter.rentalId) await storeLetter(ctx, letter, bytes, t("letters.folder"))
+    return { ok: t(letter.rentalId ? "letters.sentAndSaved" : "letters.sent") }
   } catch (e) {
     return { error: e instanceof Error ? e.message : String(e) }
   }

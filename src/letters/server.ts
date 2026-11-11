@@ -23,24 +23,25 @@ export async function letterhead(ctx: Ctx) {
   return { seller, logoUrl: (ctx.org.logo_path && imageUrl(ctx.org.logo_path)) || null }
 }
 
-/** Placeholder values + address lines for a contact of the active org (latest membership included). */
-export async function contactVars(ctx: Ctx, t: T, contactId: string): Promise<{ vars: Vars; recipient: string[] } | null> {
+/** Placeholder values + address lines for a contact of the active org (latest membership; `rentalId` = that rental of theirs, else their newest). */
+export async function contactVars(ctx: Ctx, t: T, contactId: string, rentalId?: string | null): Promise<{ vars: Vars; recipient: string[]; rentalId: string | null } | null> {
   if (!/^[0-9a-f-]{36}$/.test(contactId)) return null
   const { data: c } = await ctx.supabase
     .from("contacts")
     .select(
-      "first_name, last_name, company, email, street, postal_code, city, memberships(member_no, starts_on, ends_on, deleted_at, membership_types(name)), rental_contacts(rentals(starts_at, ends_at, status, price_cents, unit, deposit_cents, notice_months, deleted_at, rental_objects(name), rental_contacts(role, contacts(first_name, last_name, company))))",
+      "first_name, last_name, company, email, street, postal_code, city, memberships(member_no, starts_on, ends_on, deleted_at, membership_types(name)), rental_contacts(rentals(id, starts_at, ends_at, status, price_cents, unit, deposit_cents, notice_months, deleted_at, rental_objects(name), rental_contacts(role, contacts(first_name, last_name, company))))",
     )
     .eq("id", contactId)
     .eq("org_id", ctx.org.id)
     .maybeSingle()
   if (!c) return null
   const m = c.memberships.filter((x) => !x.deleted_at).sort((a, b) => b.starts_on.localeCompare(a.starts_on))[0]
-  // The contact's newest live rental (contract letters). ponytail: newest one wins; pick per rental if people have several.
-  const r = (c.rental_contacts ?? [])
+  // Contract letters: the given rental of this contact, else their newest live one.
+  const live = (c.rental_contacts ?? [])
     .map((x) => x.rentals)
     .filter((x): x is NonNullable<typeof x> => !!x && !x.deleted_at && x.status !== "cancelled")
-    .sort((a, b) => b.starts_at.localeCompare(a.starts_at))[0]
+    .sort((a, b) => b.starts_at.localeCompare(a.starts_at))
+  const r = (rentalId ? live.find((x) => x.id === rentalId) : null) ?? live[0]
   const person = (p: { first_name: string | null; last_name: string | null; company: string | null } | null) => (p ? [p.first_name, p.last_name].filter(Boolean).join(" ") || p.company || "" : "")
   const name = [c.first_name, c.last_name].filter(Boolean).join(" ") || c.company || ""
   const place = [c.postal_code, c.city].filter(Boolean).join(" ")
@@ -67,6 +68,7 @@ export async function contactVars(ctx: Ctx, t: T, contactId: string): Promise<{ 
       rental_people: (r?.rental_contacts ?? []).filter((p) => p.role === "main").map((p) => person(p.contacts)).filter(Boolean).join(", "),
     },
     recipient: [c.company && name !== c.company ? c.company : "", name, c.street ?? "", place],
+    rentalId: rentalId && r?.id === rentalId ? rentalId : null,
   }
 }
 
@@ -82,13 +84,13 @@ export async function letterFromForm(ctx: Ctx, t: T, fd: FormData) {
   const template = await loadTemplate(ctx, String(fd.get("template") ?? ""))
   if (!template) return null
   const values = Object.fromEntries(readFields(template.fields).map((f) => [f.key, String(fd.get(`f.${f.key}`) ?? "")]))
-  return fillLetter(ctx, t, template, { contactId: String(fd.get("contact") ?? ""), date: String(fd.get("date") ?? ""), values })
+  return fillLetter(ctx, t, template, { contactId: String(fd.get("contact") ?? ""), rentalId: String(fd.get("rental") ?? "") || null, date: String(fd.get("date") ?? ""), values })
 }
 
 /** The filled letter: template + contact's placeholder values + date (YYYY-MM-DD, default today) + field values. */
-export async function fillLetter(ctx: Ctx, t: T, template: LetterTemplate, input: { contactId?: string | null; date?: string | null; values: Record<string, string> }) {
+export async function fillLetter(ctx: Ctx, t: T, template: LetterTemplate, input: { contactId?: string | null; rentalId?: string | null; date?: string | null; values: Record<string, string> }) {
   const contactId = input.contactId ?? ""
-  const [head, contact] = await Promise.all([letterhead(ctx), contactId ? contactVars(ctx, t, contactId) : Promise.resolve(null)])
+  const [head, contact] = await Promise.all([letterhead(ctx), contactId ? contactVars(ctx, t, contactId, input.rentalId) : Promise.resolve(null)])
   const fields = readFields(template.fields)
   const values = Object.fromEntries(fields.map((f) => [f.key, input.values[f.key] ?? ""]))
   const iso = input.date ?? ""
@@ -96,32 +98,33 @@ export async function fillLetter(ctx: Ctx, t: T, template: LetterTemplate, input
   const vars: Vars = { ...contact?.vars, org: head.seller.legal_name ?? ctx.org.name, today: date, ...fieldVars(fields, values, (d) => longDate(t, d)) }
   const title = fillText(template.title, vars) || template.name
   const view = buildLetterView({ title, body: fillHtml(template.body, vars), recipient: contact?.recipient ?? [], date, plain: !template.letterhead }, head.seller, head.logoUrl, t)
-  return { template, view, title, vars, contactId: contact ? contactId : null, email: contact?.vars.email ?? "" }
+  return { template, view, title, vars, contactId: contact ? contactId : null, rentalId: contact?.rentalId ?? null, email: contact?.vars.email ?? "" }
 }
 export type Letter = NonNullable<Awaited<ReturnType<typeof fillLetter>>>
 
 export const letterPdf = async (letter: Letter) => renderPdf(letter.view, letter.view.plain ? null : await pdfLogo(letter.view.logoUrl))
 
-/** Stores the letter PDF in Dateien: attached to the contact, else in the given folder ("Briefe"). Returns the file id. */
-export async function storeLetter(ctx: Ctx, letter: Letter, bytes: Uint8Array, folder: string) {
-  const path = `orgs/${ctx.org.id}/${crypto.randomUUID()}.pdf`
-  const { error: upload } = await ctx.supabase.storage.from("files").upload(path, bytes, { contentType: "application/pdf" })
-  if (upload) return { error: { message: upload.message } }
-  const { data, error } = await ctx.supabase
-    .from("files")
-    .insert({
-      org_id: ctx.org.id,
-      name: letterFileName(letter.title, letter.vars.name ?? ""),
-      path,
-      mime: "application/pdf",
-      size: bytes.length,
-      entity: letter.contactId ? "contacts" : null,
-      entity_id: letter.contactId,
-      folder: letter.contactId ? null : folder,
-    })
-    .select("id")
-    .single()
-  return error ? { error } : { id: data.id }
+/**
+ * Stores the letter PDF in Dateien: attached to the contact (else in the given folder, "Briefe") and, for a rental's
+ * letter (contract), also on the rental, shared with the tenant's member area. Returns the contact's file id.
+ */
+export async function storeLetter(ctx: Ctx, letter: Letter, bytes: Uint8Array, folder: string): Promise<{ id: string; error?: undefined } | { error: { code?: string; message: string }; id?: undefined }> {
+  const put = async (target: { entity: string | null; entity_id: string | null; folder: string | null; meta?: Record<string, unknown> }): Promise<{ id: string } | { error: { code?: string; message: string } }> => {
+    const path = `orgs/${ctx.org.id}/${crypto.randomUUID()}.pdf`
+    const { error: upload } = await ctx.supabase.storage.from("files").upload(path, bytes, { contentType: "application/pdf" })
+    if (upload) return { error: { message: upload.message } }
+    const { data, error } = await ctx.supabase
+      .from("files")
+      .insert({ org_id: ctx.org.id, name: letterFileName(letter.title, letter.vars.name ?? ""), path, mime: "application/pdf", size: bytes.length, ...target, meta: (target.meta ?? {}) as never })
+      .select("id")
+      .single()
+    return error ? { error } : { id: data.id }
+  }
+  // ponytail: two copies (contact + rental) so removing one never breaks the other
+  const main = await put(letter.contactId ? { entity: "contacts", entity_id: letter.contactId, folder: null } : { entity: null, entity_id: null, folder })
+  if ("error" in main || !letter.rentalId) return main
+  const onRental = await put({ entity: "rentals", entity_id: letter.rentalId, folder: null, meta: { portal: true } })
+  return "error" in onRental ? onRental : main
 }
 
 /** Plain text → simple HTML paragraphs (escaped), for mails with a PDF attachment. */
