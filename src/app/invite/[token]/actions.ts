@@ -7,7 +7,8 @@ import { authError, dbError } from "@/i18n/translate"
 import { setActiveOrg, getSession } from "@/lib/context"
 import { back, APP_HOME, callbackUrl } from "@/lib/url"
 import { createClient } from "@/lib/supabase/server"
-import { inviteSignupProblem, signupOutcome } from "@/invites/signup"
+import { inviteSignupProblem } from "@/invites/signup"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { MIN_PASSWORD } from "@/lib/inputs"
 
 export async function acceptInvite(token: string) {
@@ -29,7 +30,7 @@ async function openInvite(token: string) {
   return { supabase, invite: invite?.valid ? invite : null }
 }
 
-/** Create an account from the invite page (the email is the invited one); the mail link brings the person back here. */
+/** Create an account from the invite page (the email is the invited one), sign in and join the org. */
 export async function signUpForInvite(formData: FormData) {
   const token = String(formData.get("token") ?? "")
   const email = String(formData.get("email") ?? "").trim().toLowerCase()
@@ -43,19 +44,14 @@ export async function signUpForInvite(formData: FormData) {
   if (problem === "email_mismatch") back(invitePath(token), { error: t("invite.emailMismatch", { email: invite.email }) })
   if (problem === "password_short") back(invitePath(token), { error: t("auth.passwordTooShort", { min: MIN_PASSWORD }) })
 
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: { emailRedirectTo: callbackUrl(invitePath(token)), data: fullName ? { full_name: fullName } : undefined },
-  })
-  if (error?.code === "user_already_exists" || error?.code === "email_exists")
-    back(invitePath(token), { error: t("invite.accountExists", { email }) })
+  // The invite reached this address by mail, so the address is proven: create the account confirmed (no second
+  // "confirm your email" mail from Supabase), sign in and join in one go.
+  const { error } = await createAdminClient().auth.admin.createUser({ email: invite.email, password, email_confirm: true, user_metadata: fullName ? { full_name: fullName } : undefined })
+  if (error?.code === "user_already_exists" || error?.code === "email_exists") back(invitePath(token), { error: t("invite.accountExists", { email: invite.email }) })
   if (error) back(invitePath(token), { error: authError(t, error) })
-
-  const outcome = signupOutcome(data)
-  if (outcome === "exists") back(invitePath(token), { error: t("invite.accountExists", { email }) })
-  if (outcome === "signed_in") redirect(invitePath(token))
-  redirect(`${invitePath(token)}?${new URLSearchParams({ sent: email })}`)
+  const { error: signInError } = await supabase.auth.signInWithPassword({ email: invite.email, password })
+  if (signInError) back(invitePath(token), { error: authError(t, signInError) })
+  await acceptInvite(token)
 }
 
 export async function resendInviteConfirmation(formData: FormData) {
