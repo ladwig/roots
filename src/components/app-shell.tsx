@@ -24,7 +24,7 @@ export async function AppShell({
   title: string
   search?: boolean // ⌘K search over the active org (App only); also turns on Sprout, the assistant panel
   orgId?: string // the active org: Sprout starts fresh (setup, chat) when it changes
-  bar?: React.ReactNode // replaces the page title in the top bar (the App shows the org and its Dateien/Einstellungen)
+  bar?: React.ReactNode // replaces the page title in the top bar
   children: React.ReactNode
 }) {
   // Open/collapsed is remembered in the sidebar_state cookie (set by the shadcn sidebar).
