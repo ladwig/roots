@@ -33,7 +33,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     ...(moduleLinks.length ? [{ label: t("home.modules"), items: moduleLinks }] : []),
     {
       // Files and settings have their sub-pages in a section nav beside the page, so plain links here.
-      label: t("shell.org"),
+      label: t("general.org"),
       items: [
         ...(ctx.can("org.files.view") ? [{ href: "/files", label: t("files.title"), icon: <FolderIcon /> }] : []),
         { href: "/settings/profile", label: t("shell.settings"), icon: <SettingsIcon /> },
